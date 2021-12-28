@@ -143,3 +143,17 @@ def with_securityparameters():
     Provides a spec with security parameters
     """
     yield _get_parsed_yaml("with-securityparameters.yaml")
+
+@pytest.fixture
+def with_parameters():
+    """
+    Provides a spec with parameters
+    """
+    yield _get_parsed_yaml("with-parameters.yaml")
+
+@pytest.fixture
+def with_callback():
+    """
+    Provides a spec with callback
+    """
+    yield _get_parsed_yaml("callback-example.yaml")
