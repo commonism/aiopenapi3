@@ -22,6 +22,6 @@ setup(
     url="https://github.com/dorthu/openapi3",
     packages=['openapi3'],
     license="BSD 3-Clause License",
-    install_requires=["PyYaml", "requests"],
+    install_requires=["PyYaml", "requests", "pydantic", "yarl"],
     tests_require=["pytest"],
 )
