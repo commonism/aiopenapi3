@@ -110,6 +110,12 @@ def randomPet(client, name=None):
 
 @pytest.mark.asyncio
 async def test_createPet(event_loop, server, client):
+
+    client._.createPet.data
+    client._.createPet.parameters
+    client._.createPet.args()
+    client._.createPet.return_value()
+
     data = {
         "pet": client.components.schemas["WhiteCat"]
         .model({"name": str(uuid.uuid4()), "white_name": str(uuid.uuid4())})
@@ -123,8 +129,7 @@ async def test_createPet(event_loop, server, client):
     assert type(r).schema() == client.components.schemas["Error"].get_type().schema()
 
     with pytest.raises(pydantic.ValidationError):
-        args = client._.createPet.args()
-        cls = args["data"].get_type()
+        cls = client._.createPet.data.get_type()
         cls()
 
 
