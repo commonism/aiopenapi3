@@ -190,7 +190,7 @@ def test_parameters(httpx_mock, with_parameters):
     with pytest.raises(ValueError, match=r"Required parameter \w+ not provided"):
         api._.getTest(data={}, parameters={})
 
-    Header = str([i ** i for i in range(3)])
+    Header = str([i**i for i in range(3)])
     api._.getTest(data={}, parameters={"Cookie": "Cookie", "Path": "Path", "Header": Header, "Query": "Query"})
     request = httpx_mock.get_requests()[-1]
 

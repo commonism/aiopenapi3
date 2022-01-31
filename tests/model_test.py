@@ -102,7 +102,7 @@ def randomPet(client, name=None):
         return client._.createPet.data.get_type().construct(
             pet=client.components.schemas["Dog"]
             .get_type()
-            .construct(name=name, age=datetime.timedelta(seconds=random.randint(1, 2 ** 32)))
+            .construct(name=name, age=datetime.timedelta(seconds=random.randint(1, 2**32)))
         )
     else:
         return {
