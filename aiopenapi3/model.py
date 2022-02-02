@@ -63,7 +63,10 @@ class Model(BaseModel):
                 annos.update(Model.annotationsof(i, discriminators, shmanm))
         elif hasattr(shma, "anyOf") and shma.anyOf:
             t = tuple(
-                i.get_type(names=shmanm + [i.ref], discriminators=discriminators + [shma.discriminator])
+                i.get_type(
+                    names=shmanm + [i.ref],
+                    discriminators=discriminators + ([shma.discriminator] if shma.discriminator else []),
+                )
                 for i in shma.anyOf
             )
             if shma.discriminator and shma.discriminator.mapping:
@@ -72,7 +75,10 @@ class Model(BaseModel):
                 annos["__root__"] = Union[t]
         elif hasattr(shma, "oneOf") and shma.oneOf:
             t = tuple(
-                i.get_type(names=shmanm + [i.ref], discriminators=discriminators + [shma.discriminator])
+                i.get_type(
+                    names=shmanm + [i.ref],
+                    discriminators=discriminators + ([shma.discriminator] if shma.discriminator else []),
+                )
                 for i in shma.oneOf
             )
             if shma.discriminator and shma.discriminator.mapping:
