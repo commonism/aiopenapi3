@@ -162,3 +162,17 @@ paths:
 """
     api = OpenAPI.loads("test.yaml", DOC)
     print(api)
+
+
+def test_allof_discriminator(with_allof_discriminator):
+    api = OpenAPI(URLBASE, with_allof_discriminator)
+
+    schema = api.components.schemas["Object1"]
+    type_ = schema.get_type()
+    obj1 = type_.construct(
+        type="obj1",
+        subtypeProperties=schema.properties["subtypeProperties"].get_type().construct(property1a="1a", property1b="1b"),
+        id=uuid.uuid4(),
+    )
+    data = obj1.json()
+    obj1_ = api.components.schemas["ObjectBaseType"].get_type().parse_raw(data)
