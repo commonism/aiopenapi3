@@ -3,8 +3,15 @@ from __future__ import annotations
 import collections
 import types
 import uuid
-
 import sys
+
+if sys.version_info >= (3, 9):
+    from pathlib import Path
+else:
+    from pathlib3x import Path
+
+
+from .json import JSONReference
 
 if sys.version_info >= (3, 9):
     from typing import List, Optional, Literal, Union, Annotated
@@ -58,6 +65,8 @@ class Model(BaseModel):
         type_name = shma.title or getattr(shma, "_identity", None) or str(uuid.uuid4())
         namespace = dict()
         annos = dict()
+        root = None
+
         if shma.allOf:
             for i in shma.allOf:
                 annos.update(Model.annotationsof(i, discriminators, shmanm))
@@ -81,6 +90,7 @@ class Model(BaseModel):
                 )
                 for i in shma.oneOf
             )
+
             if shma.discriminator and shma.discriminator.mapping:
                 annos["__root__"] = Annotated[Union[t], Field(discriminator=shma.discriminator.propertyName)]
             else:
@@ -99,7 +109,9 @@ class Model(BaseModel):
     @staticmethod
     def typeof(schema: "SchemaBase"):
         r = None
-        if schema.type == "integer":
+        if schema.enum:
+            r = Literal[tuple(i for i in schema.enum)]
+        elif schema.type == "integer":
             r = int
         elif schema.type == "number":
             r = class_from_schema(schema)
@@ -130,17 +142,27 @@ class Model(BaseModel):
         else:
             for name, f in schema.properties.items():
                 r = None
-                for discriminator in discriminators:
-                    if name != discriminator.propertyName:
-                        continue
-                    for disc, v in discriminator.mapping.items():
-                        if v in shmanm:
-                            r = Literal[disc]
-                            break
+                try:
+                    discriminator = next(filter(lambda x: name == x.propertyName, discriminators))
+                    # the property is a discriminiator
+                    if discriminator.mapping:
+                        for disc, v in discriminator.mapping.items():
+                            # lookup the mapping value for the schema
+                            if v in shmanm:
+                                r = Literal[disc]
+                                break
+                        else:
+                            raise ValueError(f"unmatched discriminator in mapping for {schema}")
                     else:
-                        raise ValueError(schema)
-                    break
-                else:
+                        # the discriminator lacks a mapping, use the last name
+                        # JSONPointer.decode required ?
+                        literal = Path(JSONReference.split(shmanm[-1])[1]).parts[-1]
+                        r = Literal[literal]
+
+                    # this got Literal avoid getting Optional
+                    annos[name] = r
+                    continue
+                except StopIteration:
                     r = Model.typeof(f)
 
                 from . import v20, v30, v31
@@ -168,7 +190,7 @@ class Model(BaseModel):
         else:
             for name, f in schema.properties.items():
                 args = dict()
-                for i in ["enum", "default"]:
+                for i in ["default"]:
                     v = getattr(f, i, None)
                     if v:
                         args[i] = v
