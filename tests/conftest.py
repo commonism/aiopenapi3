@@ -166,3 +166,8 @@ def with_callback():
 @pytest.fixture
 def with_swagger():
     yield _get_parsed_yaml("swagger-example.yaml")
+
+
+@pytest.fixture
+def with_allof_discriminator():
+    yield _get_parsed_yaml("with-allof-discriminator.yaml")

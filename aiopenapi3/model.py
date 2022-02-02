@@ -85,9 +85,10 @@ class Model(BaseModel):
                 annos["__root__"] = Annotated[Union[t], Field(discriminator=shma.discriminator.propertyName)]
             else:
                 annos["__root__"] = Union[t]
-        else:
-            annos = Model.annotationsof(shma, discriminators, shmanm)
-            namespace.update(Model.fieldof(shma))
+
+        # default schema properties …
+        annos.update(Model.annotationsof(shma, discriminators, shmanm))
+        namespace.update(Model.fieldof(shma))
 
         namespace["__annotations__"] = annos
 
@@ -127,7 +128,6 @@ class Model(BaseModel):
         if schema.type == "array":
             annos["__root__"] = Model.typeof(schema)
         else:
-
             for name, f in schema.properties.items():
                 r = None
                 for discriminator in discriminators:

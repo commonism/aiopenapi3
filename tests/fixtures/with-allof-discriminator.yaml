@@ -1,0 +1,96 @@
+#
+# taken from https://github.com/OAI/OpenAPI-Specification/issues/2141
+#
+
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Any OpenAPI validator that properly validates discriminator against data?
+
+# Top-level schema included so you can play with this in a standard JSON Schema validator,
+# like http://jsonschmalint.com
+#$ref: "#/components/schemas/Object"
+
+components:
+  schemas:
+    # This schema ensures that the object is one of the known subtypes.
+    # We can't put this in ObjectBaseType, because that creates a cycle with allOf,
+    # causing infinite recursion.
+    Object:
+      oneOf:
+      - $ref: "#/components/schemas/Object1"
+      - $ref: "#/components/schemas/Object2"
+
+    # Abstract supertype
+    ObjectBaseType:
+      type: "object"
+      required:
+        - "id"
+        - "type"
+      properties:
+        id:
+          type: "string"
+        type:
+          type: "string"
+      discriminator:
+        propertyName: "type"
+        mapping:
+          obj1: "#/components/schemas/Object1"
+          obj2: "#/components/schemas/Object2"
+
+    # Concrete Subtypes
+    Object1:
+      # Inherit all constraints defined in the base type
+      allOf:
+      - $ref: "#/components/schemas/ObjectBaseType"
+      # Additionally require subtype-specific properties.
+      required:
+      - subtypeProperties
+      # Disallow properties that are not defined here.
+      additionalProperties: false
+      properties:
+        # Redeclare inherited properties to allow them with additionalProperties: false
+        # No additional constraints on id
+        id: {}
+        # Require type==obj1, so a standard JSON schema validator can discriminate.
+        # This duplicates the discriminator logic, so should not be required with
+        # an OAS-compliant validator.
+        type:
+          enum:
+          - obj1
+        # Define subtype-specific properties
+        subtypeProperties:
+          type: object
+          additionalProperties: false
+          required:
+          - "property1a"
+          - "property1b"
+          properties:
+            property1a:
+              type: "string"
+            property1b:
+              type: "string"
+
+    Object2:
+      # Same idea here...
+      allOf:
+      - $ref: "#/components/schemas/ObjectBaseType"
+      required:
+      - subtypeProperties
+      additionalProperties: false
+      properties:
+        id: {}
+        type:
+          enum:
+          - obj2
+        subtypeProperties:
+          type: object
+          additionalProperties: false
+          required:
+          - "property2a"
+          - "property2b"
+          properties:
+            property2a:
+              type: "string"
+            property2b:
+              type: "string"
