@@ -3,6 +3,7 @@ Tests parsing specs
 """
 import dataclasses
 import sys
+import uuid
 
 if sys.version_info >= (3, 9):
     pass
