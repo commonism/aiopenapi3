@@ -55,18 +55,20 @@ class LinodeDiscriminators(aiopenapi3.plugin.Document):
                 "propertyName": "type",
             },
         }
-        ctx.document["paths"]["/account/payment-methods"]["post"]["requestBody"]["content"]["application/json"][
-            "schema"
-        ]["properties"]["is_default"]["$ref"] = "#/components/schemas/CreditCardData/properties/is_default"
+        if "paths" in ctx.document:
+            ctx.document["paths"]["/account/payment-methods"]["post"]["requestBody"]["content"]["application/json"][
+                "schema"
+            ]["properties"]["is_default"]["$ref"] = "#/components/schemas/CreditCardData/properties/is_default"
 
-        for i in ["CreditCardData", "PayPalData", "GooglePayData"]:
+        for k, v in ctx.document["components"]["schemas"]["PaymentMethod"]["discriminator"]["mapping"].items():
 
-            ctx.document["components"]["schemas"][i]["properties"]["type"] = {
+            n = v.split("/")[-1]
+            ctx.document["components"]["schemas"][n]["properties"]["type"] = {
                 "type": "string",
-                "default": "paypal",
+                "default": k,
             }
 
-            ctx.document["components"]["schemas"][i]["properties"]["is_default"] = {
+            ctx.document["components"]["schemas"][n]["properties"]["is_default"] = {
                 "type": "boolean",
             }
 

@@ -171,3 +171,8 @@ def with_swagger():
 @pytest.fixture
 def with_allof_discriminator():
     yield _get_parsed_yaml("with-allof-discriminator.yaml")
+
+
+@pytest.fixture
+def with_enum():
+    yield _get_parsed_yaml("with-enum.yaml")
