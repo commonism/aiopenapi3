@@ -177,3 +177,25 @@ def test_allof_discriminator(with_allof_discriminator):
     )
     data = obj1.json()
     obj1_ = api.components.schemas["ObjectBaseType"].get_type().parse_raw(data)
+
+
+def test_enum(with_enum):
+    import linode_test
+
+    api = OpenAPI(URLBASE, with_enum, plugins=[linode_test.LinodeDiscriminators()])
+    import datetime
+
+    s = api.components.schemas["PaymentMethod"]
+    t = s.get_type()
+    pay = t(__root__=dict(created=datetime.datetime.now(), id=5, is_default=True, type="google_pay", data=None))
+    data = pay.json()
+    pay_ = t.parse_raw(data)
+    assert pay == pay_
+
+    pay = t(__root__=dict(created=datetime.datetime.now(), id=5, is_default=True, type="google_pay", data=None))
+
+    with pytest.raises(ValidationError):
+        pay = t(__root__=dict(created=datetime.datetime.now(), id=5, is_default=True, type="no_pay", data=None))
+
+    pp = api.components.schemas["PayPalData"].get_type()(email="a@b.de", paypal_id="1")
+    assert pp.dict()["type"] == "paypal"
