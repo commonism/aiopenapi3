@@ -1,0 +1,27 @@
+openapi: 3.0.3
+info:
+  title: yes
+  version: 1
+servers:
+  - url: http://127.0.0.1/api
+
+security:
+  - {}
+
+paths: {}
+
+components:
+  schemas:
+    LongviewClient:
+      type: object
+      description: >
+        A LongviewClient is a single monitor set up to track statistics about
+        one of your servers.
+      properties:
+        updated:
+          type: string
+          format: date-time
+          description: >
+            When this Longview Client was last updated.
+          example: 2018-01-01T00:01:01
+          readOnly: true

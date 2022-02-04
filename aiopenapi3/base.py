@@ -110,7 +110,7 @@ class RootBase:
                     # otherwise, continue resolving down the tree
                     RootBase.resolve(api, root, value, _PathItem, _Reference)
                 else:
-                    raise TypeError(type(value))
+                    raise TypeError(type(value), value)
         elif isinstance(obj, dict):
             for k, v in obj.items():
                 if isinstance(v, _Reference):
