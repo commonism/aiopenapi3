@@ -8,7 +8,7 @@ A Python [OpenAPI 3 Specification](https://github.com/OAI/OpenAPI-Specification/
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/aiopenapi3.svg)](https://pypi.org/project/aiopenapi3)
 
 
-This project is based on [Dorthu/openapi3](github.com/Dorthu/openapi3/).
+This project is a fork of [Dorthu/openapi3](https://github.com/Dorthu/openapi3/).
 
 ## Features
   * implements …
@@ -17,10 +17,11 @@ This project is based on [Dorthu/openapi3](github.com/Dorthu/openapi3/).
     * OpenAPI 3.1.0
   * object parsing via pydantic
   * request body model creation via [pydantic](https://github.com/samuelcolvin/pydantic)
+  * pydantic compatible "format"-type coercion (e.g. datetime.interval)
   * blocking and nonblocking (asyncio) interface via [httpx](https://www.python-httpx.org/)
   * tests with pytest
   * providing access to methods and arguments via the sad smiley ._. interface
-
+  * api to modify description documents/requests/responses to adapt to non compliant services
 
 ## Usage as a Client
 
@@ -91,7 +92,7 @@ print(json.dumps((list(filter(lambda x: 'eu-west' in x.id, regions.data))[0]).di
 
 #### discriminators
 discriminators are supported as well, but the linode api can't be used to show how to use them.
-look at [aiopenapi3/tests/model_test.py](aiopenapi3/tests/model_test.py) test_model.
+look at [aiopenapi3/tests/model_test.py](https://github.com/commonism/aiopenapi3/blob/master/tests/model_test.py) test_model.
 
 ### authentication
 ```python
@@ -158,8 +159,29 @@ new_linode = api._.createLinodeInstance(data=body)
 
 ## Validation Mode
 
+Installing with the extra [cli] or running thodule allows to validate specs:
 
-This module can be run against a spec file to validate it like so::
+```
+aiopenapi3 -h
+usage: aiopenapi3 [-h] [-C] [-D [YAML_DISABLE_TAG]] [-l] [-v] name
+
+Swagger 2.0, OpenAPI 3.0, OpenAPI 3.1 validator
+
+positional arguments:
+  name
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -C, --yaml-compatibility
+                        disables type coercion for yaml types such as datetime, bool …
+  -D [YAML_DISABLE_TAG], --yaml-disable-tag [YAML_DISABLE_TAG]
+                        disable this tag from the YAML loader
+  -l, --yaml-list-tags  list tags
+  -v, --verbose         be verbose
+
+```
+
+The module can be run against a spec file to validate it like so::
 
 ```
 python3 -m aiopenapi3 tests/fixtures/with-broken-links.yaml
@@ -178,6 +200,25 @@ paths -> /with-links-two -> get -> responses -> 200 -> links -> exampleWithNeith
 paths -> /with-links-two -> get -> responses -> 200 -> $ref
  field required (type=value_error.missing)
 ```
+
+In case the yaml not well formed, there are options to disable certain tags:
+
+```
+python -m aiopenapi3 -D tag:yaml.org,2002:timestamp -l -v linode.yaml
+removing tag:yaml.org,2002:timestamp
+tags:
+	tag:yaml.org,2002:bool
+	tag:yaml.org,2002:float
+	tag:yaml.org,2002:int
+	tag:yaml.org,2002:merge
+	tag:yaml.org,2002:null
+	tag:yaml.org,2002:value
+	tag:yaml.org,2002:yaml
+
+OK
+```
+
+
 
 ## Real World issues
 ### YAML
@@ -202,12 +243,22 @@ OpenAPI.load…(…, loader=FileSystemLoader(pathlib.Path(dir), yload = aiopenap
 
 ```
 
+All but these get disabled:
+
+```
+python -m aiopenapi3 -C -l -v linode.yaml
+tags:
+	tag:yaml.org,2002:float
+	tag:yaml.org,2002:merge
+	tag:yaml.org,2002:null
+	tag:yaml.org,2002:yaml
+
+```
+
 ### description document mismatch
 In case the description document does not match the protocol, it may be required to alter the description, objects or data sent/received.
-The [Plugin interface](tests/plugin_test.py) can be used to alter any of those.
+The [Plugin interface](https://github.com/commonism/aiopenapi3/blob/master/tests/plugin_test.py) can be used to alter any of those.
 It can even be used to alter an invalid description document to be usable.
-
-
 
 ## Running Tests
 
