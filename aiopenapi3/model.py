@@ -12,6 +12,8 @@ else:
 
 
 from .json import JSONReference
+from .base import ReferenceBase
+
 
 if sys.version_info >= (3, 9):
     from typing import List, Optional, Literal, Union, Annotated
@@ -49,7 +51,11 @@ class Model(BaseModel):
 
     @classmethod
     def from_schema(
-        cls, shma: "SchemaBase", shmanm: List[str] = None, discriminators: List["DiscriminatorBase"] = None
+        cls,
+        shma: "SchemaBase",
+        shmanm: List[str] = None,
+        discriminators: List["DiscriminatorBase"] = None,
+        extra: "SchemaBase" = None,
     ):
 
         if shmanm is None:
@@ -65,16 +71,13 @@ class Model(BaseModel):
         type_name = shma.title or getattr(shma, "_identity", None) or str(uuid.uuid4())
         namespace = dict()
         annos = dict()
-        root = None
 
-        if shma.allOf:
-            for i in shma.allOf:
-                annos.update(Model.annotationsof(i, discriminators, shmanm))
-        elif hasattr(shma, "anyOf") and shma.anyOf:
+        if hasattr(shma, "anyOf") and shma.anyOf:
             t = tuple(
                 i.get_type(
-                    names=shmanm + [i.ref],
+                    names=shmanm + ([i.ref] if isinstance(i, ReferenceBase) else []),
                     discriminators=discriminators + ([shma.discriminator] if shma.discriminator else []),
+                    extra=shma,
                 )
                 for i in shma.anyOf
             )
@@ -85,8 +88,9 @@ class Model(BaseModel):
         elif hasattr(shma, "oneOf") and shma.oneOf:
             t = tuple(
                 i.get_type(
-                    names=shmanm + [i.ref],
+                    names=shmanm + ([i.ref] if isinstance(i, ReferenceBase) else []),
                     discriminators=discriminators + ([shma.discriminator] if shma.discriminator else []),
+                    extra=shma,
                 )
                 for i in shma.oneOf
             )
@@ -95,10 +99,20 @@ class Model(BaseModel):
                 annos["__root__"] = Annotated[Union[t], Field(discriminator=shma.discriminator.propertyName)]
             else:
                 annos["__root__"] = Union[t]
+        else:
+            # default schema properties …
+            annos.update(Model.annotationsof(shma, discriminators, shmanm))
+            namespace.update(Model.fieldof(shma))
 
-        # default schema properties …
-        annos.update(Model.annotationsof(shma, discriminators, shmanm))
-        namespace.update(Model.fieldof(shma))
+            if shma.allOf:
+                for i in shma.allOf:
+                    annos.update(Model.annotationsof(i, discriminators, shmanm))
+
+        # this is a anyOf/oneOf - the parent may have properties which will collide with __root__
+        # so - add the parent properties to this model
+        if extra:
+            annos.update(Model.annotationsof(extra, discriminators, shmanm))
+            namespace.update(Model.fieldof(extra))
 
         namespace["__annotations__"] = annos
 
