@@ -69,8 +69,8 @@ class Model(BaseModel):
             return Model.typeof(shma)
 
         type_name = shma.title or getattr(shma, "_identity", None) or str(uuid.uuid4())
-        namespace = dict()
-        annos = dict()
+        fields = dict()
+        annotations = dict()
 
         if hasattr(shma, "anyOf") and shma.anyOf:
             t = tuple(
@@ -82,9 +82,9 @@ class Model(BaseModel):
                 for i in shma.anyOf
             )
             if shma.discriminator and shma.discriminator.mapping:
-                annos["__root__"] = Annotated[Union[t], Field(discriminator=shma.discriminator.propertyName)]
+                annotations["__root__"] = Annotated[Union[t], Field(discriminator=shma.discriminator.propertyName)]
             else:
-                annos["__root__"] = Union[t]
+                annotations["__root__"] = Union[t]
         elif hasattr(shma, "oneOf") and shma.oneOf:
             t = tuple(
                 i.get_type(
@@ -96,27 +96,27 @@ class Model(BaseModel):
             )
 
             if shma.discriminator and shma.discriminator.mapping:
-                annos["__root__"] = Annotated[Union[t], Field(discriminator=shma.discriminator.propertyName)]
+                annotations["__root__"] = Annotated[Union[t], Field(discriminator=shma.discriminator.propertyName)]
             else:
-                annos["__root__"] = Union[t]
+                annotations["__root__"] = Union[t]
         else:
             # default schema properties …
-            annos.update(Model.annotationsof(shma, discriminators, shmanm))
-            namespace.update(Model.fieldof(shma))
+            annotations.update(Model.annotationsof(shma, discriminators, shmanm))
+            fields.update(Model.fieldof(shma))
 
             if shma.allOf:
                 for i in shma.allOf:
-                    annos.update(Model.annotationsof(i, discriminators, shmanm))
+                    annotations.update(Model.annotationsof(i, discriminators, shmanm))
 
         # this is a anyOf/oneOf - the parent may have properties which will collide with __root__
         # so - add the parent properties to this model
         if extra:
-            annos.update(Model.annotationsof(extra, discriminators, shmanm))
-            namespace.update(Model.fieldof(extra))
+            annotations.update(Model.annotationsof(extra, discriminators, shmanm))
+            fields.update(Model.fieldof(extra))
 
-        namespace["__annotations__"] = annos
+        fields["__annotations__"] = annotations
 
-        m = types.new_class(type_name, (BaseModel,), {}, lambda ns: ns.update(namespace))
+        m = types.new_class(type_name, (BaseModel,), {}, lambda ns: ns.update(fields))
         m.update_forward_refs()
         return m
 
