@@ -1,0 +1,24 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Any OpenAPI validator that properly validates discriminator against data?
+
+components:
+  schemas:
+    AB:
+      oneOf:
+      - $ref: "#/components/schemas/A"
+      - $ref: "#/components/schemas/B"
+      properties:
+        id:
+          type: integer
+
+    B:
+      properties:
+        ofB:
+          type: string
+
+    A:
+      properties:
+        ofA:
+          type: integer
