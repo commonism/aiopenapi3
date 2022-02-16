@@ -1,6 +1,10 @@
-from typing import Optional, Any
+from typing import Optional, Any, List, Dict
 
 from pydantic import BaseModel, Field, root_validator, Extra
+
+from .json import JSONPointer
+from .errors import ReferenceResolutionError
+
 
 HTTP_METHODS = frozenset(["get", "delete", "head", "post", "put", "patch", "trace"])
 
@@ -39,12 +43,6 @@ class ObjectExtended(ObjectBase):
             values["extensions"] = e
 
         return values
-
-
-from .json import JSONPointer
-from .errors import ReferenceResolutionError
-
-from typing import Dict, Any
 
 
 class PathsBase(ObjectBase):
@@ -176,8 +174,12 @@ class RootBase:
         return node
 
 
-from typing import List, Dict
-from .model import Model
+class ReferenceBase:
+    pass
+
+
+class ParameterBase:
+    pass
 
 
 class DiscriminatorBase:
@@ -185,13 +187,25 @@ class DiscriminatorBase:
 
 
 class SchemaBase:
-    def set_type(self, names: List[str] = None, discriminators: List[DiscriminatorBase] = None):
-        self._model_type = Model.from_schema(self, names, discriminators)
-        return self._model_type
+    def set_type(
+        self, names: List[str] = None, discriminators: List[DiscriminatorBase] = None, extra: "SchemaBase" = None
+    ):
+        from .model import Model
 
-    def get_type(self, names: List[str] = None, discriminators: List[DiscriminatorBase] = None):
-        try:
+        if extra is None:
+            self._model_type = Model.from_schema(self, names, discriminators)
             return self._model_type
+        else:
+            return Model.from_schema(self, names, discriminators, extra)
+
+    def get_type(
+        self, names: List[str] = None, discriminators: List[DiscriminatorBase] = None, extra: "SchemaBase" = None
+    ):
+        try:
+            if extra is None:
+                return self._model_type
+            else:
+                return self.set_type(names, discriminators, extra)
         except AttributeError:
             return self.set_type(names, discriminators)
 
@@ -216,11 +230,3 @@ class SchemaBase:
             return [self.items.get_type().parse_obj(i) for i in data]
         else:
             return self.get_type().parse_obj(data)
-
-
-class ReferenceBase:
-    pass
-
-
-class ParameterBase:
-    pass
