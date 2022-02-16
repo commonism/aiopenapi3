@@ -176,3 +176,8 @@ def with_allof_discriminator():
 @pytest.fixture
 def with_enum():
     yield _get_parsed_yaml("with-enum.yaml")
+
+
+@pytest.fixture
+def with_anyOf_properties():
+    yield _get_parsed_yaml("with-anyOf-properties.yaml")
