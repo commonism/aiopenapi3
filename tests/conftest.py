@@ -181,3 +181,8 @@ def with_enum():
 @pytest.fixture
 def with_anyOf_properties():
     yield _get_parsed_yaml("with-anyOf-properties.yaml")
+
+
+@pytest.fixture
+def with_schema_recursion():
+    yield _get_parsed_yaml("with-schema-recursion.yaml")

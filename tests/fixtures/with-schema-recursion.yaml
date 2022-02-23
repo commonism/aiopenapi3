@@ -1,0 +1,20 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Any OpenAPI schema with recursion
+
+components:
+  schemas:
+    B:
+      properties:
+        ofB:
+          type: string
+        a:
+          $ref: '#/components/schemas/A'
+
+    A:
+      properties:
+        ofA:
+          type: integer
+        b:
+          $ref: '#/components/schemas/B'
