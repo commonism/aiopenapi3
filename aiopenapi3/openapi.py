@@ -72,7 +72,7 @@ class OpenAPI:
         url,
         path,
         session_factory: Callable[[], httpx.AsyncClient] = httpx.AsyncClient,
-        loader=None,
+        loader: Loader = None,
         plugins: List[Plugin] = None,
     ):
         assert loader

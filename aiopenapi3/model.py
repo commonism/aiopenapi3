@@ -52,66 +52,66 @@ class Model(BaseModel):
     @classmethod
     def from_schema(
         cls,
-        shma: "SchemaBase",
-        shmanm: List[str] = None,
+        schema: "SchemaBase",
+        schemanames: List[str] = None,
         discriminators: List["DiscriminatorBase"] = None,
         extra: "SchemaBase" = None,
     ):
 
-        if shmanm is None:
-            shmanm = []
+        if schemanames is None:
+            schemanames = []
 
         if discriminators is None:
             discriminators = []
 
         # do not create models for primitive types
-        if shma.type in ("string", "integer", "number", "boolean"):
-            return Model.typeof(shma)
+        if schema.type in ("string", "integer", "number", "boolean"):
+            return Model.typeof(schema)
 
-        type_name = shma.title or getattr(shma, "_identity", None) or str(uuid.uuid4())
+        type_name = schema.title or getattr(schema, "_identity", None) or str(uuid.uuid4())
         fields = dict()
         annotations = dict()
 
-        if hasattr(shma, "anyOf") and shma.anyOf:
+        if hasattr(schema, "anyOf") and schema.anyOf:
             t = tuple(
                 i.get_type(
-                    names=shmanm + ([i.ref] if isinstance(i, ReferenceBase) else []),
-                    discriminators=discriminators + ([shma.discriminator] if shma.discriminator else []),
-                    extra=shma,
+                    names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
+                    discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
+                    extra=schema,
                 )
-                for i in shma.anyOf
+                for i in schema.anyOf
             )
-            if shma.discriminator and shma.discriminator.mapping:
-                annotations["__root__"] = Annotated[Union[t], Field(discriminator=shma.discriminator.propertyName)]
+            if schema.discriminator and schema.discriminator.mapping:
+                annotations["__root__"] = Annotated[Union[t], Field(discriminator=schema.discriminator.propertyName)]
             else:
                 annotations["__root__"] = Union[t]
-        elif hasattr(shma, "oneOf") and shma.oneOf:
+        elif hasattr(schema, "oneOf") and schema.oneOf:
             t = tuple(
                 i.get_type(
-                    names=shmanm + ([i.ref] if isinstance(i, ReferenceBase) else []),
-                    discriminators=discriminators + ([shma.discriminator] if shma.discriminator else []),
-                    extra=shma,
+                    names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
+                    discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
+                    extra=schema,
                 )
-                for i in shma.oneOf
+                for i in schema.oneOf
             )
 
-            if shma.discriminator and shma.discriminator.mapping:
-                annotations["__root__"] = Annotated[Union[t], Field(discriminator=shma.discriminator.propertyName)]
+            if schema.discriminator and schema.discriminator.mapping:
+                annotations["__root__"] = Annotated[Union[t], Field(discriminator=schema.discriminator.propertyName)]
             else:
                 annotations["__root__"] = Union[t]
         else:
             # default schema properties …
-            annotations.update(Model.annotationsof(shma, discriminators, shmanm))
-            fields.update(Model.fieldof(shma))
+            annotations.update(Model.annotationsof(schema, discriminators, schemanames))
+            fields.update(Model.fieldof(schema))
 
-            if shma.allOf:
-                for i in shma.allOf:
-                    annotations.update(Model.annotationsof(i, discriminators, shmanm))
+            if schema.allOf:
+                for i in schema.allOf:
+                    annotations.update(Model.annotationsof(i, discriminators, schemanames))
 
         # this is a anyOf/oneOf - the parent may have properties which will collide with __root__
         # so - add the parent properties to this model
         if extra:
-            annotations.update(Model.annotationsof(extra, discriminators, shmanm))
+            annotations.update(Model.annotationsof(extra, discriminators, schemanames))
             fields.update(Model.fieldof(extra))
 
         fields["__annotations__"] = annotations
@@ -150,9 +150,9 @@ class Model(BaseModel):
 
     @staticmethod
     def annotationsof(schema: "SchemaBase", discriminators, shmanm):
-        annos = dict()
+        annotations = dict()
         if schema.type == "array":
-            annos["__root__"] = Model.typeof(schema)
+            annotations["__root__"] = Model.typeof(schema)
         else:
             for name, f in schema.properties.items():
                 r = None
@@ -174,7 +174,7 @@ class Model(BaseModel):
                         r = Literal[literal]
 
                     # this got Literal avoid getting Optional
-                    annos[name] = r
+                    annotations[name] = r
                     continue
                 except StopIteration:
                     r = Model.typeof(f)
@@ -183,24 +183,24 @@ class Model(BaseModel):
 
                 if isinstance(schema, (v20.Schema, v20.Reference)):
                     if not f.required:
-                        annos[name] = Optional[r]
+                        annotations[name] = Optional[r]
                     else:
-                        annos[name] = r
+                        annotations[name] = r
                 elif isinstance(schema, (v30.Schema, v31.Schema, v30.Reference, v31.Reference)):
                     if name not in schema.required:
-                        annos[name] = Optional[r]
+                        annotations[name] = Optional[r]
                     else:
-                        annos[name] = r
+                        annotations[name] = r
                 else:
                     raise TypeError(schema)
 
-        return annos
+        return annotations
 
     @staticmethod
     def fieldof(schema: "SchemaBase"):
-        r = dict()
+        fields = dict()
         if schema.type == "array":
-            return r
+            return fields
         else:
             for name, f in schema.properties.items():
                 args = dict()
@@ -208,8 +208,8 @@ class Model(BaseModel):
                     v = getattr(f, i, None)
                     if v:
                         args[i] = v
-                r[name] = Field(**args)
-        return r
+                fields[name] = Field(**args)
+        return fields
 
 
 if len(type_format_to_class) == 0:
