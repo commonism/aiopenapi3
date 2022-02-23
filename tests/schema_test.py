@@ -62,3 +62,12 @@ def test_schema_anyOf_properties(with_anyOf_properties):
     assert obj.dict() == kwargs
     ab = t(__root__=obj)
     assert ab
+
+
+def test_schema_recursion(with_schema_recursion):
+    with pytest.raises(RecursionError):
+        api = OpenAPI("/", with_schema_recursion)
+
+
+#    s = api.components.schemas["A"]
+#    t = s.get_type()
