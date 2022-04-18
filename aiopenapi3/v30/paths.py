@@ -3,7 +3,6 @@ from typing import Union, List, Optional, Dict, Any
 from pydantic import Field, root_validator
 
 from ..base import ObjectBase, ObjectExtended, PathsBase
-from ..errors import SpecError
 from .general import ExternalDocumentation
 from .general import Reference
 from .media import MediaType
