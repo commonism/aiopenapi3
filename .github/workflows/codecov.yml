@@ -20,7 +20,6 @@ jobs:
     - name: Generate coverage report
       run: |
         pip install '.[tests]'
-        pip install '.[compat]'
         pytest --cov=./ --cov-report=xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2

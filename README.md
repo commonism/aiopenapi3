@@ -19,9 +19,10 @@ This project is a fork of [Dorthu/openapi3](https://github.com/Dorthu/openapi3/)
   * request body model creation via [pydantic](https://github.com/samuelcolvin/pydantic)
   * pydantic compatible "format"-type coercion (e.g. datetime.interval)
   * blocking and nonblocking (asyncio) interface via [httpx](https://www.python-httpx.org/)
-  * tests with pytest
+  * tests with pytest & [fastapi](https://fastapi.tiangolo.com/)
   * providing access to methods and arguments via the sad smiley ._. interface
   * api to modify description documents/requests/responses to adapt to non compliant services
+  * YAML type coercion hints for not well formatted description documents
 
 ## Usage as a Client
 
