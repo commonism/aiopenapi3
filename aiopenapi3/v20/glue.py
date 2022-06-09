@@ -198,6 +198,8 @@ class Request(RequestBase):
                 operationId=self.operation.operationId, unmarshalled=data
             ).unmarshalled
             return data
+        elif content_type in self.operation.produces:
+            return result.content
         else:
             raise ContentTypeError(
                 content_type,
