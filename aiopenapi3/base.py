@@ -94,6 +94,14 @@ class RootBase:
                     ref._target = api.resolve_jr(root, obj, ref)
                     setattr(obj, slot, ref)
 
+                """
+                Swagger 2.0 - Schema.ref -> Reference
+                """
+                if isinstance(obj, SchemaBase) and slot == "ref":
+                    ref = _Reference.construct(ref=value)
+                    ref._target = api.resolve_jr(root, obj, ref)
+                    setattr(obj, slot, ref)
+
                 value = getattr(obj, slot)
 
                 if isinstance(value, PathsBase):
