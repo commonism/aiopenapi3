@@ -1,0 +1,25 @@
+openapi: "3.1.0"
+info:
+  version: 1.0.0
+  title: enum test
+
+components:
+  schemas:
+    Bool:
+      type: bool
+
+    Array:
+      type: array
+      items:
+        $ref: "#/components/schemas/Bool"
+
+    ListArray:
+      type: array
+      items:
+        type:
+          - string
+          - integer
+
+    ArbitraryArray:
+      type: array
+      items: {}
