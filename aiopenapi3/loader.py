@@ -98,6 +98,9 @@ class Loader(abc.ABC):
         data = self.load(plugins, file)
         return self.parse(plugins, file, data)
 
+    def __repr__(self):
+        return f"{self.__class__.__qualname__}"
+
 
 class NullLoader(Loader):
     def load(self, plugins, file: Path, codec=None):
@@ -118,6 +121,9 @@ class WebLoader(Loader):
         data = self.decode(data, codec)
         data = plugins.document.loaded(url=str(file), document=data).document
         return data
+
+    def __repr__(self):
+        return f"{self.__class__.__qualname__}(baseurl={self.baseurl})"
 
 
 class FileSystemLoader(Loader):
@@ -140,3 +146,6 @@ class FileSystemLoader(Loader):
         data = super().parse(plugins, file, data)
         data = plugins.document.parsed(url=str(file), document=data).document
         return data
+
+    def __repr__(self):
+        return f"{self.__class__.__qualname__}(base={self.base})"
