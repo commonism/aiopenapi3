@@ -179,6 +179,8 @@ class OpenAPI:
 
         self._root = self._parse_obj(document)
 
+        self._documents[pathlib.Path(pathlib.Path(yarl.URL(url).path).parts[-1])] = self._root
+
         self._init_session_factory(session_factory)
         self._init_references()
         self._init_operationindex()
