@@ -123,28 +123,36 @@ class Model(BaseModel):
     @staticmethod
     def typeof(schema: "SchemaBase"):
         r = None
-        if schema.enum:
-            r = Literal[tuple(i for i in schema.enum)]
-        elif schema.type == "integer":
-            r = int
-        elif schema.type == "number":
-            r = class_from_schema(schema)
-        elif schema.type == "string":
-            r = class_from_schema(schema)
-        elif schema.type == "boolean":
-            r = bool
-        elif schema.type == "array":
-            r = List[schema.items.get_type()]
-        elif schema.type == "object":
-            return schema.get_type()
-        elif schema.type is None:  # discriminated root
-            """
-            recursively define related discriminated objects
-            """
-            schema.get_type()
-            return None
+        #        assert schema is not None
+        if schema is None:
+            return BaseModel
+        if isinstance(schema, SchemaBase):
+            if schema.enum:
+                # un-Reference
+                _names = tuple(i for i in map(lambda x: x._target if isinstance(x, ReferenceBase) else x, schema.enum))
+                r = Literal[_names]
+            elif schema.type == "integer":
+                r = int
+            elif schema.type == "number":
+                r = class_from_schema(schema)
+            elif schema.type == "string":
+                r = class_from_schema(schema)
+            elif schema.type == "boolean":
+                r = bool
+            elif schema.type == "array":
+                r = List[schema.items.get_type()]
+            elif schema.type == "object":
+                return schema.get_type(fwdref=True)
+            elif schema.type is None:  # discriminated root
+                """
+                recursively define related discriminated objects
+                """
+                schema.get_type(fwdref=True)
+                return None
+        elif isinstance(schema, ReferenceBase):
+            r = Model.typeof(schema._target)
         else:
-            raise TypeError(schema.type)
+            raise TypeError(type(schema))
 
         return r
 
