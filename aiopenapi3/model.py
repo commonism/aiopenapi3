@@ -140,7 +140,14 @@ class Model(BaseModel):
             elif schema.type == "boolean":
                 r = bool
             elif schema.type == "array":
-                r = List[schema.items.get_type()]
+                if isinstance(schema.items, list):
+                    r = Tuple[tuple(i.ref.get_type(fwdref=True) for i in schema.items)]
+                elif schema.items:
+                    r = List[Model.typeof(schema.items)]
+                elif schema.items is None:
+                    return
+                else:
+                    raise TypeError(schema.items)
             elif schema.type == "object":
                 return schema.get_type(fwdref=True)
             elif schema.type is None:  # discriminated root
