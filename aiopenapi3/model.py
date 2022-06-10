@@ -12,11 +12,11 @@ else:
 
 
 from .json import JSONReference
-from .base import ReferenceBase
+from .base import ReferenceBase, SchemaBase
 
 
 if sys.version_info >= (3, 9):
-    from typing import List, Optional, Literal, Union, Annotated
+    from typing import List, Optional, Literal, Union, Annotated, Tuple
 else:
     from typing import List, Optional, Union
     from typing_extensions import Annotated, Literal
@@ -191,7 +191,7 @@ class Model:  # (BaseModel):
                         r = Literal[literal]
 
                     # this got Literal avoid getting Optional
-                    annotations[name] = r
+                    annotations[Model.nameof(name)] = r
                     continue
                 except StopIteration:
                     r = Model.typeof(f)
@@ -200,14 +200,14 @@ class Model:  # (BaseModel):
 
                 if isinstance(schema, (v20.Schema, v20.Reference)):
                     if not f.required:
-                        annotations[name] = Optional[r]
+                        annotations[Model.nameof(name)] = Optional[r]
                     else:
-                        annotations[name] = r
+                        annotations[Model.nameof(name)] = r
                 elif isinstance(schema, (v30.Schema, v31.Schema, v30.Reference, v31.Reference)):
                     if name not in schema.required:
-                        annotations[name] = Optional[r]
+                        annotations[Model.nameof(name)] = Optional[r]
                     else:
-                        annotations[name] = r
+                        annotations[Model.nameof(name)] = r
                 else:
                     raise TypeError(schema)
 
@@ -221,12 +221,36 @@ class Model:  # (BaseModel):
         else:
             for name, f in schema.properties.items():
                 args = dict()
+                name = Model.nameof(name, args=args)
                 for i in ["default"]:
                     v = getattr(f, i, None)
                     if v:
                         args[i] = v
                 fields[name] = Field(**args)
+
         return fields
+
+    @staticmethod
+    def nameof(name: str, args=None):
+        """
+        fixes
+
+        Field name "validate" shadows a BaseModel attribute; use a different field name with "alias='validate'".
+
+        :param name:
+        :param args:
+        :return:
+        """
+        if getattr(BaseModel, name, None):
+            rename = f"{name}_"
+        else:
+            rename = Model.ALIASES.get(name, None)
+
+        if rename:
+            if args:
+                args["alias"] = rename
+            return rename
+        return name
 
 
 if len(type_format_to_class) == 0:
