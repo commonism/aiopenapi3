@@ -7,6 +7,6 @@ filterwarnings = [
     "error",
     "ignore::UserWarning",
     # note the use of single quote below to denote "raw" strings in TOML
-    'ignore:function ham\(\) is deprecated:DeprecationWarning',
+    'ignore:The loop argument is deprecated since Python 3.8, and scheduled for removal in Python 3.10.:DeprecationWarning',
 ]
 asyncio_mode = "strict"
