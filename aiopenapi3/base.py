@@ -158,7 +158,7 @@ class RootBase:
         path = jp.split("/")[1:]
         node = self
 
-        for part in path:
+        for idx, part in enumerate(path, start=1):
             part = JSONPointer.decode(part)
 
             if isinstance(node, PathsBase):  # forward
@@ -166,15 +166,14 @@ class RootBase:
 
             if isinstance(node, dict):
                 if part not in node:  # pylint: disable=unsupported-membership-test
-                    raise ReferenceResolutionError(f"Invalid path {path} in Reference")
+                    raise ReferenceResolutionError(f"Invalid path {path[:idx]} in Reference")
                 node = node.get(part)
             elif isinstance(node, list):
                 node = node[int(part)]
             elif isinstance(node, ObjectBase):
-                if part == "schema":
-                    part = "schema_"
+                part = Model.nameof(part)
                 if not hasattr(node, part):
-                    raise ReferenceResolutionError(f"Invalid path {path} in Reference")
+                    raise ReferenceResolutionError(f"Invalid path {path[:idx]} in Reference")
                 node = getattr(node, part)
             else:
                 raise TypeError(node)
@@ -251,3 +250,6 @@ class SchemaBase:
             return [self.items.get_type().parse_obj(i) for i in data]
         else:
             return self.get_type().parse_obj(data)
+
+
+from .model import Model
