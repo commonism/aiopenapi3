@@ -45,9 +45,11 @@ def class_from_schema(s):
     return b
 
 
-class Model(BaseModel):
-    class Config:
-        extra: Extra.forbid
+class Model:  # (BaseModel):
+    #    class Config:
+    #        extra: Extra.forbid
+
+    ALIASES = dict()
 
     @classmethod
     def from_schema(
@@ -116,8 +118,8 @@ class Model(BaseModel):
 
         fields["__annotations__"] = annotations
 
-        m = types.new_class(type_name, (BaseModel,), {}, lambda ns: ns.update(fields))
-        m.update_forward_refs()
+        m = types.new_class(f"aiopenapi3.me.{type_name}", (BaseModel,), {}, lambda ns: ns.update(fields))
+        # m = types.new_class(type_name, (BaseModel,), {}, lambda ns: ns.update(fields))
         return m
 
     @staticmethod

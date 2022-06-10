@@ -202,8 +202,19 @@ class OpenAPI:
 
     def _init_references(self):
         self._root._resolve_references(self)
-        for i in list(self._documents.values()):
-            i._resolve_references(self)
+
+        processed = set()
+        while True:
+            values = {id(x): x for x in self._documents.values()}
+            todo = set(values.keys()) - processed
+            if not todo:
+                break
+            for i in todo:
+                values[i]._resolve_references(self)
+            processed = set(values.keys())
+
+    #        for i in self._documents.values():
+    #            i._resolve_references(self)
 
     def _init_operationindex(self):
         operation_map = set()
@@ -232,7 +243,18 @@ class OpenAPI:
         elif isinstance(self._root, (v30.Root, v31.Root)):
             if self.components:
                 for name, schema in filter(lambda v: isinstance(v[1], SchemaBase), self.components.schemas.items()):
-                    schema._identity = name
+                    n = name
+                    for i in ".-":
+                        if i in n:
+                            n = n.replace(i, "_")
+
+                    if keyword.iskeyword(n) or hasattr(builtins, n):
+                        n = f"{n}_"
+
+                    if n != name:
+                        schema._identity = f"{n}_"
+                    else:
+                        schema._identity = f"{n}"
 
             if self.paths:
                 for path, obj in self.paths.items():
@@ -266,18 +288,38 @@ class OpenAPI:
         """
         #
         gc.collect()
-        schemas = dict((id(i), i) for i in filter(lambda obj: isinstance(obj, SchemaBase), gc.get_objects()))
+        schemas = dict(
+            (id(i), i)
+            for i in filter(lambda obj: isinstance(obj, SchemaBase) and hasattr(obj, "oneOf"), gc.get_objects())
+        )
         init = set(schemas.keys())
         for k, i in schemas.items():
-            if not i.discriminator:
-                continue
-            init -= frozenset(
-                map(lambda x: id(x._target), filter(lambda x: isinstance(x, ReferenceBase), i.oneOf + i.anyOf))
-            )
+            if i.discriminator:
+                init -= frozenset(
+                    map(lambda x: id(x._target), filter(lambda x: isinstance(x, ReferenceBase), i.oneOf + i.anyOf))
+                )
 
+        types = {}
+
+        # init discriminators first
         for i in init:
             s = schemas[i]
-            s.set_type()
+            types[i] = s.get_type()
+
+        # init remaining objects
+        for i in set(schemas.keys()) - init:
+            types[i] = schemas[i].get_type()
+
+        # collect the Schemas, update forward refs
+        from pydantic import BaseModel
+        import inspect
+
+        #        types = {k:v for k,v in filter(lambda x: isinstance(x[1], BaseModel), types.items())}
+        types = {k: v for k, v in filter(lambda x: hasattr(schemas[x[0]], "_identity"), types.items())}
+        local = {schemas[k]._identity: v for k, v in types.items()}
+        for k, v in types.items():
+            if inspect.isclass(v) and issubclass(v, BaseModel):
+                v.update_forward_refs(**local)
 
     @property
     def url(self):

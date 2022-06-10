@@ -1,4 +1,4 @@
-from typing import Optional, Any, List, Dict
+from typing import Optional, Any, List, Dict, ForwardRef
 
 from pydantic import BaseModel, Field, root_validator, Extra
 
@@ -207,7 +207,11 @@ class SchemaBase:
             return Model.from_schema(self, names, discriminators, extra)
 
     def get_type(
-        self, names: List[str] = None, discriminators: List[DiscriminatorBase] = None, extra: "SchemaBase" = None
+        self,
+        names: List[str] = None,
+        discriminators: List[DiscriminatorBase] = None,
+        extra: "SchemaBase" = None,
+        fwdref: bool = False,
     ):
         try:
             if extra is None:
@@ -215,7 +219,16 @@ class SchemaBase:
             else:
                 return self.set_type(names, discriminators, extra)
         except AttributeError:
-            return self.set_type(names, discriminators)
+            if fwdref:
+                if getattr(self, "_identity", None):
+                    name = self._identity
+                else:
+                    import uuid
+
+                    name = self._identity = f"CLS{str(uuid.uuid4()).replace('-','')}"
+                return ForwardRef(name, module="aiopenapi3.me")
+            else:
+                return self.set_type(names, discriminators)
 
     def model(self, data: Dict):
         """

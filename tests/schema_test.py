@@ -65,8 +65,13 @@ def test_schema_anyOf_properties(with_anyOf_properties):
 
 
 def test_schema_recursion(with_schema_recursion):
-    with pytest.raises(RecursionError):
-        api = OpenAPI("/", with_schema_recursion)
+    #    with pytest.raises(RecursionError):
+    api = OpenAPI("/", with_schema_recursion)
+
+    a = api.components.schemas["A"].get_type().construct(ofA=1)
+    b = api.components.schemas["B"].get_type().construct(ofB=2, a=a)
+
+    print(b)
 
 
 #    s = api.components.schemas["A"]
