@@ -261,6 +261,32 @@ In case the description document does not match the protocol, it may be required
 The [Plugin interface](https://github.com/commonism/aiopenapi3/blob/master/tests/plugin_test.py) can be used to alter any of those.
 It can even be used to alter an invalid description document to be usable.
 
+## Logging
+### HTTP Requests
+
+```
+export AIOPENAPI3_LOGGING_HANDLERS=debug
+``
+
+will force writing to `/tmp/aiopenapi3-debug.log`.\
+It can be used to inspect Description Document downloads …
+```
+aiopenapi3.OpenAPI DEBUG Downloading Description Document TS29122_CommonData.yaml using WebLoader(baseurl=https://raw.githubusercontent.com/jdegre/5GC_APIs/master/TS24558_Eecs_ServiceProvisioning.yaml) …
+httpx._client DEBUG HTTP Request: GET https://raw.githubusercontent.com/jdegre/5GC_APIs/master/TS29122_CommonData.yaml "HTTP/1.1 200 OK"
+aiopenapi3.OpenAPI DEBUG Resolving TS29571_CommonData.yaml#/components/schemas/Gpsi - Description Document TS29571_CommonData.yaml unknown …
+aiopenapi3.OpenAPI DEBUG Downloading Description Document TS29571_CommonData.yaml using WebLoader(baseurl=https://raw.githubusercontent.com/jdegre/5GC_APIs/master/TS24558_Eecs_ServiceProvisioning.yaml) …
+httpx._client DEBUG HTTP Request: GET https://raw.githubusercontent.com/jdegre/5GC_APIs/master/TS29571_CommonData.yaml "HTTP/1.1 200 OK"
+aiopenapi3.OpenAPI DEBUG Resolving TS29122_MonitoringEvent.yaml#/components/schemas/LocationInfo - Description Document TS29122_MonitoringEvent.yaml unknown …
+aiopenapi3.OpenAPI DEBUG Downloading Description Document TS29122_MonitoringEvent.yaml using WebLoader(baseurl=https://raw.githubusercontent.com/jdegre/5GC_APIs/master/TS24558_Eecs_ServiceProvisioning.yaml) …
+```
+
+and general httpx requests
+```
+httpx._client DEBUG HTTP Request: DELETE http://localhost:51965/v2/pets/e7e979fb-bf53-4a89-9475-da9369cb4dbc "HTTP/1.1 422 "
+httpx._client DEBUG HTTP Request: GET http://localhost:54045/v2/openapi.json "HTTP/1.1 200 "
+httpx._client DEBUG HTTP Request: POST http://localhost:54045/v2/pet "HTTP/1.1 201 "
+```
+
 ## Running Tests
 
 This project includes a test suite, run via ``pytest``.  To run the test suite,

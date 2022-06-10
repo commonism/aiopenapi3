@@ -1,6 +1,8 @@
 import sys
 import gc
 
+import keyword
+import builtins
 
 if sys.version_info >= (3, 9):
     import pathlib
@@ -10,6 +12,8 @@ else:
 import re
 from typing import List, Dict, Union, Callable, Tuple
 
+import logging
+
 import httpx
 import yarl
 
@@ -18,6 +22,7 @@ from .json import JSONReference
 from . import v20
 from . import v30
 from . import v31
+from . import log
 from .request import OperationIndex, HTTP_METHODS
 from .errors import ReferenceResolutionError, SpecError
 from .loader import Loader, NullLoader
@@ -166,6 +171,9 @@ class OpenAPI:
         the plugin interface allows taking care of defects in description documents and implementations
         """
         self.plugins: Plugins = Plugins(plugins or [])
+
+        log.init()
+        self.log = logging.getLogger("aiopenapi3.OpenAPI")
 
         document = self.plugins.document.parsed(url=url, document=document).document
 
@@ -373,6 +381,7 @@ class OpenAPI:
                 self._security[security_scheme] = value
 
     def _load(self, i):
+        self.log.debug(f"Downloading Description Document {i} using {self.loader} …")
         data = self.loader.get(self.plugins, i)
         return self._parse_obj(data)
 
@@ -385,6 +394,7 @@ class OpenAPI:
         if url != "":
             url = pathlib.Path(url)
             if url not in self._documents:
+                self.log.debug(f"Resolving {value.ref} - Description Document {url} unknown …")
                 self._documents[url] = self._load(url)
             root = self._documents[url]
 
