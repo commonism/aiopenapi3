@@ -5,7 +5,6 @@ from pydantic import BaseModel, Field, root_validator, Extra
 from .json import JSONPointer
 from .errors import ReferenceResolutionError
 
-
 HTTP_METHODS = frozenset(["get", "delete", "head", "post", "put", "patch", "trace"])
 
 
@@ -71,7 +70,7 @@ class RootBase:
     @staticmethod
     def resolve(api, root, obj, _PathItem, _Reference):
         if isinstance(obj, ObjectBase):
-            for slot in filter(lambda x: not x.startswith("_"), obj.__fields_set__):
+            for slot in filter(lambda x: not x.startswith("_") or x == "__root__", obj.__fields_set__):
                 value = getattr(obj, slot)
                 if value is None:
                     continue
@@ -79,28 +78,29 @@ class RootBase:
                 # v3.1 - Schema $ref
                 if isinstance(value, SchemaBase):
                     r = getattr(value, "ref", None)
-                    if r is not None:
+                    if r and not isinstance(r, ReferenceBase):
                         value = _Reference.construct(ref=r)
                         setattr(obj, slot, value)
 
-                """
-                ref fields embedded in objects -> replace the object with a Reference object
+                if not isinstance(value, ReferenceBase):
+                    """
+                    ref fields embedded in objects -> replace the object with a Reference object
 
-                PathItem Ref is ambigous
-                https://github.com/OAI/OpenAPI-Specification/issues/2635
-                """
-                if isinstance(obj, _PathItem) and slot == "ref":
-                    ref = _Reference.construct(ref=value)
-                    ref._target = api.resolve_jr(root, obj, ref)
-                    setattr(obj, slot, ref)
+                    PathItem Ref is ambigous
+                    https://github.com/OAI/OpenAPI-Specification/issues/2635
+                    """
+                    if isinstance(obj, _PathItem) and slot == "ref":
+                        ref = _Reference.construct(ref=value)
+                        ref._target = api.resolve_jr(root, obj, ref)
+                        setattr(obj, slot, ref)
 
-                """
-                Swagger 2.0 - Schema.ref -> Reference
-                """
-                if isinstance(obj, SchemaBase) and slot == "ref":
-                    ref = _Reference.construct(ref=value)
-                    ref._target = api.resolve_jr(root, obj, ref)
-                    setattr(obj, slot, ref)
+                    """
+                    Swagger 2.0 - Schema.ref -> Reference
+                    """
+                    if isinstance(obj, SchemaBase) and slot == "ref":
+                        ref = _Reference.construct(ref=value)
+                        ref._target = api.resolve_jr(root, obj, ref)
+                        setattr(obj, slot, ref)
 
                 value = getattr(obj, slot)
 
@@ -137,11 +137,7 @@ class RootBase:
         Resolves all reference objects below this object and notes their original
         value was a reference.
         """
-        # don't circular import
-
-        root = self
-
-        RootBase.resolve(api, self, self, None, None)
+        # RootBase.resolve(api, self, self, None, None)
         raise NotImplementedError("specific")
 
     def resolve_jp(self, jp):
