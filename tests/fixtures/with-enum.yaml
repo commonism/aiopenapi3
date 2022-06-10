@@ -9,6 +9,18 @@ info:
 
 components:
   schemas:
+    EnumRef:
+      type: object
+      properties:
+        id:
+          type: str
+          enum:
+            - {"$ref": "#/components/schemas/Enum/enum/0"}
+    Enum:
+      type: string
+      enum:
+        - good
+
     PaymentMethod:
       type: object
       description: Payment Method Response Object.
