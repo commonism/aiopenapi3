@@ -76,3 +76,9 @@ def test_schema_recursion(with_schema_recursion):
 
 #    s = api.components.schemas["A"]
 #    t = s.get_type()
+
+
+def test_schema_Of_parent_properties(with_schema_Of_parent_properties):
+    # this is supposed to work
+    with pytest.raises(ValueError, match="__root__ cannot be mixed with other fields"):
+        api = OpenAPI("/", with_schema_Of_parent_properties)

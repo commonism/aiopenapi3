@@ -191,3 +191,8 @@ def with_schema_recursion():
 @pytest.fixture
 def with_array():
     yield _get_parsed_yaml("with-array.yaml")
+
+
+@pytest.fixture
+def with_schema_Of_parent_properties():
+    yield _get_parsed_yaml("with-schema-Of-parent-properties.yaml")
