@@ -155,8 +155,7 @@ class Model:  # (BaseModel):
                 """
                 recursively define related discriminated objects
                 """
-                schema.get_type(fwdref=True)
-                return None
+                return schema.get_type(fwdref=True)
         elif isinstance(schema, ReferenceBase):
             r = Model.typeof(schema._target)
         else:
