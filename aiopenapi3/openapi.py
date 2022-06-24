@@ -1,7 +1,6 @@
 import sys
 import gc
 
-import keyword
 import builtins
 
 if sys.version_info >= (3, 9):
@@ -251,20 +250,11 @@ class OpenAPI:
                                 response.schema_._identity = f"{path}.{m}.{r}"
 
         elif isinstance(self._root, (v30.Root, v31.Root)):
-            if self.components:
-                for name, schema in filter(lambda v: isinstance(v[1], SchemaBase), self.components.schemas.items()):
-                    n = name
-                    for i in ".-":
-                        if i in n:
-                            n = n.replace(i, "_")
-
-                    if keyword.iskeyword(n) or hasattr(builtins, n):
-                        n = f"{n}_"
-
-                    if n != name:
-                        schema._identity = f"{n}_"
-                    else:
-                        schema._identity = f"{n}"
+            allschemas = [self.components.schemas]
+            allschemas.extend([x.components.schemas for x in self._documents.values()])
+            for schemas in allschemas:
+                for name, schema in filter(lambda v: isinstance(v[1], SchemaBase), schemas.items()):
+                    schema._get_identity(name, "OP")
 
             if self.paths:
                 for path, obj in self.paths.items():
@@ -314,10 +304,12 @@ class OpenAPI:
         # init discriminators first
         for i in init:
             s = schemas[i]
+            s._get_identity(s.title, "I1")
             types[i] = s.get_type()
 
         # init remaining objects
         for i in set(schemas.keys()) - init:
+            s._get_identity(s.title, "I1")
             types[i] = schemas[i].get_type()
 
         # collect the Schemas, update forward refs
