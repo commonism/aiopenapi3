@@ -217,6 +217,13 @@ class SchemaBase:
             else:
                 n = str(uuid.uuid4()).replace("-", "_")
 
+            try:
+                # n = re.sub(r"^([0-9]+)(.*)", r"CLS\1\2", n)
+                int(n[0])
+                n += "_"
+            except ValueError:
+                pass
+
             if keyword.iskeyword(n) or hasattr(builtins, n):
                 n += "_"
 
