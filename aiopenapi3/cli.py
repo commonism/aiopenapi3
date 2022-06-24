@@ -2,6 +2,7 @@ import argparse
 import sys
 
 import yaml
+import yarl
 
 if sys.version_info >= (3, 9):
     from pathlib import Path
@@ -67,7 +68,7 @@ def main(argv=None):
         log("\t" + "\n\t".join(sorted(tags)) + "\n")
 
     try:
-        OpenAPI.load_file(args.name, Path(args.name), loader=FileSystemLoader(Path().cwd(), yload=ylc))
+        OpenAPI.load_file(args.name, yarl.URL(args.name), loader=FileSystemLoader(Path().cwd(), yload=ylc))
     except ValueError as e:
         print(e)
     else:

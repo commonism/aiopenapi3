@@ -74,12 +74,14 @@ class OpenAPI:
     def load_file(
         cls,
         url,
-        path,
+        path: Union[str, pathlib.Path, yarl.URL],
         session_factory: Callable[[], httpx.AsyncClient] = httpx.AsyncClient,
         loader: Loader = None,
         plugins: List[Plugin] = None,
     ):
         assert loader
+        if not isinstance(path, yarl.URL):
+            path = yarl.URL(str(path))
         data = loader.load(Plugins(plugins or []), path)
         return cls.loads(url, data, session_factory, loader, plugins)
 
@@ -250,7 +252,7 @@ class OpenAPI:
                                 response.schema_._identity = f"{path}.{m}.{r}"
 
         elif isinstance(self._root, (v30.Root, v31.Root)):
-            allschemas = [self.components.schemas]
+            allschemas = [self.components.schemas] if self.components is not None else []
             allschemas.extend([x.components.schemas for x in self._documents.values()])
             for schemas in allschemas:
                 for name, schema in filter(lambda v: isinstance(v[1], SchemaBase), schemas.items()):
