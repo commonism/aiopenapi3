@@ -54,7 +54,7 @@ class Request(RequestBase):
                 options = " or ".join(
                     sorted(map(lambda x: f"{{{x}}}", [" and ".join(sorted(i.__root__.keys())) for i in security]))
                 )
-                raise ValueError(f"No security requirement satisfied (accepts {options})")
+                raise ValueError(f"No security requirement provided (accepts {options})")
 
         for s in security:
             if frozenset(s.__root__.keys()) - frozenset(self.security.keys()):
@@ -67,7 +67,7 @@ class Request(RequestBase):
             options = " or ".join(
                 sorted(map(lambda x: f"{{{x}}}", [" and ".join(sorted(i.__root__.keys())) for i in security]))
             )
-            raise ValueError(f"No security requirement satisfied (accepts {options})")
+            raise ValueError(f"No security requirement satisfied (accepts {options})  given {self.security}")
 
     def _prepare_secschemes(self, scheme: str, value: List[str]):
         """
