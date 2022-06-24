@@ -6,7 +6,7 @@ if sys.version_info >= (3, 9):
 else:
     from pathlib3x import Path
 
-
+import yarl
 import pytest
 from aiopenapi3 import OpenAPI, FileSystemLoader, ReferenceResolutionError
 from aiopenapi3.loader import Loader, Plugins, NullLoader
@@ -66,7 +66,7 @@ def test_loader_format():
     spec = SPECTPL.format(**values)
     api = OpenAPI.loads("loader.yaml", spec)
     loader = NullLoader()
-    spec = loader.parse(Plugins([]), Path("loader.yaml"), spec)
+    spec = loader.parse(Plugins([]), yarl.URL("loader.yaml"), spec)
     spec = json.dumps(spec)
     api = OpenAPI.loads("loader.json", spec)
 
