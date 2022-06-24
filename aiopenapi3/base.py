@@ -189,6 +189,12 @@ class DiscriminatorBase:
     pass
 
 
+import re
+import builtins
+import keyword
+import uuid
+
+
 class SchemaBase:
     def __getstate__(self):
         """
@@ -203,6 +209,22 @@ class SchemaBase:
         except Exception:
             pass
         return r
+
+    def _get_identity(self, name, prefix="CLS"):
+        if not hasattr(self, "_identity"):
+            if name:
+                n = re.sub(r"[.-]", "_", name)
+            else:
+                n = str(uuid.uuid4()).replace("-", "_")
+
+            if keyword.iskeyword(n) or hasattr(builtins, n):
+                n += "_"
+
+            if n != name:
+                self._identity = f"{prefix}{n}"
+            else:
+                self._identity = name
+        return self._identity
 
     def set_type(
         self, names: List[str] = None, discriminators: List[DiscriminatorBase] = None, extra: "SchemaBase" = None
@@ -229,13 +251,7 @@ class SchemaBase:
                 return self.set_type(names, discriminators, extra)
         except AttributeError:
             if fwdref:
-                if getattr(self, "_identity", None):
-                    name = self._identity
-                else:
-                    import uuid
-
-                    name = self._identity = f"CLS{str(uuid.uuid4()).replace('-','')}"
-                return ForwardRef(name, module="aiopenapi3.me")
+                return ForwardRef(self._get_identity(None), module="aiopenapi3.me")
             else:
                 return self.set_type(names, discriminators)
 

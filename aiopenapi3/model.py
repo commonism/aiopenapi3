@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import collections
 import types
-import uuid
 import sys
 
 if sys.version_info >= (3, 9):
@@ -70,7 +69,7 @@ class Model:  # (BaseModel):
         if schema.type in ("string", "integer", "number", "boolean"):
             return Model.typeof(schema)
 
-        type_name = schema.title or getattr(schema, "_identity", None) or str(uuid.uuid4())
+        type_name = schema._get_identity(schema.title, "L8")
         fields = dict()
         annotations = dict()
 
