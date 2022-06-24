@@ -2,6 +2,8 @@ import dataclasses
 from typing import List, Any, Dict
 from pydantic import BaseModel
 
+import yarl
+
 """
 the plugin interface replicates the suds way of  dealing with broken data/schema information
 """
@@ -23,7 +25,7 @@ class Init(Plugin):
 class Document(Plugin):
     @dataclasses.dataclass
     class Context:
-        url: str
+        url: yarl.URL
         document: Dict[str, Any]
 
     """
@@ -91,6 +93,12 @@ class Domain:
         self.Context = ctx
         self.plugins = plugins
 
+    def __getstate__(self):
+        return (self.ctx, self.plugins)
+
+    def __setstate__(self, state):
+        self.ctx, self.plugins = state
+
     def __getattr__(self, name: str) -> "Method":
         return Method(name, self)
 
@@ -114,6 +122,11 @@ class Plugins:
     _domains: Dict[str, Plugin] = {"init": Init, "document": Document, "message": Message}
 
     def __init__(self, plugins: List[Plugin]):
+        for i in plugins:
+            assert isinstance(i, Plugin)
+
+        self._init = self._document = self._message = None
+
         for i in self._domains.keys():
             setattr(self, f"_{i}", self._get_domain(i, plugins))
 
