@@ -16,6 +16,7 @@ This project is a fork of [Dorthu/openapi3](https://github.com/Dorthu/openapi3/)
     * OpenAPI 3.0.3
     * OpenAPI 3.1.0
   * object parsing via pydantic
+    * recursive schemas (A.a -> A)
   * request body model creation via [pydantic](https://github.com/samuelcolvin/pydantic)
   * pydantic compatible "format"-type coercion (e.g. datetime.interval)
   * blocking and nonblocking (asyncio) interface via [httpx](https://www.python-httpx.org/)
