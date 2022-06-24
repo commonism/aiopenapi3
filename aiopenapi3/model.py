@@ -3,6 +3,8 @@ from __future__ import annotations
 import collections
 import types
 import sys
+import re
+
 
 if sys.version_info >= (3, 9):
     from pathlib import Path
