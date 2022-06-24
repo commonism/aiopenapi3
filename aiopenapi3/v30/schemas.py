@@ -83,5 +83,8 @@ class Schema(ObjectExtended, SchemaBase):
                     values[i] = int(v)
         return values
 
+    def __getstate__(self):
+        return SchemaBase.__getstate__(self)
+
 
 Schema.update_forward_refs()
