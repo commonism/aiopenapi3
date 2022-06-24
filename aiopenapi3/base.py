@@ -1,9 +1,16 @@
 from typing import Optional, Any, List, Dict, ForwardRef
 
+import re
+import builtins
+import keyword
+import uuid
+
+
 from pydantic import BaseModel, Field, root_validator, Extra
 
 from .json import JSONPointer
 from .errors import ReferenceResolutionError
+
 
 HTTP_METHODS = frozenset(["get", "delete", "head", "post", "put", "patch", "trace"])
 
@@ -187,12 +194,6 @@ class ParameterBase:
 
 class DiscriminatorBase:
     pass
-
-
-import re
-import builtins
-import keyword
-import uuid
 
 
 class SchemaBase:
