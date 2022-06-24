@@ -190,6 +190,20 @@ class DiscriminatorBase:
 
 
 class SchemaBase:
+    def __getstate__(self):
+        """
+        pickle can't do the _model_type - remove from pydantic's __getstate__
+        :return:
+        """
+        r = BaseModel.__getstate__(self)
+        try:
+            if "_model_type" in r["__private_attribute_values__"]:
+                r["__private_attribute_values__"] = r["__private_attribute_values__"].copy()
+                del r["__private_attribute_values__"]["_model_type"]
+        except Exception:
+            pass
+        return r
+
     def set_type(
         self, names: List[str] = None, discriminators: List[DiscriminatorBase] = None, extra: "SchemaBase" = None
     ):

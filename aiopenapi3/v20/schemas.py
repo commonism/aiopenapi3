@@ -56,5 +56,8 @@ class Schema(ObjectExtended, SchemaBase):
     """
     _identity: str
 
+    def __getstate__(self):
+        return SchemaBase.__getstate__(self)
+
 
 Schema.update_forward_refs()
