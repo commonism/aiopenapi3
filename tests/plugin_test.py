@@ -23,12 +23,12 @@ class OnDocument(Document):
         return ctx
 
     def parsed(self, ctx):
-        if ctx.url == "test.yaml":
+        if ctx.url.path == "test.yaml":
             ctx.document["components"] = {
                 "schemas": {"Pet": {"$ref": "petstore-expanded.yaml#/components/schemas/Pet"}}
             }
             ctx.document["servers"] = [{"url": "/"}]
-        elif ctx.url == "petstore-expanded.yaml":
+        elif ctx.url.path == "petstore-expanded.yaml":
 
             ctx.document["components"]["schemas"]["Pet"]["allOf"].append(
                 {
