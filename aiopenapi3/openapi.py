@@ -176,7 +176,7 @@ class OpenAPI:
         log.init()
         self.log = logging.getLogger("aiopenapi3.OpenAPI")
 
-        document = self.plugins.document.parsed(url=url, document=document).document
+        document = self.plugins.document.parsed(url=self._base_url, document=document).document
 
         self._root = self._parse_obj(document)
 
