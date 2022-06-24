@@ -66,7 +66,7 @@ class Loader(abc.ABC):
         self.yload = yload
 
     @abc.abstractmethod
-    def load(self, plugins, file: Path, codec=None):
+    def load(self, plugins, url: yarl.URL, codec=None):
         raise NotImplementedError("load")
 
     @classmethod
@@ -85,7 +85,8 @@ class Loader(abc.ABC):
             raise ValueError("encoding")
         return data
 
-    def parse(self, plugins, file, data):
+    def parse(self, plugins, url: yarl.URL, data):
+        file = Path(url.path)
         if file.suffix == ".yaml":
             data = yaml.load(data, Loader=self.yload)
         elif file.suffix == ".json":
@@ -94,16 +95,16 @@ class Loader(abc.ABC):
             raise ValueError(f"{file.name} is not yaml/json")
         return data
 
-    def get(self, plugins, file):
-        data = self.load(plugins, file)
-        return self.parse(plugins, file, data)
+    def get(self, plugins, url: yarl.URL):
+        data = self.load(plugins, url)
+        return self.parse(plugins, url, data)
 
     def __repr__(self):
         return f"{self.__class__.__qualname__}"
 
 
 class NullLoader(Loader):
-    def load(self, plugins, file: Path, codec=None):
+    def load(self, plugins, url: yarl.URL, codec=None):
         raise NotImplementedError("load")
 
 
@@ -113,13 +114,18 @@ class WebLoader(Loader):
         self.baseurl = baseurl
         self.session_factory = session_factory
 
-    def load(self, plugins, file: Path, codec=None):
-        url = self.baseurl.join(yarl.URL(str(file)))
+    def load(self, plugins, url: yarl.URL, codec=None):
+        url = self.baseurl.join(url)
         with self.session_factory() as session:
             data = session.get(str(url))
             data = data.content
         data = self.decode(data, codec)
-        data = plugins.document.loaded(url=str(file), document=data).document
+        data = plugins.document.loaded(url=url, document=data).document
+        return data
+
+    def parse(self, plugins, url: yarl.URL, data):
+        data = super().parse(plugins, url, data)
+        data = plugins.document.parsed(url=url, document=data).document
         return data
 
     def __repr__(self):
@@ -132,19 +138,20 @@ class FileSystemLoader(Loader):
         assert isinstance(base, Path)
         self.base = base
 
-    def load(self, plugins: Plugins, file: Path, codec=None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec=None):
+        assert isinstance(url, yarl.URL)
         assert plugins
-        assert isinstance(file, Path)
+        file = Path(url.path)
         path = self.base / file
         assert path.is_relative_to(self.base)
         data = path.open("rb").read()
         data = self.decode(data, codec)
-        data = plugins.document.loaded(url=str(file), document=data).document
+        data = plugins.document.loaded(url=url, document=data).document
         return data
 
-    def parse(self, plugins, file, data):
-        data = super().parse(plugins, file, data)
-        data = plugins.document.parsed(url=str(file), document=data).document
+    def parse(self, plugins, url: yarl.URL, data):
+        data = super().parse(plugins, url, data)
+        data = plugins.document.parsed(url=url, document=data).document
         return data
 
     def __repr__(self):
