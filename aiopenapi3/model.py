@@ -243,11 +243,19 @@ class Model:  # (BaseModel):
         if getattr(BaseModel, name, None):
             rename = f"{name}_"
         else:
-            rename = Model.ALIASES.get(name, None)
+            rename = Model.ALIASES.get(name, name)
 
-        if rename:
-            if args:
-                args["alias"] = rename
+        try:
+            rename = re.sub(r"[@\.-]", "_", rename)
+        except Exception as e:
+            print(e)
+
+        if rename[0] == "_":
+            rename = rename.lstrip("_") + "_"
+
+        if rename != name:
+            if args is not None:
+                args["alias"] = name
             return rename
         return name
 
