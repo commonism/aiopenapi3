@@ -87,7 +87,7 @@ class OpenAPI:
     @classmethod
     def loads(
         cls,
-        url,
+        url: str,
         data,
         session_factory: Callable[[], httpx.AsyncClient] = httpx.AsyncClient,
         loader=None,
@@ -95,7 +95,7 @@ class OpenAPI:
     ):
         if loader is None:
             loader = NullLoader()
-        data = loader.parse(Plugins(plugins or []), pathlib.Path(url), data)
+        data = loader.parse(Plugins(plugins or []), yarl.URL(url), data)
         return cls(url, data, session_factory, loader, plugins)
 
     def _parse_obj(self, raw_document):
@@ -382,9 +382,9 @@ class OpenAPI:
             else:
                 self._security[security_scheme] = value
 
-    def _load(self, i):
-        self.log.debug(f"Downloading Description Document {i} using {self.loader} …")
-        data = self.loader.get(self.plugins, i)
+    def _load(self, url: yarl.URL):
+        self.log.debug(f"Downloading Description Document {url} using {self.loader} …")
+        data = self.loader.get(self.plugins, url)
         return self._parse_obj(data)
 
     @property
@@ -394,7 +394,7 @@ class OpenAPI:
     def resolve_jr(self, root: "Rootv30", obj, value: Reference):
         url, jp = JSONReference.split(value.ref)
         if url != "":
-            url = pathlib.Path(url)
+            url = yarl.URL(url)
             if url not in self._documents:
                 self.log.debug(f"Resolving {value.ref} - Description Document {url} unknown …")
                 self._documents[url] = self._load(url)
