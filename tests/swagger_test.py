@@ -65,8 +65,29 @@ def test_combined_securityparameters(httpx_mock, with_swagger):
     api._.combinedSecurity(data={}, parameters={})
 
     api.authenticate(None)
-    with pytest.raises(ValueError, match="No security requirement satisfied"):
+    with pytest.raises(ValueError, match=r"No security requirement provided \(accepts {token and user}\)"):
         api._.combinedSecurity(data={}, parameters={})
+
+
+def test_alternate_securityparameters(httpx_mock, with_swagger):
+    api = OpenAPI(URLBASE, with_swagger, session_factory=httpx.Client)
+    user = api._.createUser.return_value().get_type().construct(name="test", id=1)
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.dict())
+
+    api.authenticate(user="u")
+    with pytest.raises(
+        ValueError, match=r"No security requirement satisfied \(accepts {BasicAuth} or {token and user} given {user}\)"
+    ):
+        api._.alternateSecurity(data={}, parameters={})
+
+    api.authenticate(**{"user": "u", "token": "t"})
+    api._.alternateSecurity(data={}, parameters={})
+
+    api.authenticate(None)
+    with pytest.raises(
+        ValueError, match=r"No security requirement provided \(accepts {BasicAuth} or {token and user}\)"
+    ):
+        api._.alternateSecurity(data={}, parameters={})
 
 
 def test_post_body(httpx_mock, with_swagger):
