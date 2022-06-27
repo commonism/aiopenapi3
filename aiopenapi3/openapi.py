@@ -253,7 +253,9 @@ class OpenAPI:
 
         elif isinstance(self._root, (v30.Root, v31.Root)):
             allschemas = [self.components.schemas] if self.components is not None else []
-            allschemas.extend([x.components.schemas for x in self._documents.values()])
+            allschemas.extend(
+                [x.components.schemas for x in filter(lambda y: all([y, y.components]), self._documents.values())]
+            )
             for schemas in allschemas:
                 for name, schema in filter(lambda v: isinstance(v[1], SchemaBase), schemas.items()):
                     schema._get_identity(name, "OP")
