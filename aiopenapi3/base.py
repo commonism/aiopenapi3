@@ -261,7 +261,11 @@ class SchemaBase:
                 return self.set_type(names, discriminators, extra)
         except AttributeError:
             if fwdref:
-                return ForwardRef(self._get_identity(None), module="aiopenapi3.me")
+                if "module" in ForwardRef.__init__.__code__.co_varnames:
+                    # FIXME Python < 3.9 compat
+                    return ForwardRef(self._get_identity(None), module="aiopenapi3.me")
+                else:
+                    return ForwardRef(self._get_identity(None))
             else:
                 return self.set_type(names, discriminators)
 
