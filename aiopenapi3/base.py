@@ -213,6 +213,8 @@ class SchemaBase:
 
     def _get_identity(self, name, prefix="CLS"):
         if not hasattr(self, "_identity"):
+            if not name:
+                name = self.title
             if name:
                 n = re.sub(r"[.-]", "_", name)
             else:
