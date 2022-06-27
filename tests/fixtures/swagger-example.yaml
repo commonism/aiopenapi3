@@ -38,6 +38,19 @@ security:
   - BasicAuth: []
 
 paths:
+  /alternate:
+    get:
+      operationId: alternateSecurity
+      responses:
+        200:
+          description: ''
+          schema:
+            type: str
+      security:
+        - user: []
+          token: []
+        - BasicAuth: []
+
   /combined:
     get:
       operationId: combinedSecurity
