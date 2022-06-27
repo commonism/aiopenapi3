@@ -119,8 +119,15 @@ class Model:  # (BaseModel):
 
         fields["__annotations__"] = annotations
 
-        m = types.new_class(f"aiopenapi3.me.{type_name}", (BaseModel,), {}, lambda ns: ns.update(fields))
-        # m = types.new_class(type_name, (BaseModel,), {}, lambda ns: ns.update(fields))
+        fields["__module__"] = "aiopenapi3.me"
+
+        # dif not work for __root__
+        # xf = dict()
+        # for k in filter(lambda x: x != "__annotations__", fields.keys()):
+        #    xf[k] = (annotations.get(k, None), fields.get(k, None))
+        # m = pydantic.create_model(type_name, __base__=BaseModel, **xf, __module__=__name__)
+
+        m = types.new_class(type_name, (BaseModel,), {}, lambda ns: ns.update(fields))
         return m
 
     @staticmethod
