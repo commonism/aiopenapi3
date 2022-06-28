@@ -6,6 +6,8 @@ This file tests that $ref resolution works as expected, and that
 allOfs are populated as expected as well.
 """
 
+from typing import ForwardRef
+
 if sys.version_info >= (3, 8):
     import typing
 else:
