@@ -211,9 +211,9 @@ class SchemaBase:
             pass
         return r
 
-    def _get_identity(self, name, prefix="CLS"):
+    def _get_identity(self, prefix="CLS", name=None):
         if not hasattr(self, "_identity"):
-            if not name:
+            if name is None:
                 name = self.title
             if name:
                 n = re.sub(r"[.-]", "_", name)
@@ -263,9 +263,9 @@ class SchemaBase:
             if fwdref:
                 if "module" in ForwardRef.__init__.__code__.co_varnames:
                     # FIXME Python < 3.9 compat
-                    return ForwardRef(self._get_identity(None), module="aiopenapi3.me")
+                    return ForwardRef(self._get_identity(), module="aiopenapi3.me")
                 else:
-                    return ForwardRef(self._get_identity(None))
+                    return ForwardRef(self._get_identity())
             else:
                 return self.set_type(names, discriminators)
 

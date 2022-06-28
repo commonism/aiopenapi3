@@ -258,7 +258,7 @@ class OpenAPI:
             )
             for schemas in allschemas:
                 for name, schema in filter(lambda v: isinstance(v[1], SchemaBase), schemas.items()):
-                    schema._get_identity(name, "OP")
+                    schema._get_identity(name=name, prefix="OP")
 
             if self.paths:
                 for path, obj in self.paths.items():
@@ -308,13 +308,14 @@ class OpenAPI:
         # init discriminators first
         for i in init:
             s = schemas[i]
-            s._get_identity(s.title, "I1")
+            s._get_identity("I1")
             types[i] = s.get_type()
 
         # init remaining objects
         for i in set(schemas.keys()) - init:
-            s._get_identity(s.title, "I1")
-            types[i] = schemas[i].get_type()
+            s = schemas[i]
+            s._get_identity("I2")
+            types[i] = s.get_type()
 
         # collect the Schemas, update forward refs
         from pydantic import BaseModel
