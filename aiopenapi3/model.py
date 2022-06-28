@@ -71,11 +71,12 @@ class Model:  # (BaseModel):
         if schema.type in ("string", "integer", "number", "boolean"):
             return Model.typeof(schema)
 
-        type_name = schema._get_identity(schema.title, "L8")
+        type_name = schema._get_identity("L8")
         fields = dict()
         annotations = dict()
 
         if hasattr(schema, "anyOf") and schema.anyOf:
+            assert all(schema.anyOf)
             t = tuple(
                 i.get_type(
                     names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
