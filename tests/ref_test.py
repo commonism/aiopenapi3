@@ -50,11 +50,20 @@ def test_allOf_resolution(petstore_expanded_spec):
     ref = petstore_expanded_spec.paths["/pets"].get.responses["200"].content["application/json"].schema_.get_type()
 
     assert type(ref) == ModelMetaclass
+
     assert typing.get_origin(ref.__fields__["__root__"].outer_type_) == list
 
-    items = typing.get_args(ref.__fields__["__root__"].outer_type_)[0].__fields__
+    # outer_type may be ForwardRef
+    if isinstance(typing.get_args(ref.__fields__["__root__"].outer_type_)[0], ForwardRef):
+        assert ref.__fields__["__root__"].sub_fields[0].type_.__name__ == "Pet"
+        items = ref.__fields__["__root__"].sub_fields[0].type_.__fields__
+    else:
+        assert typing.get_args(ref.__fields__["__root__"].outer_type_)[0].__name__ == "Pet"
+        items = typing.get_args(ref.__fields__["__root__"].outer_type_)[0].__fields__
 
-    assert sorted(map(lambda x: x.name, filter(lambda y: y.required == True, items.values()))) == sorted(["id", "name"])
+    assert sorted(map(lambda x: x.name, filter(lambda y: y.required == True, items.values()))) == sorted(
+        ["id", "name"]
+    ), ref.schema()
 
     assert sorted(map(lambda x: x.name, items.values())) == ["id", "name", "tag"]
 
