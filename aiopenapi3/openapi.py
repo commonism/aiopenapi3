@@ -3,6 +3,8 @@ import gc
 
 import builtins
 
+import pydantic.main
+
 if sys.version_info >= (3, 9):
     import pathlib
 else:
@@ -282,6 +284,35 @@ class OpenAPI:
         else:
             raise ValueError(self._root)
 
+    @staticmethod
+    def _iterate_schemas(schemas, d, r):
+        if not d:
+            return r
+
+        r.update(d)
+        sets = [
+            set(
+                filter(
+                    lambda x: x not in r,
+                    map(
+                        lambda x: id(x._target),
+                        filter(
+                            lambda x: isinstance(x, ReferenceBase),
+                            schemas[i].oneOf + schemas[i].anyOf + schemas[i].allOf,
+                        ),
+                    ),
+                )
+            )
+            for i in d
+        ]
+
+        if not sets:
+            return r
+        sets = set.union(*sets)
+        r.update(sets)
+
+        return OpenAPI._iterate_schemas(schemas, sets, r)
+
     def _init_schema_types(self):
         """
         create & cache all the types -
@@ -297,22 +328,30 @@ class OpenAPI:
             for i in filter(lambda obj: isinstance(obj, SchemaBase) and hasattr(obj, "oneOf"), gc.get_objects())
         )
         init = set(schemas.keys())
+        noinit = set()
         for k, i in schemas.items():
-            if i.discriminator:
-                init -= frozenset(
-                    map(lambda x: id(x._target), filter(lambda x: isinstance(x, ReferenceBase), i.oneOf + i.anyOf))
+            if i.discriminator or i.oneOf or i.anyOf or i.allOf:
+                noinit |= frozenset(
+                    filter(
+                        lambda x: isinstance(schemas[x], SchemaBase),
+                        map(
+                            lambda x: id(x._target),
+                            filter(lambda x: isinstance(x, ReferenceBase), i.oneOf + i.anyOf + i.allOf),
+                        ),
+                    )
                 )
 
+        noinit = OpenAPI._iterate_schemas(schemas, noinit, set())
         types = {}
 
         # init discriminators first
-        for i in init:
+        for i in sorted(init - noinit):  # , reverse=True):
             s = schemas[i]
             s._get_identity("I1")
             types[i] = s.get_type()
 
         # init remaining objects
-        for i in set(schemas.keys()) - init:
+        for i in sorted(noinit):
             s = schemas[i]
             s._get_identity("I2")
             types[i] = s.get_type()
@@ -324,9 +363,10 @@ class OpenAPI:
         #        types = {k:v for k,v in filter(lambda x: isinstance(x[1], BaseModel), types.items())}
         types = {k: v for k, v in filter(lambda x: hasattr(schemas[x[0]], "_identity"), types.items())}
         local = {schemas[k]._identity: v for k, v in types.items()}
-        for k, v in types.items():
-            if inspect.isclass(v) and issubclass(v, BaseModel):
-                v.update_forward_refs(**local)
+        for name, v in local.items():
+            if not (inspect.isclass(v) and issubclass(v, BaseModel)):
+                continue
+            v.update_forward_refs(**local)
 
     @property
     def url(self):
