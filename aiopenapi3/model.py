@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import collections
-import types
 import sys
 import re
 
+import types
+import pydantic
 
 if sys.version_info >= (3, 9):
     from pathlib import Path
@@ -15,11 +16,10 @@ else:
 from .json import JSONReference
 from .base import ReferenceBase, SchemaBase
 
-
 if sys.version_info >= (3, 9):
-    from typing import List, Optional, Literal, Union, Annotated, Tuple
+    from typing import List, Optional, Literal, Union, Annotated, Tuple, Dict
 else:
-    from typing import List, Optional, Union
+    from typing import List, Optional, Union, Dict
     from typing_extensions import Annotated, Literal
 
 from pydantic import BaseModel, Extra, Field
@@ -128,11 +128,47 @@ class Model:  # (BaseModel):
         #    xf[k] = (annotations.get(k, None), fields.get(k, None))
         # m = pydantic.create_model(type_name, __base__=BaseModel, **xf, __module__=__name__)
 
+        fields["Config"] = Model.configof(schema)
+
         m = types.new_class(type_name, (BaseModel,), {}, lambda ns: ns.update(fields))
         return m
 
     @staticmethod
-    def typeof(schema: "SchemaBase"):
+    def configof(schema):
+        """
+        create pydantic Config for the BaseModel
+        we need to set "extra" - Extra.allow is not an option though …
+
+        Extra.allow is a problem
+          * overwriting class attributes/members/methods
+          * pydantic type identification does not work reliable due to missing rejects,
+
+        """
+        if schema.additionalProperties is not None:
+            if isinstance(schema.additionalProperties, bool):
+                if schema.additionalProperties == False:
+                    r = Extra.forbid
+                else:
+                    r = Extra.allow
+            elif isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase)):
+                r = Extra.forbid
+            else:
+                raise TypeError(schema.additionalProperties)
+        else:
+            r = Extra.allow
+
+        """
+        PR?
+        """
+        r = Extra.ignore if r == Extra.allow else r
+
+        class Config:
+            extra = r
+
+        return Config
+
+    @staticmethod
+    def typeof(schema: "SchemaBase", fwdref=False):
         r = None
         #        assert schema is not None
         if schema is None:
@@ -175,9 +211,33 @@ class Model:  # (BaseModel):
 
     @staticmethod
     def annotationsof(schema: "SchemaBase", discriminators, shmanm):
+        from . import v20
+
         annotations = dict()
         if schema.type == "array":
             annotations["__root__"] = Model.typeof(schema)
+        elif (
+            schema.type == "object"
+            and schema.additionalProperties
+            and isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase))
+        ):
+            """
+            https://swagger.io/docs/specification/data-models/dictionaries/
+
+            For example, a string-to-string dictionary like this:
+
+                {
+                  "en": "English",
+                  "fr": "French"
+                }
+
+            is defined using the following schema:
+
+                type: object
+                additionalProperties:
+                  type: string
+            """
+            annotations["__root__"] = Dict[str, Model.typeof(schema.additionalProperties)]
         else:
             for name, f in schema.properties.items():
                 r = None
