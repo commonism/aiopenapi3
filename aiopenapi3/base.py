@@ -76,6 +76,8 @@ class PathsBase(ObjectBase):
 class RootBase:
     @staticmethod
     def resolve(api, root, obj, _PathItem, _Reference):
+        from . import v20, v30, v31
+
         if isinstance(obj, ObjectBase):
             for slot in filter(lambda x: not x.startswith("_") or x == "__root__", obj.__fields_set__):
                 value = getattr(obj, slot)
@@ -83,11 +85,12 @@ class RootBase:
                     continue
 
                 # v3.1 - Schema $ref
-                if isinstance(value, SchemaBase):
-                    r = getattr(value, "ref", None)
-                    if r and not isinstance(r, ReferenceBase):
-                        value = _Reference.construct(ref=r)
-                        setattr(obj, slot, value)
+                if isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root)):
+                    if isinstance(value, SchemaBase):
+                        r = getattr(value, "ref", None)
+                        if r and not isinstance(r, ReferenceBase):
+                            value = _Reference.construct(ref=r)
+                            setattr(obj, slot, value)
 
                 if not isinstance(value, ReferenceBase):
                     """
@@ -96,18 +99,11 @@ class RootBase:
                     PathItem Ref is ambigous
                     https://github.com/OAI/OpenAPI-Specification/issues/2635
                     """
-                    if isinstance(obj, _PathItem) and slot == "ref":
-                        ref = _Reference.construct(ref=value)
-                        ref._target = api.resolve_jr(root, obj, ref)
-                        setattr(obj, slot, ref)
-
-                    """
-                    Swagger 2.0 - Schema.ref -> Reference
-                    """
-                    if isinstance(obj, SchemaBase) and slot == "ref":
-                        ref = _Reference.construct(ref=value)
-                        ref._target = api.resolve_jr(root, obj, ref)
-                        setattr(obj, slot, ref)
+                    if isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root)):
+                        if isinstance(obj, _PathItem) and slot == "ref":
+                            ref = _Reference.construct(ref=value)
+                            ref._target = api.resolve_jr(root, obj, ref)
+                            setattr(obj, slot, ref)
 
                 value = getattr(obj, slot)
 
@@ -125,12 +121,36 @@ class RootBase:
                 else:
                     raise TypeError(type(value), value)
         elif isinstance(obj, dict):
+            if isinstance(root, v20.root.Root):
+                """
+                Resolving/Replacing Swagger 2.0 nested Schema.ref
+                Schema.properties[name] -> Schema.ref ==> Schema.properties[name] -> Reference
+                """
+
+                def replaceSchemaReference(value):
+                    if not isinstance(value, SchemaBase):
+                        return value
+                    r = getattr(value, "ref", None)
+                    if not r:
+                        return value
+                    return _Reference.construct(ref=r)
+
+                new = dict()
+                for k, v in obj.items():
+                    n = replaceSchemaReference(v)  # Swagger 2.0 Schema.ref resolver …
+                    if v != n:
+                        v = n
+                        new[k] = v
+                if new:
+                    obj.update(new)
+
             for k, v in obj.items():
                 if isinstance(v, _Reference):
                     if v.ref:
                         v._target = api.resolve_jr(root, obj, v)
                 elif isinstance(v, (ObjectBase, dict, list)):
                     RootBase.resolve(api, root, v, _PathItem, _Reference)
+
         elif isinstance(obj, list):
             # if it's a list, resolve its item's references
             for item in obj:
