@@ -1,9 +1,4 @@
 import sys
-import gc
-
-import builtins
-
-import pydantic.main
 
 if sys.version_info >= (3, 9):
     import pathlib
@@ -12,11 +7,12 @@ else:
 
 import re
 from typing import List, Dict, Union, Callable, Tuple
-
+import inspect
 import logging
 
 import httpx
 import yarl
+from pydantic import BaseModel
 
 from aiopenapi3.v30.general import Reference
 from .json import JSONReference
@@ -251,13 +247,12 @@ class OpenAPI:
                             if isinstance(response, Reference):
                                 continue
                             if isinstance(response.schema_, (v20.Schema,)):
-                                response.schema_._identity = f"{path}.{m}.{r}"
+                                response.schema_._get_identity("OP", f"{path}.{m}.{r}")
 
         elif isinstance(self._root, (v30.Root, v31.Root)):
-            allschemas = [self.components.schemas] if self.components is not None else []
-            allschemas.extend(
-                [x.components.schemas for x in filter(lambda y: all([y, y.components]), self._documents.values())]
-            )
+            allschemas = [
+                x.components.schemas for x in filter(lambda y: all([y, y.components]), self._documents.values())
+            ]
             for schemas in allschemas:
                 for name, schema in filter(lambda v: isinstance(v[1], SchemaBase), schemas.items()):
                     schema._get_identity(name=name, prefix="OP")
@@ -279,7 +274,7 @@ class OpenAPI:
                                 if content.schema_ is None:
                                     continue
                                 if isinstance(content.schema_, (v30.Schema, v31.Schema)):
-                                    content.schema_._identity = f"{path}.{m}.{r}.{c}"
+                                    content.schema_._get_identity("OP", f"{path}.{m}.{r}.{c}")
 
         else:
             raise ValueError(self._root)
@@ -290,83 +285,102 @@ class OpenAPI:
             return r
 
         r.update(d)
-        sets = [
-            set(
-                filter(
-                    lambda x: x not in r,
-                    map(
-                        lambda x: id(x._target),
-                        filter(
-                            lambda x: isinstance(x, ReferenceBase),
-                            schemas[i].oneOf + schemas[i].anyOf + schemas[i].allOf,
-                        ),
-                    ),
-                )
-            )
-            for i in d
-        ]
 
-        if not sets:
-            return r
-        sets = set.union(*sets)
+        import collections
+
+        new = collections.ChainMap(
+            *[
+                dict(
+                    filter(
+                        lambda z: z[0] not in r,
+                        map(
+                            lambda y: (id(y._target), y._target),
+                            filter(
+                                lambda x: isinstance(x, ReferenceBase),
+                                (schemas[i].oneOf if hasattr(schemas[i], "oneOf") else [])
+                                + (schemas[i].anyOf if hasattr(schemas[i], "anyOf") else [])  # Swagger compat
+                                + schemas[i].allOf  # Swagger compat
+                                + list(schemas[i].properties.values())
+                                + (list(schemas[i].items) if schemas[i].items else []),
+                            ),
+                        ),
+                    )
+                )
+                for i in d
+            ]
+        )
+        sets = new.keys()
+        schemas.update(new)
         r.update(sets)
 
         return OpenAPI._iterate_schemas(schemas, sets, r)
 
     def _init_schema_types(self):
-        """
-        create & cache all the types -
-        discriminated types are special,
-        they need to inherit properly and have to be created when creating the parent type
+        byname = dict()
+        data = set()
+        if isinstance(self._root, v20.Root):
+            # Schema
+            for byid in map(lambda x: x.definitions, self._documents.values()):
+                for name, schema in filter(lambda v: isinstance(v[1], SchemaBase), byid.items()):
+                    byname[schema._get_identity(name=name)] = schema
+                    data.add(id(schema))
+            # Request
 
-        :return: None
-        """
-        #
-        gc.collect()
-        schemas = dict(
-            (id(i), i)
-            for i in filter(lambda obj: isinstance(obj, SchemaBase) and hasattr(obj, "oneOf"), gc.get_objects())
-        )
-        init = set(schemas.keys())
-        noinit = set()
-        for k, i in schemas.items():
-            if i.discriminator or i.oneOf or i.anyOf or i.allOf:
-                noinit |= frozenset(
-                    filter(
-                        lambda x: isinstance(schemas[x], SchemaBase),
-                        map(
-                            lambda x: id(x._target),
-                            filter(lambda x: isinstance(x, ReferenceBase), i.oneOf + i.anyOf + i.allOf),
-                        ),
-                    )
-                )
+            # Response
 
-        noinit = OpenAPI._iterate_schemas(schemas, noinit, set())
-        types = {}
+        elif isinstance(self._root, (v30.Root, v31.Root)):
+            # Schema
+            components = [x.components for x in filter(lambda y: all([y, y.components]), self._documents.values())]
+            for byid in map(lambda x: x.schemas, components):
+                for name, schema in filter(lambda v: isinstance(v[1], SchemaBase), byid.items()):
+                    byname[schema._get_identity(name=name)] = schema
+                    data.add(id(schema))
 
-        # init discriminators first
-        for i in sorted(init - noinit):  # , reverse=True):
-            s = schemas[i]
-            s._get_identity("I1")
-            types[i] = s.get_type()
+            # Request
+            for path, obj in (self.paths or dict()).items():
+                for m in obj.__fields_set__ & HTTP_METHODS:
+                    op = getattr(obj, m)
 
-        # init remaining objects
-        for i in sorted(noinit):
-            s = schemas[i]
-            s._get_identity("I2")
-            types[i] = s.get_type()
+                    if op.requestBody:
+                        for content_type, request in op.requestBody.content.items():
+                            byname[request.schema_._get_identity("B")] = request.schema_
 
-        # collect the Schemas, update forward refs
-        from pydantic import BaseModel
-        import inspect
+                    for r, response in op.responses.items():
+                        if isinstance(response, ReferenceBase):
+                            response = response._target
+                        if isinstance(response, (v30.paths.Response, v31.paths.Response)):
+                            for c, content in response.content.items():
+                                if content.schema_ is None:
+                                    continue
+                                if isinstance(content.schema_, (v30.Schema, v31.Schema)):
+                                    name = content.schema_._get_identity("I2", f"{path}.{m}.{r}.{c}")
+                                    byname[name] = content.schema_
+                        else:
+                            raise TypeError(f"{type(response)} at {path}")
 
-        #        types = {k:v for k,v in filter(lambda x: isinstance(x[1], BaseModel), types.items())}
-        types = {k: v for k, v in filter(lambda x: hasattr(schemas[x[0]], "_identity"), types.items())}
-        local = {schemas[k]._identity: v for k, v in types.items()}
-        for name, v in local.items():
-            if not (inspect.isclass(v) and issubclass(v, BaseModel)):
+            # Response
+            for responses in map(lambda x: x.responses, components):
+                for rname, response in responses.items():
+                    for content_type, media_type in response.content.items():
+                        byname[media_type.schema_._get_identity("R")] = media_type.schema_
+                        data.add(id(media_type.schema_))
+
+        byid = {id(i): i for i in byname.values()}
+        data = set(byid.keys())
+        todo = self._iterate_schemas(byid, data, set())
+
+        types = dict()
+        for i in todo | data:
+            b = byid[i]
+            types[b._get_identity("X")] = b.get_type()
+
+        for name, schema in types.items():
+            if not (inspect.isclass(schema) and issubclass(schema, BaseModel)):
                 continue
-            v.update_forward_refs(**local)
+            try:
+                schema.update_forward_refs(**types)
+            except:
+                break
 
     @property
     def url(self):
