@@ -111,7 +111,7 @@ def test_parameters(httpx_mock, with_swagger):
     auth = str(uuid.uuid4())
     api.authenticate(BasicAuth=(auth, auth))
 
-    with pytest.raises(ValueError, match=r"Required parameter \w+ not provided"):
+    with pytest.raises(ValueError, match=r"Required Parameter \['userId'\] missing \(provided \[\]\)"):
         api._.getUser(data={}, parameters={})
 
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=[user.dict()])
