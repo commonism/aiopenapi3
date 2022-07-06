@@ -196,14 +196,14 @@ class Model:  # (BaseModel):
                 else:
                     raise TypeError(schema.items)
             elif schema.type == "object":
-                return schema.get_type(fwdref=True)
+                return schema.get_type(fwdref=fwdref)
             elif schema.type is None:  # discriminated root
                 """
                 recursively define related discriminated objects
                 """
-                return schema.get_type(fwdref=True)
+                return schema.get_type(fwdref=fwdref)
         elif isinstance(schema, ReferenceBase):
-            r = Model.typeof(schema._target)
+            r = Model.typeof(schema._target, fwdref=True)
         else:
             raise TypeError(type(schema))
 
