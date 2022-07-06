@@ -10,6 +10,16 @@ security:
 
 paths:
   /test/{Path}:
+    parameters:
+      - $ref: "#/components/parameters/Path"
+      - name: Header
+        in: header
+        description: ""
+        required: True
+        schema:
+          type: array
+          items:
+            type: integer
     get:
       operationId: getTest
       parameters:
@@ -27,16 +37,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Test'
           description: ''
-    parameters:
-      - $ref: "#/components/parameters/Path"
-      - name: Header
-        in: header
-        description: ""
-        required: True
-        schema:
-          type: array
-          items:
-            type: integer
+
 
 
 components:
