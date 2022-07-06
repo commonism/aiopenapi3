@@ -54,7 +54,7 @@ class OpenAPI:
         cls, url, session_factory: Callable[[], httpx.Client] = httpx.Client, loader=None, plugins: List[Plugin] = None
     ):
         resp = session_factory().get(url)
-        return cls.loads(url, resp.text, session_factory, loader, plugins)
+        return cls._load_response(url, resp, session_factory, loader, plugins)
 
     @classmethod
     async def load_async(
@@ -66,6 +66,12 @@ class OpenAPI:
     ):
         async with session_factory() as client:
             resp = await client.get(url)
+        return cls._load_response(url, resp, session_factory, loader, plugins)
+
+    @classmethod
+    def _load_response(cls, url, resp, session_factory, loader, plugins):
+        if resp.is_redirect:
+            raise ValueError(f'Redirect to {resp.headers.get("Location","")}')
         return cls.loads(url, resp.text, session_factory, loader, plugins)
 
     @classmethod
