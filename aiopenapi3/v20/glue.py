@@ -90,22 +90,19 @@ class Request(RequestBase):
                 self.req.headers[ss.name] = value
 
     def _prepare_parameters(self, parameters):
-        # Parameters
+        accepted_parameters = {_.name: _ for _ in self.operation.parameters + self.root.paths[self.path].parameters}
+
+        provided = frozenset(parameters.keys())
+        accepted = frozenset(accepted_parameters.keys())
+        required = frozenset(map(lambda x: x[0], filter(lambda y: y[1].required, accepted_parameters.items())))
+        if provided > accepted:
+            raise ValueError(f"Parameter {sorted(provided - accepted)} unknown (accepted {sorted(accepted)})")
+        if required > provided:
+            raise ValueError(f"Required Parameter {sorted(required - provided)} missing (provided {sorted(provided)})")
+
         path_parameters = {}
-        accepted_parameters = {}
-        p = filter(lambda x: x.in_ != "body", self.operation.parameters + self.root.paths[self.path].parameters)
-
-        for _ in list(p):
-            # TODO - make this work with $refs - can operations be $refs?
-            accepted_parameters.update({_.name: _})
-
-        for name, spec in accepted_parameters.items():
-            if parameters is None or name not in parameters:
-                if spec.required:
-                    raise ValueError(f"Required parameter {name} not provided")
-                continue
-
-            value = parameters[name]
+        for name, value in parameters.items():
+            spec = accepted_parameters[name]
 
             if spec.in_ == "path":
                 # The string method `format` is incapable of partial updates,

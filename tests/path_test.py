@@ -187,7 +187,9 @@ def test_parameters(httpx_mock, with_parameters):
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
     api = OpenAPI(URLBASE, with_parameters, session_factory=httpx.Client)
 
-    with pytest.raises(ValueError, match=r"Required parameter \w+ not provided"):
+    with pytest.raises(
+        ValueError, match=r"Required Parameter \['Cookie', 'Header', 'Path', 'Query'\] missing \(provided \[\]\)"
+    ):
         api._.getTest(data={}, parameters={})
 
     Header = str([i**i for i in range(3)])
@@ -198,3 +200,11 @@ def test_parameters(httpx_mock, with_parameters):
     assert request.headers["Cookie"] == "Cookie=Cookie"
     assert pathlib.Path(request.url.path).name == "Path"
     assert yarl.URL(str(request.url)).query["Query"] == "Query"
+
+    with pytest.raises(
+        ValueError, match=r"Parameter \['Invalid'\] unknown \(accepted \['Cookie', 'Header', 'Path', 'Query'\]\)"
+    ):
+        api._.getTest(
+            data={},
+            parameters={"Cookie": "Cookie", "Path": "Path", "Header": Header, "Query": "Query", "Invalid": "yes"},
+        )
