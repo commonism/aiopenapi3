@@ -1,4 +1,5 @@
-from typing import Dict
+from typing import Dict, Tuple
+import io
 import httpx
 import pydantic
 import yarl
@@ -9,13 +10,15 @@ from .version import __version__
 
 class RequestParameter:
     def __init__(self, url: yarl.URL):
-        self.url = str(url)
-        self.auth = None
-        self.cookies = {}
-        self.path = {}
-        self.params = {}
+        self.url: str = str(url)
+        self.auth: Tuple[str, str] = None
+        self.cookies: Dict[str, str] = {}
+        #        self.path = {}
+        self.params: Dict[str, str] = {}
         self.content = None
-        self.headers = {}
+        self.headers: Dict[str, str] = {}
+        self.data: Dict[str, str] = {}  # form-data
+        self.files: Dict[str, Tuple[str, io.BaseIO, str]] = {}  # form-data files
 
 
 class RequestBase:

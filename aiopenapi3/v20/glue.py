@@ -1,5 +1,6 @@
 from typing import Dict, List
 import json
+import io
 
 import httpx
 import pydantic
@@ -90,11 +91,14 @@ class Request(RequestBase):
                 self.req.headers[ss.name] = value
 
     def _prepare_parameters(self, parameters):
+        parameters = parameters or dict()
         accepted_parameters = {_.name: _ for _ in self.operation.parameters + self.root.paths[self.path].parameters}
 
         provided = frozenset(parameters.keys())
         accepted = frozenset(accepted_parameters.keys())
-        required = frozenset(map(lambda x: x[0], filter(lambda y: y[1].required, accepted_parameters.items())))
+        required = frozenset(
+            map(lambda x: x[0], filter(lambda y: y[1].required and y[1].in_ != "body", accepted_parameters.items()))
+        )
         if provided > accepted:
             raise ValueError(f"Parameter {sorted(provided - accepted)} unknown (accepted {sorted(accepted)})")
         if required > provided:
@@ -103,6 +107,14 @@ class Request(RequestBase):
         path_parameters = {}
         for name, value in parameters.items():
             spec = accepted_parameters[name]
+
+            if spec.in_ == "formData":
+                if spec.type == "file":
+                    # https://www.python-httpx.org/quickstart/#sending-multipart-file-uploads
+                    assert type(value) == tuple and len(value) == 3 and isinstance(value[1], io.IOBase)
+                    self.req.files[name] = value
+                else:
+                    self.req.data[name] = value
 
             if spec.in_ == "path":
                 # The string method `format` is incapable of partial updates,
@@ -159,6 +171,8 @@ class Request(RequestBase):
             cookies=self.req.cookies,
             params=self.req.params,
             content=self.req.content,
+            data=self.req.data,
+            files=self.req.files,
         )
         return req
 
