@@ -100,6 +100,7 @@ class Request(RequestBase):
                 self.req.cookies = {ss.name: value}
 
     def _prepare_parameters(self, parameters):
+        parameters = parameters or dict()
         accepted_parameters = {_.name: _ for _ in self.operation.parameters + self.root.paths[self.path].parameters}
 
         provided = frozenset(parameters.keys())
@@ -153,6 +154,16 @@ class Request(RequestBase):
             data = self.api.plugins.message.sending(operationId=self.operation.operationId, sending=data).sending
             self.req.content = data
             self.req.headers["Content-Type"] = "application/json"
+        #        elif "multipart/form-data" in self.operation.requestBody.content:
+        #            """
+        #            https://swagger.io/docs/specification/describing-request-body/multipart-requests/
+        #            """
+        #            pass
+        #        elif "multipart/mixed" in self.operation.requestBody.content:
+        #            pass
+        #        elif "multipart/form-data" in self.operation.requestBody.content:
+        #            pass
+
         else:
             raise NotImplementedError()
 
@@ -169,6 +180,8 @@ class Request(RequestBase):
             cookies=self.req.cookies,
             params=self.req.params,
             content=self.req.content,
+            data=self.req.data,
+            files=self.req.files,
         )
         return req
 
