@@ -24,7 +24,12 @@ paths:
     get:
       responses:
         '200':
-          $ref: {jsonref}
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: {jsonref}
+
 components:
   schemas:
      Example:
