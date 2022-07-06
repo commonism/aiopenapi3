@@ -1,3 +1,4 @@
+import errno
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -82,3 +83,56 @@ def test_schema_Of_parent_properties(with_schema_Of_parent_properties):
     # this is supposed to work
     with pytest.raises(ValueError, match="__root__ cannot be mixed with other fields"):
         api = OpenAPI("/", with_schema_Of_parent_properties)
+
+
+def test_schema_with_additionalProperties(with_schema_additionalProperties):
+    api = OpenAPI("/", with_schema_additionalProperties)
+
+    A = api.components.schemas["A"].get_type()
+    a = A(__root__={"a": 1})
+    with pytest.raises(ValidationError):
+        A(__root__={"1": {"1": 1}})
+
+    B = api.components.schemas["B"].get_type()
+    b = B(__root__={"As": a})
+
+    with pytest.raises(ValidationError):
+        B(__root__={"1": 1})
+
+    C = api.components.schemas["C"].get_type()
+    # we do not allow additional properties …
+    # c = C(dict=1)  # overwriting …
+    with pytest.raises(ValidationError):
+        C(i="!")  # not integer
+
+    D = api.components.schemas["D"].get_type()
+    D()
+
+    with pytest.raises(ValidationError):
+        D(dict=1)
+
+    Translation = api.components.schemas["Translation"].get_type()
+    t = Translation(__root__={"en": "yes", "fr": "qui"})
+
+    import errno, os
+
+    data = {v: {"code": k, "text": os.strerror(k)} for k, v in errno.errorcode.items()}
+
+    Errors = api.components.schemas["Errors"].get_type()
+
+    e = Errors(__root__=data)
+
+    Errnos = api.components.schemas["Errnos"].get_type()
+    Errno = api.components.schemas["Errno"].get_type()
+    e = Errnos(__root__=data)
+
+    e = Errno(code=errno.EIO, text=errno.errorcode[errno.EIO])
+
+    with pytest.raises(ValidationError):
+        Errno(a=errno.EIO)
+
+    with pytest.raises(ValidationError):
+        Errnos(__root__={"1": 1})
+
+    with pytest.raises(ValidationError):
+        Errnos(__root__={"1": {"1": 1}})

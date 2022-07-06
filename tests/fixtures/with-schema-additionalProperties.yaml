@@ -1,0 +1,56 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: with additionalProperties
+
+components:
+  schemas:
+    A:
+      type: object
+      additionalProperties:
+        type: integer
+        format: int32
+
+    B:
+      type: object
+      additionalProperties:
+        $ref: "#/components/schemas/A"
+
+    C:
+      type: object
+      additionalProperties: true
+      properties:
+        i:
+          type: integer
+
+    D:
+      type: object
+      additionalProperties: false
+
+    Translation:
+      type: object
+      additionalProperties:
+        type: string
+
+    Errors:
+      type: object
+      additionalProperties:
+        type: object
+        properties:
+          code:
+            type: integer
+          text:
+            type: string
+
+    Errnos:        # <---- dictionary
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/Errno'
+    Errno:
+      type: object
+      required: [code, text]
+      properties:
+        code:
+          type: integer
+        text:
+          type: string
