@@ -10,25 +10,31 @@ import httpx
 import yarl
 
 from aiopenapi3 import OpenAPI
-from aiopenapi3.v30.schemas import Schema
 
 
 URLBASE = "/"
 
 
-def test_paths_exist(petstore_expanded_spec):
+def test_paths_exist(openapi_version, petstore_expanded):
     """
     Tests that paths are parsed correctly
     """
+    petstore_expanded["openapi"] = str(openapi_version)
+    petstore_expanded_spec = OpenAPI(URLBASE, petstore_expanded)
+
     assert "/pets" in petstore_expanded_spec.paths._paths
     assert "/pets/{id}" in petstore_expanded_spec.paths._paths
     assert len(petstore_expanded_spec.paths._paths) == 2
 
 
-def test_operations_exist(petstore_expanded_spec):
+def test_operations_exist(openapi_version, petstore_expanded):
     """
     Tests that methods are populated as expected in paths
     """
+
+    petstore_expanded["openapi"] = str(openapi_version)
+    petstore_expanded_spec = OpenAPI(URLBASE, petstore_expanded)
+
     pets_path = petstore_expanded_spec.paths["/pets"]
     assert pets_path.get is not None
     assert pets_path.post is not None
@@ -45,10 +51,13 @@ def test_operations_exist(petstore_expanded_spec):
         continue
 
 
-def test_operation_populated(petstore_expanded_spec):
+def test_operation_populated(openapi_version, petstore_expanded):
     """
     Tests that operations are populated as expected
     """
+    petstore_expanded["openapi"] = str(openapi_version)
+    petstore_expanded_spec = OpenAPI(URLBASE, petstore_expanded)
+
     op = petstore_expanded_spec.paths["/pets"].get
 
     # check description and metadata populated correctly
@@ -91,7 +100,7 @@ def test_operation_populated(petstore_expanded_spec):
     assert con1.schema_ is not None
     assert con1.schema_.type == "array"
     # we're not going to test that the ref resolved correctly here - that's a separate test
-    assert type(con1.schema_.items._target) == Schema
+    assert type(con1.schema_.items._target) == openapi_version.schema
 
     resp2 = op.responses["default"]
     assert resp2.description == "unexpected error"
@@ -100,10 +109,12 @@ def test_operation_populated(petstore_expanded_spec):
     con2 = resp2.content["application/json"]
     assert con2.schema_ is not None
     # again, test ref resolution elsewhere
-    assert type(con2.schema_._target) == Schema
+    assert type(con2.schema_._target) == openapi_version.schema
 
 
-def test_securityparameters(httpx_mock, with_securityparameters):
+def test_securityparameters(openapi_version, httpx_mock, with_securityparameters):
+    with_securityparameters["openapi"] = str(openapi_version)
+
     api = OpenAPI(URLBASE, with_securityparameters, session_factory=httpx.Client)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
 
@@ -164,7 +175,8 @@ def test_securityparameters(httpx_mock, with_securityparameters):
     api._.api_v1_auth_login_info(data={}, parameters={})
 
 
-def test_combined_security(httpx_mock, with_securityparameters):
+def test_combined_security(openapi_version, httpx_mock, with_securityparameters):
+    with_securityparameters["openapi"] = str(openapi_version)
     api = OpenAPI(URLBASE, with_securityparameters, session_factory=httpx.Client)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
 
@@ -183,7 +195,8 @@ def test_combined_security(httpx_mock, with_securityparameters):
         r = api._.api_v1_auth_login_combined(data={}, parameters={})
 
 
-def test_parameters(httpx_mock, with_parameters):
+def test_parameters(openapi_version, httpx_mock, with_parameters):
+    with_parameters["openapi"] = str(openapi_version)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
     api = OpenAPI(URLBASE, with_parameters, session_factory=httpx.Client)
 

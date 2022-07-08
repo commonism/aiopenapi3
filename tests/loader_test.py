@@ -76,6 +76,7 @@ def test_loader_format():
     api = OpenAPI.loads("loader.json", spec)
 
 
+@pytest.mark.skip_env("GITHUB_ACTIONS")
 def test_webload():
     name = "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/network/resource-manager/Microsoft.Network/stable/2018-10-01/serviceEndpointPolicy.json"
     from aiopenapi3.loader import WebLoader

@@ -1,14 +1,9 @@
-import os
 import asyncio
 
 import aiopenapi3.plugin
 from aiopenapi3 import OpenAPI
 import pytest
 import pytest_asyncio
-
-
-# downloading the description document in the github CI fails due to the cloudflare captcha
-noci = pytest.mark.skipif(os.environ.get("GITHUB_ACTIONS", None) is not None, reason="fails on github")
 
 
 class LinodeDiscriminators(aiopenapi3.plugin.Document):
@@ -94,7 +89,7 @@ async def api():
 
 
 @pytest.mark.asyncio
-@noci
+@pytest.mark.skip_env("GITHUB_ACTIONS")
 async def test_linode_components_schemas(api):
     for name, schema in api.components.schemas.items():
         schema.get_type().construct()
@@ -106,7 +101,7 @@ async def test_linode_components_schemas(api):
 
 
 @pytest.mark.asyncio
-@noci
+@pytest.mark.skip_env("GITHUB_ACTIONS")
 async def test_linode_return_values(api):
     for i in api._:
         call = getattr(api._, i)
