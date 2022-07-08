@@ -42,17 +42,22 @@ class OnDocument(Document):
 
 class OnMessage(Message):
     def parsed(self, ctx):
+        def goodPet(i):
+            if not isinstance(i.get("photoUrls", None), list):
+                i["photoUrls"] = list()
+            for idx, j in enumerate(i["photoUrls"]):
+                if not isinstance(j, str):
+                    i["photoUrls"][idx] = "<invalid>"
+
+            if i.get("status", None) not in frozenset(["available", "pending", "sold"]):
+                i["status"] = "pending"
+
+        if ctx.operationId == "getPetById":
+            goodPet(ctx.parsed)
+
         if ctx.operationId in frozenset(["findPetsByStatus", "findPetsByTags"]):
             for i in ctx.parsed:
-                if not isinstance(i.get("photoUrls", None), list):
-                    i["photoUrls"] = list()
-                for idx, j in enumerate(i["photoUrls"]):
-                    if not isinstance(j, str):
-                        i["photoUrls"][idx] = "<invalid>"
-
-                if i.get("status", None) not in frozenset(["available", "pending", "sold"]):
-                    i["status"] = "pending"
-
+                goodPet(i)
         return ctx
 
 
