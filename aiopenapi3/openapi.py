@@ -300,14 +300,25 @@ class OpenAPI:
                     filter(
                         lambda z: z[0] not in r,
                         map(
-                            lambda y: (id(y._target), y._target),
+                            lambda y: (id(y._target), y._target) if isinstance(y, ReferenceBase) else (id(y), y),
                             filter(
-                                lambda x: isinstance(x, ReferenceBase),
-                                (schemas[i].oneOf if hasattr(schemas[i], "oneOf") else [])
-                                + (schemas[i].anyOf if hasattr(schemas[i], "anyOf") else [])  # Swagger compat
-                                + schemas[i].allOf  # Swagger compat
+                                lambda x: isinstance(x, (ReferenceBase, SchemaBase)),
+                                getattr(schemas[i], "oneOf", [])  # Swagger compat
+                                + getattr(schemas[i], "anyOf", [])  # Swagger compat
+                                + schemas[i].allOf
                                 + list(schemas[i].properties.values())
-                                + (list(schemas[i].items) if schemas[i].items else []),
+                                + (
+                                    [schemas[i].items]
+                                    if schemas[i].type == "array"
+                                    and schemas[i].items
+                                    and not isinstance(schemas[i], list)
+                                    else []
+                                )
+                                + (
+                                    schemas[i].items
+                                    if schemas[i].type == "array" and schemas[i].items and isinstance(schemas[i], list)
+                                    else []
+                                ),
                             ),
                         ),
                     )
@@ -315,6 +326,7 @@ class OpenAPI:
                 for i in d
             ]
         )
+
         sets = new.keys()
         schemas.update(new)
         r.update(sets)

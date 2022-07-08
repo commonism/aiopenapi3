@@ -15,6 +15,7 @@ else:
 
 from .json import JSONReference
 from .base import ReferenceBase, SchemaBase
+from . import me
 
 if sys.version_info >= (3, 9):
     from typing import List, Optional, Literal, Union, Annotated, Tuple, Dict
@@ -120,7 +121,7 @@ class Model:  # (BaseModel):
 
         fields["__annotations__"] = annotations
 
-        fields["__module__"] = "aiopenapi3.me"
+        fields["__module__"] = me.__name__
 
         # dif not work for __root__
         # xf = dict()
