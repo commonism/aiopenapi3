@@ -2,7 +2,7 @@ import httpx
 import pytest
 
 from aiopenapi3 import OpenAPI
-from aiopenapi3.plugin import Document
+from aiopenapi3.plugin import Document, Message
 
 from pydantic import ValidationError
 
@@ -40,10 +40,26 @@ class OnDocument(Document):
         return ctx
 
 
+class OnMessage(Message):
+    def parsed(self, ctx):
+        if ctx.operationId in frozenset(["findPetsByStatus", "findPetsByTags"]):
+            for i in ctx.parsed:
+                if not isinstance(i.get("photoUrls", None), list):
+                    i["photoUrls"] = list()
+                for idx, j in enumerate(i["photoUrls"]):
+                    if not isinstance(j, str):
+                        i["photoUrls"][idx] = "<invalid>"
+
+                if i.get("status", None) not in frozenset(["available", "pending", "sold"]):
+                    i["status"] = "pending"
+
+        return ctx
+
+
 @pytest.fixture(scope="session")
 def api():
     url = "https://petstore.swagger.io:443/v2/swagger.json"
-    api = OpenAPI.load_sync(url, plugins=[OnDocument()], session_factory=session_factory)
+    api = OpenAPI.load_sync(url, plugins=[OnDocument(), OnMessage()], session_factory=session_factory)
     api.authenticate(api_key="special-key")
     return api
 
@@ -143,6 +159,7 @@ def test_pets(api, login):
     # findPetsByTags
     r = api._.findPetsByTags(parameters={"tags": ["friendly"]})
     assert len(r) > 0
+
     r = api._.findPetsByTags(parameters={"tags": ["unknown"]})
     assert len(r) == 0
 
@@ -158,7 +175,7 @@ def test_pets(api, login):
 
     with pytest.raises(ValidationError):
         """
-        even though status is enum, "invalid" is accepted, this Pet is invalid after this update
+        we do not patch updatePet, therefore this will raise during validation
 
         E   pydantic.error_wrappers.ValidationError: 1 validation error for Pet
         E   status
@@ -178,12 +195,9 @@ def test_pets(api, login):
         f.status = "invalid"
         api._.updatePet(data=f)
 
-    #        assert isinstance(r, Pet)  # this should raise as status is enum and we'd expect ApiResponse(…)
-    #        f.status = "sold"
-    #        r = api._.updatePet(data=f)
-
-    with pytest.raises(ValidationError):
-        api._.findPetsByStatus(parameters={"status": ["invalid"]})
+    # findPetsByStatus is patched
+    r = api._.findPetsByStatus(parameters={"status": ["invalid"]})
+    assert all([i.status == "pending" for i in r])
 
 
 def test_store(api):
