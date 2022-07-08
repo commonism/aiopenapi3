@@ -110,3 +110,58 @@ components:
     print(api)
 
     assert api.paths["/pets"].get.responses["200"].content["application/json"].schema_.items.__class__ == expected
+
+
+def test_nested_array_ref(openapi_version):
+    import aiopenapi3.v30.general
+    import aiopenapi3.v31.general
+
+    expected = {0: aiopenapi3.v30.general.Reference, 1: aiopenapi3.v31.general.Reference}[openapi_version.minor]
+
+    SPEC = f"""openapi: {openapi_version}
+info:
+  title: API
+  version: 1.0.0
+paths:
+  /pets:
+    get:
+      description: yes
+      operationId: findPets
+      responses:
+        '200':
+          description: pet response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LKENodePoolRequestBody'
+components:
+  schemas:
+    LKENodePoolRequestBody:
+      type: object
+      description: >
+        Specifies a collection of Linodes which will be members of a Kubernetes
+        cluster.
+      properties:
+        disks:
+          type: array
+          items:
+            $ref: '#/components/schemas/LKENodePool/properties/disks/items'
+    LKENodePool:
+      type: object
+      properties:
+        disks:
+          type: array
+          items:
+            type: object
+            properties:
+              size:
+                type: integer
+              type:
+                type: string
+                enum:
+                - raw
+                - ext4
+"""
+    OpenAPI.loads("test.yaml", SPEC)
