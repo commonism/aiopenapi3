@@ -78,6 +78,31 @@ class RootBase:
     def resolve(api, root, obj, _PathItem, _Reference):
         from . import v20, v30, v31
 
+        def replaceSchemaReference(data):
+            def replace(value):
+                if not isinstance(value, SchemaBase):
+                    return value
+                r = getattr(value, "ref", None)
+                if not r:
+                    return value
+                return _Reference.construct(ref=r)
+
+            if isinstance(data, list):
+                for idx, item in enumerate(data):
+                    n = replace(item)
+                    if item != n:
+                        data[idx] = n
+
+            elif isinstance(data, dict):
+                new = dict()
+                for k, v in data.items():
+                    n = replace(v)  # Swagger 2.0 Schema.ref resolver …
+                    if v != n:
+                        v = n
+                        new[k] = v
+                if new:
+                    data.update(new)
+
         if isinstance(obj, ObjectBase):
             for slot in filter(lambda x: not x.startswith("_") or x == "__root__", obj.__fields_set__):
                 value = getattr(obj, slot)
@@ -121,28 +146,12 @@ class RootBase:
                 else:
                     raise TypeError(type(value), value)
         elif isinstance(obj, dict):
-            if isinstance(root, v20.root.Root):
+            if isinstance(root, (v20.root.Root, v31.root.Root)):
                 """
                 Resolving/Replacing Swagger 2.0 nested Schema.ref
                 Schema.properties[name] -> Schema.ref ==> Schema.properties[name] -> Reference
                 """
-
-                def replaceSchemaReference(value):
-                    if not isinstance(value, SchemaBase):
-                        return value
-                    r = getattr(value, "ref", None)
-                    if not r:
-                        return value
-                    return _Reference.construct(ref=r)
-
-                new = dict()
-                for k, v in obj.items():
-                    n = replaceSchemaReference(v)  # Swagger 2.0 Schema.ref resolver …
-                    if v != n:
-                        v = n
-                        new[k] = v
-                if new:
-                    obj.update(new)
+                replaceSchemaReference(obj)
 
             for k, v in obj.items():
                 if isinstance(v, _Reference):
@@ -152,6 +161,9 @@ class RootBase:
                     RootBase.resolve(api, root, v, _PathItem, _Reference)
 
         elif isinstance(obj, list):
+            if isinstance(root, (v20.root.Root, v31.root.Root)):
+                replaceSchemaReference(obj)
+
             # if it's a list, resolve its item's references
             for item in obj:
                 if isinstance(item, _Reference):
@@ -199,7 +211,7 @@ class RootBase:
                     raise ReferenceResolutionError(f"Invalid path {path[:idx]} in Reference")
                 node = getattr(node, part)
             else:
-                raise TypeError(node)
+                raise ReferenceResolutionError(f"Invalid node {node} in Reference {path[:idx]}")
 
         return node
 

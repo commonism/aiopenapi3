@@ -15,22 +15,22 @@ else:
     import typing_extensions as typing
 
 
-import dataclasses
 import pytest
 from aiopenapi3 import OpenAPI
 
 from pydantic.main import ModelMetaclass
 
 
-def test_ref_resolution(petstore_expanded_spec):
+def test_ref_resolution(openapi_version, petstore_expanded):
     """
     Tests that $refs are resolved as we expect them to be
     """
-    from aiopenapi3.v30.schemas import Schema
+    petstore_expanded["openapi"] = str(openapi_version)
+    petstore_expanded_spec = OpenAPI("/", petstore_expanded)
 
     ref = petstore_expanded_spec.paths["/pets"].get.responses["default"].content["application/json"].schema_
 
-    assert type(ref._target) == Schema
+    assert type(ref._target) == openapi_version.schema
     assert ref.type == "object"
     assert len(ref.properties) == 2
     assert "code" in ref.properties
@@ -45,10 +45,13 @@ def test_ref_resolution(petstore_expanded_spec):
     assert message.type == "string"
 
 
-def test_allOf_resolution(petstore_expanded_spec):
+def test_allOf_resolution(openapi_version, petstore_expanded):
     """
     Tests that allOfs are resolved correctly
     """
+    petstore_expanded["openapi"] = str(openapi_version)
+    petstore_expanded_spec = OpenAPI("/", petstore_expanded)
+
     ref = petstore_expanded_spec.paths["/pets"].get.responses["200"].content["application/json"].schema_.get_type()
 
     assert type(ref) == ModelMetaclass
@@ -72,21 +75,6 @@ def test_allOf_resolution(petstore_expanded_spec):
     assert items["id"].outer_type_ == int
     assert items["name"].outer_type_ == str
     assert items["tag"].outer_type_ == str
-
-
-@dataclasses.dataclass
-class _Version:
-    major: int
-    minor: int
-    patch: int
-
-    def __str__(self):
-        return f"{self.major}.{self.minor}.{self.patch}"
-
-
-@pytest.fixture(scope="session", params=[_Version(3, 0, 3), _Version(3, 1, 0)])
-def openapi_version(request):
-    return request.param
 
 
 def test_schemaref(openapi_version):

@@ -383,10 +383,7 @@ class OpenAPI:
         for name, schema in types.items():
             if not (inspect.isclass(schema) and issubclass(schema, BaseModel)):
                 continue
-            try:
-                schema.update_forward_refs(**types)
-            except:
-                break
+            schema.update_forward_refs(**types)
 
     @property
     def url(self):

@@ -1,5 +1,3 @@
-from ..v30.servers import Server
-
 from typing import List, Optional, Dict
 
 from pydantic import Field, root_validator

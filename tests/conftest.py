@@ -1,10 +1,50 @@
 import pytest
+import os
 from yaml import safe_load
+import dataclasses
 
+import aiopenapi3
 from aiopenapi3 import OpenAPI
 
 LOADED_FILES = {}
 URLBASE = "/"
+
+
+@pytest.fixture(autouse=True)
+def skip_env(request):
+    if request.node.get_closest_marker("skip_env"):
+        m = set(request.node.get_closest_marker("skip_env").args) & set(os.environ.keys())
+        if m:
+            pytest.skip(f"skipped due to env : {sorted(m)}")
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "skip_env(env): skip test if the environment variable is set",
+    )
+
+
+@dataclasses.dataclass
+class _Version:
+    major: int
+    minor: int
+    patch: int
+
+    def __str__(self):
+        return f"{self.major}.{self.minor}.{self.patch}"
+
+    def __repr__(self):
+        return f"{self.major}.{self.minor}.{self.patch}"
+
+    @property
+    def schema(self):
+        return getattr(getattr(aiopenapi3, f"v{self.major}{self.minor}"), "Schema")
+
+
+@pytest.fixture(scope="session", params=[_Version(3, 0, 3), _Version(3, 1, 0)])
+def openapi_version(request):
+    return request.param
 
 
 def _get_parsed_yaml(filename):
@@ -26,38 +66,12 @@ def _get_parsed_yaml(filename):
     return LOADED_FILES[filename]
 
 
-def _get_parsed_spec(filename):
-    """
-    Returns an OpenAPI object loaded from a file in the tests/fixtures directory
-
-    :param filename: The filename to load.  Must exist in tests/fixtures and
-                     include extension.
-    :type filename: str
-    """
-    if "spec:" + filename not in LOADED_FILES:
-        parsed = _get_parsed_yaml(filename)
-
-        spec = OpenAPI(URLBASE, parsed)
-
-        LOADED_FILES["spec:" + filename] = spec
-
-    return LOADED_FILES["spec:" + filename]
-
-
 @pytest.fixture
 def petstore_expanded():
     """
     Provides the petstore-expanded.yaml spec
     """
     yield _get_parsed_yaml("petstore-expanded.yaml")
-
-
-@pytest.fixture
-def petstore_expanded_spec():
-    """
-    Provides an OpenAPI version of the petstore-expanded.yaml spec
-    """
-    yield _get_parsed_spec("petstore-expanded.yaml")
 
 
 @pytest.fixture
