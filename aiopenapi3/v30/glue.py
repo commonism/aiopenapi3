@@ -74,7 +74,7 @@ class Request(RequestBase):
         ss = self.root.components.securitySchemes[scheme]
 
         if ss.type == "http" and ss.scheme_ == "basic":
-            self.req.auth = value
+            self.req.auth = httpx.BasicAuth(*value)
 
         if ss.type == "http" and ss.scheme_ == "digest":
             self.req.auth = httpx.DigestAuth(*value)
