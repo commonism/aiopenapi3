@@ -248,7 +248,7 @@ class SchemaBase:
             if name is None:
                 name = self.title
             if name:
-                n = re.sub(r"[.-]", "_", name)
+                n = re.sub(r"[^\w]", "_", name, flags=re.ASCII)
             else:
                 n = str(uuid.uuid4()).replace("-", "_")
 
