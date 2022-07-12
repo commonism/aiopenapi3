@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import collections
+import logging
 import sys
 import re
+import warnings
 
 import types
 import pydantic
@@ -27,6 +29,8 @@ from pydantic import BaseModel, Extra, Field
 from pydantic.schema import field_class_to_schema
 
 type_format_to_class = collections.defaultdict(lambda: dict())
+
+log = logging.getLogger("aiopenapi3.model")
 
 
 def generate_type_format_to_class():
@@ -118,6 +122,15 @@ class Model:  # (BaseModel):
         if extra:
             annotations.update(Model.annotationsof(extra, discriminators, schemanames))
             fields.update(Model.fieldof(extra))
+
+        # FAILS ON PYTHON3.7
+        #
+        # if fields and "__root__" in annotations and typing.get_origin(annotations["__root__"]) == typing.Dict:
+        #     warnings.warn("Dropping __root__ Dict mapping …")
+        #     log.warning(
+        #         f"Dropping __root__ Dict mapping {annotations['__root__']} due to fields {sorted(fields.keys())}"
+        #     )
+        #     del annotations["__root__"]
 
         fields["__annotations__"] = annotations
 
@@ -296,6 +309,18 @@ class Model:  # (BaseModel):
         fields = dict()
         if schema.type == "array":
             return fields
+        elif (
+            schema.type == "object"
+            and schema.additionalProperties
+            and isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase))
+        ):
+            if schema.properties:
+                """
+                Schema with additionalProperties and named properties …
+
+                we can't serve this.
+                """
+                warnings.warn("Ignoring Schema with additionalProperties and named properties")
         else:
             for name, f in schema.properties.items():
                 args = dict()
