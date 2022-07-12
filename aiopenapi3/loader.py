@@ -144,7 +144,8 @@ class FileSystemLoader(Loader):
         file = Path(url.path)
         path = self.base / file
         assert path.is_relative_to(self.base)
-        data = path.open("rb").read()
+        with path.open("rb") as f:
+            data = f.read()
         data = self.decode(data, codec)
         data = plugins.document.loaded(url=url, document=data).document
         return data
