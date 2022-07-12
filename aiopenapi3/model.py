@@ -145,26 +145,35 @@ class Model:  # (BaseModel):
           * pydantic type identification does not work reliable due to missing rejects,
 
         """
+        arbitrary_types_allowed_ = False
         if schema.additionalProperties is not None:
             if isinstance(schema.additionalProperties, bool):
                 if schema.additionalProperties == False:
-                    r = Extra.forbid
+                    extra_ = Extra.forbid
                 else:
-                    r = Extra.allow
+                    extra_ = Extra.allow
+                    arbitrary_types_allowed_ = True
             elif isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase)):
-                r = Extra.forbid
+                extra_ = Extra.forbid
+                """
+                we allow arbitrary types if additionalProperties has no properties
+                """
+
+                if len(schema.additionalProperties.properties) == 0:
+                    arbitrary_types_allowed_ = True
             else:
                 raise TypeError(schema.additionalProperties)
         else:
-            r = Extra.allow
+            extra_ = Extra.allow
 
         """
         PR?
         """
-        r = Extra.ignore if r == Extra.allow else r
+        extra_ = Extra.ignore if extra_ == Extra.allow else extra_
 
         class Config:
-            extra = r
+            extra = extra_
+            arbitrary_types_allowed = arbitrary_types_allowed_
 
         return Config
 
