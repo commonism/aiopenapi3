@@ -111,7 +111,7 @@ class Model:  # (BaseModel):
 
             if schema.allOf:
                 for i in schema.allOf:
-                    annotations.update(Model.annotationsof(i, discriminators, schemanames))
+                    annotations.update(Model.annotationsof(i, discriminators, schemanames, fwdref=True))
 
         # this is a anyOf/oneOf - the parent may have properties which will collide with __root__
         # so - add the parent properties to this model
@@ -211,7 +211,7 @@ class Model:  # (BaseModel):
         return r
 
     @staticmethod
-    def annotationsof(schema: "SchemaBase", discriminators, shmanm):
+    def annotationsof(schema: "SchemaBase", discriminators, shmanm, fwdref=False):
         from . import v20
 
         annotations = dict()
@@ -263,7 +263,7 @@ class Model:  # (BaseModel):
                     annotations[Model.nameof(name)] = r
                     continue
                 except StopIteration:
-                    r = Model.typeof(f)
+                    r = Model.typeof(f, fwdref=fwdref)
 
                 from . import v20, v30, v31
 
