@@ -79,7 +79,7 @@ class Request(RequestBase):
         ss = self.root.securityDefinitions[scheme]
 
         if ss.type == "basic":
-            self.req.auth = value
+            self.req.auth = httpx.BasicAuth(*value)
 
         if ss.type == "apiKey":
             if ss.in_ == "query":
@@ -109,6 +109,8 @@ class Request(RequestBase):
             spec = accepted_parameters[name]
 
             if spec.in_ == "formData":
+                if "multipart/form-data" not in self.operation.consumes:
+                    raise ValueError(f"operation does not consume form data but parameter {name} is formData")
                 if spec.type == "file":
                     # https://www.python-httpx.org/quickstart/#sending-multipart-file-uploads
                     assert type(value) == tuple and len(value) == 3 and isinstance(value[1], io.IOBase)
