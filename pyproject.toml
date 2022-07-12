@@ -5,7 +5,13 @@ build-backend = "setuptools.build_meta"
 [tool.pytest.ini_options]
 filterwarnings = [
     "error",
-    "ignore::UserWarning",
+    "ignore:_:UserWarning",
+    "ignore:unclosed <socket.socket fd=\\d+, family=AddressFamily.AF_UNIX, type=SocketKind.SOCK_DGRAM, proto=0, raddr=/run/systemd/journal/dev-log>:ResourceWarning",
+    "ignore:unclosed file <_io.FileIO name='/tmp/aiopenapi3-debug.log' mode='ab' closefd=True>:ResourceWarning",
+    "ignore:unclosed file <_io.TextIOWrapper name='/tmp/aiopenapi3-debug.log' mode='a' encoding='UTF-8'>:ResourceWarning",
+    "ignore:unclosed <ssl.SSLSocket:ResourceWarning",
+    "ignore:Ignoring Schema with additionalProperties and named properties:UserWarning",
+#    "error::pytest.PytestUnraisableExceptionWarning",
     # note the use of single quote below to denote "raw" strings in TOML
     'ignore:The loop argument is deprecated since Python 3.8, and scheduled for removal in Python 3.10.:DeprecationWarning',
 ]
