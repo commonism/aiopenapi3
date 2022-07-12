@@ -136,3 +136,7 @@ def test_schema_with_additionalProperties(with_schema_additionalProperties):
 
     with pytest.raises(ValidationError):
         Errnos(__root__={"1": {"1": 1}})
+
+
+def test_schema_with_additionalProperties_v20(with_schema_additionalProperties_v20):
+    api = OpenAPI("/", with_schema_additionalProperties_v20)

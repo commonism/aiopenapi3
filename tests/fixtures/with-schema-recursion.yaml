@@ -26,3 +26,24 @@ components:
       properties:
         a:
           $ref: '#/components/schemas/A'
+
+    Expressions:
+      type: array
+      items:
+        $ref: '#/components/schemas/Expression'
+
+    Expression:
+      type: object
+      properties:
+        Or:
+          allOf:
+            - $ref: '#/components/schemas/Expressions'
+            - description: Return results that match either <code>Dimension</code> object.
+        And:
+          allOf:
+            - $ref: '#/components/schemas/Expressions'
+            - description: Return results that match both <code>Dimension</code> objects.
+        Not:
+          allOf:
+            - $ref: '#/components/schemas/Expression'
+            - description: Return results that don't match a <code>Dimension</code> object.

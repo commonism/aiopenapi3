@@ -165,3 +165,31 @@ components:
                 - ext4
 """
     OpenAPI.loads("test.yaml", SPEC)
+
+
+def test_names(openapi_version):
+
+    SPEC = f"""openapi: {openapi_version}
+info:
+  title: API
+  version: 1.0.0
+
+paths: {{}}
+
+components:
+  schemas:
+    "Rechnungsdruck.WebApp.Controllers.Api.ApiPagedResult.PagingInformation[System.Collections.Generic.List[Billbee.Interfaces.BillbeeAPI.Model.CustomerAddressApiModel]]":
+      type: object
+      properties:
+        Page:
+          format: int32
+          type: integer
+
+    "Rechnungsdruck.WebApp.Controllers.Api.ApiPagedResult[System.Collections.Generic.List[Billbee.Interfaces.BillbeeAPI.Model.CustomerAddressApiModel]]":
+      type: object
+      properties:
+        Paging:
+          $ref: "#/components/schemas/Rechnungsdruck.WebApp.Controllers.Api.ApiPagedResult.PagingInformation[System.Collections.Generic.List[Billbee.Interfaces.BillbeeAPI.Model.CustomerAddressApiModel]]"
+"""
+
+    OpenAPI.loads("test.yaml", SPEC)

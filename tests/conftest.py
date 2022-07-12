@@ -215,3 +215,8 @@ def with_schema_Of_parent_properties():
 @pytest.fixture
 def with_schema_additionalProperties():
     yield _get_parsed_yaml("with-schema-additionalProperties.yaml")
+
+
+@pytest.fixture
+def with_schema_additionalProperties_v20():
+    yield _get_parsed_yaml("with-schema-additionalProperties-v20.yaml")

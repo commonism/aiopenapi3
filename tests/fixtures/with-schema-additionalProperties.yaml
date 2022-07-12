@@ -54,3 +54,14 @@ components:
           type: integer
         text:
           type: string
+
+    Annotations:
+      type: object
+      additionalProperties:
+        type: object
+      description: Additional information provided through arbitrary metadata.
+      properties:
+        org.opencontainers.image.authors:
+          description: Contact details of the people or organization responsible for the image.
+          type: string
+          x-ms-client-name: Authors
