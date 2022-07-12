@@ -1,0 +1,79 @@
+swagger: "2.0"
+info:
+  title: with additionalProperties
+  description: with additionalProperties
+  version: 1.0.0
+host: api.example.com
+basePath: /v1
+schemes:
+  - https
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+paths: {}
+
+definitions:
+
+  A:
+    type: object
+    additionalProperties:
+      type: integer
+      format: int32
+
+  B:
+    type: object
+    additionalProperties:
+      $ref: "#/definitions/A"
+
+  C:
+    type: object
+    additionalProperties: true
+    properties:
+      i:
+        type: integer
+
+  D:
+    type: object
+    additionalProperties: false
+
+  Translation:
+    type: object
+    additionalProperties:
+      type: string
+
+  Errors:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        code:
+          type: integer
+        text:
+          type: string
+
+  Errnos:        # <---- dictionary
+    type: object
+    additionalProperties:
+      $ref: '#/definitions/Errno'
+  Errno:
+    type: object
+    required: [code, text]
+    properties:
+      code:
+        type: integer
+      text:
+        type: string
+
+  Annotations:
+    type: object
+    additionalProperties:
+      type: object
+    description: Additional information provided through arbitrary metadata.
+    properties:
+      org.opencontainers.image.authors:
+        description: Contact details of the people or organization responsible for the image.
+        type: string
+        x-ms-client-name: Authors
