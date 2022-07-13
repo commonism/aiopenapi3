@@ -137,13 +137,14 @@ def test_pets(api, login):
     )
 
     # uploadFile
-    r = api._.uploadFile(
-        parameters={
-            "petId": fido.id,
-            "additionalMetadata": "yes",
-            "file": ("test.png", open("tests/data/dog.png", "rb"), "image/png"),
-        }
-    )
+    with open("tests/data/dog.png", "rb") as f:
+        r = api._.uploadFile(
+            parameters={
+                "petId": fido.id,
+                "additionalMetadata": "yes",
+                "file": ("test.png", f, "image/png"),
+            }
+        )
     assert (
         isinstance(r, ApiResponse)
         and r.code == 200
