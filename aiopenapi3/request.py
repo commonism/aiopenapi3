@@ -3,6 +3,20 @@ import io
 import httpx
 import pydantic
 import yarl
+from contextlib import closing
+
+try:
+    from contextlib import aclosing
+except:  # <= Python 3.10
+    from contextlib import asynccontextmanager
+
+    @asynccontextmanager
+    async def aclosing(thing):
+        try:
+            yield thing
+        finally:
+            await thing.aclose()
+
 
 from .base import SchemaBase, ParameterBase, HTTP_METHODS
 from .version import __version__
@@ -46,7 +60,7 @@ class RequestBase:
         :type parameters: dict{str: str}
         """
         self._prepare(data, parameters)
-        with self.api._session_factory(**self._factory_args()) as session:
+        with closing(self.api._session_factory(**self._factory_args())) as session:
             req = self._build_req(session)
             result = session.send(req)
         return self._process(result)
@@ -58,7 +72,7 @@ class AsyncRequestBase(RequestBase):
 
     async def request(self, data=None, parameters=None):
         self._prepare(data, parameters)
-        async with self.api._session_factory(**self._factory_args()) as session:
+        async with aclosing(self.api._session_factory(**self._factory_args())) as session:
             req = self._build_req(session)
             result = await session.send(req)
 
