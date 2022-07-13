@@ -140,3 +140,7 @@ def test_schema_with_additionalProperties(with_schema_additionalProperties):
 
 def test_schema_with_additionalProperties_v20(with_schema_additionalProperties_v20):
     api = OpenAPI("/", with_schema_additionalProperties_v20)
+
+
+def test_schema_with_empty(with_schema_empty):
+    api = OpenAPI("/", with_schema_empty)
