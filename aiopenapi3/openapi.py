@@ -361,6 +361,8 @@ class OpenAPI:
 
                     if op.requestBody:
                         for content_type, request in op.requestBody.content.items():
+                            if request.schema_ is None:
+                                continue
                             byname[request.schema_._get_identity("B")] = request.schema_
 
                     for r, response in op.responses.items():
@@ -380,6 +382,8 @@ class OpenAPI:
             for responses in map(lambda x: x.responses, components):
                 for rname, response in responses.items():
                     for content_type, media_type in response.content.items():
+                        if media_type.schema_ is None:
+                            continue
                         byname[media_type.schema_._get_identity("R")] = media_type.schema_
                         data.add(id(media_type.schema_))
 

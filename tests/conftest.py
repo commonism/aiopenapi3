@@ -218,5 +218,10 @@ def with_schema_additionalProperties():
 
 
 @pytest.fixture
+def with_schema_empty():
+    yield _get_parsed_yaml("with-schema-empty.yaml")
+
+
+@pytest.fixture
 def with_schema_additionalProperties_v20():
     yield _get_parsed_yaml("with-schema-additionalProperties-v20.yaml")
