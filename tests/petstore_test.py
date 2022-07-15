@@ -43,6 +43,8 @@ class OnDocument(Document):
 class OnMessage(Message):
     def parsed(self, ctx):
         def goodPet(i):
+            if len(frozenset(i.keys()) & frozenset(["code", "type", "message"])) == 3:
+                return
             if not isinstance(i.get("photoUrls", None), list):
                 i["photoUrls"] = list()
             for idx, j in enumerate(i["photoUrls"]):
