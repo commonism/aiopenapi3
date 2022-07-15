@@ -207,7 +207,12 @@ class Request(RequestBase):
             data = result.text
             data = self.api.plugins.message.received(operationId=self.operation.operationId, received=data).received
             data = json.loads(data)
-            data = self.api.plugins.message.parsed(operationId=self.operation.operationId, parsed=data).parsed
+            data = self.api.plugins.message.parsed(
+                operationId=self.operation.operationId,
+                parsed=data,
+                expected_type=getattr(expected_response.schema_, "_target", expected_response.schema_),
+            ).parsed
+            # this is valid
             data = expected_response.schema_.model(data)
             data = self.api.plugins.message.unmarshalled(
                 operationId=self.operation.operationId, unmarshalled=data

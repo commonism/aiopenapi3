@@ -1,4 +1,5 @@
 import dataclasses
+import typing
 from typing import List, Any, Dict
 from pydantic import BaseModel
 
@@ -10,7 +11,18 @@ the plugin interface replicates the suds way of  dealing with broken data/schema
 
 
 class Plugin:
-    pass
+    def __init__(self):
+        self._root = None
+
+    @property
+    def root(self):
+        return self._root
+
+    @root.setter
+    def root(self, v):
+        if self._root is not None:
+            raise ValueError(f"root is already set {v}")
+        self._root = v
 
 
 class Init(Plugin):
@@ -50,6 +62,7 @@ class Message(Plugin):
         received: str = None
         parsed: Dict[str, Any] = None
         unmarshalled: BaseModel = None
+        expected_type: typing.Type = None
 
     """
     sending: marshalled(dict)-> sending(str)
@@ -90,7 +103,7 @@ class Message(Plugin):
 
 class Domain:
     def __init__(self, ctx, plugins: List[Plugin]):
-        self.Context = ctx
+        self.ctx = ctx
         self.plugins = plugins
 
     def __getstate__(self):
@@ -109,7 +122,11 @@ class Method:
         self.domain = domain
 
     def __call__(self, **kwargs):
-        r = self.domain.Context(**kwargs)
+        # pickle …
+        # TypeError: __init__() missing 1 required positional argument: 'initialized'
+        #        if not kwargs:
+        #            return
+        r = self.domain.ctx(**kwargs)
         for plugin in self.domain.plugins:
             method = getattr(plugin, self.name, None)
             if method is None:

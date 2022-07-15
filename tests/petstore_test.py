@@ -53,11 +53,13 @@ class OnMessage(Message):
                 i["status"] = "pending"
 
         if ctx.operationId == "getPetById":
-            goodPet(ctx.parsed)
+            if self.root.definitions["Pet"] == ctx.expected_type:
+                goodPet(ctx.parsed)
 
         if ctx.operationId in frozenset(["findPetsByStatus", "findPetsByTags"]):
-            for i in ctx.parsed:
-                goodPet(i)
+            if self.root.definitions["Pet"] == getattr(ctx.expected_type.items, "_target", None):
+                for i in ctx.parsed:
+                    goodPet(i)
         return ctx
 
 

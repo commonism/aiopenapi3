@@ -184,6 +184,8 @@ class OpenAPI:
 
         self._root = self._parse_obj(document)
 
+        self._init_plugins(plugins)
+
         self._documents[pathlib.Path(pathlib.Path(yarl.URL(url).path).parts[-1])] = self._root
 
         self._init_session_factory(session_factory)
@@ -192,6 +194,11 @@ class OpenAPI:
         self._init_schema_types()
 
         self.plugins.init.initialized(initialized=self._root)
+
+    def _init_plugins(self, plugins):
+        for i in plugins or []:
+            i.root = self._root
+        self.plugins = Plugins(plugins or [])
 
     def _init_session_factory(self, session_factory):
         if issubclass(getattr(session_factory, "__annotations__", {}).get("return", None.__class__), httpx.Client) or (
