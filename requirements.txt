@@ -4,6 +4,6 @@ hypercorn~=0.13.0
 pydantic~=1.9.0a1
 pytest~=6.2.5
 PyYAML~=6.0
-starlette~=0.16.0
+starlette~=0.20.4
 uvloop~=0.16.0
 yarl~=1.7.2
