@@ -18,12 +18,18 @@ This project is a fork of [Dorthu/openapi3](https://github.com/Dorthu/openapi3/)
   * object parsing via pydantic
     * recursive schemas (A.a -> A)
   * request body model creation via [pydantic](https://github.com/samuelcolvin/pydantic)
-  * pydantic compatible "format"-type coercion (e.g. datetime.interval)
+    * pydantic compatible "format"-type coercion (e.g. datetime.interval)
+    * additionalProperties (limited to string-to-any dictionaries without properties)
   * blocking and nonblocking (asyncio) interface via [httpx](https://www.python-httpx.org/)
+    * SOCKS5 via httpx_socks
   * tests with pytest & [fastapi](https://fastapi.tiangolo.com/)
   * providing access to methods and arguments via the sad smiley ._. interface
-  * api to modify description documents/requests/responses to adapt to non compliant services
+  * Plugin Interface/api to modify description documents/requests/responses to adapt to non compliant services
   * YAML type coercion hints for not well formatted description documents
+  * Description Document dependency downloads (using the WebLoader)
+    * logging
+      * `export AIOPENAPI3_LOGGING_HANDLERS=debug` to get /tmp/aiopenapi3-debug.log
+
 
 ## Usage as a Client
 
@@ -261,6 +267,12 @@ tags:
 In case the description document does not match the protocol, it may be required to alter the description, objects or data sent/received.
 The [Plugin interface](https://github.com/commonism/aiopenapi3/blob/master/tests/plugin_test.py) can be used to alter any of those.
 It can even be used to alter an invalid description document to be usable.
+
+
+### the petstore.swagger.io
+The [Swagger Petstore Examples API](https://petstore.swagger.io) is a good [example](https://github.com/commonism/aiopenapi3/tests/petstore_test.py) of an API with incomplete Description Document and invalid API responses.
+
+
 
 ## Logging
 ### HTTP Requests
