@@ -1,6 +1,5 @@
 from typing import Dict, List
 import json
-import io
 
 import httpx
 import pydantic
@@ -108,27 +107,28 @@ class Request(RequestBase):
         for name, value in parameters.items():
             spec = accepted_parameters[name]
 
+            values = spec._format(name, value)
+            assert isinstance(values, dict)
+
             if spec.in_ == "formData":
                 if "multipart/form-data" not in self.operation.consumes:
                     raise ValueError(f"operation does not consume form data but parameter {name} is formData")
                 if spec.type == "file":
-                    # https://www.python-httpx.org/quickstart/#sending-multipart-file-uploads
-                    assert type(value) == tuple and len(value) == 3 and isinstance(value[1], io.IOBase)
-                    self.req.files[name] = value
+                    self.req.files.update(values)
                 else:
-                    self.req.data[name] = value
+                    self.req.data.update(values)
 
             if spec.in_ == "path":
                 # The string method `format` is incapable of partial updates,
                 # as such we need to collect all the path parameters before
                 # applying them to the format string.
-                path_parameters[name] = value
+                path_parameters.update(values)
 
             if spec.in_ == "query":
-                self.req.params[name] = value
+                self.req.params.update(values)
 
             if spec.in_ == "header":
-                self.req.headers[name] = value
+                self.req.headers.update(values)
 
         self.req.url = self.req.url.format(**path_parameters)
 

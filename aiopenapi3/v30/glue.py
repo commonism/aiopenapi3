@@ -114,21 +114,22 @@ class Request(RequestBase):
         path_parameters = {}
         for name, value in parameters.items():
             spec = accepted_parameters[name]
-
+            values = spec._format(name, value)
+            assert isinstance(values, dict)
             if spec.in_ == "path":
                 # The string method `format` is incapable of partial updates,
                 # as such we need to collect all the path parameters before
                 # applying them to the format string.
-                path_parameters[name] = value
+                path_parameters.update(values)
 
             if spec.in_ == "query":
-                self.req.params[name] = value
+                self.req.params.update(values)
 
             if spec.in_ == "header":
-                self.req.headers[name] = value
+                self.req.headers.update(values)
 
             if spec.in_ == "cookie":
-                self.req.cookies[name] = value
+                self.req.cookies.update(values)
 
         self.req.url = self.req.url.format(**path_parameters)
 

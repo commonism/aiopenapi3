@@ -248,7 +248,7 @@ class OpenAPI:
                 for path, obj in self.paths.items():
                     for m in obj.__fields_set__ & HTTP_METHODS:
                         op = getattr(obj, m)
-                        op._validate_path_parameters(path)
+                        op._validate_path_parameters(obj, path)
                         if op.operationId is None:
                             continue
                         formatted_operation_id = op.operationId.replace(" ", "_")
@@ -271,7 +271,7 @@ class OpenAPI:
                 for path, obj in self.paths.items():
                     for m in obj.__fields_set__ & HTTP_METHODS:
                         op = getattr(obj, m)
-                        op._validate_path_parameters(path)
+                        op._validate_path_parameters(obj, path)
                         if op.operationId is None:
                             continue
                         formatted_operation_id = op.operationId.replace(" ", "_")
