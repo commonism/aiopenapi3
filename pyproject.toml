@@ -10,6 +10,7 @@ filterwarnings = [
     "ignore:unclosed file <_io.FileIO name='/tmp/aiopenapi3-debug.log' mode='ab' closefd=True>:ResourceWarning",
     "ignore:unclosed file <_io.TextIOWrapper name='/tmp/aiopenapi3-debug.log' mode='a' encoding='UTF-8'>:ResourceWarning",
     "ignore:unclosed <ssl.SSLSocket:ResourceWarning",
+    "ignore:unclosed <socket.socket fd=:ResourceWarning",
     "ignore:Ignoring Schema with additionalProperties and named properties:UserWarning",
 #    "error::pytest.PytestUnraisableExceptionWarning",
     # note the use of single quote below to denote "raw" strings in TOML
