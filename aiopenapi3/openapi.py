@@ -5,7 +5,6 @@ if sys.version_info >= (3, 9):
 else:
     import pathlib3x as pathlib
 
-import re
 from typing import List, Dict, Union, Callable, Tuple
 import inspect
 import logging
@@ -251,7 +250,7 @@ class OpenAPI:
                 for path, obj in self.paths.items():
                     for m in obj.__fields_set__ & HTTP_METHODS:
                         op = getattr(obj, m)
-                        _validate_parameters(op, path)
+                        op._validate_path_parameters(path)
                         if op.operationId is None:
                             continue
                         formatted_operation_id = op.operationId.replace(" ", "_")
@@ -274,7 +273,7 @@ class OpenAPI:
                 for path, obj in self.paths.items():
                     for m in obj.__fields_set__ & HTTP_METHODS:
                         op = getattr(obj, m)
-                        _validate_parameters(op, path)
+                        op._validate_path_parameters(path)
                         if op.operationId is None:
                             continue
                         formatted_operation_id = op.operationId.replace(" ", "_")
@@ -468,7 +467,7 @@ class OpenAPI:
     def _(self):
         return OperationIndex(self)
 
-    def resolve_jr(self, root: "Rootv30", obj, value: Reference):
+    def resolve_jr(self, root: RootBase, obj, value: Reference):
         url, jp = JSONReference.split(value.ref)
         if url != "":
             url = yarl.URL(url)
@@ -483,17 +482,3 @@ class OpenAPI:
             # add metadata to the error
             e.element = obj
             raise
-
-
-def _validate_parameters(op: "Operation", path):
-    """
-    Ensures that all parameters for this path are valid
-    """
-    assert isinstance(path, str)
-    allowed_path_parameters = frozenset(re.findall(r"{([a-zA-Z0-9\-\._~]+)}", path))
-
-    path_parameters = frozenset(map(lambda x: x.name, filter(lambda c: c.in_ == "path", op.parameters)))
-
-    r = path_parameters - allowed_path_parameters
-    if r:
-        raise SpecError(f"Parameter name{'s' if len(r) > 1 else ''} not found in path: {', '.join(sorted(r))}")

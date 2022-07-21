@@ -9,8 +9,9 @@ import uuid
 from pydantic import BaseModel, Field, root_validator, Extra
 
 from .json import JSONPointer
-from .errors import ReferenceResolutionError
+from .errors import ReferenceResolutionError, SpecError
 
+# from . import me
 
 HTTP_METHODS = frozenset(["get", "delete", "head", "post", "put", "patch", "trace"])
 
@@ -322,6 +323,21 @@ class SchemaBase:
             return [self.items.get_type().parse_obj(i) for i in data]
         else:
             return self.get_type().parse_obj(data)
+
+
+class OperationBase:
+    def _validate_path_parameters(self, path):
+        """
+        Ensures that all parameters for this path are valid
+        """
+        assert isinstance(path, str)
+        allowed_path_parameters = frozenset(re.findall(r"{([a-zA-Z0-9\-\._~]+)}", path))
+
+        path_parameters = frozenset(map(lambda x: x.name, filter(lambda c: c.in_ == "path", self.parameters)))
+
+        r = path_parameters - allowed_path_parameters
+        if r:
+            raise SpecError(f"Parameter name{'s' if len(r) > 1 else ''} not found in path: {', '.join(sorted(r))}")
 
 
 from .model import Model
