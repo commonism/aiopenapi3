@@ -169,7 +169,7 @@ class OpenAPI:
         """
         the related documents
         """
-        self._documents: Dict[str, RootBase] = dict()
+        self._documents: Dict[yarl.URL, RootBase] = dict()
 
         """
         the plugin interface allows taking care of defects in description documents and implementations
@@ -183,7 +183,7 @@ class OpenAPI:
 
         self._root = self._parse_obj(document)
 
-        self._documents[pathlib.Path(pathlib.Path(yarl.URL(url).path).parts[-1])] = self._root
+        self._documents[yarl.URL(url)] = self._root
 
         self._init_session_factory(session_factory)
         self._init_references()
