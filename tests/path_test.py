@@ -205,11 +205,11 @@ def test_parameters(openapi_version, httpx_mock, with_parameters):
     ):
         api._.getTest(data={}, parameters={})
 
-    Header = str([i**i for i in range(3)])
+    Header = [i**i for i in range(3)]
     api._.getTest(data={}, parameters={"Cookie": "Cookie", "Path": "Path", "Header": Header, "Query": "Query"})
     request = httpx_mock.get_requests()[-1]
 
-    assert request.headers["Header"] == Header
+    assert request.headers["Header"] == ",".join(map(str, Header))
     assert request.headers["Cookie"] == "Cookie=Cookie"
     assert pathlib.Path(request.url.path).name == "Path"
     assert yarl.URL(str(request.url)).query["Query"] == "Query"
@@ -221,3 +221,120 @@ def test_parameters(openapi_version, httpx_mock, with_parameters):
             data={},
             parameters={"Cookie": "Cookie", "Path": "Path", "Header": Header, "Query": "Query", "Invalid": "yes"},
         )
+
+
+def test_parameter_missing(openapi_version, with_parameter_missing):
+    with_parameter_missing["openapi"] = str(openapi_version)
+    from aiopenapi3.errors import SpecError
+
+    with pytest.raises(SpecError, match="Parameter name not found in parameters: missing"):
+        OpenAPI(URLBASE, with_parameter_missing, session_factory=httpx.Client)
+
+
+def test_parameter_format(openapi_version, httpx_mock, with_parameter_format):
+    with_parameter_format["openapi"] = str(openapi_version)
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
+    api = OpenAPI(URLBASE, with_parameter_format, session_factory=httpx.Client)
+
+    # using values from
+    # https://spec.openapis.org/oas/v3.1.0#style-examples
+    parameters = {
+        "array": ["blue", "black", "brown"],
+        "string": "blue",
+        "empty": None,
+        "object": {"R": 100, "G": 200, "B": 150},
+    }
+    ne = parameters.copy()
+    del ne["empty"]
+    r = api._.FormQuery(parameters=parameters)
+    request = httpx_mock.get_requests()[-1]
+    u = yarl.URL(str(request.url))
+    assert u.query["string"] == "blue"
+    assert u.query["array"] == ",".join(parameters["array"])
+    assert u.query["object"] == "R,100,G,200,B,150"
+    assert u.query["empty"] == ""
+
+    r = api._.FormExplodeQuery(parameters=parameters)
+    request = httpx_mock.get_requests()[-1]
+    u = yarl.URL(str(request.url))
+    assert u.query["string"] == "blue"
+    assert u.query.getall("array") == parameters["array"]
+    assert u.query["R"] == "100" and u.query["G"] == "200" and u.query["B"] == "150"
+
+    r = api._.LabelPath(parameters=parameters)
+    request = httpx_mock.get_requests()[-1]
+    u = yarl.URL(str(request.url))
+    assert u.parts[4] == ".blue"
+    assert u.parts[5] == ".blue.black.brown"
+    assert u.parts[6] == ".R.100.G.200.B.150"
+    assert u.parts[7] == ""  # . is scrubbed as path self
+
+    r = api._.LabelExplodePath(parameters=parameters)
+    request = httpx_mock.get_requests()[-1]
+    u = yarl.URL(str(request.url))
+    assert u.parts[4] == ".blue"
+    assert u.parts[5] == ".blue.black.brown"
+    assert u.parts[6] == ".R=100.G=200.B=150"
+    assert u.parts[7] == ""
+
+    r = api._.deepObjectExplodeQuery(parameters={"object": parameters["object"]})
+    request = httpx_mock.get_requests()[-1]
+    u = yarl.URL(str(request.url))
+    assert u.query["object[R]"] == "100" and u.query["object[G]"] == "200" and u.query["object[B]"] == "150"
+
+    r = api._.DelimitedQuery(parameters={"pipe": ["a", "b"], "space": ["1", "2"], "object": parameters["object"]})
+    request = httpx_mock.get_requests()[-1]
+    u = yarl.URL(str(request.url))
+    assert u.query["pipe"] == "a|b"
+    assert u.query["space"] == "1 2"
+    assert u.query["object"] == "R 100 G 200 B 150"
+
+    r = api._.matrixPath(parameters=parameters)
+    request = httpx_mock.get_requests()[-1]
+    u = yarl.URL(str(request.url))
+
+    assert u.parts[4] == ";string=blue"
+    assert u.parts[5] == ";array=blue,black,brown"
+    assert u.parts[6] == ";object=R,100,G,200,B,150"
+    assert u.parts[7] == ";empty"
+
+    r = api._.simpleHeader(parameters=ne)
+    request = httpx_mock.get_requests()[-1]
+    u = yarl.URL(str(request.url))
+
+    assert request.headers.get("string") == "blue"
+    assert request.headers.get("array") == "blue,black,brown"
+    assert request.headers.get("object") == "R,100,G,200,B,150"
+
+    r = api._.simpleExplodePath(parameters=ne)
+    request = httpx_mock.get_requests()[-1]
+    u = yarl.URL(str(request.url))
+
+    assert u.parts[5] == "blue"
+    assert u.parts[6] == "blue,black,brown"
+    assert u.parts[7] == "R=100,G=200,B=150"
+
+    return
+
+
+def test_parameter_format_v20(httpx_mock, with_parameter_format_v20):
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
+    api = OpenAPI(URLBASE, with_parameter_format_v20, session_factory=httpx.Client)
+
+    parameters = {
+        "array": ["blue", "black", "brown"],
+        "string": "blue",
+    }
+    r = api._.path(parameters=parameters)
+    request = httpx_mock.get_requests()[-1]
+    u = yarl.URL(str(request.url))
+    assert u.parts[4] == "blue|black|brown"
+    assert u.parts[5] == "default"
+
+    r = api._.query(parameters=parameters)
+    request = httpx_mock.get_requests()[-1]
+    u = yarl.URL(str(request.url))
+    assert u.query["default"] == "default"
+    assert u.query["string"] == "blue"
+    assert u.query["array"] == "blue\tblack\tbrown"
+    return

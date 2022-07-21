@@ -170,6 +170,27 @@ def with_parameters():
 
 
 @pytest.fixture
+def with_parameter_format():
+    """
+    parameters formatting
+    """
+    yield _get_parsed_yaml("with-parameter-format.yaml")
+
+
+@pytest.fixture
+def with_parameter_format_v20():
+    """
+    parameters formatting
+    """
+    yield _get_parsed_yaml("with-parameter-format-v20.yaml")
+
+
+@pytest.fixture
+def with_parameter_missing():
+    yield _get_parsed_yaml("with-parameter-missing.yaml")
+
+
+@pytest.fixture
 def with_callback():
     """
     Provides a spec with callback
