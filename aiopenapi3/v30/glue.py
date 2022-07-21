@@ -106,9 +106,9 @@ class Request(RequestBase):
         provided = frozenset(parameters.keys())
         accepted = frozenset(accepted_parameters.keys())
         required = frozenset(map(lambda x: x[0], filter(lambda y: y[1].required, accepted_parameters.items())))
-        if provided > accepted:
+        if provided - accepted:
             raise ValueError(f"Parameter {sorted(provided - accepted)} unknown (accepted {sorted(accepted)})")
-        if required > provided:
+        if required - provided:
             raise ValueError(f"Required Parameter {sorted(required - provided)} missing (provided {sorted(provided)})")
 
         path_parameters = {}
