@@ -174,7 +174,7 @@ class OpenAPI:
         """
         the plugin interface allows taking care of defects in description documents and implementations
         """
-        self.plugins: Plugins = Plugins(plugins or [])
+        self._init_plugins(plugins)
 
         log.init()
         self.log = logging.getLogger("aiopenapi3.OpenAPI")
@@ -182,8 +182,6 @@ class OpenAPI:
         document = self.plugins.document.parsed(url=self._base_url, document=document).document
 
         self._root = self._parse_obj(document)
-
-        self._init_plugins(plugins)
 
         self._documents[pathlib.Path(pathlib.Path(yarl.URL(url).path).parts[-1])] = self._root
 
@@ -196,7 +194,7 @@ class OpenAPI:
 
     def _init_plugins(self, plugins):
         for i in plugins or []:
-            i.root = self._root
+            i.api = self
         self.plugins = Plugins(plugins or [])
 
     def _init_session_factory(self, session_factory):
