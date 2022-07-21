@@ -279,7 +279,7 @@ The [Swagger Petstore Examples API](https://petstore.swagger.io) is a good [exam
 
 ```
 export AIOPENAPI3_LOGGING_HANDLERS=debug
-``
+```
 
 will force writing to `/tmp/aiopenapi3-debug.log`.\
 It can be used to inspect Description Document downloads …
