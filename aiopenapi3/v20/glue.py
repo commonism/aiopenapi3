@@ -89,23 +89,29 @@ class Request(RequestBase):
                 # apiKey in query header data
                 self.req.headers[ss.name] = value
 
-    def _prepare_parameters(self, parameters):
-        parameters = parameters or dict()
-        accepted_parameters = {_.name: _ for _ in self.operation.parameters + self.root.paths[self.path].parameters}
+    def _prepare_parameters(self, provided):
+        provided = provided or dict()
+        possible = {_.name: _ for _ in self.operation.parameters + self.root.paths[self.path].parameters}
 
-        provided = frozenset(parameters.keys())
-        accepted = frozenset(accepted_parameters.keys())
+        parameters = {i.name: i.default for i in filter(lambda x: x.default is not None, possible.values())}
+        parameters.update(provided)
+
+        available = frozenset(parameters.keys())
+        accepted = frozenset(possible.keys())
         required = frozenset(
-            map(lambda x: x[0], filter(lambda y: y[1].required and y[1].in_ != "body", accepted_parameters.items()))
+            map(lambda x: x[0], filter(lambda y: y[1].required and y[1].in_ != "body", possible.items()))
         )
-        if provided - accepted:
-            raise ValueError(f"Parameter {sorted(provided - accepted)} unknown (accepted {sorted(accepted)})")
-        if required - provided:
-            raise ValueError(f"Required Parameter {sorted(required - provided)} missing (provided {sorted(provided)})")
+        if available - accepted:
+            raise ValueError(f"Parameter {sorted(available - accepted)} unknown (accepted {sorted(accepted)})")
+        if required - available:
+            raise ValueError(
+                f"Required Parameter {sorted(required - available)} missing (provided {sorted(available)})"
+            )
 
         path_parameters = {}
+
         for name, value in parameters.items():
-            spec = accepted_parameters[name]
+            spec = possible[name]
 
             values = spec._format(name, value)
             assert isinstance(values, dict)
