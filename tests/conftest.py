@@ -191,6 +191,11 @@ def with_parameter_missing():
 
 
 @pytest.fixture
+def with_parameter_default():
+    yield _get_parsed_yaml("with-parameter-default.yaml")
+
+
+@pytest.fixture
 def with_callback():
     """
     Provides a spec with callback

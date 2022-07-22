@@ -231,6 +231,17 @@ def test_parameter_missing(openapi_version, with_parameter_missing):
         OpenAPI(URLBASE, with_parameter_missing, session_factory=httpx.Client)
 
 
+def test_parameter_default(openapi_version, httpx_mock, with_parameter_default):
+    with_parameter_default["openapi"] = str(openapi_version)
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
+    api = OpenAPI(URLBASE, with_parameter_default, session_factory=httpx.Client)
+    api._.default()
+    request = httpx_mock.get_requests()[-1]
+    u = yarl.URL(str(request.url))
+    assert u.parts[2] == "op"
+    assert u.parts[3] == "path"
+
+
 def test_parameter_format(openapi_version, httpx_mock, with_parameter_format):
     with_parameter_format["openapi"] = str(openapi_version)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
