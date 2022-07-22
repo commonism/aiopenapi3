@@ -2,7 +2,7 @@ from typing import Union, List, Optional, Dict, Any
 
 from pydantic import Field, root_validator
 
-from ..base import ObjectBase, ObjectExtended, PathsBase
+from ..base import ObjectBase, ObjectExtended, PathsBase, OperationBase
 from .general import ExternalDocumentation
 from .general import Reference
 from .media import MediaType
@@ -63,7 +63,7 @@ class Response(ObjectExtended):
     links: Optional[Dict[str, Union[Link, Reference]]] = Field(default_factory=dict)
 
 
-class Operation(ObjectExtended):
+class Operation(ObjectExtended, OperationBase):
     """
     An Operation object as defined `here`_
 

@@ -1,0 +1,67 @@
+swagger: "2.0"
+info:
+  title: with additionalProperties
+  description: with additionalProperties
+  version: 1.0.0
+host: api.example.com
+basePath: /v1
+schemes:
+  - https
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+definitions: {}
+
+paths:
+  /path/{string}/{array}/{default}:
+    parameters:
+      - in: path
+        name: string
+        type: string
+        required: true
+      - in: path
+        name: array
+        type: array
+        items:
+          type: string
+        required: true
+        collectionFormat: pipes
+      - in: path
+        name: default
+        type: string
+        default: "default"
+    get:
+      operationId: path
+      responses:
+       200:
+         description: OK
+         schema:
+           type: str
+
+  /query:
+    get:
+      parameters:
+        - in: query
+          name: string
+          type: string
+          required: true
+        - in: query
+          name: array
+          type: array
+          items:
+            type: string
+          required: true
+          collectionFormat: tsv
+        - in: query
+          name: default
+          type: string
+          default: "default"
+      operationId: query
+      responses:
+       200:
+         description: OK
+         schema:
+           type: str

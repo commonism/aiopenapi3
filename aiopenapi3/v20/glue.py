@@ -1,6 +1,5 @@
 from typing import Dict, List
 import json
-import io
 
 import httpx
 import pydantic
@@ -90,45 +89,52 @@ class Request(RequestBase):
                 # apiKey in query header data
                 self.req.headers[ss.name] = value
 
-    def _prepare_parameters(self, parameters):
-        parameters = parameters or dict()
-        accepted_parameters = {_.name: _ for _ in self.operation.parameters + self.root.paths[self.path].parameters}
+    def _prepare_parameters(self, provided):
+        provided = provided or dict()
+        possible = {_.name: _ for _ in self.operation.parameters + self.root.paths[self.path].parameters}
 
-        provided = frozenset(parameters.keys())
-        accepted = frozenset(accepted_parameters.keys())
+        parameters = {i.name: i.default for i in filter(lambda x: x.default is not None, possible.values())}
+        parameters.update(provided)
+
+        available = frozenset(parameters.keys())
+        accepted = frozenset(possible.keys())
         required = frozenset(
-            map(lambda x: x[0], filter(lambda y: y[1].required and y[1].in_ != "body", accepted_parameters.items()))
+            map(lambda x: x[0], filter(lambda y: y[1].required and y[1].in_ != "body", possible.items()))
         )
-        if provided > accepted:
-            raise ValueError(f"Parameter {sorted(provided - accepted)} unknown (accepted {sorted(accepted)})")
-        if required > provided:
-            raise ValueError(f"Required Parameter {sorted(required - provided)} missing (provided {sorted(provided)})")
+        if available - accepted:
+            raise ValueError(f"Parameter {sorted(available - accepted)} unknown (accepted {sorted(accepted)})")
+        if required - available:
+            raise ValueError(
+                f"Required Parameter {sorted(required - available)} missing (provided {sorted(available)})"
+            )
 
         path_parameters = {}
+
         for name, value in parameters.items():
-            spec = accepted_parameters[name]
+            spec = possible[name]
+
+            values = spec._format(name, value)
+            assert isinstance(values, dict)
 
             if spec.in_ == "formData":
                 if "multipart/form-data" not in self.operation.consumes:
                     raise ValueError(f"operation does not consume form data but parameter {name} is formData")
                 if spec.type == "file":
-                    # https://www.python-httpx.org/quickstart/#sending-multipart-file-uploads
-                    assert type(value) == tuple and len(value) == 3 and isinstance(value[1], io.IOBase)
-                    self.req.files[name] = value
+                    self.req.files.update(values)
                 else:
-                    self.req.data[name] = value
+                    self.req.data.update(values)
 
             if spec.in_ == "path":
                 # The string method `format` is incapable of partial updates,
                 # as such we need to collect all the path parameters before
                 # applying them to the format string.
-                path_parameters[name] = value
+                path_parameters.update(values)
 
             if spec.in_ == "query":
-                self.req.params[name] = value
+                self.req.params.update(values)
 
             if spec.in_ == "header":
-                self.req.headers[name] = value
+                self.req.headers.update(values)
 
         self.req.url = self.req.url.format(**path_parameters)
 

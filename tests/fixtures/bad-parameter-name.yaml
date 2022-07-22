@@ -4,6 +4,12 @@ info:
   title: This has a mismatched parameter name.
 paths:
   /example/{name}:
+    parameters:
+    - in: path
+      name: name
+      required: true
+      schema:
+        type: string
     get:
       parameters:
       - in: path

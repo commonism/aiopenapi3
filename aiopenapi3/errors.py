@@ -19,6 +19,10 @@ class ReferenceResolutionError(SpecError):
     """
 
 
+class ParameterFormatError(ValueError):
+    pass
+
+
 class HTTPError(ValueError):
     pass
 

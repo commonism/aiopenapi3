@@ -7,7 +7,7 @@ from .general import Reference
 from .parameter import Header, Parameter
 from .schemas import Schema
 from .security import SecurityRequirement
-from ..base import ObjectExtended, ObjectBase, PathsBase
+from ..base import ObjectExtended, ObjectBase, PathsBase, OperationBase
 
 
 class Response(ObjectExtended):
@@ -23,7 +23,7 @@ class Response(ObjectExtended):
     examples: Optional[Dict[str, Any]] = Field(default=None)
 
 
-class Operation(ObjectExtended):
+class Operation(ObjectExtended, OperationBase):
     """
     An Operation object as defined `here`_
 

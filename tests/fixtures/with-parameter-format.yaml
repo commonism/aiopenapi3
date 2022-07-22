@@ -1,0 +1,421 @@
+openapi: 3.0.3
+info:
+  title: ''
+  version: 0.0.0
+servers:
+  - url: http://127.0.0.1/api
+
+security:
+  - {}
+
+paths:
+  /form/query:
+    get:
+      operationId: FormQuery
+      parameters:
+        - $ref: "#/components/parameters/EmptyFormQuery"
+        - $ref: "#/components/parameters/StringFormQuery"
+        - $ref: "#/components/parameters/ArrayFormQuery"
+        - $ref: "#/components/parameters/ObjectFormQuery"
+
+      responses: &resp
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Test'
+          headers:
+            head:
+              $ref: "#/components/headers/ArraySimpleHeader"
+          description: ''
+
+    patch:
+      operationId: FormExplodeQuery
+      parameters:
+        - $ref: "#/components/parameters/EmptyFormQuery"
+        - $ref: "#/components/parameters/StringFormExplodeQuery"
+        - $ref: "#/components/parameters/ArrayFormExplodeQuery"
+        - $ref: "#/components/parameters/ObjectFormExplodeQuery"
+
+      responses: *resp
+
+  /label/query/{string}/{array}/{object}/{empty}:
+    get:
+      operationId: LabelPath
+      parameters:
+        - $ref: "#/components/parameters/EmptyLabelPath"
+        - $ref: "#/components/parameters/StringLabelPath"
+        - $ref: "#/components/parameters/ArrayLabelPath"
+        - $ref: "#/components/parameters/ObjectLabelPath"
+
+      responses: *resp
+
+    patch:
+      operationId: LabelExplodePath
+      parameters:
+        - $ref: "#/components/parameters/EmptyLabelPath"
+        - $ref: "#/components/parameters/StringLabelExplodePath"
+        - $ref: "#/components/parameters/ArrayLabelExplodePath"
+        - $ref: "#/components/parameters/ObjectLabelExplodePath"
+
+      responses: *resp
+
+
+  /deepObject/query:
+    get:
+      operationId: deepObjectExplodeQuery
+      parameters:
+        - $ref: "#/components/parameters/ObjectdeepObjectExplodeQuery"
+
+      responses: *resp
+
+  /Delimited/query:
+    get:
+      operationId: DelimitedQuery
+      parameters:
+        - $ref: "#/components/parameters/ArrayspaceDelimitedQuery"
+        - $ref: "#/components/parameters/ObjectspaceDelimitedQuery"
+        - $ref: "#/components/parameters/ArraypipeDelimitedQuery"
+      responses: *resp
+
+  /matrix/path/{string}/{array}/{object}/{empty}:
+    parameters:
+      - $ref: "#/components/parameters/EmptyMatrixPath"
+      - $ref: "#/components/parameters/StringMatrixPath"
+      - $ref: "#/components/parameters/ArrayMatrixPath"
+      - $ref: "#/components/parameters/ObjectMatrixPath"
+
+    get:
+      operationId: matrixPath
+
+      responses: *resp
+
+  /simple/header:
+    get:
+      operationId: simpleHeader
+      parameters:
+#        - $ref: "#/components/parameters/EmptySimpleHeader"
+        - $ref: "#/components/parameters/StringSimpleHeader"
+        - $ref: "#/components/parameters/ArraySimpleHeader"
+        - $ref: "#/components/parameters/ObjectSimpleHeader"
+
+      responses: *resp
+
+  /simple/explode/path/{string}/{array}/{object}:
+    parameters:
+      - $ref: "#/components/parameters/StringSimpleExplodePath"
+      - $ref: "#/components/parameters/ArraySimpleExplodePath"
+      - $ref: "#/components/parameters/ObjectSimpleExplodePath"
+
+    get:
+      operationId: simpleExplodePath
+
+      responses: *resp
+
+
+
+components:
+  schemas:
+    Test:
+      type: string
+    RGB:
+      type: object
+      properties:
+        R:
+          type: integer
+        G:
+          type: integer
+        B:
+          type: integer
+
+  headers:
+
+    ArraySimpleHeader:
+      schema:
+        type: array
+        items:
+          type: string
+      style: simple
+      explode: false
+
+  parameters:
+
+    EmptyFormQuery:
+      in: query
+      name: empty
+      style: form
+      explode: false
+      required: true
+      schema:
+        type: number
+
+    StringFormQuery:
+      in: query
+      name: string
+      style: form
+      explode: false
+      required: true
+      schema:
+        type: string
+
+    ArrayFormQuery:
+      in: query
+      name: array
+      style: form
+      explode: false
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+
+    ObjectFormQuery:
+      in: query
+      name: object
+      style: form
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/RGB"
+
+    StringFormExplodeQuery:
+      in: query
+      name: string
+      style: form
+      explode: true
+      required: true
+      schema:
+        type: string
+
+    ArrayFormExplodeQuery:
+      in: query
+      name: array
+      style: form
+      explode: true
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+
+    ObjectFormExplodeQuery:
+      in: query
+      name: object
+      style: form
+      explode: true
+      required: true
+      schema:
+        $ref: "#/components/schemas/RGB"
+
+    EmptyLabelPath:
+      in: path
+      name: empty
+      style: label
+      explode: false
+      required: true
+      schema:
+        type: string
+
+    StringLabelPath:
+      in: path
+      name: string
+      style: label
+      explode: false
+      required: true
+      schema:
+        type: string
+
+    ArrayLabelPath:
+      in: path
+      name: array
+      style: label
+      explode: false
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+
+    ObjectLabelPath:
+      in: path
+      name: object
+      style: label
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/RGB"
+
+    StringLabelExplodePath:
+      in: path
+      name: string
+      style: label
+      explode: true
+      required: true
+      schema:
+        type: string
+
+    ArrayLabelExplodePath:
+      in: path
+      name: array
+      style: label
+      explode: true
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+
+    ObjectLabelExplodePath:
+      in: path
+      name: object
+      style: label
+      explode: true
+      required: true
+      schema:
+        $ref: "#/components/schemas/RGB"
+
+
+    ObjectdeepObjectExplodeQuery:
+      in: query
+      name: object
+      style: deepObject
+      explode: true
+      required: true
+      schema:
+        $ref: "#/components/schemas/RGB"
+
+    ArrayspaceDelimitedQuery:
+      in: query
+      name: space
+      style: spaceDelimited
+      explode: false
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+
+    ObjectspaceDelimitedQuery:
+      in: query
+      name: object
+      style: spaceDelimited
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/RGB"
+
+    ArraypipeDelimitedQuery:
+      in: query
+      name: pipe
+      style: pipeDelimited
+      explode: false
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+
+    EmptyMatrixPath:
+      in: path
+      name: empty
+      style: matrix
+      explode: false
+      required: true
+      schema:
+        type: string
+
+    StringMatrixPath:
+      in: path
+      name: string
+      style: matrix
+      explode: false
+      required: true
+      schema:
+        type: string
+
+    ArrayMatrixPath:
+      in: path
+      name: array
+      style: matrix
+      explode: false
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+
+    ObjectMatrixPath:
+      in: path
+      name: object
+      style: matrix
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/RGB"
+
+    EmptySimpleHeader:
+      in: header
+      name: empty
+      style: simple
+      explode: false
+      required: true
+      schema:
+        type: string
+
+    StringSimpleHeader:
+      in: header
+      name: string
+      style: simple
+      explode: false
+      required: true
+      schema:
+        type: string
+
+    ArraySimpleHeader:
+      in: header
+      name: array
+      style: simple
+      explode: false
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+
+    ObjectSimpleHeader:
+      in: header
+      name: object
+      style: simple
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/RGB"
+
+    StringSimpleExplodePath:
+      in: path
+      name: string
+      style: simple
+      explode: true
+      required: true
+      schema:
+        type: string
+
+    ArraySimpleExplodePath:
+      in: path
+      name: array
+      style: simple
+      explode: true
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+
+    ObjectSimpleExplodePath:
+      in: path
+      name: object
+      style: simple
+      explode: true
+      required: true
+      schema:
+        $ref: "#/components/schemas/RGB"

@@ -12,17 +12,17 @@ the plugin interface replicates the suds way of  dealing with broken data/schema
 
 class Plugin:
     def __init__(self):
-        self._root = None
+        self._api: "OpenAPI" = None
 
     @property
-    def root(self):
-        return self._root
+    def api(self):
+        return self._api
 
-    @root.setter
-    def root(self, v):
-        if self._root is not None:
-            raise ValueError(f"root is already set {v}")
-        self._root = v
+    @api.setter
+    def api(self, v):
+        if self._api is not None:
+            raise ValueError(f"api is already set {v}")
+        self._api = v
 
 
 class Init(Plugin):

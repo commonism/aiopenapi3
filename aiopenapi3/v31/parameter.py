@@ -8,8 +8,10 @@ from .example import Example
 from .general import Reference
 from .schemas import Schema
 
+from ..v30.parameter import _ParameterFormatter
 
-class ParameterBase(ObjectExtended):
+
+class ParameterBase(ObjectExtended, _ParameterFormatter):
     """
     A `Parameter Object`_ defines a single operation parameter.
 
