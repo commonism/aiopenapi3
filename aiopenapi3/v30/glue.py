@@ -122,7 +122,7 @@ class Request(RequestBase):
 
         for name, value in parameters.items():
             spec = possible[name]
-            values = spec._format(name, value)
+            values = spec._encode(name, value)
             assert isinstance(values, dict)
             if spec.in_ == "path":
                 # The string method `format` is incapable of partial updates,
@@ -195,6 +195,7 @@ class Request(RequestBase):
         return req
 
     def _process(self, result):
+        headers = dict()
         # spec enforces these are strings
         status_code = str(result.status_code)
 
@@ -214,8 +215,20 @@ class Request(RequestBase):
                 result,
             )
 
+        if expected_response.headers:
+            required = frozenset(
+                map(lambda x: x[0].lower(), filter(lambda x: x[1].required is True, expected_response.headers.items()))
+            )
+            available = frozenset(result.headers.keys())
+            if required - available:
+                raise ValueError(f"missing Header {sorted(required - available)}")
+            for name, header in expected_response.headers.items():
+                data = result.headers.get(name, None)
+                if data:
+                    headers[name] = header.schema_.model(header._decode(data))
+
         if len(expected_response.content) == 0:
-            return None
+            return headers, None
 
         content_type = result.headers.get("Content-Type", None)
 
@@ -255,7 +268,7 @@ class Request(RequestBase):
             data = self.api.plugins.message.unmarshalled(
                 operationId=self.operation.operationId, unmarshalled=data
             ).unmarshalled
-            return data
+            return headers, data
         else:
             raise NotImplementedError()
 

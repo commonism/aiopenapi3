@@ -10,20 +10,20 @@ from ..base import ObjectExtended, ObjectBase, ParameterBase
 from ..errors import ParameterFormatError
 
 
-class _ParameterFormatter:
+class _ParameterCodec:
+    SEPERATOR_VALUES = {"csv": ",", "ssv": " ", "tsv": "\t", "pipes": "|"}
     """
     Describing Parameters
 
     https://swagger.io/docs/specification/2-0/describing-parameters/
     """
 
-    def _format__collection(self, values):
-        sv = {"csv": ",", "ssv": " ", "tsv": "\t", "pipes": "|"}
+    def _encode__collection(self, values):
 
-        sep = sv.get(self.collectionFormat, None)
+        sep = self.SEPERATOR_VALUES.get(self.collectionFormat, None)
         if sep:
             if self.type == "array":
-                values = [self.items._format(None, i) for i in values]
+                values = [self.items._encode(None, i) for i in values]
             return sep.join(map(str, values))
         elif self.collectionFormat == "multi":
             # foo=value&foo=another_value
@@ -31,9 +31,9 @@ class _ParameterFormatter:
         else:
             raise ParameterFormatError(self)
 
-    def _format(self, name, value):
+    def _encode(self, name, value):
         if self.type == "array":
-            value = self._format__collection(value)
+            value = self._encode__collection(value)
         elif self.in_ == "formData":
             if self.type == "file":
                 # https://www.python-httpx.org/quickstart/#sending-multipart-file-uploads
@@ -41,8 +41,18 @@ class _ParameterFormatter:
 
         return {name: value}
 
+    def _decode(self, value):
+        if self.type == "array":
+            sep = _ParameterCodec.SEPERATOR_VALUES.get(self.collectionFormat or "csv", None)
+            if sep:
+                return value.split(sep)
+            else:
+                raise ValueError(self.collectionFormat)
+        else:
+            return value
 
-class Items(ObjectExtended, _ParameterFormatter):
+
+class Items(ObjectExtended, _ParameterCodec):
     """
     https://swagger.io/specification/v2/#items-object
     """
@@ -65,9 +75,9 @@ class Items(ObjectExtended, _ParameterFormatter):
     enum: Optional[Any] = Field(default=None)
     multipleOf: Optional[int] = Field(default=None)
 
-    def _format(self, name, value):
+    def _encode(self, name, value):
         if self.type == "array":
-            value = self._format__collection(value)
+            value = self._encode__collection(value)
 
         return value
 
@@ -84,7 +94,7 @@ class _In(str, enum.Enum):
     body = "body"
 
 
-class Parameter(ObjectExtended, _ParameterFormatter):
+class Parameter(ObjectExtended, _ParameterCodec):
     """
     Describes a single operation parameter.
 
@@ -119,7 +129,7 @@ class Parameter(ObjectExtended, _ParameterFormatter):
     multipleOf: Optional[int] = Field(default=None)
 
 
-class Header(ObjectExtended, _ParameterFormatter):
+class Header(ObjectExtended, _ParameterCodec):
     """
     https://swagger.io/specification/v2/#header-object
     """
@@ -143,6 +153,9 @@ class Header(ObjectExtended, _ParameterFormatter):
     uniqueItems: Optional[bool] = Field(default=None)
     enum: Optional[Any] = Field(default=None)
     multipleOf: Optional[int] = Field(default=None)
+
+    # private storage for an associated Schema so we can create types from this Header & Header.items
+    _schema: None
 
 
 Items.update_forward_refs()

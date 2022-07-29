@@ -2,6 +2,7 @@ import enum
 from typing import Union, Optional, Dict, Any
 
 from pydantic import Field, root_validator
+import more_itertools
 
 from ..base import ObjectExtended
 from ..errors import ParameterFormatError
@@ -11,8 +12,8 @@ from .general import Reference
 from .schemas import Schema
 
 
-class _ParameterFormatter:
-    def _format(self, name, value):
+class _ParameterCodec:
+    def _codec(self):
         if self.in_ == "path":
             style = self.style or "simple"
             assert style in frozenset(["matrix", "label", "simple"])
@@ -31,13 +32,17 @@ class _ParameterFormatter:
             explode = self.explode if self.explode is not None else (False if style != "form" else True)
         else:
             raise ParameterFormatError(self)
-        return self._format_value(name, value, explode, style)
+        return style, explode
 
-    def _format_value(self, name, value, explode, style):
-        f = getattr(self, f"_format__{style}")
+    def _encode(self, name, value):
+        style, explode = self._codec()
+        return self._encode_value(name, value, explode, style)
+
+    def _encode_value(self, name, value, explode, style):
+        f = getattr(self, f"_encode__{style}")
         return f(name, value, explode)
 
-    def _format__matrix(self, name, value, explode):
+    def _encode__matrix(self, name, value, explode):
         """
         3.2.7.  Path-Style Parameter Expansion: {;var}
 
@@ -68,7 +73,7 @@ class _ParameterFormatter:
             pass
         return {name: value}
 
-    def _format__label(self, name, value, explode):
+    def _encode__label(self, name, value, explode):
         """
         3.2.5.  Label Expansion with Dot-Prefix: {.var}
 
@@ -96,7 +101,7 @@ class _ParameterFormatter:
 
         return {name: value}
 
-    def _format__form(self, name, value, explode):
+    def _encode__form(self, name, value, explode):
         """
         https://spec.openapis.org/oas/v3.1.0#style-examples
 
@@ -128,7 +133,7 @@ class _ParameterFormatter:
                 return values
         return {name: value}
 
-    def _format__simple(self, name, value, explode):
+    def _encode__simple(self, name, value, explode):
         """
         3.2.2.  Simple String Expansion: {var}
 
@@ -154,17 +159,17 @@ class _ParameterFormatter:
                 value = ",".join([f"{k}={v}" for k, v in values.items()])
             return {name: value}
 
-    def _format__spaceDelimited(self, name, value, explode):
+    def _encode__spaceDelimited(self, name, value, explode):
         # blue%20black%20brown
         # R%20100%20G%20200%20B%20150
-        return self._format__Delimited(" ", name, value, explode)
+        return self._encode__Delimited(" ", name, value, explode)
 
-    def _format__pipeDelimited(self, name, value, explode):
+    def _encode__pipeDelimited(self, name, value, explode):
         # blue|black|brown
         # R|100|G|200|B|150
-        return self._format__Delimited("|", name, value, explode)
+        return self._encode__Delimited("|", name, value, explode)
 
-    def _format__Delimited(self, sep, name, value, explode):
+    def _encode__Delimited(self, sep, name, value, explode):
         assert explode is False
 
         if value is None:
@@ -177,7 +182,7 @@ class _ParameterFormatter:
             value = sep.join([f"{k}{sep}{v}" for k, v in values.items()])
         return {name: value}
 
-    def _format__deepObject(self, name, value, explode):
+    def _encode__deepObject(self, name, value, explode):
         assert self.schema_.type == "object" and explode is True
 
         if not value:
@@ -187,6 +192,27 @@ class _ParameterFormatter:
         # color[R]=100&color[G]=200&color[B]=150
         values = {f"{name}[{k}]": v for k, v in values.items()}
         return values
+
+    def _decode(self, value):
+        style, explode = self._codec()
+        if style == "simple":
+            return self._decode_simple(value, explode)
+        else:
+            raise ValueError(f"style {style} can not be decoded")
+
+    def _decode_simple(self, value, explode):
+        if self.schema_.type == "array":
+            return value.split(",")
+        elif self.schema_.type == "object":
+            if explode is False:
+                # R,100,G,200,B,150
+                return dict(more_itertools.chunked(value.split(","), 2))
+            else:
+                # R=100,G=200,B=150
+                return dict(map(lambda y: (y[0], y[2]), map(lambda x: x.partition("="), value.split(","))))
+        else:
+            # convert basic type
+            return value
 
 
 class ParameterBase(ObjectExtended):
@@ -226,21 +252,19 @@ class _In(str, enum.Enum):
     cookie = "cookie"
 
 
-class Parameter(ParameterBase, _ParameterFormatter):
+class Parameter(ParameterBase, _ParameterCodec):
     name: str = Field(required=True)
     in_: _In = Field(required=True, alias="in")  # TODO must be one of ["query","header","path","cookie"]
 
 
-class Header(ParameterBase, _ParameterFormatter):
+class Header(ParameterBase, _ParameterCodec):
     """
 
     .. _HeaderObject: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#header-object
     """
 
-    def _format(self, name, value):
-        style = self.style or "simple"
-        explode = False
-        return self._format_value(name, value, explode, style)
+    def _codec(self):
+        return "simple", False
 
 
 from .media import MediaType

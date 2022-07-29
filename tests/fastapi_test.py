@@ -47,14 +47,15 @@ async def client(event_loop, server):
 
 
 def randomPet(name=None):
-    return {"data": {"pet": {"name": str(name or uuid.uuid4()), "pet_type": "dog"}}}
+    return {"data": {"pet": {"name": str(name or uuid.uuid4()), "pet_type": "dog"}}, "return_headers": True}
 
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
 async def test_createPet(event_loop, server, client):
-    r = await asyncio.to_thread(client._.createPet, **randomPet())
+    h, r = await asyncio.to_thread(client._.createPet, **randomPet())
     assert type(r).schema() == client.components.schemas["Pet"].get_type().schema()
+    assert h["X-Limit-Remain"] == 5
 
     r = await asyncio.to_thread(client._.createPet, data={"pet": {"name": r.name}})
     assert type(r).schema() == client.components.schemas["Error"].get_type().schema()
@@ -63,7 +64,7 @@ async def test_createPet(event_loop, server, client):
 @pytest.mark.asyncio
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
 async def test_listPet(event_loop, server, client):
-    r = await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
+    h, r = await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
     l = await asyncio.to_thread(client._.listPet)
     assert len(l) > 0
 
@@ -71,7 +72,7 @@ async def test_listPet(event_loop, server, client):
 @pytest.mark.asyncio
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
 async def test_getPet(event_loop, server, client):
-    pet = await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
+    h, pet = await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
     r = await asyncio.to_thread(client._.getPet, parameters={"pet_id": pet.id})
     assert type(r).schema() == type(pet).schema()
     assert r.id == pet.id

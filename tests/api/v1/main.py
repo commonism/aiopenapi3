@@ -27,7 +27,23 @@ idx = _idx(100)
 
 
 @router.post(
-    "/pet", operation_id="createPet", response_model=Pet, responses={201: {"model": Pet}, 409: {"model": Error}}
+    "/pet",
+    operation_id="createPet",
+    response_model=Pet,
+    responses={
+        201: {
+            "model": Pet,
+            "headers": {
+                "X-Limit-Remain": {
+                    "schema": {"type": "integer"},
+                    "required": True,
+                    "description": "Remain Request limit for next 60 minutes",
+                },
+                "X-Limit-Done": {"schema": {"type": "integer"}, "required": False, "description": "Requests done"},
+            },
+        },
+        409: {"model": Error},
+    },
 )
 def createPet(
     response: Response,
@@ -40,6 +56,8 @@ def createPet(
         )
     ZOO[pet.name] = r = Pet(id=next(idx), **pet.dict())
     response.status_code = starlette.status.HTTP_201_CREATED
+    response.headers["X-Limit-Remain"] = "5"
+    #    response.headers["model"] = r
     return r
 
 

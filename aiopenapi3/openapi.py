@@ -256,6 +256,11 @@ class OpenAPI:
                         for r, response in op.responses.items():
                             if isinstance(response, Reference):
                                 continue
+                            if response.headers:
+                                for h in response.headers.values():
+                                    items = v20.Schema(type=h.items.type) if h.items else None
+                                    h._schema = v20.Schema(type=h.type, items=items)
+
                             if isinstance(response.schema_, (v20.Schema,)):
                                 response.schema_._get_identity("OP", f"{path}.{m}.{r}")
 

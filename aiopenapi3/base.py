@@ -313,13 +313,13 @@ class SchemaBase:
         """
         if self.type in ("string", "number", "boolean", "integer"):
             assert len(self.properties) == 0
-            # more simple types
-            # if this schema represents a simple type, simply return the data
-            # TODO - perhaps assert that the type of data matches the type we
-            # expected
+            t = Model.typeof(self)
+            # data from Headers will be of type str
+            if not isinstance(data, t):
+                return t(data)
             return data
         elif self.type == "array":
-            return [self.items.get_type().parse_obj(i) for i in data]
+            return [self.items.model(i) for i in data]
         else:
             return self.get_type().parse_obj(data)
 

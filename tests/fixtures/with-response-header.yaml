@@ -1,0 +1,51 @@
+openapi: 3.0.3
+info:
+  title: ''
+  version: 0.0.0
+servers:
+  - url: http://127.0.0.1/api
+
+security:
+  - {}
+
+paths:
+  /:
+    get:
+      operationId: get
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: string
+          headers:
+            X-required:
+              required: true
+              schema:
+                type: string
+            X-optional:
+              schema:
+                type: array
+                items:
+                  type: string
+  /types:
+    get:
+      operationId: types
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: string
+          headers:
+            X-object:
+              required: True
+              schema:
+                type: object
+                properties:
+                  A:
+                    type: integer
+                  B:
+                    type: string
