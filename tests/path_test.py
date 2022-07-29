@@ -349,3 +349,51 @@ def test_parameter_format_v20(httpx_mock, with_parameter_format_v20):
     assert u.query["string"] == "blue"
     assert u.query["array"] == "blue\tblack\tbrown"
     return
+
+
+def test_response_header(openapi_version, httpx_mock, with_response_header):
+    with_response_header["openapi"] = str(openapi_version)
+    httpx_mock.add_response(
+        headers={"Content-Type": "application/json", "X-required": "1", "X-optional": "1,2,3"}, content=b"[]"
+    )
+
+    api = OpenAPI(URLBASE, with_response_header, session_factory=httpx.Client)
+    h, b = api._.get(return_headers=True)
+    request = httpx_mock.get_requests()[-1]
+
+    assert isinstance(h["X-required"], str)
+    o = h["X-optional"]
+    assert isinstance(o, list) and len(o) == 3 and isinstance(o[0], str) and o[-1] == "3"
+
+    with pytest.raises(ValueError, match=r"missing Header \['x-required'\]"):
+        httpx_mock.add_response(headers={"Content-Type": "application/json", "X-optional": "1,2,3"}, content=b"[]")
+        h, b = api._.get(return_headers=True)
+
+    httpx_mock.add_response(headers={"Content-Type": "application/json", "X-object": "A,1,B,2,C,3"}, content=b"[]")
+    h, b = api._.types(return_headers=True)
+    assert h["X-object"].A == 1
+    assert h["X-object"].B == "2"
+    return
+
+
+def test_response_header_v20(httpx_mock, with_response_header_v20):
+    httpx_mock.add_response(
+        headers={"Content-Type": "application/json", "X-required": "1", "X-optional": "1,2,3"}, content=b"[]"
+    )
+    api = OpenAPI(URLBASE, with_response_header_v20, session_factory=httpx.Client)
+    h, b = api._.get(return_headers=True)
+    request = httpx_mock.get_requests()[-1]
+
+    assert isinstance(h["X-required"], str)
+    o = h["X-optional"]
+    assert isinstance(o, list) and len(o) == 3 and isinstance(o[0], str) and o[-1] == "3"
+
+    # seems like there is no notion of required headers in swagger
+    # with pytest.raises(ValueError, match=r"missing Header \['x-required'\]"):
+    #     httpx_mock.add_response(
+    #         headers={"Content-Type": "application/json", "X-optional": "2"}, content=b"[]"
+    #     )
+    #     h, b = api._.get(return_headers=True)
+    #     request = httpx_mock.get_requests()[-1]
+
+    return

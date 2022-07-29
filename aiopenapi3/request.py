@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Union, Any
 import io
 import httpx
 import pydantic
@@ -50,7 +50,9 @@ class RequestBase:
     def _factory_args(self):
         return {"auth": self.req.auth, "headers": {"user-agent": f"aiopenapi3/{__version__}"}}
 
-    def request(self, data=None, parameters=None):
+    def request(
+        self, data=None, parameters=None, return_headers: bool = False
+    ) -> Union[Any, Tuple[Dict[str, Any], Any]]:
         """
         Sends an HTTP request as described by this Path
 
@@ -58,25 +60,37 @@ class RequestBase:
         :type data: any, should match content/type
         :param parameters: The parameters used to create the path
         :type parameters: dict{str: str}
+        :param return_headers: if set return a tuple (header, body)
+        :return: body or (header, body)
         """
         self._prepare(data, parameters)
         with closing(self.api._session_factory(**self._factory_args())) as session:
             req = self._build_req(session)
             result = session.send(req)
-        return self._process(result)
+        headers, data = self._process(result)
+        if return_headers is True:
+            return headers, data
+        else:
+            return data
 
 
 class AsyncRequestBase(RequestBase):
     async def __call__(self, *args, **kwargs):
         return await self.request(*args, **kwargs)
 
-    async def request(self, data=None, parameters=None):
+    async def request(
+        self, data=None, parameters=None, return_headers: bool = False
+    ) -> Union[Any, Tuple[Dict[str, Any], Any]]:
         self._prepare(data, parameters)
         async with aclosing(self.api._session_factory(**self._factory_args())) as session:
             req = self._build_req(session)
             result = await session.send(req)
 
-        return self._process(result)
+        headers, data = self._process(result)
+        if return_headers is True:
+            return headers, data
+        else:
+            return data
 
 
 class OperationIndex:

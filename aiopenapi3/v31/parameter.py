@@ -8,10 +8,10 @@ from .example import Example
 from .general import Reference
 from .schemas import Schema
 
-from ..v30.parameter import _ParameterFormatter
+from ..v30.parameter import _ParameterCodec
 
 
-class ParameterBase(ObjectExtended, _ParameterFormatter):
+class ParameterBase(ObjectExtended):
     """
     A `Parameter Object`_ defines a single operation parameter.
 
@@ -33,18 +33,19 @@ class ParameterBase(ObjectExtended, _ParameterFormatter):
     content: Optional[Dict[str, "MediaType"]]
 
 
-class Parameter(ParameterBase):
+class Parameter(ParameterBase, _ParameterCodec):
     name: str = Field(required=True)
     in_: str = Field(required=True, alias="in")  # TODO must be one of ["query","header","path","cookie"]
 
 
-class Header(ParameterBase):
+class Header(ParameterBase, _ParameterCodec):
     """
 
     .. _HeaderObject: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#headerObject
     """
 
-    pass
+    def _codec(self):
+        return "simple", False
 
 
 from .media import MediaType

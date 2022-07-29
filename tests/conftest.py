@@ -196,6 +196,16 @@ def with_parameter_default():
 
 
 @pytest.fixture
+def with_response_header():
+    yield _get_parsed_yaml("with-response-header.yaml")
+
+
+@pytest.fixture
+def with_response_header_v20():
+    yield _get_parsed_yaml("with-response-header-v20.yaml")
+
+
+@pytest.fixture
 def with_callback():
     """
     Provides a spec with callback

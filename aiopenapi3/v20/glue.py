@@ -113,7 +113,7 @@ class Request(RequestBase):
         for name, value in parameters.items():
             spec = possible[name]
 
-            values = spec._format(name, value)
+            values = spec._encode(name, value)
             assert isinstance(values, dict)
 
             if spec.in_ == "formData":
@@ -185,6 +185,7 @@ class Request(RequestBase):
         return req
 
     def _process(self, result):
+        headers = dict()
         # spec enforces these are strings
         status_code = str(result.status_code)
 
@@ -204,8 +205,23 @@ class Request(RequestBase):
                 result,
             )
 
+        if expected_response.headers:
+            # FIXME
+            # there is no "required" field - but it is referenced.
+            # https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#header-object
+            # required = frozenset(map(lambda x: x[0].lower(), filter(lambda x: x[1].required is True, expected_response.headers.items())))
+            #
+            # required = frozenset()
+            # available = frozenset(result.headers.keys())
+            # if required - available:
+            #     raise ValueError(f"missing {sorted(required - available)}")
+            for name, header in expected_response.headers.items():
+                data = result.headers.get(name, None)
+                if data:
+                    headers[name] = header._schema.model(header._decode(data))
+
         if status_code == "204":
-            return
+            return headers, None
 
         content_type = result.headers.get("Content-Type", None)
 
@@ -223,9 +239,9 @@ class Request(RequestBase):
             data = self.api.plugins.message.unmarshalled(
                 operationId=self.operation.operationId, unmarshalled=data
             ).unmarshalled
-            return data
+            return headers, data
         elif content_type in self.operation.produces:
-            return result.content
+            return headers, result.content
         else:
             raise ContentTypeError(
                 content_type,

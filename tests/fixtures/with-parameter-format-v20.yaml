@@ -1,7 +1,7 @@
 swagger: "2.0"
 info:
-  title: with additionalProperties
-  description: with additionalProperties
+  title: with parameter format
+  description: with parameter format
   version: 1.0.0
 host: api.example.com
 basePath: /v1
