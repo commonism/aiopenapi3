@@ -110,7 +110,7 @@ class Model:  # (BaseModel):
                 annotations["__root__"] = Union[t]
         else:
             # default schema properties …
-            annotations.update(Model.annotationsof(schema, discriminators, schemanames))
+            annotations.update(Model.annotationsof(schema, discriminators, schemanames, fwdref=True))
             fields.update(Model.fieldof(schema))
 
             if schema.allOf:
