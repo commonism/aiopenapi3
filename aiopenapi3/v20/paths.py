@@ -14,7 +14,7 @@ class Response(ObjectExtended):
     """
     Describes a single response from an API Operation.
 
-    .. _Response Object: https://swagger.io/specification/v2/#response-object
+    .. _Response Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#response-object
     """
 
     description: str = Field(...)
@@ -27,7 +27,7 @@ class Operation(ObjectExtended, OperationBase):
     """
     An Operation object as defined `here`_
 
-    .. _here: https://swagger.io/specification/v2/#operation-object
+    .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#operation-object
     """
 
     tags: Optional[List[str]] = Field(default=None)
@@ -49,7 +49,7 @@ class PathItem(ObjectExtended):
     A Path Item, as defined `here`_.
     Describes the operations available on a single path.
 
-    .. _here: https://swagger.io/specification/v2/#path-item-object
+    .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#path-item-object
     """
 
     ref: Optional[str] = Field(default=None, alias="$ref")

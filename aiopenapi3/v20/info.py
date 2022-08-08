@@ -9,7 +9,7 @@ class Contact(ObjectExtended):
     """
     Contact object belonging to an Info object, as described `here`_
 
-    .. _here: https://swagger.io/specification/v2/#contact-object
+    .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#contact-object
     """
 
     email: str = Field(default=None)
@@ -21,7 +21,7 @@ class License(ObjectExtended):
     """
     License object belonging to an Info object, as described `here`_
 
-    .. _here: https://swagger.io/specification/v2/#license-object
+    .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#license-object
     """
 
     name: str = Field(...)
@@ -32,7 +32,7 @@ class Info(ObjectExtended):
     """
     An OpenAPI Info object, as defined in `the spec`_.
 
-    .. _here: https://swagger.io/specification/v2/#info-object
+    .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#info-object
     """
 
     title: str = Field(...)
