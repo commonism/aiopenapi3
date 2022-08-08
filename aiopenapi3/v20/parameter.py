@@ -54,7 +54,7 @@ class _ParameterCodec:
 
 class Items(ObjectExtended, _ParameterCodec):
     """
-    https://swagger.io/specification/v2/#items-object
+    https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#itemsObject
     """
 
     type: str = Field(...)
@@ -98,7 +98,7 @@ class Parameter(ObjectExtended, _ParameterCodec):
     """
     Describes a single operation parameter.
 
-    .. _Parameter Object: https://swagger.io/specification/v2/#parameter-object
+    .. _Parameter Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#parameter-object
     """
 
     name: str = Field(required=True)
@@ -131,7 +131,7 @@ class Parameter(ObjectExtended, _ParameterCodec):
 
 class Header(ObjectExtended, _ParameterCodec):
     """
-    https://swagger.io/specification/v2/#header-object
+    https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#headers-object
     """
 
     description: Optional[str] = Field(default=None)

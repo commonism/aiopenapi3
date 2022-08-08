@@ -10,7 +10,7 @@ class ExternalDocumentation(ObjectExtended):
     An `External Documentation Object`_ references external resources for extended
     documentation.
 
-    .. _External Documentation Object: https://swagger.io/specification/v2/#external-documentation-object
+    .. _External Documentation Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#external-documentation-object
     """
 
     description: Optional[str] = Field(default=None)
@@ -21,7 +21,7 @@ class Reference(ObjectBase, ReferenceBase):
     """
     A `Reference Object`_ designates a reference to another node in the specification.
 
-    .. _Reference Object: https://swagger.io/specification/v2/#reference-object
+    .. _Reference Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#reference-object
     """
 
     ref: str = Field(alias="$ref")

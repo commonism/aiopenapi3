@@ -16,7 +16,7 @@ class Root(ObjectExtended, RootBase):
     """
     This is the root document object for the API specification.
 
-    https://swagger.io/specification/v2/#swagger-object
+    https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#swagger-object
     """
 
     swagger: str = Field(...)

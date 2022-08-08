@@ -11,7 +11,7 @@ class Schema(ObjectExtended, SchemaBase):
     """
     The Schema Object allows the definition of input and output data types.
 
-    https://swagger.io/specification/v2/#schema-object
+    https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md##schema-object
     """
 
     ref: Optional[str] = Field(default=None, alias="$ref")

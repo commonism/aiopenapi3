@@ -9,7 +9,7 @@ class SecurityScheme(ObjectExtended):
     """
     Allows the definition of a security scheme that can be used by the operations.
 
-    https://swagger.io/specification/v2/#security-scheme-object
+    https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#security-scheme-object
     """
 
     type: str = Field(...)
@@ -35,7 +35,7 @@ class SecurityRequirement(BaseModel):
     """
     Lists the required security schemes to execute this operation.
 
-    https://swagger.io/specification/v2/#security-requirement-object
+    https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#security-requirement-object
     """
 
     __root__: Dict[str, List[str]]
