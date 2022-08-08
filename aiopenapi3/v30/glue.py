@@ -100,6 +100,13 @@ class Request(RequestBase):
                 self.req.cookies = {ss.name: value}
 
     def _prepare_parameters(self, provided):
+        """
+        assigns the parameters provided to the header/path/cookie …
+
+        FIXME: handle parameter location
+          https://spec.openapis.org/oas/v3.0.3#parameter-object
+          A unique parameter is defined by a combination of a name and location.
+        """
         provided = provided or dict()
         possible = {_.name: _ for _ in self.operation.parameters + self.root.paths[self.path].parameters}
 
