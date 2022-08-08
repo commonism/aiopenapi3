@@ -144,3 +144,16 @@ def test_schema_with_additionalProperties_v20(with_schema_additionalProperties_v
 
 def test_schema_with_empty(with_schema_empty):
     api = OpenAPI("/", with_schema_empty)
+
+
+def test_properties_default(openapi_version, with_properties_default):
+    with_properties_default["openapi"] = str(openapi_version)
+    api = OpenAPI("/", with_properties_default)
+    a = api.components.schemas["Number"].model({})
+    assert a.code == 1
+
+
+def test_properties_empty_name(openapi_version, with_properties_empty_name):
+    with_properties_empty_name["openapi"] = str(openapi_version)
+    with pytest.raises(ValueError, match=r"empty property name"):
+        OpenAPI("/", with_properties_empty_name)

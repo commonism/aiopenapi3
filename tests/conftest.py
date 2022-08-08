@@ -204,6 +204,16 @@ def with_parameter_default():
 
 
 @pytest.fixture
+def with_properties_empty_name():
+    yield _get_parsed_yaml("with-properties-empty-name.yaml")
+
+
+@pytest.fixture
+def with_properties_default():
+    yield _get_parsed_yaml("with-properties-default.yaml")
+
+
+@pytest.fixture
 def with_response_header():
     yield _get_parsed_yaml("with-response-header.yaml")
 

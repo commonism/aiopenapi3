@@ -1,0 +1,15 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: test
+
+paths: {}
+
+components:
+  schemas:
+    Number:
+      type: object
+      properties:
+        code:
+          type: number
+          default: 1
