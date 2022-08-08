@@ -170,6 +170,14 @@ def with_parameters():
 
 
 @pytest.fixture
+def with_parameters_invalid():
+    """
+    Provides a spec with parameters
+    """
+    yield _get_parsed_yaml("with-parameters-invalid.yaml")
+
+
+@pytest.fixture
 def with_parameter_format():
     """
     parameters formatting
