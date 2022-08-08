@@ -223,6 +223,12 @@ def test_parameters(openapi_version, httpx_mock, with_parameters):
         )
 
 
+def test_parameters_invalid(openapi_version, with_parameters_invalid):
+    with_parameters_invalid["openapi"] = str(openapi_version)
+    with pytest.raises(Exception, match=r"Parameter names are invalid: \[\'\', \'Path:\'\]"):
+        OpenAPI(URLBASE, with_parameters_invalid, session_factory=httpx.Client)
+
+
 def test_parameter_missing(openapi_version, with_parameter_missing):
     with_parameter_missing["openapi"] = str(openapi_version)
     from aiopenapi3.errors import SpecError

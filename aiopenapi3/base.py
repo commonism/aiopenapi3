@@ -330,10 +330,18 @@ class OperationBase:
         Ensures that all parameters for this path are valid
         """
         assert isinstance(path, str)
+        # FIXME { and } are allowed in parameter name, regex can't handle this e.g. {name}}
         path = frozenset(re.findall(r"{([a-zA-Z0-9\-\._~]+)}", path))
 
         op = frozenset(map(lambda x: x.name, filter(lambda c: c.in_ == "path", self.parameters)))
         pi = frozenset(map(lambda x: x.name, filter(lambda c: c.in_ == "path", pi.parameters)))
+
+        invalid = sorted(filter(lambda x: re.match(r"^([a-zA-Z0-9\-\._~]+)$", x) is None or len(x) == 0, op | pi))
+        if invalid:
+            # FIXME
+            #   OpenAPI does not allow RFC 6570 URI templates
+            #   but name:\d+ may be valid though
+            raise SpecError(f"Parameter names are invalid: {invalid}")
 
         r = (op | pi) - path
         if r:
