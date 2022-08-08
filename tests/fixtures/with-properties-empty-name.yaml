@@ -1,0 +1,14 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: with properties
+
+paths: {}
+
+components:
+  schemas:
+    shared-user:
+      type: object
+      properties:
+        "":
+          type: string

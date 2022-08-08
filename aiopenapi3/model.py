@@ -344,6 +344,12 @@ class Model:  # (BaseModel):
         :param args:
         :return:
         """
+
+        if len(name) == 0:
+            # FIXME
+            #  are empty property names valid?
+            raise ValueError("empty property name")
+
         if getattr(BaseModel, name, None):
             rename = f"{name}_"
         else:
