@@ -1,3 +1,4 @@
+import enum
 from typing import Union, Optional, Dict, Any
 
 from pydantic import Field
@@ -33,9 +34,16 @@ class ParameterBase(ObjectExtended):
     content: Optional[Dict[str, "MediaType"]]
 
 
+class _In(str, enum.Enum):
+    query = "query"
+    header = "header"
+    path = "path"
+    cookie = "cookie"
+
+
 class Parameter(ParameterBase, _ParameterCodec):
     name: str = Field(required=True)
-    in_: str = Field(required=True, alias="in")  # TODO must be one of ["query","header","path","cookie"]
+    in_: _In = Field(required=True, alias="in")
 
 
 class Header(ParameterBase, _ParameterCodec):
