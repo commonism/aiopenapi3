@@ -206,6 +206,11 @@ def with_response_header_v20():
 
 
 @pytest.fixture
+def with_tags():
+    yield _get_parsed_yaml("with-tags.yaml")
+
+
+@pytest.fixture
 def with_callback():
     """
     Provides a spec with callback

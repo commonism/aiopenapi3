@@ -397,3 +397,11 @@ def test_response_header_v20(httpx_mock, with_response_header_v20):
     #     request = httpx_mock.get_requests()[-1]
 
     return
+
+
+def test_tags(httpx_mock, with_tags):
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
+    api = OpenAPI(URLBASE, with_tags, session_factory=httpx.Client)
+    b = api._.users.list()
+    r = frozenset(api._)
+    assert frozenset(["items.list", "objects.list", "users.list"]) == r

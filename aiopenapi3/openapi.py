@@ -20,7 +20,7 @@ from . import v30
 from . import v31
 from . import log
 from .request import OperationIndex, HTTP_METHODS
-from .errors import ReferenceResolutionError, SpecError
+from .errors import ReferenceResolutionError
 from .loader import Loader, NullLoader
 from .plugin import Plugin, Plugins
 from .base import RootBase, ReferenceBase, SchemaBase
@@ -236,12 +236,6 @@ class OpenAPI:
     #            i._resolve_references(self)
 
     def _init_operationindex(self):
-        operation_map = set()
-
-        def test_operation(operation_id):
-            if operation_id in operation_map:
-                raise SpecError(f"Duplicate operationId {operation_id}", element=None)
-            operation_map.add(operation_id)
 
         if isinstance(self._root, v20.Root):
             if self.paths:
@@ -251,8 +245,6 @@ class OpenAPI:
                         op._validate_path_parameters(obj, path)
                         if op.operationId is None:
                             continue
-                        formatted_operation_id = op.operationId.replace(" ", "_")
-                        test_operation(formatted_operation_id)
                         for r, response in op.responses.items():
                             if isinstance(response, Reference):
                                 continue
@@ -279,10 +271,7 @@ class OpenAPI:
                         op._validate_path_parameters(obj, path)
                         if op.operationId is None:
                             continue
-                        formatted_operation_id = op.operationId.replace(" ", "_")
-                        test_operation(formatted_operation_id)
                         for r, response in op.responses.items():
-
                             if isinstance(response, Reference):
                                 continue
                             for c, content in response.content.items():
@@ -293,6 +282,8 @@ class OpenAPI:
 
         else:
             raise ValueError(self._root)
+
+        self._operationindex = OperationIndex(self)
 
     @staticmethod
     def _iterate_schemas(schemas, d, r):
@@ -468,7 +459,7 @@ class OpenAPI:
 
     @property
     def _(self):
-        return OperationIndex(self)
+        return self._operationindex
 
     def resolve_jr(self, root: RootBase, obj, value: Reference):
         url, jp = JSONReference.split(value.ref)

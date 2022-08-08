@@ -1,9 +1,9 @@
-from typing import Dict, Tuple, Union, Any
+import collections
 import io
-import httpx
-import pydantic
-import yarl
 from contextlib import closing
+from typing import Dict, Tuple, Union, Any
+
+import yarl
 
 try:
     from contextlib import aclosing
@@ -18,8 +18,9 @@ except:  # <= Python 3.10
             await thing.aclose()
 
 
-from .base import SchemaBase, ParameterBase, HTTP_METHODS
+from .base import HTTP_METHODS
 from .version import __version__
+from .errors import SpecError
 
 
 class RequestParameter:
@@ -94,6 +95,15 @@ class AsyncRequestBase(RequestBase):
 
 
 class OperationIndex:
+    class OperationTag:
+        def __init__(self, oi):
+            self._oi = oi
+            self._operations: Dict[str, "Operation"] = dict()
+
+        def __getattr__(self, item):
+            (method, path, op) = self._operations[item]
+            return self._oi._api._createRequest(self._oi._api, method, path, op)
+
     class Iter:
         def __init__(self, spec):
             self.operations = []
@@ -105,7 +115,11 @@ class OperationIndex:
                     op = getattr(pi, method)
                     if op.operationId is None:
                         continue
-                    self.operations.append(op.operationId)
+                    if op.tags:
+                        for tag in op.tags:
+                            self.operations.append(f"{tag}.{op.operationId}")
+                    else:
+                        self.operations.append(op.operationId)
             self.r = iter(range(len(self.operations)))
 
         def __iter__(self):
@@ -119,6 +133,7 @@ class OperationIndex:
         self._root: "RootBase" = api._root
 
         self._operations: Dict[str, "Operation"] = dict()
+        self._tags: Dict[str, "OperationTag"] = collections.defaultdict(lambda: OperationIndex.OperationTag(self))
 
         for path, pi in self._root.paths.items():
             op: "Operation"
@@ -126,11 +141,25 @@ class OperationIndex:
                 op = getattr(pi, method)
                 if op.operationId is None:
                     continue
-                self._operations[op.operationId.replace(" ", "_")] = (method, path, op)
+                operationId = op.operationId.replace(" ", "_")
+                if op.tags:
+                    for tag in op.tags:
+                        if operationId in self._tags[tag]._operations:
+                            raise SpecError(f"Duplicate operationId {operationId}")
+                        self._tags[tag]._operations[operationId] = (method, path, op)
+                else:
+                    if operationId in self._operations:
+                        raise SpecError(f"Duplicate operationId {operationId}")
+                    self._operations[operationId] = (method, path, op)
 
     def __getattr__(self, item):
-        (method, path, op) = self._operations[item]
-        return self._api._createRequest(self._api, method, path, op)
+        if item in self._tags:
+            return self._tags[item]
+        elif item in self._operations:
+            (method, path, op) = self._operations[item]
+            return self._api._createRequest(self._api, method, path, op)
+        else:
+            raise SpecError(f"element {item} not found in tags or operations")
 
     def __iter__(self):
         return self.Iter(self._root)
