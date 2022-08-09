@@ -15,11 +15,10 @@ from aiopenapi3 import OpenAPI
 URLBASE = "/"
 
 
-def test_paths_exist(openapi_version, petstore_expanded):
+def test_paths_exist(petstore_expanded):
     """
     Tests that paths are parsed correctly
     """
-    petstore_expanded["openapi"] = str(openapi_version)
     petstore_expanded_spec = OpenAPI(URLBASE, petstore_expanded)
 
     assert "/pets" in petstore_expanded_spec.paths._paths
@@ -27,12 +26,11 @@ def test_paths_exist(openapi_version, petstore_expanded):
     assert len(petstore_expanded_spec.paths._paths) == 2
 
 
-def test_operations_exist(openapi_version, petstore_expanded):
+def test_operations_exist(petstore_expanded):
     """
     Tests that methods are populated as expected in paths
     """
 
-    petstore_expanded["openapi"] = str(openapi_version)
     petstore_expanded_spec = OpenAPI(URLBASE, petstore_expanded)
 
     pets_path = petstore_expanded_spec.paths["/pets"]
@@ -55,7 +53,6 @@ def test_operation_populated(openapi_version, petstore_expanded):
     """
     Tests that operations are populated as expected
     """
-    petstore_expanded["openapi"] = str(openapi_version)
     petstore_expanded_spec = OpenAPI(URLBASE, petstore_expanded)
 
     op = petstore_expanded_spec.paths["/pets"].get
@@ -112,10 +109,8 @@ def test_operation_populated(openapi_version, petstore_expanded):
     assert type(con2.schema_._target) == openapi_version.schema
 
 
-def test_securityparameters(openapi_version, httpx_mock, with_securityparameters):
-    with_securityparameters["openapi"] = str(openapi_version)
-
-    api = OpenAPI(URLBASE, with_securityparameters, session_factory=httpx.Client)
+def test_paths_security(httpx_mock, with_paths_security):
+    api = OpenAPI(URLBASE, with_paths_security, session_factory=httpx.Client, use_operation_tags=False)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
 
     auth = str(uuid.uuid4())
@@ -175,9 +170,8 @@ def test_securityparameters(openapi_version, httpx_mock, with_securityparameters
     api._.api_v1_auth_login_info(data={}, parameters={})
 
 
-def test_combined_security(openapi_version, httpx_mock, with_securityparameters):
-    with_securityparameters["openapi"] = str(openapi_version)
-    api = OpenAPI(URLBASE, with_securityparameters, session_factory=httpx.Client)
+def test_paths_security_combined(httpx_mock, with_paths_security):
+    api = OpenAPI(URLBASE, with_paths_security, session_factory=httpx.Client, use_operation_tags=False)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
 
     auth = str(uuid.uuid4())
@@ -195,10 +189,9 @@ def test_combined_security(openapi_version, httpx_mock, with_securityparameters)
         r = api._.api_v1_auth_login_combined(data={}, parameters={})
 
 
-def test_parameters(openapi_version, httpx_mock, with_parameters):
-    with_parameters["openapi"] = str(openapi_version)
+def test_paths_parameters(httpx_mock, with_paths_parameters):
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
-    api = OpenAPI(URLBASE, with_parameters, session_factory=httpx.Client)
+    api = OpenAPI(URLBASE, with_paths_parameters, session_factory=httpx.Client)
 
     with pytest.raises(
         ValueError, match=r"Required Parameter \['Cookie', 'Header', 'Path', 'Query'\] missing \(provided \[\]\)"
@@ -223,24 +216,21 @@ def test_parameters(openapi_version, httpx_mock, with_parameters):
         )
 
 
-def test_parameters_invalid(openapi_version, with_parameters_invalid):
-    with_parameters_invalid["openapi"] = str(openapi_version)
+def test_paths_parameters_invalid(with_paths_parameters_invalid):
     with pytest.raises(Exception, match=r"Parameter names are invalid: \[\'\', \'Path:\'\]"):
-        OpenAPI(URLBASE, with_parameters_invalid, session_factory=httpx.Client)
+        OpenAPI(URLBASE, with_paths_parameters_invalid, session_factory=httpx.Client)
 
 
-def test_parameter_missing(openapi_version, with_parameter_missing):
-    with_parameter_missing["openapi"] = str(openapi_version)
+def test_paths_parameter_missing(with_paths_parameter_missing):
     from aiopenapi3.errors import SpecError
 
     with pytest.raises(SpecError, match="Parameter name not found in parameters: missing"):
-        OpenAPI(URLBASE, with_parameter_missing, session_factory=httpx.Client)
+        OpenAPI(URLBASE, with_paths_parameter_missing, session_factory=httpx.Client)
 
 
-def test_parameter_default(openapi_version, httpx_mock, with_parameter_default):
-    with_parameter_default["openapi"] = str(openapi_version)
+def test_paths_parameter_default(httpx_mock, with_paths_parameter_default):
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
-    api = OpenAPI(URLBASE, with_parameter_default, session_factory=httpx.Client)
+    api = OpenAPI(URLBASE, with_paths_parameter_default, session_factory=httpx.Client)
     api._.default()
     request = httpx_mock.get_requests()[-1]
     u = yarl.URL(str(request.url))
@@ -248,10 +238,9 @@ def test_parameter_default(openapi_version, httpx_mock, with_parameter_default):
     assert u.parts[3] == "path"
 
 
-def test_parameter_format(openapi_version, httpx_mock, with_parameter_format):
-    with_parameter_format["openapi"] = str(openapi_version)
+def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
-    api = OpenAPI(URLBASE, with_parameter_format, session_factory=httpx.Client)
+    api = OpenAPI(URLBASE, with_paths_parameter_format, session_factory=httpx.Client)
 
     # using values from
     # https://spec.openapis.org/oas/v3.1.0#style-examples
@@ -334,36 +323,12 @@ def test_parameter_format(openapi_version, httpx_mock, with_parameter_format):
     return
 
 
-def test_parameter_format_v20(httpx_mock, with_parameter_format_v20):
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
-    api = OpenAPI(URLBASE, with_parameter_format_v20, session_factory=httpx.Client)
-
-    parameters = {
-        "array": ["blue", "black", "brown"],
-        "string": "blue",
-    }
-    r = api._.path(parameters=parameters)
-    request = httpx_mock.get_requests()[-1]
-    u = yarl.URL(str(request.url))
-    assert u.parts[4] == "blue|black|brown"
-    assert u.parts[5] == "default"
-
-    r = api._.query(parameters=parameters)
-    request = httpx_mock.get_requests()[-1]
-    u = yarl.URL(str(request.url))
-    assert u.query["default"] == "default"
-    assert u.query["string"] == "blue"
-    assert u.query["array"] == "blue\tblack\tbrown"
-    return
-
-
-def test_response_header(openapi_version, httpx_mock, with_response_header):
-    with_response_header["openapi"] = str(openapi_version)
+def test_paths_response_header(httpx_mock, with_paths_response_header):
     httpx_mock.add_response(
         headers={"Content-Type": "application/json", "X-required": "1", "X-optional": "1,2,3"}, content=b"[]"
     )
 
-    api = OpenAPI(URLBASE, with_response_header, session_factory=httpx.Client)
+    api = OpenAPI(URLBASE, with_paths_response_header, session_factory=httpx.Client)
     h, b = api._.get(return_headers=True)
     request = httpx_mock.get_requests()[-1]
 
@@ -382,32 +347,25 @@ def test_response_header(openapi_version, httpx_mock, with_response_header):
     return
 
 
-def test_response_header_v20(httpx_mock, with_response_header_v20):
-    httpx_mock.add_response(
-        headers={"Content-Type": "application/json", "X-required": "1", "X-optional": "1,2,3"}, content=b"[]"
-    )
-    api = OpenAPI(URLBASE, with_response_header_v20, session_factory=httpx.Client)
-    h, b = api._.get(return_headers=True)
-    request = httpx_mock.get_requests()[-1]
+def test_paths_tags(httpx_mock, with_paths_tags):
+    import copy
 
-    assert isinstance(h["X-required"], str)
-    o = h["X-optional"]
-    assert isinstance(o, list) and len(o) == 3 and isinstance(o[0], str) and o[-1] == "3"
-
-    # seems like there is no notion of required headers in swagger
-    # with pytest.raises(ValueError, match=r"missing Header \['x-required'\]"):
-    #     httpx_mock.add_response(
-    #         headers={"Content-Type": "application/json", "X-optional": "2"}, content=b"[]"
-    #     )
-    #     h, b = api._.get(return_headers=True)
-    #     request = httpx_mock.get_requests()[-1]
-
-    return
-
-
-def test_tags(httpx_mock, with_tags):
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
-    api = OpenAPI(URLBASE, with_tags, session_factory=httpx.Client)
+    api = OpenAPI(URLBASE, with_paths_tags, session_factory=httpx.Client, use_operation_tags=True)
     b = api._.users.list()
     r = frozenset(api._)
     assert frozenset(["items.list", "objects.list", "users.list"]) == r
+
+    from aiopenapi3.errors import SpecError
+
+    with pytest.raises(SpecError, match=f"Duplicate operationId list"):
+        OpenAPI(URLBASE, with_paths_tags, session_factory=httpx.Client, use_operation_tags=False)
+
+    spec = copy.deepcopy(with_paths_tags)
+    for k in {"/user/", "/item/"}:
+        spec["paths"][k]["get"]["operationId"] = f"list{k[1:-1]}"
+
+    api = OpenAPI(URLBASE, spec, session_factory=httpx.Client, use_operation_tags=False)
+    api._.listuser()
+    r = frozenset(api._)
+    assert frozenset(["listuser", "listitem"]) == r

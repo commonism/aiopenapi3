@@ -69,7 +69,9 @@ class OnMessage(Message):
 @pytest.fixture(scope="session")
 def api():
     url = "https://petstore.swagger.io:443/v2/swagger.json"
-    api = OpenAPI.load_sync(url, plugins=[OnDocument(), OnMessage()], session_factory=session_factory)
+    api = OpenAPI.load_sync(
+        url, plugins=[OnDocument(), OnMessage()], session_factory=session_factory, use_operation_tags=False
+    )
     api.authenticate(api_key="special-key")
     return api
 

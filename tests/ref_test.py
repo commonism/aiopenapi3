@@ -25,7 +25,6 @@ def test_ref_resolution(openapi_version, petstore_expanded):
     """
     Tests that $refs are resolved as we expect them to be
     """
-    petstore_expanded["openapi"] = str(openapi_version)
     petstore_expanded_spec = OpenAPI("/", petstore_expanded)
 
     ref = petstore_expanded_spec.paths["/pets"].get.responses["default"].content["application/json"].schema_
@@ -45,11 +44,10 @@ def test_ref_resolution(openapi_version, petstore_expanded):
     assert message.type == "string"
 
 
-def test_allOf_resolution(openapi_version, petstore_expanded):
+def test_allOf_resolution(petstore_expanded):
     """
     Tests that allOfs are resolved correctly
     """
-    petstore_expanded["openapi"] = str(openapi_version)
     petstore_expanded_spec = OpenAPI("/", petstore_expanded)
 
     ref = petstore_expanded_spec.paths["/pets"].get.responses["200"].content["application/json"].schema_.get_type()
@@ -77,7 +75,7 @@ def test_allOf_resolution(openapi_version, petstore_expanded):
     assert items["tag"].outer_type_ == str
 
 
-def test_schemaref(openapi_version):
+def test_paths_content_schema_array_ref(openapi_version):
     import aiopenapi3.v30.general
     import aiopenapi3.v31.general
 
@@ -107,89 +105,4 @@ components:
       type: str
     """
     api = OpenAPI.loads("test.yaml", SPEC)
-    print(api)
-
     assert api.paths["/pets"].get.responses["200"].content["application/json"].schema_.items.__class__ == expected
-
-
-def test_nested_array_ref(openapi_version):
-    import aiopenapi3.v30.general
-    import aiopenapi3.v31.general
-
-    expected = {0: aiopenapi3.v30.general.Reference, 1: aiopenapi3.v31.general.Reference}[openapi_version.minor]
-
-    SPEC = f"""openapi: {openapi_version}
-info:
-  title: API
-  version: 1.0.0
-paths:
-  /pets:
-    get:
-      description: yes
-      operationId: findPets
-      responses:
-        '200':
-          description: pet response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/LKENodePoolRequestBody'
-components:
-  schemas:
-    LKENodePoolRequestBody:
-      type: object
-      description: >
-        Specifies a collection of Linodes which will be members of a Kubernetes
-        cluster.
-      properties:
-        disks:
-          type: array
-          items:
-            $ref: '#/components/schemas/LKENodePool/properties/disks/items'
-    LKENodePool:
-      type: object
-      properties:
-        disks:
-          type: array
-          items:
-            type: object
-            properties:
-              size:
-                type: integer
-              type:
-                type: string
-                enum:
-                - raw
-                - ext4
-"""
-    OpenAPI.loads("test.yaml", SPEC)
-
-
-def test_names(openapi_version):
-
-    SPEC = f"""openapi: {openapi_version}
-info:
-  title: API
-  version: 1.0.0
-
-paths: {{}}
-
-components:
-  schemas:
-    "Rechnungsdruck.WebApp.Controllers.Api.ApiPagedResult.PagingInformation[System.Collections.Generic.List[Billbee.Interfaces.BillbeeAPI.Model.CustomerAddressApiModel]]":
-      type: object
-      properties:
-        Page:
-          format: int32
-          type: integer
-
-    "Rechnungsdruck.WebApp.Controllers.Api.ApiPagedResult[System.Collections.Generic.List[Billbee.Interfaces.BillbeeAPI.Model.CustomerAddressApiModel]]":
-      type: object
-      properties:
-        Paging:
-          $ref: "#/components/schemas/Rechnungsdruck.WebApp.Controllers.Api.ApiPagedResult.PagingInformation[System.Collections.Generic.List[Billbee.Interfaces.BillbeeAPI.Model.CustomerAddressApiModel]]"
-"""
-
-    OpenAPI.loads("test.yaml", SPEC)

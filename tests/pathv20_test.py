@@ -9,17 +9,17 @@ from aiopenapi3 import OpenAPI
 URLBASE = "/"
 
 
-def test_parse_swagger(with_swagger):
-    api = OpenAPI(URLBASE, with_swagger)
+def test_paths_security_v20_parse(with_paths_security_v20):
+    api = OpenAPI(URLBASE, with_paths_security_v20)
 
 
-def test_swagger_url(with_swagger):
-    api = OpenAPI(URLBASE, with_swagger)
+def test_paths_security_v20_url(with_paths_security_v20):
+    api = OpenAPI(URLBASE, with_paths_security_v20)
     assert str(api.url) == "https://api.example.com/v1"
 
 
-def test_securityparameters(httpx_mock, with_swagger):
-    api = OpenAPI(URLBASE, with_swagger, session_factory=httpx.Client)
+def test_paths_security_v20_securityparameters(httpx_mock, with_paths_security_v20):
+    api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
     user = api._.createUser.return_value().get_type().construct(name="test", id=1)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.dict())
 
@@ -52,8 +52,8 @@ def test_securityparameters(httpx_mock, with_swagger):
     api._.listUsers(data={}, parameters={})
 
 
-def test_combined_securityparameters(httpx_mock, with_swagger):
-    api = OpenAPI(URLBASE, with_swagger, session_factory=httpx.Client)
+def test_paths_security_v20_combined_securityparameters(httpx_mock, with_paths_security_v20):
+    api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
     user = api._.createUser.return_value().get_type().construct(name="test", id=1)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.dict())
 
@@ -69,8 +69,8 @@ def test_combined_securityparameters(httpx_mock, with_swagger):
         api._.combinedSecurity(data={}, parameters={})
 
 
-def test_alternate_securityparameters(httpx_mock, with_swagger):
-    api = OpenAPI(URLBASE, with_swagger, session_factory=httpx.Client)
+def test_paths_security_v20_alternate_securityparameters(httpx_mock, with_paths_security_v20):
+    api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
     user = api._.createUser.return_value().get_type().construct(name="test", id=1)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.dict())
 
@@ -90,10 +90,10 @@ def test_alternate_securityparameters(httpx_mock, with_swagger):
         api._.alternateSecurity(data={}, parameters={})
 
 
-def test_post_body(httpx_mock, with_swagger):
+def test_paths_security_v20_post_body(httpx_mock, with_paths_security_v20):
 
     auth = str(uuid.uuid4())
-    api = OpenAPI(URLBASE, with_swagger, session_factory=httpx.Client)
+    api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
     user = api._.createUser.return_value().get_type().construct(name="test", id=1)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.dict())
 
@@ -104,8 +104,8 @@ def test_post_body(httpx_mock, with_swagger):
     api._.createUser(data=user, parameters={})
 
 
-def test_parameters(httpx_mock, with_swagger):
-    api = OpenAPI(URLBASE, with_swagger, session_factory=httpx.Client)
+def test_paths_security_v20_parameters(httpx_mock, with_paths_security_v20):
+    api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
     user = api._.createUser.return_value().get_type().construct(name="test", id=1)
 
     auth = str(uuid.uuid4())
@@ -121,3 +121,49 @@ def test_parameters(httpx_mock, with_swagger):
     request = httpx_mock.get_requests()[-1]
     assert request.headers["inHeader"] == "H"
     assert yarl.URL(str(request.url)).query["inQuery"] == "Q"
+
+
+def test_paths_response_header_v20(httpx_mock, with_paths_response_header_v20):
+    httpx_mock.add_response(
+        headers={"Content-Type": "application/json", "X-required": "1", "X-optional": "1,2,3"}, content=b"[]"
+    )
+    api = OpenAPI(URLBASE, with_paths_response_header_v20, session_factory=httpx.Client)
+    h, b = api._.get(return_headers=True)
+    request = httpx_mock.get_requests()[-1]
+
+    assert isinstance(h["X-required"], str)
+    o = h["X-optional"]
+    assert isinstance(o, list) and len(o) == 3 and isinstance(o[0], str) and o[-1] == "3"
+
+    # seems like there is no notion of required headers in swagger
+    # with pytest.raises(ValueError, match=r"missing Header \['x-required'\]"):
+    #     httpx_mock.add_response(
+    #         headers={"Content-Type": "application/json", "X-optional": "2"}, content=b"[]"
+    #     )
+    #     h, b = api._.get(return_headers=True)
+    #     request = httpx_mock.get_requests()[-1]
+
+    return
+
+
+def test_paths_parameter_format_v20(httpx_mock, with_paths_parameter_format_v20):
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
+    api = OpenAPI(URLBASE, with_paths_parameter_format_v20, session_factory=httpx.Client)
+
+    parameters = {
+        "array": ["blue", "black", "brown"],
+        "string": "blue",
+    }
+    r = api._.path(parameters=parameters)
+    request = httpx_mock.get_requests()[-1]
+    u = yarl.URL(str(request.url))
+    assert u.parts[4] == "blue|black|brown"
+    assert u.parts[5] == "default"
+
+    r = api._.query(parameters=parameters)
+    request = httpx_mock.get_requests()[-1]
+    u = yarl.URL(str(request.url))
+    assert u.query["default"] == "default"
+    assert u.query["string"] == "blue"
+    assert u.query["array"] == "blue\tblack\tbrown"
+    return

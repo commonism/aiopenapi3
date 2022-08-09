@@ -30,7 +30,7 @@ def test_schema_without_properties(httpx_mock):
     """
     api = OpenAPI.load_file(
         "/test.yaml",
-        Path("with-no-properties.yaml"),
+        Path("paths-content-schema-property-without-properties.yaml"),
         loader=aiopenapi3.FileSystemLoader(Path("tests/fixtures")),
         session_factory=httpx.Client,
     )
@@ -51,8 +51,8 @@ def test_schema_without_properties(httpx_mock):
     assert len(result.no_properties.__fields__) == 0
 
 
-def test_schema_anyOf_properties(with_anyOf_properties):
-    api = OpenAPI("/", with_anyOf_properties)
+def test_schema_anyof(with_schema_anyof):
+    api = OpenAPI("/", with_schema_anyof)
     s = api.components.schemas["AB"]
     t = s.get_type()
 
@@ -139,21 +139,32 @@ def test_schema_with_additionalProperties(with_schema_additionalProperties):
 
 
 def test_schema_with_additionalProperties_v20(with_schema_additionalProperties_v20):
-    api = OpenAPI("/", with_schema_additionalProperties_v20)
+    OpenAPI("/", with_schema_additionalProperties_v20)
 
 
 def test_schema_with_empty(with_schema_empty):
-    api = OpenAPI("/", with_schema_empty)
+    OpenAPI("/", with_schema_empty)
 
 
-def test_properties_default(openapi_version, with_properties_default):
-    with_properties_default["openapi"] = str(openapi_version)
-    api = OpenAPI("/", with_properties_default)
+def test_schema_properties_default(with_schema_properties_default):
+    api = OpenAPI("/", with_schema_properties_default)
     a = api.components.schemas["Number"].model({})
     assert a.code == 1
 
 
-def test_properties_empty_name(openapi_version, with_properties_empty_name):
-    with_properties_empty_name["openapi"] = str(openapi_version)
-    with pytest.raises(ValueError, match=r"empty property name"):
-        OpenAPI("/", with_properties_empty_name)
+def test_schema_yaml_tags_invalid(openapi_version, with_schema_yaml_tags_invalid):
+    from aiopenapi3.plugin import Document
+
+    class OnDocument(Document):
+        def parsed(self, ctx):
+            ctx.document["openapi"] = str(openapi_version)
+
+    from aiopenapi3.loader import YAMLCompatibilityLoader
+    from aiopenapi3.loader import FileSystemLoader
+
+    OpenAPI.load_file(
+        "/test.yaml",
+        with_schema_yaml_tags_invalid,
+        loader=FileSystemLoader(Path("tests/fixtures"), yload=YAMLCompatibilityLoader),
+        plugins=[OnDocument()],
+    )

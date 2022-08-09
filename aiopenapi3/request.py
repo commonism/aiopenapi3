@@ -156,7 +156,7 @@ class OperationIndex:
         self._use_operation_tags = use_operation_tags
 
     def __getattr__(self, item):
-        if self._tags and item in self._tags:
+        if self._use_operation_tags and item in self._tags:
             return self._tags[item]
         elif item in self._operations:
             (method, path, op) = self._operations[item]

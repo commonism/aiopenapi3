@@ -106,7 +106,7 @@ def test_Plugins(httpx_mock):
         session_factory=httpx.Client,
     )
     api._base_url = yarl.URL("http://127.0.0.1:80")
-    r = api._.listPets()
+    r = api._.xPets()
     assert r
 
     item = r[0]
