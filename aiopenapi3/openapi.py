@@ -50,10 +50,15 @@ class OpenAPI:
 
     @classmethod
     def load_sync(
-        cls, url, session_factory: Callable[[], httpx.Client] = httpx.Client, loader=None, plugins: List[Plugin] = None
+        cls,
+        url,
+        session_factory: Callable[[], httpx.Client] = httpx.Client,
+        loader=None,
+        plugins: List[Plugin] = None,
+        use_operation_tags: bool = False,
     ):
         resp = session_factory().get(url)
-        return cls._load_response(url, resp, session_factory, loader, plugins)
+        return cls._load_response(url, resp, session_factory, loader, plugins, use_operation_tags)
 
     @classmethod
     async def load_async(
@@ -62,16 +67,17 @@ class OpenAPI:
         session_factory: Callable[[], httpx.AsyncClient] = httpx.AsyncClient,
         loader=None,
         plugins: List[Plugin] = None,
+        use_operation_tags: bool = False,
     ):
         async with session_factory() as client:
             resp = await client.get(url)
-        return cls._load_response(url, resp, session_factory, loader, plugins)
+        return cls._load_response(url, resp, session_factory, loader, plugins, use_operation_tags)
 
     @classmethod
-    def _load_response(cls, url, resp, session_factory, loader, plugins):
+    def _load_response(cls, url, resp, session_factory, loader, plugins, tags):
         if resp.is_redirect:
             raise ValueError(f'Redirect to {resp.headers.get("Location","")}')
-        return cls.loads(url, resp.text, session_factory, loader, plugins)
+        return cls.loads(url, resp.text, session_factory, loader, plugins, tags)
 
     @classmethod
     def load_file(
@@ -81,12 +87,13 @@ class OpenAPI:
         session_factory: Callable[[], httpx.AsyncClient] = httpx.AsyncClient,
         loader: Loader = None,
         plugins: List[Plugin] = None,
+        use_operation_tags: bool = False,
     ):
         assert loader
         if not isinstance(path, yarl.URL):
             path = yarl.URL(str(path))
         data = loader.load(Plugins(plugins or []), path)
-        return cls.loads(url, data, session_factory, loader, plugins)
+        return cls.loads(url, data, session_factory, loader, plugins, use_operation_tags)
 
     @classmethod
     def loads(
@@ -96,11 +103,12 @@ class OpenAPI:
         session_factory: Callable[[], httpx.AsyncClient] = httpx.AsyncClient,
         loader=None,
         plugins: List[Plugin] = None,
+        use_operation_tags: bool = False,
     ):
         if loader is None:
             loader = NullLoader()
         data = loader.parse(Plugins(plugins or []), yarl.URL(url), data)
-        return cls(url, data, session_factory, loader, plugins)
+        return cls(url, data, session_factory, loader, plugins, use_operation_tags)
 
     def _parse_obj(self, raw_document):
         v = raw_document.get("openapi", None)
@@ -134,6 +142,7 @@ class OpenAPI:
         session_factory: Callable[[], Union[httpx.Client, httpx.AsyncClient]] = httpx.AsyncClient,
         loader=None,
         plugins: List[Plugin] = None,
+        use_operation_tags: bool = True,
     ):
         """
         Creates a new OpenAPI document from a loaded spec file.  This is
@@ -144,6 +153,9 @@ class OpenAPI:
         :type document: dct
         :param session_factory: default uses new session for each call, supply your own if required otherwise.
         :type session_factory: returns httpx.AsyncClient or http.Client
+        :param use_operation_tags: honor tags
+        :type use_operation_tags: bool
+
         """
 
         self._base_url: yarl.URL = yarl.URL(url)
@@ -187,7 +199,7 @@ class OpenAPI:
 
         self._init_session_factory(session_factory)
         self._init_references()
-        self._init_operationindex()
+        self._init_operationindex(use_operation_tags)
         self._init_schema_types()
 
         self.plugins.init.initialized(initialized=self._root)
@@ -235,8 +247,7 @@ class OpenAPI:
     #        for i in self._documents.values():
     #            i._resolve_references(self)
 
-    def _init_operationindex(self):
-
+    def _init_operationindex(self, use_operation_tags: bool):
         if isinstance(self._root, v20.Root):
             if self.paths:
                 for path, obj in self.paths.items():
@@ -279,11 +290,13 @@ class OpenAPI:
                                     continue
                                 if isinstance(content.schema_, (v30.Schema, v31.Schema)):
                                     content.schema_._get_identity("OP", f"{path}.{m}.{r}.{c}")
+            else:
+                self._root.paths = dict()
 
         else:
             raise ValueError(self._root)
 
-        self._operationindex = OperationIndex(self)
+        self._operationindex = OperationIndex(self, use_operation_tags)
 
     @staticmethod
     def _iterate_schemas(schemas, d, r):
@@ -399,7 +412,10 @@ class OpenAPI:
         for name, schema in types.items():
             if not (inspect.isclass(schema) and issubclass(schema, BaseModel)):
                 continue
-            schema.update_forward_refs(**types)
+            try:
+                schema.update_forward_refs(**types)
+            except Exception as e:
+                raise e
 
     @property
     def url(self):
