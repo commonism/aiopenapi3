@@ -105,7 +105,7 @@ class OperationIndex:
             return self._oi._api._createRequest(self._oi._api, method, path, op)
 
     class Iter:
-        def __init__(self, spec):
+        def __init__(self, spec: "OpenAPI", use_operation_tags: bool):
             self.operations = []
             self.r = 0
             pi: "PathItem"
@@ -115,7 +115,7 @@ class OperationIndex:
                     op = getattr(pi, method)
                     if op.operationId is None:
                         continue
-                    if op.tags:
+                    if use_operation_tags and op.tags:
                         for tag in op.tags:
                             self.operations.append(f"{tag}.{op.operationId}")
                     else:
@@ -128,7 +128,7 @@ class OperationIndex:
         def __next__(self):
             return self.operations[next(self.r)]
 
-    def __init__(self, api):
+    def __init__(self, api: "OpenAPI", use_operation_tags: bool):
         self._api: "OpenAPI" = api
         self._root: "RootBase" = api._root
 
@@ -142,7 +142,7 @@ class OperationIndex:
                 if op.operationId is None:
                     continue
                 operationId = op.operationId.replace(" ", "_")
-                if op.tags:
+                if use_operation_tags and op.tags:
                     for tag in op.tags:
                         if operationId in self._tags[tag]._operations:
                             raise SpecError(f"Duplicate operationId {operationId}")
@@ -151,9 +151,12 @@ class OperationIndex:
                     if operationId in self._operations:
                         raise SpecError(f"Duplicate operationId {operationId}")
                     self._operations[operationId] = (method, path, op)
+        # convert to dict as pickle does not like local functions
+        self._tags = dict(self._tags)
+        self._use_operation_tags = use_operation_tags
 
     def __getattr__(self, item):
-        if item in self._tags:
+        if self._tags and item in self._tags:
             return self._tags[item]
         elif item in self._operations:
             (method, path, op) = self._operations[item]
@@ -162,4 +165,10 @@ class OperationIndex:
             raise SpecError(f"element {item} not found in tags or operations")
 
     def __iter__(self):
-        return self.Iter(self._root)
+        return self.Iter(self._root, self._use_operation_tags)
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, values):
+        self.__dict__.update(values)
