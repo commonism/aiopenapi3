@@ -6,8 +6,6 @@ import uuid
 
 import pydantic
 
-from tests.api.v2.schema import Dog
-
 import pytest
 import pytest_asyncio
 
@@ -15,10 +13,25 @@ import uvloop
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
+# FIXME
+#  python3.7 compat typing.get_origin
+from typing import ForwardRef
+
+if sys.version_info >= (3, 8):
+    import typing
+else:
+    import typing_extensions as typing
+
+
 import aiopenapi3
+from aiopenapi3 import OpenAPI
 from aiopenapi3.v30.schemas import Schema
 
+from pydantic.main import ModelMetaclass
+
+
 from tests.api.main import app
+from tests.api.v2.schema import Dog
 
 
 @pytest.fixture(scope="session")
@@ -167,3 +180,38 @@ async def test_deletePet(event_loop, server, client):
         while hasattr(pet, "__root__"):
             pet = pet.__root__
         await client._.deletePet(parameters={"pet_id": pet.identifier})
+
+
+def test_allOf_resolution(openapi_version, petstore_expanded):
+    """
+    Tests that allOfs are resolved correctly
+    """
+    petstore_expanded["openapi"] = str(openapi_version)
+    petstore_expanded_spec = OpenAPI("/", petstore_expanded)
+
+    ref = petstore_expanded_spec.paths["/pets"].get.responses["200"].content["application/json"].schema_.get_type()
+
+    assert type(ref) == ModelMetaclass
+
+    assert typing.get_origin(ref.__fields__["__root__"].outer_type_) == list
+
+    # outer_type may be ForwardRef
+    if isinstance(typing.get_args(ref.__fields__["__root__"].outer_type_)[0], ForwardRef):
+        assert ref.__fields__["__root__"].sub_fields[0].type_.__name__ == "Pet"
+        items = ref.__fields__["__root__"].sub_fields[0].type_.__fields__
+    else:
+        assert typing.get_args(ref.__fields__["__root__"].outer_type_)[0].__name__ == "Pet"
+        items = typing.get_args(ref.__fields__["__root__"].outer_type_)[0].__fields__
+
+    try:
+        assert sorted(map(lambda x: x.name, filter(lambda y: y.required == True, items.values()))) == sorted(
+            ["id", "name"]
+        ), ref.schema()
+    except Exception as e:
+        print(e)
+
+    assert sorted(map(lambda x: x.name, items.values())) == ["id", "name", "tag"]
+
+    assert items["id"].outer_type_ == int
+    assert items["name"].outer_type_ == str
+    assert items["tag"].outer_type_ == str

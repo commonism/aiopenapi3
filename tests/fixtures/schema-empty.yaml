@@ -5,13 +5,6 @@ info:
 
 components:
   schemas:
-    empty-property-name:
-      type: object
-      title: empty property name
-      properties:
-        "x":
-          type: string
-
     empty-schema: {}
 
 paths:

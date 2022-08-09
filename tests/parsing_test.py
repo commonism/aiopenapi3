@@ -1,7 +1,6 @@
 """
 Tests parsing specs
 """
-import dataclasses
 import sys
 import uuid
 
@@ -20,66 +19,58 @@ from aiopenapi3 import OpenAPI, SpecError, ReferenceResolutionError, FileSystemL
 URLBASE = "/"
 
 
-def test_parse_from_yaml(openapi_version, petstore_expanded):
+def test_parse_from_yaml(petstore_expanded):
     """
     Tests that we can parse a valid yaml file
     """
-    petstore_expanded["openapi"] = str(openapi_version)
     spec = OpenAPI(URLBASE, petstore_expanded)
 
 
-def test_parsing_fails(openapi_version, broken):
+def test_parsing_paths_invalid(with_parsing_paths_invalid):
     """
     Tests that broken specs fail to parse
     """
-    broken["openapi"] = str(openapi_version)
     with pytest.raises(ValidationError) as e:
-        spec = OpenAPI(URLBASE, broken)
+        spec = OpenAPI(URLBASE, with_parsing_paths_invalid)
 
 
-def test_parsing_broken_reference(openapi_version, broken_reference):
+def test_parsing_paths_response_ref_invalid(with_parsing_paths_response_ref_invalid):
     """
     Tests that parsing fails correctly when a reference is broken
     """
-    broken_reference["openapi"] = str(openapi_version)
     with pytest.raises(ReferenceResolutionError):
-        spec = OpenAPI(URLBASE, broken_reference)
+        spec = OpenAPI(URLBASE, with_parsing_paths_response_ref_invalid)
 
 
-def test_parsing_wrong_parameter_name(openapi_version, has_bad_parameter_name):
+def test_parsing_wrong_parameter_name(with_parsing_paths_parameter_name_mismatch):
     """
     Tests that parsing fails if parameter name for path parameters aren't
     actually in the path.
     """
-    has_bad_parameter_name["openapi"] = str(openapi_version)
     with pytest.raises(SpecError, match="Parameter name not found in path: different"):
-        spec = OpenAPI(URLBASE, has_bad_parameter_name)
+        spec = OpenAPI(URLBASE, with_parsing_paths_parameter_name_mismatch)
 
 
-def test_parsing_dupe_operation_id(openapi_version, dupe_op_id):
+def test_parsing_paths_operationid_duplicate(with_parsing_paths_operationid_duplicate):
     """
     Tests that duplicate operation Ids are an error
     """
-    dupe_op_id["openapi"] = str(openapi_version)
     with pytest.raises(SpecError, match="Duplicate operationId dupe"):
-        spec = OpenAPI(URLBASE, dupe_op_id)
+        spec = OpenAPI(URLBASE, with_parsing_paths_operationid_duplicate)
 
 
-def test_parsing_parameter_name_with_underscores(openapi_version, parameter_with_underscores):
+def test_parsing_path_parameter_name_with_underscores(with_parsing_path_parameter_name_with_underscores):
     """
     Tests that path parameters with underscores in them are accepted
     """
-    parameter_with_underscores["openapi"] = str(openapi_version)
-    spec = OpenAPI(URLBASE, parameter_with_underscores)
+    spec = OpenAPI(URLBASE, with_parsing_path_parameter_name_with_underscores)
 
 
-def test_object_example(openapi_version, obj_example_expanded):
+def test_parsing_paths_content_schema_object(with_parsing_paths_content_schema_object):
     """
     Tests that `example` exists.
     """
-    obj_example_expanded["openapi"] = str(openapi_version)
-
-    spec = OpenAPI(URLBASE, obj_example_expanded)
+    spec = OpenAPI(URLBASE, with_parsing_paths_content_schema_object)
     schema = spec.paths["/check-dict"].get.responses["200"].content["application/json"].schema_
     assert isinstance(schema.example, dict)
     assert isinstance(schema.example["real"], float)
@@ -88,13 +79,11 @@ def test_object_example(openapi_version, obj_example_expanded):
     assert isinstance(schema.example, str)
 
 
-def test_parsing_float_validation(openapi_version, float_validation_expanded):
+def test_parsing_paths_content_schema_float_validation(with_parsing_paths_content_schema_float_validation):
     """
     Tests that `minimum` and similar validators work with floats.
     """
-    float_validation_expanded["openapi"] = str(openapi_version)
-
-    spec = OpenAPI(URLBASE, float_validation_expanded)
+    spec = OpenAPI(URLBASE, with_parsing_paths_content_schema_float_validation)
     properties = spec.paths["/foo"].get.responses["200"].content["application/json"].schema_.properties
 
     assert isinstance(properties["integer"].minimum, int)
@@ -103,13 +92,11 @@ def test_parsing_float_validation(openapi_version, float_validation_expanded):
     assert isinstance(properties["real"].maximum, float)
 
 
-def test_parsing_with_links(openapi_version, with_links):
+def test_parsing_with_links(with_parsing_paths_links):
     """
     Tests that "links" parses correctly
     """
-    with_links["openapi"] = str(openapi_version)
-
-    spec = OpenAPI(URLBASE, with_links)
+    spec = OpenAPI(URLBASE, with_parsing_paths_links)
 
     assert "exampleWithOperationRef" in spec.components.links
     assert spec.components.links["exampleWithOperationRef"].operationRef == "/with-links"
@@ -123,13 +110,12 @@ def test_parsing_with_links(openapi_version, with_links):
     assert response_b.links["exampleWithRef"]._target == spec.components.links["exampleWithOperationRef"]
 
 
-def test_parsing_broken_links(openapi_version, with_broken_links):
+def test_parsing_paths_links_invalid(with_parsing_paths_links_invalid):
     """
     Tests that broken "links" values error properly
     """
-    with_broken_links["openapi"] = str(openapi_version)
     with pytest.raises(ValidationError) as e:
-        spec = OpenAPI(URLBASE, with_broken_links)
+        spec = OpenAPI(URLBASE, with_parsing_paths_links_invalid)
 
     assert all(
         [
@@ -142,35 +128,15 @@ def test_parsing_broken_links(openapi_version, with_broken_links):
     )
 
 
-def test_securityparameters(openapi_version, with_securityparameters):
-    with_securityparameters["openapi"] = str(openapi_version)
-    spec = OpenAPI(URLBASE, with_securityparameters)
+def test_securityparameters(with_paths_security):
+    OpenAPI(URLBASE, with_paths_security)
 
 
-def test_callback(openapi_version, with_callback):
-    with_callback["openapi"] = str(openapi_version)
-    spec = OpenAPI(URLBASE, with_callback)
+def test_callback(with_paths_callback):
+    OpenAPI(URLBASE, with_paths_callback)
 
 
-@dataclasses.dataclass
-class _Version:
-    major: int
-    minor: int
-    patch: int = 0
-
-    def __str__(self):
-        if self.major == 3:
-            return f'openapi: "{self.major}.{self.minor}.{self.patch}"'
-        else:
-            return f'swagger: "{self.major}.{self.minor}"'
-
-
-@pytest.fixture(scope="session", params=[_Version(2, 0), _Version(3, 0, 3), _Version(3, 1, 0)])
-def api_version(request):
-    return request.param
-
-
-def test_extended_paths(api_version):
+def test_schema_paths_extended(api_version):
     DOC = f"""{api_version}
 info:
   title: ''
@@ -182,10 +148,8 @@ paths:
     print(api)
 
 
-def test_allof_discriminator(openapi_version, with_allof_discriminator):
-    with_allof_discriminator["openapi"] = str(openapi_version)
-
-    api = OpenAPI(URLBASE, with_allof_discriminator)
+def test_schema_allof_discriminator(with_schema_allof_discriminator):
+    api = OpenAPI(URLBASE, with_schema_allof_discriminator)
 
     schema = api.components.schemas["Object1"]
     type_ = schema.get_type()
@@ -198,13 +162,14 @@ def test_allof_discriminator(openapi_version, with_allof_discriminator):
     obj1_ = api.components.schemas["ObjectBaseType"].get_type().parse_raw(data)
 
 
-def test_enum(openapi_version, with_enum):
+def test_schema_enum(openapi_version, with_schema_enum):
     import copy
 
-    data = copy.deepcopy(with_enum)  # .deepcopy()
+    data = copy.deepcopy(with_schema_enum)  # .deepcopy()
 
     import linode_test
 
+    data["openapi"] = str(openapi_version)
     api = OpenAPI(URLBASE, data, plugins=[linode_test.LinodeDiscriminators()])
     import datetime
 
@@ -222,3 +187,25 @@ def test_enum(openapi_version, with_enum):
 
     pp = api.components.schemas["PayPalData"].get_type()(email="a@b.de", paypal_id="1")
     assert pp.dict()["type"] == "paypal"
+
+
+def test_parsing_properties_empty_name(with_parsing_schema_properties_name_empty):
+    with pytest.raises(ValueError, match=r"empty property name"):
+        OpenAPI("/", with_parsing_schema_properties_name_empty)
+
+
+def test_schema_array(with_schema_array):
+    api = OpenAPI(URLBASE, with_schema_array)
+
+
+def test_parsing_paths_content_nested_array_ref(openapi_version, with_parsing_paths_content_nested_array_ref):
+    import aiopenapi3.v30.general
+    import aiopenapi3.v31.general
+
+    expected = {0: aiopenapi3.v30.general.Reference, 1: aiopenapi3.v31.general.Reference}[openapi_version.minor]
+
+    OpenAPI("/", with_parsing_paths_content_nested_array_ref)
+
+
+def test_parsing_schema_names(with_parsing_schema_names):
+    OpenAPI("/", with_parsing_schema_names)

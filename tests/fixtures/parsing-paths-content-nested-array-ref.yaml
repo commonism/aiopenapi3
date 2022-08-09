@@ -1,0 +1,45 @@
+openapi: 3.0.1
+info:
+  title: API
+  version: 1.0.0
+paths:
+  /pets:
+    get:
+      description: yes
+      operationId: findPets
+      responses:
+        '200':
+          description: pet response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LKENodePoolRequestBody'
+components:
+  schemas:
+    LKENodePoolRequestBody:
+      type: object
+      description: >
+        Specifies a collection of Linodes which will be members of a Kubernetes
+        cluster.
+      properties:
+        disks:
+          type: array
+          items:
+            $ref: '#/components/schemas/LKENodePool/properties/disks/items'
+    LKENodePool:
+      type: object
+      properties:
+        disks:
+          type: array
+          items:
+            type: object
+            properties:
+              size:
+                type: integer
+              type:
+                type: string
+                enum:
+                - raw
+                - ext4

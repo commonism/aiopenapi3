@@ -47,7 +47,25 @@ def openapi_version(request):
     return request.param
 
 
-def _get_parsed_yaml(filename):
+@dataclasses.dataclass
+class _VersionS:
+    major: int
+    minor: int
+    patch: int = 0
+
+    def __str__(self):
+        if self.major == 3:
+            return f'openapi: "{self.major}.{self.minor}.{self.patch}"'
+        else:
+            return f'swagger: "{self.major}.{self.minor}"'
+
+
+@pytest.fixture(scope="session", params=[_VersionS(2, 0), _VersionS(3, 0, 3), _VersionS(3, 1, 0)])
+def api_version(request):
+    return request.param
+
+
+def _get_parsed_yaml(filename, version=None):
     """
     Returns a python dict that is a parsed yaml file from the tests/fixtures
     directory.
@@ -63,224 +81,235 @@ def _get_parsed_yaml(filename):
 
         LOADED_FILES[filename] = parsed
 
-    return LOADED_FILES[filename]
+    data = LOADED_FILES[filename]
+    if version:
+        data["openapi"] = str(version)
+    return data
 
 
 @pytest.fixture
-def petstore_expanded():
+def petstore_expanded(openapi_version):
     """
     Provides the petstore-expanded.yaml spec
     """
-    yield _get_parsed_yaml("petstore-expanded.yaml")
+    yield _get_parsed_yaml("petstore-expanded.yaml", openapi_version)
 
 
 @pytest.fixture
-def broken():
+def with_parsing_paths_invalid(openapi_version):
     """
     Provides the parsed yaml for a broken spec
     """
-    yield _get_parsed_yaml("broken.yaml")
+    yield _get_parsed_yaml("parsing-paths-invalid.yaml", openapi_version)
 
 
 @pytest.fixture
-def broken_reference():
+def with_parsing_paths_response_ref_invalid(openapi_version):
     """
     Provides the parsed yaml for a spec with a broken reference
     """
-    yield _get_parsed_yaml("broken-ref.yaml")
-
-
-def has_bad_parameter_name():
-    """
-    Provides the parsed yaml for a spec with a bad parameter name
-    """
-    yield _get_parsed_yaml("bad-parameter-name.yaml")
+    yield _get_parsed_yaml("parsing-paths-response-ref-invalid.yaml", openapi_version)
 
 
 @pytest.fixture
-def dupe_op_id():
+def with_parsing_paths_operationid_duplicate(openapi_version):
     """
     A spec with a duplicate operation ID
     """
-    yield _get_parsed_yaml("dupe-operation-ids.yaml")
+    yield _get_parsed_yaml("parsing-paths-operationid-duplicate.yaml", openapi_version)
 
 
 @pytest.fixture
-def parameter_with_underscores():
+def with_parsing_path_parameter_name_with_underscores(openapi_version):
     """
     A valid spec with underscores in a path parameter
     """
-    yield _get_parsed_yaml("parameter-with-underscores.yaml")
+    yield _get_parsed_yaml("parsing-paths-parameter-name-with-underscores.yaml", openapi_version)
 
 
 @pytest.fixture
-def obj_example_expanded():
+def with_parsing_paths_content_schema_object(openapi_version):
     """
-    Provides the obj-example.yaml spec
+    Provides the parsing-paths-content-schema-object.yaml spec
     """
-    yield _get_parsed_yaml("obj-example.yaml")
+    yield _get_parsed_yaml("parsing-paths-content-schema-object.yaml", openapi_version)
 
 
 @pytest.fixture
-def float_validation_expanded():
+def with_parsing_paths_content_schema_float_validation(openapi_version):
     """
-    Provides the float-validation.yaml spec
+    Provides the parsing-paths-content-schema-float-validation.yaml spec
     """
-    yield _get_parsed_yaml("float-validation.yaml")
+    yield _get_parsed_yaml("parsing-paths-content-schema-float-validation.yaml", openapi_version)
 
 
 @pytest.fixture
-def has_bad_parameter_name():
+def with_parsing_paths_parameter_name_mismatch(openapi_version):
     """
     Provides a spec with a bad parameter name
     """
-    yield _get_parsed_yaml("bad-parameter-name.yaml")
+    yield _get_parsed_yaml("parsing-paths-parameter-name-mismatch.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_links():
+def with_parsing_paths_links(openapi_version):
     """
     Provides a spec with links defined
     """
-    yield _get_parsed_yaml("with-links.yaml")
+    yield _get_parsed_yaml("parsing-paths-links.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_broken_links():
+def with_parsing_paths_links_invalid(openapi_version):
     """
     Provides a spec with broken links defined
     """
-    yield _get_parsed_yaml("with-broken-links.yaml")
+    yield _get_parsed_yaml("parsing-paths-links-invalid.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_securityparameters():
+def with_parsing_schema_names(openapi_version):
+    yield _get_parsed_yaml("parsing-schema-names.yaml", openapi_version)
+
+
+@pytest.fixture
+def with_paths_security(openapi_version):
     """
     Provides a spec with security parameters
     """
-    yield _get_parsed_yaml("with-securityparameters.yaml")
+    yield _get_parsed_yaml("paths-security.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_parameters():
+def with_paths_security_v20():
+    yield _get_parsed_yaml("paths-security-v20.yaml")
+
+
+@pytest.fixture
+def with_paths_parameters(openapi_version):
     """
     Provides a spec with parameters
     """
-    yield _get_parsed_yaml("with-parameters.yaml")
+    yield _get_parsed_yaml("paths-parameters.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_parameters_invalid():
+def with_paths_parameters_invalid(openapi_version):
     """
     Provides a spec with parameters
     """
-    yield _get_parsed_yaml("with-parameters-invalid.yaml")
+    yield _get_parsed_yaml("paths-parameter-name-invalid.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_parameter_format():
+def with_paths_parameter_format(openapi_version):
     """
     parameters formatting
     """
-    yield _get_parsed_yaml("with-parameter-format.yaml")
+    yield _get_parsed_yaml("paths-parameter-format.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_parameter_format_v20():
+def with_paths_parameter_format_v20():
     """
     parameters formatting
     """
-    yield _get_parsed_yaml("with-parameter-format-v20.yaml")
+    yield _get_parsed_yaml("paths-parameter-format-v20.yaml")
 
 
 @pytest.fixture
-def with_parameter_missing():
-    yield _get_parsed_yaml("with-parameter-missing.yaml")
+def with_paths_parameter_missing(openapi_version):
+    yield _get_parsed_yaml("paths-parameter-missing.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_parameter_default():
-    yield _get_parsed_yaml("with-parameter-default.yaml")
+def with_paths_parameter_default(openapi_version):
+    yield _get_parsed_yaml("paths-parameter-default.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_properties_empty_name():
-    yield _get_parsed_yaml("with-properties-empty-name.yaml")
+def with_parsing_schema_properties_name_empty(openapi_version):
+    yield _get_parsed_yaml("parsing-schema-properties-name-empty.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_properties_default():
-    yield _get_parsed_yaml("with-properties-default.yaml")
+def with_parsing_paths_content_nested_array_ref(openapi_version):
+    yield _get_parsed_yaml("parsing-paths-content-nested-array-ref.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_response_header():
-    yield _get_parsed_yaml("with-response-header.yaml")
+def with_schema_properties_default(openapi_version):
+    yield _get_parsed_yaml("schema-properties-default.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_response_header_v20():
-    yield _get_parsed_yaml("with-response-header-v20.yaml")
+def with_schema_yaml_tags_invalid(openapi_version):
+    return "schema-yaml-tags-invalid.yaml"
 
 
 @pytest.fixture
-def with_tags():
-    yield _get_parsed_yaml("with-tags.yaml")
+def with_paths_response_header(openapi_version):
+    yield _get_parsed_yaml("paths-response-header.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_callback():
+def with_paths_response_header_v20():
+    yield _get_parsed_yaml("paths-response-header-v20.yaml")
+
+
+@pytest.fixture
+def with_paths_tags(openapi_version):
+    yield _get_parsed_yaml("paths-tags.yaml", openapi_version)
+
+
+@pytest.fixture
+def with_paths_callback(openapi_version):
     """
     Provides a spec with callback
     """
-    yield _get_parsed_yaml("callback-example.yaml")
+    yield _get_parsed_yaml("paths-callbacks.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_swagger():
-    yield _get_parsed_yaml("swagger-example.yaml")
+def with_schema_allof_discriminator(openapi_version):
+    yield _get_parsed_yaml("schema-allof-discriminator.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_allof_discriminator():
-    yield _get_parsed_yaml("with-allof-discriminator.yaml")
+def with_schema_enum(openapi_version):
+    yield _get_parsed_yaml("schema-enum.yaml")
 
 
 @pytest.fixture
-def with_enum():
-    yield _get_parsed_yaml("with-enum.yaml")
+def with_schema_anyof(openapi_version):
+    yield _get_parsed_yaml("schema-anyof.yaml")
 
 
 @pytest.fixture
-def with_anyOf_properties():
-    yield _get_parsed_yaml("with-anyOf-properties.yaml")
+def with_schema_recursion(openapi_version):
+    yield _get_parsed_yaml("schema-recursion.yaml")
 
 
 @pytest.fixture
-def with_schema_recursion():
-    yield _get_parsed_yaml("with-schema-recursion.yaml")
+def with_schema_array(openapi_version):
+    yield _get_parsed_yaml("schema-array.yaml")
 
 
 @pytest.fixture
-def with_array():
-    yield _get_parsed_yaml("with-array.yaml")
+def with_schema_Of_parent_properties(openapi_version):
+    yield _get_parsed_yaml("schema-Of-parent-properties.yaml")
 
 
 @pytest.fixture
-def with_schema_Of_parent_properties():
-    yield _get_parsed_yaml("with-schema-Of-parent-properties.yaml")
-
-
-@pytest.fixture
-def with_schema_additionalProperties():
-    yield _get_parsed_yaml("with-schema-additionalProperties.yaml")
-
-
-@pytest.fixture
-def with_schema_empty():
-    yield _get_parsed_yaml("with-schema-empty.yaml")
+def with_schema_additionalProperties(openapi_version):
+    yield _get_parsed_yaml("schema-additionalProperties.yaml")
 
 
 @pytest.fixture
 def with_schema_additionalProperties_v20():
-    yield _get_parsed_yaml("with-schema-additionalProperties-v20.yaml")
+    yield _get_parsed_yaml("schema-additionalProperties-v20.yaml")
+
+
+@pytest.fixture
+def with_schema_empty(openapi_version):
+    yield _get_parsed_yaml("schema-empty.yaml")

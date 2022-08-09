@@ -17,18 +17,18 @@ from aiopenapi3 import OpenAPI
 URLBASE = "/"
 
 
-def test_pickle(with_swagger, with_anyOf_properties, with_links):
+def test_pickle(with_paths_security_v20, with_schema_anyof, with_parsing_paths_links):
     """
     Test pickle for
         * Swagger
         * OpenAPI 3
         * OpenAPI 3.1
     """
-    for dd in [with_swagger, with_anyOf_properties, with_links]:
+    for dd in [with_paths_security_v20, with_schema_anyof, with_parsing_paths_links]:
         api = OpenAPI(URLBASE, dd)
         name = "test"
 
-        if dd == with_anyOf_properties:
+        if dd == with_schema_anyof:
             A = api.components.schemas["A"].construct()
             with open(f"{name}.pickle", "wb") as f:
                 pickle.dump(A, f)
