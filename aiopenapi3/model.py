@@ -182,6 +182,9 @@ class Model:  # (BaseModel):
         """
         PR?
         """
+        if extra_ == Extra.forbid and schema.extensions:
+            extra_ = Extra.ignore
+
         extra_ = Extra.ignore if extra_ == Extra.allow else extra_
 
         class Config:
