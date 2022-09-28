@@ -71,7 +71,7 @@ def getPet(pet_id: str = Query(..., alias="petId")) -> schema.Pets:
 @router.delete(
     "/pets/{pet_id}", operation_id="deletePet", responses={204: {"model": None}, 404: {"model": schema.Error}}
 )
-def deletePet(response: Response, pet_id: int = Query(..., alias="petId")) -> schema.Pets:
+def deletePet(response: Response, pet_id: int = Query(..., alias="petId")) -> None:
     for k, v in ZOO.items():
         if pet_id == v.identifier:
             del ZOO[k]
@@ -82,3 +82,9 @@ def deletePet(response: Response, pet_id: int = Query(..., alias="petId")) -> sc
             status_code=starlette.status.HTTP_404_NOT_FOUND,
             content=schema.Error(code=errno.ENOENT, message=f"{pet_id} not found").dict(),
         )
+
+
+@router.patch("/pets", operation_id="patchPets", responses={200: {"model": schema.Pets}})
+def patchPets(response: Response, pets: schema.Pets):
+    print(pets)
+    return pets.__root__ + list(ZOO.values())
