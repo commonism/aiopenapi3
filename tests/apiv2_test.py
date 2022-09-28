@@ -182,6 +182,22 @@ async def test_deletePet(event_loop, server, client):
         await client._.deletePet(parameters={"pet_id": pet.identifier})
 
 
+@pytest.mark.asyncio
+async def test_patchPet(event_loop, server, client):
+    pets = [
+        client.components.schemas["Dog"]
+        .get_type()
+        .construct(name=str(uuid.uuid4()), age=datetime.timedelta(seconds=random.randint(1, 2**32)))
+        for i in range(2)
+    ]
+    print(pets)
+    p = client._.patchPets.data.get_type()
+    p = p.construct(__root__=pets)
+    r = await client._.patchPets(data=p)
+    assert isinstance(r, list)
+    print(r)
+
+
 def test_allOf_resolution(openapi_version, petstore_expanded):
     """
     Tests that allOfs are resolved correctly
