@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import List, Union, cast
 import json
 
 import httpx
@@ -27,7 +27,7 @@ class Request(RequestBase):
         return self._data_parameter.schema_
 
     @property
-    def parameters(self) -> Dict[str, ParameterBase]:
+    def parameters(self) -> List[ParameterBase]:
         return list(
             filter(lambda x: x.in_ != "body", self.operation.parameters + self.root.paths[self.path].parameters)
         )
@@ -71,15 +71,17 @@ class Request(RequestBase):
                 f"No security requirement satisfied (accepts {options} given {{{' and '.join(sorted(self.security.keys()))}}})"
             )
 
-    def _prepare_secschemes(self, scheme: str, value: List[str]):
+    def _prepare_secschemes(self, scheme: str, value: Union[str, List[str]]):
         """
         https://swagger.io/specification/v2/#security-scheme-object
         """
         ss = self.root.securityDefinitions[scheme]
 
         if ss.type == "basic":
+            value = cast(List[str], value)
             self.req.auth = httpx.BasicAuth(*value)
 
+        value = cast(str, value)
         if ss.type == "apiKey":
             if ss.in_ == "query":
                 # apiKey in query parameter

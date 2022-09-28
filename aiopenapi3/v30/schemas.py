@@ -74,11 +74,11 @@ class Schema(ObjectExtended, SchemaBase):
         extra = Extra.forbid
 
     @root_validator
-    def validate_Schema_number_type(cls, values: Dict[str, object]):
+    def validate_Schema_number_type(cls, values: Dict[str, Any]):
         conv = ["minimum", "maximum"]
         if values.get("type", None) == "integer":
             for i in conv:
-                v = values.get(i, None)
+                v: str = values.get(i, None)
                 if v is not None:
                     values[i] = int(v)
         return values

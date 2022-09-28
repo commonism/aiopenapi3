@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import List, Union, cast
 import json
 
 import httpx
@@ -28,7 +28,7 @@ class Request(RequestBase):
         return self.operation.requestBody.content["application/json"].schema_
 
     @property
-    def parameters(self) -> Dict[str, ParameterBase]:
+    def parameters(self) -> List[ParameterBase]:
         return self.operation.parameters + self.root.paths[self.path].parameters
 
     def args(self, content_type: str = "application/json"):
@@ -70,7 +70,7 @@ class Request(RequestBase):
                 f"No security requirement satisfied (accepts {options} given {{{' and '.join(sorted(self.security.keys()))}}}"
             )
 
-    def _prepare_secschemes(self, scheme: str, value: List[str]):
+    def _prepare_secschemes(self, scheme: str, value: Union[str, List[str]]):
         ss = self.root.components.securitySchemes[scheme]
 
         if ss.type == "http" and ss.scheme_ == "basic":
@@ -79,6 +79,7 @@ class Request(RequestBase):
         if ss.type == "http" and ss.scheme_ == "digest":
             self.req.auth = httpx.DigestAuth(*value)
 
+        value = cast(str, value)
         if ss.type == "http" and ss.scheme_ == "bearer":
             header = ss.bearerFormat or "Bearer {}"
             self.req.headers["Authorization"] = header.format(value)

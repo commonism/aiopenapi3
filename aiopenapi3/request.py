@@ -1,7 +1,7 @@
 import collections
 import io
 from contextlib import closing
-from typing import Dict, Tuple, Union, Any
+from typing import Dict, Tuple, Union, Any, Optional
 
 import yarl
 
@@ -26,7 +26,7 @@ from .errors import SpecError
 class RequestParameter:
     def __init__(self, url: yarl.URL):
         self.url: str = str(url)
-        self.auth: Tuple[str, str] = None
+        self.auth: Optional[Union["BasicAuth", "DigestAuth"]] = None
         self.cookies: Dict[str, str] = {}
         #        self.path = {}
         self.params: Dict[str, str] = {}
@@ -34,6 +34,7 @@ class RequestParameter:
         self.headers: Dict[str, str] = {}
         self.data: Dict[str, str] = {}  # form-data
         self.files: Dict[str, Tuple[str, io.BaseIO, str]] = {}  # form-data files
+        self.cert: Any = None
 
 
 class RequestBase:

@@ -1,6 +1,8 @@
 import dataclasses
 import typing
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Optional, Type
+import abc
+
 from pydantic import BaseModel
 
 import yarl
@@ -10,7 +12,7 @@ the plugin interface replicates the suds way of  dealing with broken data/schema
 """
 
 
-class Plugin:
+class Plugin(abc.ABC):
     def __init__(self):
         self._api: "OpenAPI" = None
 
@@ -57,12 +59,12 @@ class Message(Plugin):
     @dataclasses.dataclass
     class Context:
         operationId: str
-        marshalled: Dict[str, Any] = None
-        sending: str = None
-        received: str = None
-        parsed: Dict[str, Any] = None
-        unmarshalled: BaseModel = None
-        expected_type: typing.Type = None
+        marshalled: Optional[Dict[str, Any]] = None
+        sending: Optional[str] = None
+        received: Optional[str] = None
+        parsed: Optional[Dict[str, Any]] = None
+        unmarshalled: Optional[BaseModel] = None
+        expected_type: Optional[typing.Type] = None
 
     """
     sending: marshalled(dict)-> sending(str)
@@ -136,20 +138,19 @@ class Method:
 
 
 class Plugins:
-    _domains: Dict[str, Plugin] = {"init": Init, "document": Document, "message": Message}
+    _domains: Dict[str, Type[Plugin]] = {"init": Init, "document": Document, "message": Message}
 
     def __init__(self, plugins: List[Plugin]):
-        for i in plugins:
-            assert isinstance(i, Plugin)
+        for p in plugins:
+            assert isinstance(p, Plugin)
 
-        self._init = self._document = self._message = None
-
-        for i in self._domains.keys():
-            setattr(self, f"_{i}", self._get_domain(i, plugins))
+        self._init = self._get_domain("init", plugins)
+        self._document = self._get_domain("document", plugins)
+        self._message = self._get_domain("message", plugins)
 
     def _get_domain(self, name, plugins) -> "Domain":
-        plugins = [p for p in filter(lambda x: isinstance(x, self._domains.get(name)), plugins)]
-        return Domain(self._domains.get(name).Context, plugins)
+        p: List[Plugin] = list(filter(lambda x: isinstance(x, self._domains.get(name)), plugins))
+        return Domain(self._domains.get(name).Context, p)
 
     @property
     def init(self) -> Domain:
