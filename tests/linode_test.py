@@ -85,14 +85,22 @@ async def api():
         "https://www.linode.com/docs/api/openapi.yaml",
         loader=NullLoader(YAMLCompatibilityLoader),
         plugins=[LinodeDiscriminators()],
+        use_operation_tags=False,
     )
+
+
+from typing import ForwardRef
 
 
 @pytest.mark.asyncio
 @pytest.mark.skip_env("GITHUB_ACTIONS")
 async def test_linode_components_schemas(api):
     for name, schema in api.components.schemas.items():
-        schema.get_type().construct()
+        t = schema.set_type()
+        u = schema.get_type()
+        assert t == u
+        assert not isinstance(t, ForwardRef)
+        t.construct()
 
     pay = api.components.schemas["PayPalData"].get_type()(email="a@b.de", paypal_id="1")
     data = pay.json()
