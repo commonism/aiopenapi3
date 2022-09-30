@@ -32,7 +32,8 @@ class ObjectExtended(ObjectBase):
 
     @root_validator(pre=True)
     def validate_ObjectExtended_extensions(cls, values):
-        """FIXME
+        """
+        FIXME
         https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#specification-extensions
         :param values:
         :return: values
