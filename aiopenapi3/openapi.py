@@ -6,6 +6,7 @@ else:
     import pathlib3x as pathlib
 
 from typing import List, Dict, Set, Union, Callable, Tuple
+import collections
 import inspect
 import logging
 
