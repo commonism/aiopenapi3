@@ -57,18 +57,39 @@ class OpenAPI:
         plugins: List[Plugin] = None,
         use_operation_tags: bool = False,
     ):
+        """
+        Create an synchronous OpenAPI object from a description document.
+
+        :param url: description document location
+        :param session_factory: used to create the session for http/s io
+        :param loader: the backend to access referenced description documents
+        :param plugins: potions to cure defects in the description document or requests/responses
+        :param use_operation_tags:
+        :return:
+        """
+
         resp = session_factory().get(url)
         return cls._load_response(url, resp, session_factory, loader, plugins, use_operation_tags)
 
     @classmethod
     async def load_async(
         cls,
-        url,
+        url: str,
         session_factory: Callable[[], httpx.AsyncClient] = httpx.AsyncClient,
         loader=None,
         plugins: List[Plugin] = None,
         use_operation_tags: bool = False,
     ):
+        """
+        Create an asynchronous OpenAPI object from a description document.
+
+        :param url: description document location
+        :param session_factory: used to create the session for http/s io
+        :param loader: the backend to access referenced description documents
+        :param plugins: potions to cure defects in the description document or requests/responses
+        :param use_operation_tags:
+        :return:
+        """
         async with session_factory() as client:
             resp = await client.get(url)
         return cls._load_response(url, resp, session_factory, loader, plugins, use_operation_tags)
@@ -82,13 +103,25 @@ class OpenAPI:
     @classmethod
     def load_file(
         cls,
-        url,
+        url: str,
         path: Union[str, pathlib.Path, yarl.URL],
-        session_factory: Callable[[], httpx.AsyncClient] = httpx.AsyncClient,
+        session_factory: Callable[[], Union[httpx.AsyncClient, httpx.Client]] = httpx.AsyncClient,
         loader: Loader = None,
         plugins: List[Plugin] = None,
         use_operation_tags: bool = False,
     ):
+        """
+        Create an OpenAPI object from a description document file.
+
+
+        :param url: api service base url
+        :param path: description document location
+        :param session_factory: used to create the session for http/s io, defaults to use an AsyncClient
+        :param loader: the backend to access referenced description documents
+        :param plugins: potions to cure defects in the description document or requests/responses
+        :param use_operation_tags:
+        :return: :py:class:`aiopenapi3.openapi.OpenAPI`
+        """
         assert loader
         if not isinstance(path, yarl.URL):
             path = yarl.URL(str(path))
@@ -99,12 +132,22 @@ class OpenAPI:
     def loads(
         cls,
         url: str,
-        data,
-        session_factory: Callable[[], httpx.AsyncClient] = httpx.AsyncClient,
+        data: str,
+        session_factory: Callable[[], Union[httpx.AsyncClient, httpx.Client]] = httpx.AsyncClient,
         loader=None,
         plugins: List[Plugin] = None,
         use_operation_tags: bool = False,
     ):
+        """
+
+        :param url: api service base url
+        :param data: description document
+        :param session_factory:
+        :param loader:
+        :param plugins:
+        :param use_operation_tags:
+        :return:
+        """
         if loader is None:
             loader = NullLoader()
         data = loader.parse(Plugins(plugins or []), yarl.URL(url), data)
