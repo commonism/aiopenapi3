@@ -109,9 +109,10 @@ class NullLoader(Loader):
 
 
 class WebLoader(Loader):
-    def __init__(self, baseurl, session_factory=httpx.Client, yload=yaml.SafeLoader):
+    def __init__(self, baseurl: yarl.URL, session_factory=httpx.Client, yload=yaml.SafeLoader):
         super().__init__(yload)
-        self.baseurl = baseurl
+        assert isinstance(baseurl, yarl.URL)
+        self.baseurl: yarl.URL = baseurl
         self.session_factory = session_factory
 
     def load(self, plugins, url: yarl.URL, codec=None):
