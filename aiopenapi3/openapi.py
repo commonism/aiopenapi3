@@ -1,11 +1,14 @@
 import sys
 
+import aiopenapi3.request
+
 if sys.version_info >= (3, 9):
     import pathlib
 else:
     import pathlib3x as pathlib
 
-from typing import List, Dict, Union, Callable, Tuple
+from typing import List, Dict, Set, Union, Callable, Tuple
+import collections
 import inspect
 import logging
 
@@ -57,18 +60,39 @@ class OpenAPI:
         plugins: List[Plugin] = None,
         use_operation_tags: bool = False,
     ):
+        """
+        Create an synchronous OpenAPI object from a description document.
+
+        :param url: description document location
+        :param session_factory: used to create the session for http/s io
+        :param loader: the backend to access referenced description documents
+        :param plugins: potions to cure defects in the description document or requests/responses
+        :param use_operation_tags:
+        :return:
+        """
+
         resp = session_factory().get(url)
         return cls._load_response(url, resp, session_factory, loader, plugins, use_operation_tags)
 
     @classmethod
     async def load_async(
         cls,
-        url,
+        url: str,
         session_factory: Callable[[], httpx.AsyncClient] = httpx.AsyncClient,
         loader=None,
         plugins: List[Plugin] = None,
         use_operation_tags: bool = False,
     ):
+        """
+        Create an asynchronous OpenAPI object from a description document.
+
+        :param url: description document location
+        :param session_factory: used to create the session for http/s io
+        :param loader: the backend to access referenced description documents
+        :param plugins: potions to cure defects in the description document or requests/responses
+        :param use_operation_tags:
+        :return:
+        """
         async with session_factory() as client:
             resp = await client.get(url)
         return cls._load_response(url, resp, session_factory, loader, plugins, use_operation_tags)
@@ -82,13 +106,25 @@ class OpenAPI:
     @classmethod
     def load_file(
         cls,
-        url,
+        url: str,
         path: Union[str, pathlib.Path, yarl.URL],
-        session_factory: Callable[[], httpx.AsyncClient] = httpx.AsyncClient,
+        session_factory: Callable[[], Union[httpx.AsyncClient, httpx.Client]] = httpx.AsyncClient,
         loader: Loader = None,
         plugins: List[Plugin] = None,
         use_operation_tags: bool = False,
     ):
+        """
+        Create an OpenAPI object from a description document file.
+
+
+        :param url: api service base url
+        :param path: description document location
+        :param session_factory: used to create the session for http/s io, defaults to use an AsyncClient
+        :param loader: the backend to access referenced description documents
+        :param plugins: potions to cure defects in the description document or requests/responses
+        :param use_operation_tags:
+        :return: :py:class:`aiopenapi3.openapi.OpenAPI`
+        """
         assert loader
         if not isinstance(path, yarl.URL):
             path = yarl.URL(str(path))
@@ -99,12 +135,22 @@ class OpenAPI:
     def loads(
         cls,
         url: str,
-        data,
-        session_factory: Callable[[], httpx.AsyncClient] = httpx.AsyncClient,
+        data: str,
+        session_factory: Callable[[], Union[httpx.AsyncClient, httpx.Client]] = httpx.AsyncClient,
         loader=None,
         plugins: List[Plugin] = None,
         use_operation_tags: bool = False,
     ):
+        """
+
+        :param url: api service base url
+        :param data: description document
+        :param session_factory:
+        :param loader:
+        :param plugins:
+        :param use_operation_tags:
+        :return:
+        """
         if loader is None:
             loader = NullLoader()
         data = loader.parse(Plugins(plugins or []), yarl.URL(url), data)
@@ -299,19 +345,17 @@ class OpenAPI:
         self._operationindex = OperationIndex(self, use_operation_tags)
 
     @staticmethod
-    def _iterate_schemas(schemas, d, r):
-        if not d:
-            return r
+    def _iterate_schemas(schemas: Dict[int, SchemaBase], next: Set[int], processed: Set[int]):
+        if not next:
+            return processed
 
-        r.update(d)
-
-        import collections
+        processed.update(next)
 
         new = collections.ChainMap(
             *[
                 dict(
                     filter(
-                        lambda z: z[0] not in r,
+                        lambda z: z[0] not in processed,
                         map(
                             lambda y: (id(y._target), y._target) if isinstance(y, ReferenceBase) else (id(y), y),
                             filter(
@@ -336,19 +380,19 @@ class OpenAPI:
                         ),
                     )
                 )
-                for i in d
+                for i in next
             ]
         )
 
         sets = new.keys()
         schemas.update(new)
-        r.update(sets)
+        processed.update(sets)
 
-        return OpenAPI._iterate_schemas(schemas, sets, r)
+        return OpenAPI._iterate_schemas(schemas, sets, processed)
 
     def _init_schema_types(self):
-        byname = dict()
-        data = set()
+        byname: Dict[str, SchemaBase] = dict()
+        data: Set[int] = set()
         if isinstance(self._root, v20.Root):
             # Schema
             for byid in map(lambda x: x.definitions, self._documents.values()):
@@ -400,9 +444,9 @@ class OpenAPI:
                         byname[media_type.schema_._get_identity("R")] = media_type.schema_
                         data.add(id(media_type.schema_))
 
-        byid = {id(i): i for i in byname.values()}
-        data = set(byid.keys())
-        todo = self._iterate_schemas(byid, data, set())
+        byid: Dict[int, SchemaBase] = {id(i): i for i in byname.values()}
+        data: Set[int] = set(byid.keys())
+        todo: Set[int] = self._iterate_schemas(byid, data, set())
 
         types = dict()
         for i in todo | data:
@@ -477,6 +521,26 @@ class OpenAPI:
     def _(self):
         return self._operationindex
 
+    def op(self, operationId: Union[str, Tuple[str, str]]):
+        """
+        create a Request
+        lookup the Operation by operationId or path,method
+
+        :param operationId:
+        :return: aiopenapi3.request.RequestBase
+        """
+        if isinstance(operationId, str):
+            p = operationId.split(".")
+            req = self._operationindex
+            for i in p:
+                req = getattr(req, i)
+            assert isinstance(req, aiopenapi3.request.RequestBase)
+        else:
+            path, method = operationId
+            op = getattr(self._root.paths[path], method)
+            req = self._createRequest(self, method, path, op)
+        return req
+
     def resolve_jr(self, root: RootBase, obj, value: Reference):
         url, jp = JSONReference.split(value.ref)
         if url != "":
@@ -492,3 +556,21 @@ class OpenAPI:
             # add metadata to the error
             e.element = obj
             raise
+
+    def __copy__(self):
+        """
+        shallow copy of an API object allows for a quick & low resource way to interface multiple
+        services using the same api instad of creating a new OpenAPI object from the description document for each
+
+        after setting the _base_url & .authenticate() it is ready to use
+        :return: aiopenapi3.OpenAPI
+        """
+        api = OpenAPI("/test.yaml", {"openapi": "3.0.0", "info": {"title": "", "version": ""}})
+        api._root = self._root
+        api.plugins = self.plugins
+        api._documents = self._documents
+        api._security = self._security
+        api._createRequest = self._createRequest
+        api._session_factory = self._session_factory
+        api.loader = self.loader
+        return api
