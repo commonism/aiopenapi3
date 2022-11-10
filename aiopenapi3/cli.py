@@ -11,7 +11,7 @@ else:
 
 from .openapi import OpenAPI
 
-from .loader import FileSystemLoader, YAMLCompatibilityLoader, remove_implicit_resolver
+from .loader import FileSystemLoader, WebLoader, YAMLCompatibilityLoader, remove_implicit_resolver
 
 
 class DefaultLoader(yaml.SafeLoader):
@@ -67,8 +67,14 @@ def main(argv=None):
         log("tags:")
         log("\t" + "\n\t".join(sorted(tags)) + "\n")
 
+    path = yarl.URL(args.name)
+    if path.scheme in ["http", "https"]:
+        loader = WebLoader(baseurl=path.with_path("/").with_query({}), yload=ylc)
+    else:
+        loader = FileSystemLoader(Path().cwd(), yload=ylc)
+
     try:
-        OpenAPI.load_file(args.name, yarl.URL(args.name), loader=FileSystemLoader(Path().cwd(), yload=ylc))
+        OpenAPI.load_file(args.name, yarl.URL(args.name), loader=loader)
     except ValueError as e:
         print(e)
     else:
