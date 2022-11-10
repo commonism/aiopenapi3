@@ -1,5 +1,7 @@
 import sys
 
+import aiopenapi3.request
+
 if sys.version_info >= (3, 9):
     import pathlib
 else:
@@ -519,6 +521,26 @@ class OpenAPI:
     def _(self):
         return self._operationindex
 
+    def op(self, operationId: Union[str, Tuple[str, str]]):
+        """
+        create a Request
+        lookup the Operation by operationId or path,method
+
+        :param operationId:
+        :return: aiopenapi3.request.RequestBase
+        """
+        if isinstance(operationId, str):
+            p = operationId.split(".")
+            req = self._operationindex
+            for i in p:
+                req = getattr(req, i)
+            assert isinstance(req, aiopenapi3.request.RequestBase)
+        else:
+            path, method = operationId
+            op = getattr(self._root.paths[path], method)
+            req = self._createRequest(self, method, path, op)
+        return req
+
     def resolve_jr(self, root: RootBase, obj, value: Reference):
         url, jp = JSONReference.split(value.ref)
         if url != "":
@@ -534,3 +556,21 @@ class OpenAPI:
             # add metadata to the error
             e.element = obj
             raise
+
+    def __copy__(self):
+        """
+        shallow copy of an API object allows for a quick & low resource way to interface multiple
+        services using the same api instad of creating a new OpenAPI object from the description document for each
+
+        after setting the _base_url & .authenticate() it is ready to use
+        :return: aiopenapi3.OpenAPI
+        """
+        api = OpenAPI("/test.yaml", {"openapi": "3.0.0", "info": {"title": "", "version": ""}})
+        api._root = self._root
+        api.plugins = self.plugins
+        api._documents = self._documents
+        api._security = self._security
+        api._createRequest = self._createRequest
+        api._session_factory = self._session_factory
+        api.loader = self.loader
+        return api
