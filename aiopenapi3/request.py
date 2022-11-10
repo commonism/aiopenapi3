@@ -3,6 +3,7 @@ import io
 from contextlib import closing
 from typing import Dict, Tuple, Union, Any, Optional
 
+import httpx
 import yarl
 
 try:
@@ -46,15 +47,16 @@ class RequestBase:
         self.operation = operation
         self.req: RequestParameter = RequestParameter(self.path)
 
-    def __call__(self, *args, **kwargs):
-        return self.request(*args, **kwargs)
+    def __call__(self, *args, return_headers: bool = False, **kwargs):
+        headers, data, result = self.request(*args, **kwargs)
+        if return_headers:
+            return headers, data
+        return data
 
     def _factory_args(self):
         return {"auth": self.req.auth, "headers": {"user-agent": f"aiopenapi3/{__version__}"}}
 
-    def request(
-        self, data=None, parameters=None, return_headers: bool = False
-    ) -> Union[Any, Tuple[Dict[str, Any], Any]]:
+    def request(self, data=None, parameters=None) -> Tuple[Dict[str, Any], Any, httpx.Response]:
         """
         Sends an HTTP request as described by this Path
 
@@ -70,29 +72,25 @@ class RequestBase:
             req = self._build_req(session)
             result = session.send(req)
         headers, data = self._process(result)
-        if return_headers is True:
-            return headers, data
-        else:
-            return data
+
+        return headers, data, result
 
 
 class AsyncRequestBase(RequestBase):
-    async def __call__(self, *args, **kwargs):
-        return await self.request(*args, **kwargs)
+    async def __call__(self, *args, return_headers: bool = False, **kwargs):
+        headers, data, result = await self.request(*args, **kwargs)
+        if return_headers:
+            return headers, data
+        return data
 
-    async def request(
-        self, data=None, parameters=None, return_headers: bool = False
-    ) -> Union[Any, Tuple[Dict[str, Any], Any]]:
+    async def request(self, data=None, parameters=None) -> Tuple[Dict[str, Any], Any, httpx.Response]:
         self._prepare(data, parameters)
         async with aclosing(self.api._session_factory(**self._factory_args())) as session:
             req = self._build_req(session)
             result = await session.send(req)
 
         headers, data = self._process(result)
-        if return_headers is True:
-            return headers, data
-        else:
-            return data
+        return headers, data, result
 
 
 class OperationIndex:
