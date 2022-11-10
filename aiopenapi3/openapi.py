@@ -5,7 +5,7 @@ if sys.version_info >= (3, 9):
 else:
     import pathlib3x as pathlib
 
-from typing import List, Dict, Union, Callable, Tuple
+from typing import List, Dict, Set, Union, Callable, Tuple
 import inspect
 import logging
 
@@ -342,19 +342,17 @@ class OpenAPI:
         self._operationindex = OperationIndex(self, use_operation_tags)
 
     @staticmethod
-    def _iterate_schemas(schemas, d, r):
-        if not d:
-            return r
+    def _iterate_schemas(schemas: Dict[int, SchemaBase], next: Set[int], processed: Set[int]):
+        if not next:
+            return processed
 
-        r.update(d)
-
-        import collections
+        processed.update(next)
 
         new = collections.ChainMap(
             *[
                 dict(
                     filter(
-                        lambda z: z[0] not in r,
+                        lambda z: z[0] not in processed,
                         map(
                             lambda y: (id(y._target), y._target) if isinstance(y, ReferenceBase) else (id(y), y),
                             filter(
@@ -379,19 +377,19 @@ class OpenAPI:
                         ),
                     )
                 )
-                for i in d
+                for i in next
             ]
         )
 
         sets = new.keys()
         schemas.update(new)
-        r.update(sets)
+        processed.update(sets)
 
-        return OpenAPI._iterate_schemas(schemas, sets, r)
+        return OpenAPI._iterate_schemas(schemas, sets, processed)
 
     def _init_schema_types(self):
-        byname = dict()
-        data = set()
+        byname: Dict[str, SchemaBase] = dict()
+        data: Set[int] = set()
         if isinstance(self._root, v20.Root):
             # Schema
             for byid in map(lambda x: x.definitions, self._documents.values()):
@@ -443,9 +441,9 @@ class OpenAPI:
                         byname[media_type.schema_._get_identity("R")] = media_type.schema_
                         data.add(id(media_type.schema_))
 
-        byid = {id(i): i for i in byname.values()}
-        data = set(byid.keys())
-        todo = self._iterate_schemas(byid, data, set())
+        byid: Dict[int, SchemaBase] = {id(i): i for i in byname.values()}
+        data: Set[int] = set(byid.keys())
+        todo: Set[int] = self._iterate_schemas(byid, data, set())
 
         types = dict()
         for i in todo | data:
