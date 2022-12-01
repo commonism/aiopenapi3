@@ -521,7 +521,7 @@ class OpenAPI:
     def _(self):
         return self._operationindex
 
-    def op(self, operationId: Union[str, Tuple[str, str]]):
+    def createRequest(self, operationId: Union[str, Tuple[str, str]]):
         """
         create a Request
         lookup the Operation by operationId or path,method
