@@ -13,13 +13,14 @@ from pydantic import ValidationError
 
 import aiopenapi3
 from aiopenapi3 import OpenAPI
+from aiopenapi3.errors import ResponseSchemaError
 
 
 def test_invalid_response(httpx_mock, petstore_expanded):
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json={"foo": 1})
     api = OpenAPI("test.yaml", petstore_expanded, session_factory=httpx.Client)
 
-    with pytest.raises(ValidationError, match="2 validation errors for Pet") as r:
+    with pytest.raises(ResponseSchemaError) as r:
         p = api._.find_pet_by_id(data={}, parameters={"id": 1})
 
 

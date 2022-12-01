@@ -21,7 +21,7 @@ except:  # <= Python 3.10
 
 from .base import HTTP_METHODS
 from .version import __version__
-from .errors import SpecError
+from .errors import SpecError, RequestError
 
 
 class RequestParameter:
@@ -70,7 +70,10 @@ class RequestBase:
         self._prepare(data, parameters)
         with closing(self.api._session_factory(**self._factory_args())) as session:
             req = self._build_req(session)
-            result = session.send(req)
+            try:
+                result = session.send(req)
+            except Exception:
+                raise RequestError(self.operation, req, data, parameters)
         headers, data = self._process(result)
 
         return headers, data, result
@@ -87,7 +90,10 @@ class AsyncRequestBase(RequestBase):
         self._prepare(data, parameters)
         async with aclosing(self.api._session_factory(**self._factory_args())) as session:
             req = self._build_req(session)
-            result = await session.send(req)
+            try:
+                result = await session.send(req)
+            except Exception:
+                raise RequestError(self.operation, req, data, parameters)
 
         headers, data = self._process(result)
         return headers, data, result
