@@ -402,6 +402,10 @@ class OpenAPI:
             # Request
 
             # Response
+            for byid in map(lambda x: x.responses, self._documents.values()):
+                for name, response in filter(lambda v: isinstance(v[1].schema_, SchemaBase), byid.items()):
+                    byname[response.schema_._get_identity(name=name)] = response.schema_
+                    data.add(id(response.schema_))
 
         elif isinstance(self._root, (v30.Root, v31.Root)):
             # Schema
