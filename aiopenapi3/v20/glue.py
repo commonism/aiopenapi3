@@ -6,7 +6,7 @@ import pydantic
 
 from ..base import SchemaBase, ParameterBase
 from ..request import RequestBase, AsyncRequestBase
-from ..errors import HTTPStatusError, ContentTypeError
+from ..errors import HTTPStatusError, ContentTypeError, ResponseSchemaError, ResponseDecodingError
 
 from .parameter import Parameter
 
@@ -202,6 +202,7 @@ class Request(RequestBase):
             # TODO - custom exception class that has the response object in it
             options = ",".join(self.operation.responses.keys())
             raise HTTPStatusError(
+                self.operation,
                 result.status_code,
                 f"""Unexpected response {result.status_code} from {self.operation.operationId} (expected one of {options}), no default is defined""",
                 result,
@@ -228,16 +229,28 @@ class Request(RequestBase):
         content_type = result.headers.get("Content-Type", None)
 
         if content_type and content_type.lower().partition(";")[0] == "application/json":
+
             data = result.text
             data = self.api.plugins.message.received(operationId=self.operation.operationId, received=data).received
-            data = json.loads(data)
+            try:
+                data = json.loads(data)
+            except json.decoder.JSONDecodeError:
+                raise ResponseDecodingError(self.operation, result, data)
+
             data = self.api.plugins.message.parsed(
                 operationId=self.operation.operationId,
                 parsed=data,
                 expected_type=getattr(expected_response.schema_, "_target", expected_response.schema_),
             ).parsed
-            # this is valid
-            data = expected_response.schema_.model(data)
+
+            if expected_response.schema_ is None:
+                raise ResponseSchemaError(self.operation, expected_response, expected_response.schema_, result, None)
+
+            try:
+                data = expected_response.schema_.model(data)
+            except pydantic.ValidationError as e:
+                raise ResponseSchemaError(self.operation, expected_response, expected_response.schema_, result, e)
+
             data = self.api.plugins.message.unmarshalled(
                 operationId=self.operation.operationId, unmarshalled=data
             ).unmarshalled
@@ -246,6 +259,7 @@ class Request(RequestBase):
             return headers, result.content
         else:
             raise ContentTypeError(
+                self.operation,
                 content_type,
                 f"Unexpected Content-Type {content_type} returned for operation {self.operation.operationId} (expected application/json)",
                 result,

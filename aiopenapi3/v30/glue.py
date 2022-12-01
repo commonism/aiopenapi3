@@ -7,7 +7,7 @@ import pydantic.json
 
 from ..base import SchemaBase, ParameterBase
 from ..request import RequestBase, AsyncRequestBase
-from ..errors import HTTPStatusError, ContentTypeError
+from ..errors import HTTPStatusError, ContentTypeError, ResponseDecodingError, ResponseSchemaError
 
 
 class Request(RequestBase):
@@ -218,6 +218,7 @@ class Request(RequestBase):
             # TODO - custom exception class that has the response object in it
             options = ",".join(self.operation.responses.keys())
             raise HTTPStatusError(
+                self.operation,
                 result.status_code,
                 f"""Unexpected response {result.status_code} from {self.operation.operationId} (expected one of {options}), no default is defined""",
                 result,
@@ -235,6 +236,7 @@ class Request(RequestBase):
                 if data:
                     headers[name] = header.schema_.model(header._decode(data))
 
+        # status_code == 204 should match here
         if len(expected_response.content) == 0:
             return headers, None
 
@@ -257,6 +259,7 @@ class Request(RequestBase):
         if expected_media is None:
             options = ",".join(expected_response.content.keys())
             raise ContentTypeError(
+                self.operation,
                 content_type,
                 f"Unexpected Content-Type {content_type} returned for operation {self.operation.operationId} \
                          (expected one of {options})",
@@ -266,13 +269,24 @@ class Request(RequestBase):
         if content_type.lower() == "application/json":
             data = result.text
             data = self.api.plugins.message.received(operationId=self.operation.operationId, received=data).received
-            data = json.loads(data)
+            try:
+                data = json.loads(data)
+            except json.decoder.JSONDecodeError:
+                raise ResponseDecodingError(self.operation, result, data)
             data = self.api.plugins.message.parsed(
                 operationId=self.operation.operationId,
                 parsed=data,
                 expected_type=getattr(expected_media.schema_, "_target", expected_media.schema_),
             ).parsed
-            data = expected_media.schema_.model(data)
+
+            if expected_media.schema_ is None:
+                raise ResponseSchemaError(self.operation, expected_media, expected_media.schema_, result, None)
+
+            try:
+                data = expected_media.schema_.model(data)
+            except pydantic.ValidationError as e:
+                raise ResponseSchemaError(self.operation, expected_media, expected_media.schema_, result, e)
+
             data = self.api.plugins.message.unmarshalled(
                 operationId=self.operation.operationId, unmarshalled=data
             ).unmarshalled

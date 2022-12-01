@@ -1,9 +1,10 @@
 import httpx
 import pytest
 
-from aiopenapi3 import OpenAPI
+from aiopenapi3 import OpenAPI, ResponseSchemaError
 from aiopenapi3.plugin import Document, Message
 from aiopenapi3.v20 import Reference
+
 
 from pydantic import ValidationError
 
@@ -186,7 +187,7 @@ def test_pets(api, login):
         if i > 3:
             break
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ResponseSchemaError):
         """
         we do not patch updatePet, therefore this will raise during validation
 
