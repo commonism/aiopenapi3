@@ -47,3 +47,15 @@ components:
           allOf:
             - $ref: '#/components/schemas/Expression'
             - description: Return results that don't match a <code>Dimension</code> object.
+
+
+    NestedElement:
+      additionalProperties: false
+      description: galaxyproject openapi recursive element
+      properties:
+        elements:
+          items:
+            anyOf:
+            - $ref: '#/components/schemas/NestedElement'
+          title: Elements
+          type: array

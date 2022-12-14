@@ -216,7 +216,7 @@ class Model:  # (BaseModel):
                 if isinstance(schema.items, list):
                     r = Tuple[tuple(i.ref.get_type(fwdref=True) for i in schema.items)]
                 elif schema.items:
-                    r = List[Model.typeof(schema.items)]
+                    r = List[Model.typeof(schema.items, fwdref=fwdref)]
                 elif schema.items is None:
                     return
                 else:
