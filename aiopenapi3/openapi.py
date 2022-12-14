@@ -573,7 +573,7 @@ class OpenAPI:
         api._root = self._root
         api.plugins = self.plugins
         api._documents = self._documents
-        api._security = self._security
+        api._security = copy.deepcopy(self._security)
         api._createRequest = self._createRequest
         api._session_factory = self._session_factory
         api.loader = self.loader
