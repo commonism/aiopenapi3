@@ -164,13 +164,14 @@ def test_schema_allof_discriminator(with_schema_allof_discriminator):
 
 def test_schema_enum(openapi_version, with_schema_enum):
     import copy
+    import json
 
     data = copy.deepcopy(with_schema_enum)  # .deepcopy()
 
     import linode_test
 
     data["openapi"] = str(openapi_version)
-    api = OpenAPI(URLBASE, data, plugins=[linode_test.LinodeDiscriminators()])
+    api = OpenAPI.loads(URLBASE, json.dumps(data), plugins=[linode_test.LinodeDiscriminators()])
     import datetime
 
     s = api.components.schemas["PaymentMethod"]
