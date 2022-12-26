@@ -61,7 +61,10 @@ class Message(Plugin):
         operationId: str
         marshalled: Optional[Dict[str, Any]] = None
         sending: Optional[str] = None
-        received: Optional[str] = None
+        received: Optional[bytes] = None
+        headers: "httpx.Headers" = None
+        status_code: Optional[str] = None
+        content_type: Optional[str] = None
         parsed: Optional[Dict[str, Any]] = None
         unmarshalled: Optional[BaseModel] = None
         expected_type: Optional[typing.Type] = None
@@ -149,8 +152,9 @@ class Plugins:
         self._message = self._get_domain("message", plugins)
 
     def _get_domain(self, name, plugins) -> "Domain":
-        p: List[Plugin] = list(filter(lambda x: isinstance(x, self._domains.get(name)), plugins))
-        return Domain(self._domains.get(name).Context, p)
+        domain = self._domains.get(name)
+        p: List[Plugin] = list(filter(lambda x: isinstance(x, domain), plugins))
+        return Domain(domain.Context, p)
 
     @property
     def init(self) -> Domain:
