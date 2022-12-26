@@ -455,7 +455,8 @@ class OpenAPI:
                 continue
             try:
                 schema.update_forward_refs(**types)
-                if (thes := byname.get(name, None)) is not None:
+                thes = byname.get(name, None)
+                if thes is not None:
                     for v in byid[id(thes)]._model_types:
                         v.update_forward_refs(**types)
             except Exception as e:
