@@ -62,6 +62,7 @@ class Schema(ObjectExtended, SchemaBase):
     deprecated: Optional[bool] = Field(default=None)
 
     _model_type: object
+    _model_types: List[object]
     _request_model_type: object
 
     """

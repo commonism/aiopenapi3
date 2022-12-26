@@ -444,16 +444,20 @@ class OpenAPI:
         data: Set[int] = set(byid.keys())
         todo: Set[int] = self._iterate_schemas(byid, data, set())
 
-        types = dict()
+        types: Dict[int, "BaseModel"] = dict()
         for i in todo | data:
             b = byid[i]
             types[b._get_identity("X")] = b.get_type()
 
         for name, schema in types.items():
             if not (inspect.isclass(schema) and issubclass(schema, BaseModel)):
+                # primitive types: str, int …
                 continue
             try:
                 schema.update_forward_refs(**types)
+                if (thes := byname.get(name, None)) is not None:
+                    for v in byid[id(thes)]._model_types:
+                        v.update_forward_refs(**types)
             except Exception as e:
                 raise e
 
