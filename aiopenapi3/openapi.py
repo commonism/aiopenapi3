@@ -229,8 +229,9 @@ class OpenAPI:
         log.init()
         self.log = logging.getLogger("aiopenapi3.OpenAPI")
 
-        document = self.plugins.document.parsed(url=self._base_url, document=document).document
-
+        """
+        Document Plugins get called via OpenAPI.load… - this is processed already
+        """
         self._root = self._parse_obj(document)
 
         self._documents[yarl.URL(url)] = self._root
