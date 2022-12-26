@@ -49,6 +49,7 @@ class Schema(ObjectExtended, SchemaBase):
     example: Optional[Any] = Field(default=None)
 
     _model_type: object
+    _model_types: List[object]
     _request_model_type: object
 
     """

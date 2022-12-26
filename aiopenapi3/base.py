@@ -1,4 +1,4 @@
-from typing import Optional, Any, List, Dict, ForwardRef
+from typing import Optional, Any, List, Dict, ForwardRef, Union
 
 import re
 import builtins
@@ -237,9 +237,11 @@ class SchemaBase:
         """
         r = BaseModel.__getstate__(self)
         try:
-            if "_model_type" in r["__private_attribute_values__"]:
-                r["__private_attribute_values__"] = r["__private_attribute_values__"].copy()
-                del r["__private_attribute_values__"]["_model_type"]
+            for i in ["_model_type", "_model_types"]:
+                if i in r["__private_attribute_values__"]:
+                    r["__private_attribute_values__"] = r["__private_attribute_values__"].copy()
+                    del r["__private_attribute_values__"][i]
+
         except Exception:
             pass
         return r
@@ -271,14 +273,19 @@ class SchemaBase:
 
     def set_type(
         self, names: List[str] = None, discriminators: List[DiscriminatorBase] = None, extra: "SchemaBase" = None
-    ):
+    ) -> BaseModel:
         from .model import Model
+
+        if not hasattr(self, "_model_types"):
+            self._model_types = list()
 
         if extra is None:
             self._model_type = Model.from_schema(self, names, discriminators)
             return self._model_type
         else:
-            return Model.from_schema(self, names, discriminators, extra)
+            r = Model.from_schema(self, names, discriminators, extra)
+            self._model_types.append(r)
+            return r
 
     def get_type(
         self,
@@ -286,7 +293,7 @@ class SchemaBase:
         discriminators: List[DiscriminatorBase] = None,
         extra: "SchemaBase" = None,
         fwdref: bool = False,
-    ):
+    ) -> Union[BaseModel, ForwardRef]:
         try:
             if extra is None:
                 return self._model_type
