@@ -48,7 +48,7 @@ class RequestBase:
         self.operation = operation
         self.req: RequestParameter = RequestParameter(self.path)
 
-    def __call__(self, *args, return_headers: bool = False, **kwargs):
+    def __call__(self, *args, return_headers: bool = False, **kwargs) -> Union[Any, Tuple[Dict[str, str], Any]]:
         """
         :param args:
         :param return_headers:  if set return a tuple (header, body)

@@ -523,13 +523,12 @@ class OpenAPI:
     def _(self):
         return self._operationindex
 
-    def createRequest(self, operationId: Union[str, Tuple[str, str]]):
+    def createRequest(self, operationId: Union[str, Tuple[str, str]]) -> aiopenapi3.request.RequestBase:
         """
         create a Request
         lookup the Operation by operationId or path,method
 
         :param operationId:
-        :return: aiopenapi3.request.RequestBase
         """
         if isinstance(operationId, str):
             p = operationId.split(".")
