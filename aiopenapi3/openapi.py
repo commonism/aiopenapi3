@@ -59,7 +59,7 @@ class OpenAPI:
         loader=None,
         plugins: List[Plugin] = None,
         use_operation_tags: bool = False,
-    ):
+    ) -> "OpenAPI":
         """
         Create an synchronous OpenAPI object from a description document.
 
@@ -67,8 +67,7 @@ class OpenAPI:
         :param session_factory: used to create the session for http/s io
         :param loader: the backend to access referenced description documents
         :param plugins: potions to cure defects in the description document or requests/responses
-        :param use_operation_tags:
-        :return:
+        :param use_operation_tags: honor tags
         """
 
         resp = session_factory().get(url)
@@ -82,7 +81,7 @@ class OpenAPI:
         loader=None,
         plugins: List[Plugin] = None,
         use_operation_tags: bool = False,
-    ):
+    ) -> "OpenAPI":
         """
         Create an asynchronous OpenAPI object from a description document.
 
@@ -90,8 +89,7 @@ class OpenAPI:
         :param session_factory: used to create the session for http/s io
         :param loader: the backend to access referenced description documents
         :param plugins: potions to cure defects in the description document or requests/responses
-        :param use_operation_tags:
-        :return:
+        :param use_operation_tags: honor tags
         """
         async with session_factory() as client:
             resp = await client.get(url)
@@ -112,7 +110,7 @@ class OpenAPI:
         loader: Loader = None,
         plugins: List[Plugin] = None,
         use_operation_tags: bool = False,
-    ):
+    ) -> "OpenAPI":
         """
         Create an OpenAPI object from a description document file.
 
@@ -122,8 +120,7 @@ class OpenAPI:
         :param session_factory: used to create the session for http/s io, defaults to use an AsyncClient
         :param loader: the backend to access referenced description documents
         :param plugins: potions to cure defects in the description document or requests/responses
-        :param use_operation_tags:
-        :return: :py:class:`aiopenapi3.openapi.OpenAPI`
+        :param use_operation_tags: honor tags
         """
         assert loader
         if not isinstance(path, yarl.URL):
@@ -140,16 +137,15 @@ class OpenAPI:
         loader=None,
         plugins: List[Plugin] = None,
         use_operation_tags: bool = False,
-    ):
+    ) -> "OpenAPI":
         """
 
         :param url: api service base url
         :param data: description document
-        :param session_factory:
-        :param loader:
-        :param plugins:
-        :param use_operation_tags:
-        :return:
+        :param session_factory: used to create the session for http/s io, defaults to use an AsyncClient
+        :param loader: the backend to access referenced description documents
+        :param plugins: potions to cure defects in the description document or requests/responses
+        :param use_operation_tags: honor tags
         """
         if loader is None:
             loader = NullLoader()
@@ -189,19 +185,15 @@ class OpenAPI:
         loader=None,
         plugins: List[Plugin] = None,
         use_operation_tags: bool = True,
-    ):
+    ) -> "OpenAPI":
         """
         Creates a new OpenAPI document from a loaded spec file.  This is
         overridden here because we need to specify the path in the parent
         class' constructor.
 
         :param document: The raw OpenAPI file loaded into python
-        :type document: dct
         :param session_factory: default uses new session for each call, supply your own if required otherwise.
-        :type session_factory: returns httpx.AsyncClient or http.Client
         :param use_operation_tags: honor tags
-        :type use_operation_tags: bool
-
         """
 
         self._base_url: yarl.URL = yarl.URL(url)

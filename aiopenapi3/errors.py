@@ -20,6 +20,10 @@ class ReferenceResolutionError(SpecError):
 
 
 class ParameterFormatError(ValueError):
+    """
+    The specified parameter encoding is invalid for the parameter family
+    """
+
     pass
 
 

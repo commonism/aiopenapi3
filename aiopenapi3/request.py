@@ -1,7 +1,8 @@
+import abc
 import collections
 import io
 from contextlib import closing
-from typing import Dict, Tuple, Union, Any, Optional
+from typing import Dict, Tuple, Union, Any, Optional, List
 
 import httpx
 import yarl
@@ -48,6 +49,12 @@ class RequestBase:
         self.req: RequestParameter = RequestParameter(self.path)
 
     def __call__(self, *args, return_headers: bool = False, **kwargs):
+        """
+        :param args:
+        :param return_headers:  if set return a tuple (header, body)
+        :param kwargs:
+        :return: body or (header, body)
+        """
         headers, data, result = self.request(*args, **kwargs)
         if return_headers:
             return headers, data
@@ -64,8 +71,7 @@ class RequestBase:
         :type data: any, should match content/type
         :param parameters: The parameters used to create the path
         :type parameters: dict{str: str}
-        :param return_headers: if set return a tuple (header, body)
-        :return: body or (header, body)
+        :return: headers, data, response
         """
         self._prepare(data, parameters)
         with closing(self.api._session_factory(**self._factory_args())) as session:
@@ -77,6 +83,22 @@ class RequestBase:
         headers, data = self._process(result)
 
         return headers, data, result
+
+    @property
+    @abc.abstractmethod
+    def data(self) -> "SchemaBase":
+        """
+        :return: the Schema for the body
+        """
+        pass
+
+    @property
+    @abc.abstractmethod
+    def parameters(self) -> List["ParameterBase"]:
+        """
+        :return: list of parameters
+        """
+        pass
 
 
 class AsyncRequestBase(RequestBase):

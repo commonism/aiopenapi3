@@ -4,7 +4,7 @@ from typing import Union, Optional, Dict, Any
 from pydantic import Field, root_validator
 import more_itertools
 
-from ..base import ObjectExtended
+from ..base import ObjectExtended, ParameterBase as ParameterBase_
 from ..errors import ParameterFormatError
 
 from .example import Example
@@ -215,7 +215,7 @@ class _ParameterCodec:
             return value
 
 
-class ParameterBase(ObjectExtended):
+class ParameterBase(ObjectExtended, ParameterBase_):
     """
     A `Parameter Object`_ defines a single operation parameter.
 

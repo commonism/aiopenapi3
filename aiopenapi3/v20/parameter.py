@@ -94,7 +94,7 @@ class _In(str, enum.Enum):
     body = "body"
 
 
-class Parameter(ObjectExtended, _ParameterCodec):
+class Parameter(ObjectExtended, _ParameterCodec, ParameterBase):
     """
     Describes a single operation parameter.
 

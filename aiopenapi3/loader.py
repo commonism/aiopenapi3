@@ -66,11 +66,24 @@ class Loader(abc.ABC):
         self.yload = yload
 
     @abc.abstractmethod
-    def load(self, plugins, url: yarl.URL, codec=None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec=None):
+        """
+        load and decode description document
+        :param plugins: collection of `aiopenapi3.plugin.Document` plugins
+        :param url: location of the description document
+        :param codec:
+        :return: decoded data
+        """
         raise NotImplementedError("load")
 
     @classmethod
-    def decode(cls, data, codec):
+    def decode(cls, data: bytes, codec):
+        """
+        decode bytes to ascii or utf-8
+        :param data:
+        :param codec:
+        :return:
+        """
         if codec is not None:
             codecs = [codec]
         else:
@@ -85,8 +98,29 @@ class Loader(abc.ABC):
             raise ValueError("encoding")
         return data
 
-    def parse(self, plugins, url: yarl.URL, data):
+    # FIXME - does not call plugins.document.parsed
+    def parse(self, plugins: Plugins, url: yarl.URL, data: str):
+        """
+        parse the downloaded document as json or yaml
+
+        :param plugins: collection of `aiopenapi3.plugin.Document` plugins
+        :param url: location of the description document
+        :param data: decoded data of the description document
+        :return:
+        """
         file = Path(url.path)
+        if file.suffix not in (".yaml", ".json"):
+            try:
+                return self.parse(plugins, url.with_path("/test.yaml"), data)
+            except Exception as e:
+                print(e)
+                pass
+            try:
+                return self.parse(plugins, url.with_path("/test.json"), data)
+            except Exception as e:
+                print(e)
+                pass
+
         if file.suffix == ".yaml":
             data = yaml.load(data, Loader=self.yload)
         elif file.suffix == ".json":
@@ -95,7 +129,13 @@ class Loader(abc.ABC):
             raise ValueError(f"{file.name} is not yaml/json")
         return data
 
-    def get(self, plugins, url: yarl.URL):
+    def get(self, plugins: Plugins, url: yarl.URL):
+        """
+        load & parse the description document
+        :param plugins: collection of `aiopenapi3.plugin.Document` plugins
+        :param url: location of the description document
+        :return:
+        """
         data = self.load(plugins, url)
         return self.parse(plugins, url, data)
 
@@ -104,7 +144,7 @@ class Loader(abc.ABC):
 
 
 class NullLoader(Loader):
-    def load(self, plugins, url: yarl.URL, codec=None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec=None):
         raise NotImplementedError("load")
 
 
@@ -115,16 +155,17 @@ class WebLoader(Loader):
         self.baseurl: yarl.URL = baseurl
         self.session_factory = session_factory
 
-    def load(self, plugins, url: yarl.URL, codec=None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec=None):
         url = self.baseurl.join(url)
         with self.session_factory() as session:
             data = session.get(str(url))
+            assert 200 <= data.status_code <= 299, data
             data = data.content
         data = self.decode(data, codec)
         data = plugins.document.loaded(url=url, document=data).document
         return data
 
-    def parse(self, plugins, url: yarl.URL, data):
+    def parse(self, plugins: Plugins, url: yarl.URL, data: str):
         data = super().parse(plugins, url, data)
         data = plugins.document.parsed(url=url, document=data).document
         return data
@@ -151,7 +192,7 @@ class FileSystemLoader(Loader):
         data = plugins.document.loaded(url=url, document=data).document
         return data
 
-    def parse(self, plugins, url: yarl.URL, data):
+    def parse(self, plugins, url: yarl.URL, data: str):
         data = super().parse(plugins, url, data)
         data = plugins.document.parsed(url=url, document=data).document
         return data
