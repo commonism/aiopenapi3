@@ -57,7 +57,6 @@ Using a Document plugin to modify the parsed description document to state the c
     tarfile.open(mode="r:gz", fileobj=io.BytesIO(data)).getmembers()
     # [<TarInfo 'rtd' at 0x7fe92cdd0580>, <TarInfo 'rtd/README.md' at 0x7fe92cdd01c0>]
 
-.. _Message Plugin:
 Message
 ^^^^^^^
 
