@@ -187,9 +187,21 @@ class Request(RequestBase):
         return req
 
     def _process(self, result):
-        headers = dict()
+        rheaders = dict()
         # spec enforces these are strings
         status_code = str(result.status_code)
+        content_type = result.headers.get("Content-Type", None)
+
+        ctx = self.api.plugins.message.received(
+            operationId=self.operation.operationId,
+            received=result.content,
+            headers=result.headers,
+            status_code=status_code,
+            content_type=content_type,
+        )
+        status_code = ctx.status_code
+        content_type = ctx.content_type
+        headers = ctx.headers
 
         # find the response model in spec we received
         expected_response = None
@@ -219,19 +231,15 @@ class Request(RequestBase):
             # if required - available:
             #     raise ValueError(f"missing {sorted(required - available)}")
             for name, header in expected_response.headers.items():
-                data = result.headers.get(name, None)
+                data = headers.get(name, None)
                 if data:
-                    headers[name] = header._schema.model(header._decode(data))
+                    rheaders[name] = header._schema.model(header._decode(data))
 
         if status_code == "204":
-            return headers, None
-
-        content_type = result.headers.get("Content-Type", None)
+            return rheaders, None
 
         if content_type and content_type.lower().partition(";")[0] == "application/json":
-
-            data = result.text
-            data = self.api.plugins.message.received(operationId=self.operation.operationId, received=data).received
+            data = ctx.received.decode()
             try:
                 data = json.loads(data)
             except json.decoder.JSONDecodeError:
@@ -250,13 +258,15 @@ class Request(RequestBase):
                 data = expected_response.schema_.model(data)
             except pydantic.ValidationError as e:
                 raise ResponseSchemaError(self.operation, expected_response, expected_response.schema_, result, e)
+            except pydantic.errors.ConfigError as e1:
+                raise ResponseSchemaError(self.operation, expected_response, expected_response.schema_, result, e1)
 
             data = self.api.plugins.message.unmarshalled(
                 operationId=self.operation.operationId, unmarshalled=data
             ).unmarshalled
-            return headers, data
+            return rheaders, data
         elif content_type in self.operation.produces:
-            return headers, result.content
+            return rheaders, result.content
         else:
             raise ContentTypeError(
                 self.operation,

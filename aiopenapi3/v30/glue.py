@@ -205,9 +205,22 @@ class Request(RequestBase):
         return req
 
     def _process(self, result):
-        headers = dict()
+        rheaders = dict()
         # spec enforces these are strings
         status_code = str(result.status_code)
+        content_type = result.headers.get("Content-Type", None)
+
+        ctx = self.api.plugins.message.received(
+            operationId=self.operation.operationId,
+            received=result.content,
+            headers=result.headers,
+            status_code=status_code,
+            content_type=content_type,
+        )
+
+        status_code = ctx.status_code
+        content_type = ctx.content_type
+        headers = ctx.headers
 
         # find the response model in spec we received
         expected_response = None
@@ -230,19 +243,17 @@ class Request(RequestBase):
             required = frozenset(
                 map(lambda x: x[0].lower(), filter(lambda x: x[1].required is True, expected_response.headers.items()))
             )
-            available = frozenset(result.headers.keys())
+            available = frozenset(headers.keys())
             if required - available:
                 raise ValueError(f"missing Header {sorted(required - available)}")
             for name, header in expected_response.headers.items():
-                data = result.headers.get(name, None)
+                data = headers.get(name, None)
                 if data:
-                    headers[name] = header.schema_.model(header._decode(data))
+                    rheaders[name] = header.schema_.model(header._decode(data))
 
         # status_code == 204 should match here
         if len(expected_response.content) == 0:
-            return headers, None
-
-        content_type = result.headers.get("Content-Type", None)
+            return rheaders, None
 
         if content_type:
             content_type, _, encoding = content_type.partition(";")
@@ -269,8 +280,8 @@ class Request(RequestBase):
             )
 
         if content_type.lower() == "application/json":
-            data = result.text
-            data = self.api.plugins.message.received(operationId=self.operation.operationId, received=data).received
+
+            data = ctx.received
             try:
                 data = json.loads(data)
             except json.decoder.JSONDecodeError:
@@ -288,11 +299,13 @@ class Request(RequestBase):
                 data = expected_media.schema_.model(data)
             except pydantic.ValidationError as e:
                 raise ResponseSchemaError(self.operation, expected_media, expected_media.schema_, result, e)
+            except pydantic.errors.ConfigError as e1:
+                raise ResponseSchemaError(self.operation, expected_media, expected_media.schema_, result, e1)
 
             data = self.api.plugins.message.unmarshalled(
                 operationId=self.operation.operationId, unmarshalled=data
             ).unmarshalled
-            return headers, data
+            return rheaders, data
         else:
             raise NotImplementedError()
 
