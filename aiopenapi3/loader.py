@@ -98,7 +98,6 @@ class Loader(abc.ABC):
             raise ValueError("encoding")
         return data
 
-    # FIXME - does not call plugins.document.parsed
     def parse(self, plugins: Plugins, url: yarl.URL, data: str):
         """
         parse the downloaded document as json or yaml
@@ -127,6 +126,8 @@ class Loader(abc.ABC):
             data = json.loads(data)
         else:
             raise ValueError(f"{file.name} is not yaml/json")
+
+        data = plugins.document.parsed(url=url, document=data).document
         return data
 
     def get(self, plugins: Plugins, url: yarl.URL):
@@ -165,11 +166,6 @@ class WebLoader(Loader):
         data = plugins.document.loaded(url=url, document=data).document
         return data
 
-    def parse(self, plugins: Plugins, url: yarl.URL, data: str):
-        data = super().parse(plugins, url, data)
-        data = plugins.document.parsed(url=url, document=data).document
-        return data
-
     def __repr__(self):
         return f"{self.__class__.__qualname__}(baseurl={self.baseurl})"
 
@@ -190,11 +186,6 @@ class FileSystemLoader(Loader):
             data = f.read()
         data = self.decode(data, codec)
         data = plugins.document.loaded(url=url, document=data).document
-        return data
-
-    def parse(self, plugins, url: yarl.URL, data: str):
-        data = super().parse(plugins, url, data)
-        data = plugins.document.parsed(url=url, document=data).document
         return data
 
     def __repr__(self):
