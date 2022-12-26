@@ -25,10 +25,12 @@ class Request(RequestBase):
 
     @property
     def data(self) -> SchemaBase:
+        """the body Schema"""
         return self.operation.requestBody.content["application/json"].schema_
 
     @property
     def parameters(self) -> List[ParameterBase]:
+        """the parameters"""
         return self.operation.parameters + self.root.paths[self.path].parameters
 
     def args(self, content_type: str = "application/json"):

@@ -6,3 +6,5 @@ openapi3.egg-info/*
 build/*
 dist/*
 .idea
+tests/data/
+docs/build/
