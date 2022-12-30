@@ -1,8 +1,10 @@
 """
 Tests parsing specs
 """
+from pathlib import Path
 import sys
 import pickle
+import copy
 
 if sys.version_info >= (3, 9):
     pass
@@ -27,23 +29,28 @@ def test_pickle(with_paths_security_v20, with_schema_anyof, with_parsing_paths_l
     for dd in [with_paths_security_v20, with_schema_anyof, with_parsing_paths_links]:
         api = OpenAPI(URLBASE, dd)
         name = "test"
+        p = Path(f"{name}.pickle")
 
         if dd == with_schema_anyof:
             A = api.components.schemas["A"].construct()
-            with open(f"{name}.pickle", "wb") as f:
+            with p.open("wb") as f:
                 pickle.dump(A, f)
-            with open(f"{name}.pickle", "rb") as f:
+            with p.open("rb") as f:
                 A_ = pickle.load(f)
 
-        with open(f"{name}.pickle", "wb") as f:
-            pickle.dump(api, f)
-
-        with open(f"{name}.pickle", "rb") as f:
-            pickle.load(f)
+        api.cache_store(p)
+        OpenAPI.cache_load(p)
 
 
 def test_unpickle():
     name = "test"
-    with open(f"{name}.pickle", "rb") as f:
+    p = Path(f"{name}.pickle")
+    with p.open("rb") as f:
         A_ = pickle.load(f)
-    print(A_)
+
+
+def test_copy(petstore_expanded):
+    api_ = OpenAPI(URLBASE, petstore_expanded)
+    api = copy.copy(api_)
+    assert api != api_
+    assert id(api_._security) != id(api._security)
