@@ -18,6 +18,10 @@ class ReferenceResolutionError(SpecError):
     of a malformed path in the reference.
     """
 
+    def __init__(self, message, element=None):
+        super().__init__(message, element)
+        self.document = None
+
 
 class ParameterFormatError(ValueError):
     """

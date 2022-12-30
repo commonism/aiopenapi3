@@ -114,7 +114,7 @@ class AsyncRequestBase(RequestBase):
             req = self._build_req(session)
             try:
                 result = await session.send(req)
-            except Exception:
+            except Exception as e:
                 raise RequestError(self.operation, req, data, parameters)
 
         headers, data = self._process(result)
