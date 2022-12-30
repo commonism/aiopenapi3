@@ -278,11 +278,17 @@ class OpenAPI:
         processed = set()
         while True:
             values = {id(x): x for x in self._documents.values()}
+            names = {id(v): k for k, v in self._documents.items()}
             todo = set(values.keys()) - processed
             if not todo:
                 break
             for i in todo:
-                values[i]._resolve_references(self)
+                #                print(names[i])
+                try:
+                    values[i]._resolve_references(self)
+                except ReferenceResolutionError as e:
+                    e.document = names[i]
+                    raise
             processed = set(values.keys())
         return
 
