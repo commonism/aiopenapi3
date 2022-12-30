@@ -6,7 +6,7 @@ API
 General
 """""""
 .. autoclass:: aiopenapi3.OpenAPI
-    :members: authenticate, createRequest, load_async, load_file, load_sync, loads
+    :members: authenticate, createRequest, load_async, load_file, load_sync, loads, copy, cache_load, cache_store, _
 
 
 Requests
