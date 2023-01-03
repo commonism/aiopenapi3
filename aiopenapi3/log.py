@@ -17,6 +17,10 @@ def init(force=False):
         return
 
     handlers = []
+
+    if os.environ.get("AIOPENAPI3_LOGGING_HANDLERS", None) is None:
+        return
+
     if force:
         if sys.stdin.isatty() and sys.stdout.isatty():
             handlers.append("console")
