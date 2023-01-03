@@ -1,11 +1,23 @@
 import argparse
+import datetime
 import sys
 import json
+import itertools
+
+from pstats import SortKey
+import pstats
+import io
+import importlib.util
+import cProfile
+import tracemalloc
+import linecache
 
 import yaml
 import yarl
+import httpx
 
 import aiopenapi3.plugin
+
 
 if sys.version_info >= (3, 9):
     from pathlib import Path
@@ -14,7 +26,8 @@ else:
 
 from .openapi import OpenAPI
 
-from .loader import FileSystemLoader, WebLoader, YAMLCompatibilityLoader, remove_implicit_resolver
+from .loader import ChainLoader, RedirectLoader, WebLoader, YAMLCompatibilityLoader, remove_implicit_resolver
+import aiopenapi3.loader
 
 
 class DefaultLoader(yaml.SafeLoader):
@@ -45,9 +58,13 @@ def loader_prepare(args):
 
     path = yarl.URL(args.input)
     if path.scheme in ["http", "https"]:
-        loader = WebLoader(baseurl=path.with_path("/").with_query({}), yload=ylc)
+
+        def session_factory(*args, **kwargs) -> httpx.Client:
+            return httpx.Client(*args, verify=False, **kwargs)
+
+        loader = WebLoader(baseurl=path.with_path("/").with_query({}), yload=ylc, session_factory=session_factory)
     else:
-        loader = FileSystemLoader(Path().cwd(), yload=ylc)
+        loader = ChainLoader([RedirectLoader(Path(l).expanduser(), yload=ylc) for l in args.locations])
 
     return loader, ylc
 
@@ -76,7 +93,9 @@ def main(argv=None):
     global log
     parser = argparse.ArgumentParser("aiopenapi3", description="Swagger 2.0, OpenAPI 3.0, OpenAPI 3.1 validator")
     parser.add_argument("-v", "--verbose", action="store_true", default=False, help="be verbose")
-
+    parser.add_argument("-p", "--profile", action="store_true", default=False)
+    parser.add_argument("-t", "--tracemalloc", action="store_true", default=False)
+    parser.add_argument("-L", "--locations", action="append")
     sub = parser.add_subparsers()
 
     cmd = sub.add_parser("convert")
@@ -139,15 +158,47 @@ def main(argv=None):
 
     cmd = sub.add_parser("validate")
     loader_args(cmd)
+    cmd.add_argument("input")
 
-    def cmd_validate(argv):
-        loader, ylc = loader_prepare()
+    def cmd_validate(args):
+        loader, ylc = loader_prepare(args)
 
         try:
-            OpenAPI.load_file(args.name, yarl.URL(args.name), loader=loader)
+            begin = datetime.datetime.now()
+            api = OpenAPI.load_file(args.input, yarl.URL(args.input), plugins=plugins, loader=loader)
+            end = datetime.datetime.now()
+            duration = end - begin
         except ValueError as e:
             print(e)
         else:
+            if args.verbose:
+                operations = list(
+                    itertools.chain.from_iterable(
+                        map(
+                            lambda x: list(
+                                filter(lambda x: x, [x.delete, x.get, x.head, x.options, x.patch, x.post, x.put])
+                            ),
+                            api.paths._paths.values(),
+                        )
+                    )
+                )
+                print(f"…  {duration} (processing time)")
+                print(f"… {len(operations)=}")
+                operations = list(filter(lambda x: x.operationId, operations))
+                print(f"… {len(operations)=} (with operationId)")
+
+                def schemaof(x):
+                    if isinstance(api._root, aiopenapi3.v20.Root):
+                        return x.definitions
+                    else:
+                        return x.components.schemas
+
+                ss = 0
+                for idx, (name, v) in enumerate(api._documents.items()):
+                    ss += len(schemaof(v))
+                    print(f"… {idx} {name}: {len(schemaof(v))}")
+                print(f"… {ss=}")
+
             print("OK")
 
     cmd.set_defaults(func=cmd_validate)
@@ -163,7 +214,52 @@ def main(argv=None):
 
     log = log_
 
+    if args.profile:
+        pr = cProfile.Profile()
+        pr.enable()
+
+    if args.tracemalloc:
+        tracemalloc.start()
+
     if args.func:
         args.func(args)
     else:
         parser.show_help()
+
+    if args.tracemalloc:
+        tm = tracemalloc.take_snapshot()
+        tracemalloc.stop()
+
+        def display_top(snapshot, key_type="lineno", limit=10):
+            snapshot = snapshot.filter_traces(
+                (
+                    tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),
+                    #                tracemalloc.Filter(False, "<unknown>"),
+                )
+            )
+            top_stats = snapshot.statistics(key_type)
+
+            print("Top %s lines" % limit)
+            for index, stat in enumerate(top_stats[:limit], 1):
+                frame = stat.traceback[0]
+                print("#%s: %s:%s: %.1f KiB" % (index, frame.filename, frame.lineno, stat.size / 1024))
+                line = linecache.getline(frame.filename, frame.lineno).strip()
+                if line:
+                    print("    %s" % line)
+
+            other = top_stats[limit:]
+            if other:
+                size = sum(stat.size for stat in other)
+                print("%s other: %.1f KiB" % (len(other), size / 1024))
+            total = sum(stat.size for stat in top_stats)
+            print("Total allocated size: %.1f KiB" % (total / 1024))
+
+        display_top(tm, limit=25)
+
+    if args.profile:
+        pr.disable()
+        s = io.StringIO()
+        sortby = SortKey.CUMULATIVE
+        ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+        ps.print_stats()
+        print(s.getvalue())
