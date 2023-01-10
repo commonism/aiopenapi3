@@ -4,6 +4,7 @@ import shlex
 import pytest
 
 from aiopenapi3.cli import main
+import aiopenapi3.log
 
 
 def test_validate_cli():
@@ -37,4 +38,8 @@ def test_tracemalloc():
 
 def test_logging():
     os.environ["AIOPENAPI3_LOGGING_HANDLERS"] = "console"
-    main(shlex.split("--tracemalloc validate tests/fixtures/petstore-expanded.yaml"))
+    aiopenapi3.log.handlers = None
+    main(shlex.split("validate tests/fixtures/petstore-expanded.yaml"))
+
+    aiopenapi3.log.handlers = None
+    aiopenapi3.log.init(True)
