@@ -66,6 +66,7 @@ YAMLCompatibilityLoader.remove_implicit_resolver("tag:yaml.org,2002:bool")
 class Loader(abc.ABC):
     """
     Loaders are used to 'get' description documents:
+
      * load
      * decode
      * parse
@@ -78,6 +79,7 @@ class Loader(abc.ABC):
     def load(self, plugins: Plugins, url: yarl.URL, codec: str = None):
         """
         load and decode description document
+
         :param plugins: collection of `aiopenapi3.plugin.Document` plugins
         :param url: location of the description document
         :param codec:
@@ -89,6 +91,7 @@ class Loader(abc.ABC):
     def decode(cls, data: bytes, codec: str):
         """
         decode bytes to ascii or utf-8
+
         :param data:
         :param codec:
         :return:
@@ -233,6 +236,11 @@ class ChainLoader(Loader):
     """
 
     def __init__(self, *loaders, yload: yaml.Loader = yaml.SafeLoader):
+        """
+
+        :param loaders: loaders to use
+        :param yload: YAML loader to use
+        """
         Loader.__init__(self, yload)
         self.loaders = loaders
 

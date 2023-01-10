@@ -5,8 +5,9 @@
 
 .. include:: links.rst
 
+############
 |aiopenapi3|
-============
+############
 
     *If you can't make it perfect, make it adjustable.*
 
@@ -14,14 +15,18 @@
 built upon pydantic_ for data validation/coercion and httpx_ for transport.
 It's located on `github <https://github.com/commonism/aiopenapi3>`_.
 
+**********************
 Features & Limitations
-""""""""""""""""""""""
+**********************
+
 While aiopenapi3 supports some of the more exotic features of the Swagger/OpenAPI specification, e.g.:
 
 * multilingual
-   * Swagger 2.0
-   * OpenAPI 3.0
-   * OpenAPI 3.1
+
+  * Swagger 2.0
+  * OpenAPI 3.0
+  * OpenAPI 3.1
+
 * multi file description documents
 * recursive schemas
 * `additionalProperties <https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#model-with-mapdictionary-properties>`_
@@ -32,9 +37,11 @@ While aiopenapi3 supports some of the more exotic features of the Swagger/OpenAP
 some aspects of the specifications can not be supported.
 
 * `Schema Composition <http://json-schema.org/understanding-json-schema/reference/combining.html>`_
-   * oneOf - validation does not care if more than one matches
-   * anyOf - implemented as oneOf
-   * allOf - merging Schemas is limited wrt. to merge conflicts
+
+  * oneOf - validation does not care if more than one matches
+  * anyOf - implemented as oneOf
+  * allOf - merging Schemas is limited wrt. to merge conflicts
+
 * additionalProperties mixed with properties
 * non-unique parameter names in an operations headers/path/query
 

@@ -63,9 +63,9 @@ class OpenAPI:
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
-        Create an synchronous OpenAPI object from a description document.
+        Create a synchronous OpenAPI object from a description document.
 
-        :param url: description document location
+        :param url: the url of the description document
         :param session_factory: used to create the session for http/s io
         :param loader: the backend to access referenced description documents
         :param plugins: potions to cure defects in the description document or requests/responses
@@ -87,7 +87,7 @@ class OpenAPI:
         """
         Create an asynchronous OpenAPI object from a description document.
 
-        :param url: description document location
+        :param url: the url of the description document
         :param session_factory: used to create the session for http/s io
         :param loader: the backend to access referenced description documents
         :param plugins: potions to cure defects in the description document or requests/responses
@@ -117,7 +117,7 @@ class OpenAPI:
         Create an OpenAPI object from a description document file.
 
 
-        :param url: api service base url
+        :param url: the fictive url of the description document
         :param path: description document location
         :param session_factory: used to create the session for http/s io, defaults to use an AsyncClient
         :param loader: the backend to access referenced description documents
@@ -142,7 +142,7 @@ class OpenAPI:
     ) -> "OpenAPI":
         """
 
-        :param url: api service base url
+        :param url: the url of the description document
         :param data: description document
         :param session_factory: used to create the session for http/s io, defaults to use an AsyncClient
         :param loader: the backend to access referenced description documents
@@ -193,8 +193,11 @@ class OpenAPI:
         overridden here because we need to specify the path in the parent
         class' constructor.
 
+        :param url: the url of the description document
         :param document: The raw OpenAPI file loaded into python
         :param session_factory: default uses new session for each call, supply your own if required otherwise.
+        :param loader: the Loader for the description document(s)
+        :param plugins: list of plugins
         :param use_operation_tags: honor tags
         """
 
@@ -501,6 +504,8 @@ class OpenAPI:
     # public methods
     def authenticate(self, *args, **kwargs):
         """
+        authenticate, multiple authentication schemes can be used simultaneously serving "or" or "and"
+        authentication schemes
 
         :param args: None to remove all credentials / reset the authorizations
         :param kwargs: scheme=value
@@ -539,9 +544,14 @@ class OpenAPI:
     def createRequest(self, operationId: Union[str, Tuple[str, str]]) -> aiopenapi3.request.RequestBase:
         """
         create a Request
+
         lookup the Operation by operationId or path,method
 
-        :param operationId:
+        the type of Request returned depends on the session_factory of the OpenAPI object and OpenAPI/Swagger version
+
+        :param operationId: the operationId or tuple(path,method)
+        :return: the returned Request is either :class:`aiopenapi3.request.RequestBase` or -
+            in case of a httpx.AsyncClient session_factory - :class:`aiopenapi3.request.AsyncRequestBase`
         """
         if isinstance(operationId, str):
             p = operationId.split(".")
@@ -556,6 +566,14 @@ class OpenAPI:
         return req
 
     def resolve_jr(self, root: RootBase, obj, value: Reference):
+        """
+        Resolve a `JSON Reference<https://datatracker.ietf.org/doc/html/draft-pbryan-zyp-json-ref-03>`_ in our documents
+
+        :param root:
+        :param obj:
+        :param value:
+        :return:
+        """
         url, jp = JSONReference.split(value.ref)
         if url != "":
             url = yarl.URL(url)

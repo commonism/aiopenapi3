@@ -1,17 +1,48 @@
 .. include:: links.rst
 
-
+*******
 Plugins
--------
+*******
 
 To assist dealing with differences in the description document and the protocol, |aiopenapi3| provides a capable plugin
 interface which allows mangling the description document and the messages sent/received to match.
 
+Init
+====
+
+Init plugins are run after the initialization of the OpenAPI object.
+The following examples modifies specific pydantic models to allow unknown properties.
+
+.. code:: python
+
+    class DellInit(aiopenapi3.plugin.Init):
+        def initialized(self, ctx):
+            """
+            Resource_Oem & Attributes are objects with additionalProperties
+            the default will ignore unknown properties
+            """
+
+            def schemas(name, fn):
+                for doc in self.api._documents.values():
+                    schema = doc.components.schemas.get(name, None)
+                    if not schema:
+                        continue
+                    fn(doc, schema)
+
+            schemas("Resource_Oem", lambda doc, schema:
+                setattr(schema.get_type().Config, "extra", pydantic.Extra.allow))
+            schemas("DellAttributes_v1_0_0_DellAttributes",
+                    lambda doc, schema: setattr(
+                        doc.components.schemas["DellAttributes_v1_0_0_Attributes"].get_type().Config,
+                        "extra",
+                        pydantic.Extra.allow)
+                    )
+            return ctx
+
 Document
-^^^^^^^^
+========
 
 As an example, due to a `bug #21997 <https://github.com/go-gitea/gitea/issues/21997>`_ the response repoGetArchive operation of gitea does not match the content type of the description document:
-
 
 .. code:: python
 
@@ -26,7 +57,6 @@ As an example, due to a `bug #21997 <https://github.com/go-gitea/gitea/issues/21
 
     body = api._.repoCreateFile.data.get_type().parse_obj({'name':'README.md', "contents":codecs.encode(b"# everything starts somewhere", "base64")})
     commit = api._.repoCreateFile(parameters={"owner":user.login, "repo":"rtd", "filepath":"README.md"}, data=body)
-
 
     api._.repoGetArchive(parameters={"owner":user.login, "repo":"rtd", "archive":"main.tar.gz"})
     # Traceback (most recent call last):
@@ -48,7 +78,6 @@ Using a Document plugin to modify the parsed description document to state the c
                 print(e)
             return ctx
 
-
     api = OpenAPI.load_sync("https://try.gitea.io/swagger.v1.json", plugins=[ContentType()])
     api.authenticate(AuthorizationHeaderToken=f"token {TOKEN}")
     user = api._.userGetCurrent()
@@ -58,7 +87,7 @@ Using a Document plugin to modify the parsed description document to state the c
     # [<TarInfo 'rtd' at 0x7fe92cdd0580>, <TarInfo 'rtd/README.md' at 0x7fe92cdd01c0>]
 
 Message
-^^^^^^^
+=======
 
 For messages sent, the Plugin callback order is:
     marshalled -> sending
