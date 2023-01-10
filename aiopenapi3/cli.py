@@ -165,9 +165,9 @@ def schema_display_stats(api, duration):
         )
     )
     print(f"…  {duration} (processing time)")
-    print(f"… {len(operations)=}")
+    print(f"… {len(operations)} #operations")
     operations = list(filter(lambda x: x.operationId, operations))
-    print(f"… {len(operations)=} (with operationId)")
+    print(f"… {len(operations)} #operations (with operationId)")
 
     def schemaof(x):
         if isinstance(api._root, aiopenapi3.v20.Root):
@@ -179,7 +179,7 @@ def schema_display_stats(api, duration):
     for idx, (name, v) in enumerate(api._documents.items()):
         ss += len(schemaof(v))
         print(f"… {idx} {name}: {len(schemaof(v))}")
-    print(f"… {ss=}")
+    print(f"… {ss} schemas total")
 
 
 def main(argv=None):
