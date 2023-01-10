@@ -202,7 +202,7 @@ def main(argv=None):
 
     def cmd_convert(args):
         output = Path(args.output)
-        loader, ylc = loader_prepare(args)
+        loader, ylc = loader_prepare(args, session_factory)
         input_ = yarl.URL(args.input)
         data = loader.get(aiopenapi3.plugin.Plugins([]), input_)
 
