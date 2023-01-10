@@ -1,10 +1,95 @@
 .. include:: links.rst
 
+**************
 Advanced usage
---------------
+**************
+
+
+Authentication
+==============
+The authentication requirements are part of the definition of an operation, either global or - it it exists - operation scope.
+Authentication can combine/require multiple identifiert as well as providing a choice of a set.
+
+Given the following section of a description document:
+
+.. code:: yaml
+
+    components:
+      securitySchemes:
+        tokenAuth:
+          type: apiKey
+          in: header
+        basicAuth:
+          type: http
+          scheme: basic
+        bearerAuth:
+          type: http
+          scheme: bearer
+        user:
+          type: apiKey
+          in: header
+          name: x-user
+        password:
+          type: apiKey
+          in: header
+          name: x-password
+
+single identifier
+-----------------
+
+.. code:: yaml
+
+    security:
+      - basicAuth:[]
+
+
+.. code:: python
+
+    api.authenticate( basicAuth=(user,password) )
+
+"or" - having a choice
+----------------------
+Having a choice allows authentication using one valid identifier
+
+.. code:: yaml
+
+    security:
+      - basicAuth:[]
+      - tokenAuth:[]
+
+.. code:: python
+
+    api.authenticate( basicAuth=(user,password) )
+    # or
+    api.authenticate( tokenAuth="aeBah3tu8tho" )
+
+
+"and" - combining identifiers
+-----------------------------
+
+.. code:: yaml
+
+    security:
+    -  user:[]
+       password:[]
+
+.. code:: python
+
+    api.authenticate( user="theuser", password="thepassword" )
+    # same as
+    api.authenticate( user="theuser" )
+    api.authenticate( password="thepassword" )
+
+reset authentication identifiers
+--------------------------------
+
+.. code:: python
+
+    api.authenticate( None )
+
 
 Manual Requests
-^^^^^^^^^^^^^^^
+===============
 
 Creating a request manually allows accessing the httpx.Response as part of the :meth:`aiopenapi3.request.Request.request` return value.
 
@@ -29,7 +114,7 @@ This can be used to provide certain header values (ETag), which are not paramete
 
 
 Session Factory
-^^^^^^^^^^^^^^^
+===============
 
 The session_factory argument of the |aiopenapi3| initializers allow setting httpx_ options to the transport.
 
@@ -60,7 +145,7 @@ Or adding a SOCKS5 proxy via httpx_socks:
         return httpx.AsyncClient(*args, verify=False, timeout=60.0, **kwargs)
 
 Logging
-^^^^^^^
+=======
 
 .. code::
 
@@ -91,7 +176,7 @@ and general httpx requests
 
 
 Loader
-^^^^^^
+======
 
 The :class:`aiopenapi3.loader.Loader` is used to access the description document, providing a custom loader allows adjustments to the loading process of description documents.
 A common adjustment is using a customized YAML loader to disable decoding of certain tags/values.
@@ -148,7 +233,7 @@ Using the YAMLCompatibilityLoader all but these get disabled:
 
 
 Serialization
-^^^^^^^^^^^^^
+=============
 
 :class:`aiopenapi3.OpenAPI` objects can be serialized using pickle. Storing serialized clients allows re-use and improves
 start up time for large service description documents.
@@ -175,7 +260,8 @@ an pickled OpenAPI object from Path and initializes the dynamic models.
     api = from_cache("https://try.gitea.io/swagger.v1.json", "/tmp/gitea-client.pickle")
 
 Cloning
-^^^^^^^
+=======
+
 :class:`aiopenapi3.OpenAPI` objects can be cloned using :meth:`aiopenapi3.OpenAPI.clone` - create multiple clients from
 the same description document.
 

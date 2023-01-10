@@ -1,20 +1,47 @@
 .. include:: links.rst
 
+****************
 Using aiopenapi3
-----------------
+****************
 
 As a client
-^^^^^^^^^^^
+===========
 
 Creating a client from a description document
-"""""""""""""""""""""""""""""""""""""""""""""
+---------------------------------------------
 
 |aiopenapi3| can ingest description documents from different sources.
 
--   :meth:`aiopenapi3.OpenAPI.loads` - from string
--   :meth:`aiopenapi3.OpenAPI.load_file` - from a local file
--   :meth:`aiopenapi3.OpenAPI.load_sync` - from the web/syncronous
--   :meth:`aiopenapi3.OpenAPI.load_async` - from the web/asynchronous
+- :meth:`aiopenapi3.OpenAPI.loads` - from string
+- :meth:`aiopenapi3.OpenAPI.load_file` - from a local file
+- :meth:`aiopenapi3.OpenAPI.load_sync` - from the web/syncronous
+- :meth:`aiopenapi3.OpenAPI.load_async` - from the web/asynchronous
+
+The `url` parameter describes the path of the description document.
+The url of a request is created by combining the
+
+* description documents url
+* the location from the description url
+
+  * OpenAPI 3.x: servers[*].url
+  * Swagger 2.0: basePath
+
+* path from the PathItem
+
+e.g.:
+
+* `http://localhost/api/openapi.yaml`
+* `servers[0].url = '/api/v1'`
+* `'/users/login'`
+
+will result in
+
+`http://localhost` `/api/v1` `/users/login`
+
+
+
+For :meth:`aiopenapi3.OpenAPI.load_file` the url parameter does not specify the location of the description document, a
+url which can be used to construct the proper operations path is required nevertheless.
 
 |aiopenapi3| can interface services in synchronous as well as asynchronous.
 To create a traditional/blocking api client, provide a `session_factory` which return value annotation matches httpx_.Client,
@@ -22,7 +49,8 @@ httpx.AsyncClient for asynchronous clients.
 
 
 After ingesting the description document, the api client object returned can be used to interface the service.
-In case the services requires authentication, use :meth:`aiopenapi3.OpenAPI.authenticate`.
+In case the services requires authentication, use :meth:`aiopenapi3.OpenAPI.authenticate` and
+refer to :ref:`advanced:Authentication` for details.
 
 .. code:: python
 
@@ -32,8 +60,9 @@ In case the services requires authentication, use :meth:`aiopenapi3.OpenAPI.auth
     api.authenticate(AuthorizationHeaderToken=f"token {TOKEN}")
 
 
+
 Creating a request
-""""""""""""""""""
+------------------
 The service `operations <https://try.gitea.io/api/swagger>`_ can be accessed via the sad smiley interface.
 
 A list of all operations with operationIds exported by the service is available via the Iter.
@@ -66,7 +95,7 @@ In case the PathItem does not have an operationId, it is possible to create a re
     # True
 
 Using Operation Tags
-""""""""""""""""""""
+--------------------
 
 In case the description document makes use of operation tags, the sad smiley can make use of them as well,
 scoping the access to the methods.
@@ -84,7 +113,7 @@ scoping the access to the methods.
     # True
 
 Operation Parameters
-""""""""""""""""""""
+--------------------
 
 Operations may require Parameters or a Body.
 
@@ -136,7 +165,7 @@ And …
     api._.repoDelete(parameters={"owner":user.login, "repo":"rtd"})
 
 async
-^^^^^
+=====
 Difference when using asyncio - await.
 
 .. code:: python
@@ -191,13 +220,81 @@ Difference when using asyncio - await.
     asyncio.run(example())
 
 
-As validator
-^^^^^^^^^^^^
-|aiopenapi3| can be used to validate description documents.
+Command line
+============
+The aiopenapi3 cli provides commands to
+
+* `convert` (compatibility loaded) yaml -> json
+* `validate` description documents
+* `call` operations
+
+Some parameters are shared with all sub-commands:
+
+* `--location` - redirect description documents loads to these local path, stripping the dd path to the name. Multiple locations are possible, the loader will try.
+* `--cache` - use a serialized/pickled version / serialize/pickle after parsing
+* `--plugins` - import a python document and load classes of it to use as plugins
+* `--verbose`
+* `--profile` - cProfile the command execution
+* `--tracemalloc` - tracemalloc the execution
+
+global parameters
+-----------------
+
+tracemalloc
+^^^^^^^^^^^
+
+tracemalloc provides information about memory usage:
 
 .. code::
 
-    aiopenapi3 tests/fixtures/with-broken-links.yaml
+    Top 25 lines
+    #1: HERE/aiopenapi3/openapi.py:631: 34836.6 KiB
+        api = pickle.load(f)
+    #2: HERE/pydantic/pydantic/fields.py:302: 13978.3 KiB
+        field_info = FieldInfo(
+    #3: HERE/aiopenapi3/model.py:206: 3816.2 KiB
+        class Config:
+    #4: /usr/lib/python3.10/abc.py:106: 3652.2 KiB
+        cls = super().__new__(mcls, name, bases, namespace, **kwargs)
+    #5: /usr/lib/python3.10/abc.py:123: 3640.0 KiB
+        return _abc_subclasscheck(cls, subclass)
+    …
+    1065 other: 5515.0 KiB
+    Total allocated size: 84830.4 KiB
+
+
+profile
+^^^^^^^
+
+profiling provides information about function execution speed/ncalls:
+
+.. code::
+
+            6409418 function calls (6246933 primitive calls) in 19.742 seconds
+
+       Ordered by: cumulative time
+
+       ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+            1    0.000    0.000   19.753   19.753 HERE/openapi3/aiopenapi3/cli.py:232(cmd_call)
+            1    0.000    0.000   19.228   19.228 HERE/openapi3/aiopenapi3/openapi.py:623(cache_load)
+            1    0.784    0.784   18.892   18.892 HERE/openapi3/aiopenapi3/openapi.py:395(_init_schema_types)
+    8380/5724    0.032    0.000   16.059    0.003 HERE/openapi3/aiopenapi3/base.py:290(get_type)
+    5910/5709    0.060    0.000   16.037    0.003 HERE/openapi3/aiopenapi3/base.py:274(set_type)
+    5910/5709    0.051    0.000   15.928    0.003 HERE/openapi3/aiopenapi3/model.py:74(from_schema)
+         2083    0.021    0.000   12.627    0.006 /usr/lib/python3.10/types.py:69(new_class)
+         2083    0.445    0.000   12.549    0.006 HERE/pydantic/pydantic/main.py:123(__new__)
+        10726    0.107    0.000    8.882    0.001 HERE/pydantic/pydantic/fields.py:485(infer)
+    …
+
+commands
+--------
+
+validate
+^^^^^^^^
+
+.. code::
+
+    aiopenapi3 validate tests/fixtures/with-broken-links.yaml
 
     6 validation errors for OpenAPISpec
     paths -> /with-links -> get -> responses -> 200 -> links -> exampleWithBoth -> __root__
@@ -212,3 +309,16 @@ As validator
      field required (type=value_error.missing)
     paths -> /with-links-two -> get -> responses -> 200 -> $ref
      field required (type=value_error.missing)
+
+
+For valid description documents, it is possible to see some basic statistics about the documents structure, the number of operations and components.schemas/definitions, not including implicit/PathItem defined schemas.
+
+.. code::
+
+    aiopenapi3 -v validate tests/fixtures/petstore-expanded.yaml
+    …  0:00:00.017799 (processing time)
+    … len(operations)=4
+    … len(operations)=4 (with operationId)
+    … 0 tests/fixtures/petstore-expanded.yaml: 3
+    … ss=3
+    OK
