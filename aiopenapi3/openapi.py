@@ -603,7 +603,7 @@ class OpenAPI:
         return api
 
     @staticmethod
-    def cache_load(path: pathlib.Path) -> "OpenAPI":
+    def cache_load(path: pathlib.Path, plugins: List[Plugin] = None, session_factory=None) -> "OpenAPI":
         """
         read a pickle api object from path and init the schema types
 
@@ -611,8 +611,17 @@ class OpenAPI:
         """
         with path.open("rb") as f:
             api = pickle.load(f)
-            api._init_schema_types()
-            return api
+
+        api._init_schema_types()
+
+        if session_factory is not None:
+            api._session_factory = session_factory
+
+        if plugins is not None:
+            api._init_plugins(plugins)
+            api.plugins.init.initialized(initialized=api._root)
+
+        return api
 
     def cache_store(self, path: pathlib.Path) -> None:
         """
@@ -620,5 +629,9 @@ class OpenAPI:
 
         :param path: cache path
         """
+
+        restore = (self.plugins, self._session_factory)
+        self._session_factory = self.plugins = None
         with path.open("wb") as f:
             pickle.dump(self, f)
+        self.plugins, self._session_factory = restore
