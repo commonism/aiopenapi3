@@ -75,7 +75,7 @@ class Loader(abc.ABC):
         self.yload = yload
 
     @abc.abstractmethod
-    def load(self, plugins: Plugins, url: yarl.URL, codec=None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec: str = None):
         """
         load and decode description document
         :param plugins: collection of `aiopenapi3.plugin.Document` plugins
@@ -86,7 +86,7 @@ class Loader(abc.ABC):
         raise NotImplementedError("load")
 
     @classmethod
-    def decode(cls, data: bytes, codec):
+    def decode(cls, data: bytes, codec: str):
         """
         decode bytes to ascii or utf-8
         :param data:
@@ -158,7 +158,7 @@ class NullLoader(Loader):
     Loader does not load anything
     """
 
-    def load(self, plugins: Plugins, url: yarl.URL, codec=None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec: str = None):
         raise NotImplementedError("load")
 
 
@@ -167,13 +167,13 @@ class WebLoader(Loader):
     Loader downloads data via http/s using the supplied session_factory
     """
 
-    def __init__(self, baseurl: yarl.URL, session_factory=httpx.Client, yload=yaml.SafeLoader):
+    def __init__(self, baseurl: yarl.URL, session_factory=httpx.Client, yload: yaml.Loader = yaml.SafeLoader):
         super().__init__(yload)
         assert isinstance(baseurl, yarl.URL)
         self.baseurl: yarl.URL = baseurl
         self.session_factory = session_factory
 
-    def load(self, plugins: Plugins, url: yarl.URL, codec=None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec: str = None):
         url = self.baseurl.join(url)
         with self.session_factory() as session:
             data = session.get(str(url))
@@ -201,7 +201,7 @@ class FileSystemLoader(Loader):
         assert isinstance(base, Path)
         self.base = base
 
-    def load(self, plugins: Plugins, url: yarl.URL, codec=None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec: str = None):
         assert isinstance(url, yarl.URL)
         assert plugins
         file = Path(url.path)
@@ -223,7 +223,7 @@ class RedirectLoader(FileSystemLoader):
     everything but the "name" is stripped of the url
     """
 
-    def load(self, plugins: "Plugins", url: yarl.URL, codec=None):
+    def load(self, plugins: "Plugins", url: yarl.URL, codec: str = None):
         return super().load(plugins, yarl.URL(url.name), codec)
 
 
@@ -232,11 +232,11 @@ class ChainLoader(Loader):
     Loader to chain different Loaders: succeed or raise trying
     """
 
-    def __init__(self, loaders, yload: "Loader" = yaml.SafeLoader):
+    def __init__(self, *loaders, yload: yaml.Loader = yaml.SafeLoader):
         Loader.__init__(self, yload)
         self.loaders = loaders
 
-    def load(self, plugins: "Plugins", url: yarl.URL, codec=None):
+    def load(self, plugins: "Plugins", url: yarl.URL, codec: str = None):
         log.debug(f"load {url}")
         errors = []
         for i in self.loaders:
