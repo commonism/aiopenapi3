@@ -76,7 +76,7 @@ class PathsBase(ObjectBase):
 
 class RootBase:
     @staticmethod
-    def resolve(api, root, obj, _PathItem, _Reference):
+    def resolve(api: "OpenAPI", root: "RootBase", obj, _PathItem, _Reference):
         from . import v20, v30, v31
 
         def replaceSchemaReference(data):

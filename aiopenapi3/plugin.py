@@ -30,7 +30,7 @@ class Plugin(abc.ABC):
 class Init(Plugin):
     @dataclasses.dataclass
     class Context:
-        initialized: "OpenAPISpec"
+        initialized: "OpenAPI"
 
     def initialized(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
         pass

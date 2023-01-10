@@ -80,7 +80,7 @@ class OpenAPI:
         cls,
         url: str,
         session_factory: Callable[[], httpx.AsyncClient] = httpx.AsyncClient,
-        loader=None,
+        loader: Loader = None,
         plugins: List[Plugin] = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
@@ -154,26 +154,26 @@ class OpenAPI:
         data = loader.parse(Plugins(plugins or []), yarl.URL(url), data)
         return cls(url, data, session_factory, loader, plugins, use_operation_tags)
 
-    def _parse_obj(self, raw_document: Dict[str, Any]) -> RootBase:
-        v = raw_document.get("openapi", None)
+    def _parse_obj(self, document: Dict[str, Any]) -> RootBase:
+        v = document.get("openapi", None)
         if v:
             v = list(map(int, v.split(".")))
             if v[0] == 3:
                 if v[1] == 0:
-                    return v30.Root.parse_obj(raw_document)
+                    return v30.Root.parse_obj(document)
                 elif v[1] == 1:
-                    return v31.Root.parse_obj(raw_document)
+                    return v31.Root.parse_obj(document)
                 else:
                     raise ValueError(f"openapi version 3.{v[1]} not supported")
             else:
                 raise ValueError(f"openapi major version {v[0]} not supported")
             return
 
-        v = raw_document.get("swagger", None)
+        v = document.get("swagger", None)
         if v:
             v = list(map(int, v.split(".")))
             if v[0] == 2 and v[1] == 0:
-                return v20.Root.parse_obj(raw_document)
+                return v20.Root.parse_obj(document)
             else:
                 raise ValueError(f"swagger version {'.'.join(v)} not supported")
         else:
@@ -181,10 +181,10 @@ class OpenAPI:
 
     def __init__(
         self,
-        url,
-        document,
+        url: str,
+        document: Dict[str, Any],
         session_factory: Callable[[], Union[httpx.Client, httpx.AsyncClient]] = httpx.AsyncClient,
-        loader=None,
+        loader: Loader = None,
         plugins: List[Plugin] = None,
         use_operation_tags: bool = True,
     ) -> "OpenAPI":
