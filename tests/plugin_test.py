@@ -14,22 +14,29 @@ from aiopenapi3.plugin import Init, Message, Document
 
 class OnInit(Init):
     def initialized(self, ctx):
+        # this does not change the operationId on the ssi as the ssi is initialized already
+        # changing an operationId would be better in OnDocument.parsed
         ctx.initialized.paths["/pets"].get.operationId = "listPets"
+        # therefore update the operation index
+        self.api._init_operationindex(False)
         return ctx
 
 
 class OnDocument(Document):
+    def __init__(self, url):
+        self.url = url
+        super().__init__()
+
     def loaded(self, ctx):
         return ctx
 
     def parsed(self, ctx):
-        if ctx.url.path == "test.yaml":
+        if ctx.url.path == self.url:
             ctx.document["components"] = {
                 "schemas": {"Pet": {"$ref": "petstore-expanded.yaml#/components/schemas/Pet"}}
             }
             ctx.document["servers"] = [{"url": "/"}]
         elif ctx.url.path == "petstore-expanded.yaml":
-
             ctx.document["components"]["schemas"]["Pet"]["allOf"].append(
                 {
                     "type": "object",
@@ -41,7 +48,7 @@ class OnDocument(Document):
                 }
             )
         else:
-            raise ValueError(ctx.url)
+            raise ValueError(f"unexpected url {ctx.url.path} expecting {self.url}")
 
         return ctx
 
@@ -73,40 +80,18 @@ class OnMessage(Message):
         return ctx
 
 
-SPEC = """
-openapi: 3.0.3
-info:
-  title: ''
-  version: 0.0.0
-paths:
-  /pets:
-    get:
-      description: ''
-      operationId: xPets
-      responses:
-        '200':
-          description: pet response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Pet'
-"""
-
-
-def test_Plugins(httpx_mock):
+def test_Plugins(httpx_mock, with_plugin_base):
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
-    plugins = [OnInit(), OnDocument(), OnMessage()]
+    plugins = [OnInit(), OnDocument("plugin-base.yaml"), OnMessage()]
     api = OpenAPI.loads(
-        "test.yaml",
-        SPEC,
+        "plugin-base.yaml",
+        with_plugin_base,
         plugins=plugins,
         loader=FileSystemLoader(Path().cwd() / "tests/fixtures"),
         session_factory=httpx.Client,
     )
     api._base_url = yarl.URL("http://127.0.0.1:80")
-    r = api._.xPets()
+    r = api._.listPets()
     assert r
 
     item = r[0]

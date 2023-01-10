@@ -1,10 +1,16 @@
-import pytest
 import os
-from yaml import safe_load
 import dataclasses
+import sys
+
+if sys.version_info >= (3, 9):
+    from pathlib import Path
+else:
+    from pathlib3x import Path
+
+from yaml import safe_load
+import pytest
 
 import aiopenapi3
-from aiopenapi3 import OpenAPI
 
 LOADED_FILES = {}
 URLBASE = "/"
@@ -313,3 +319,11 @@ def with_schema_additionalProperties_v20():
 @pytest.fixture
 def with_schema_empty(openapi_version):
     yield _get_parsed_yaml("schema-empty.yaml")
+
+
+@pytest.fixture
+def with_plugin_base():
+    filename = "plugin-base.yaml"
+    with (Path("tests/fixtures/") / filename).open("rt") as f:
+        raw = f.read()
+    return raw
