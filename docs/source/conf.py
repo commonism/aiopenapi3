@@ -9,6 +9,7 @@
 import os
 import importlib
 import inspect
+from pathlib import Path
 
 project = "aiopenapi3"
 copyright = "2022, Markus Kötter"
@@ -60,11 +61,11 @@ def linkcode_resolve(domain, info):
     except TypeError:
         # e.g. object is a typing.Union
         return None
-    file = os.path.relpath(file, os.path.abspath(".."))
-    if not file.startswith("aiopenapi3/"):
-        # e.g. object is a typing.NewType
-        return None
-    start, end = lines[1], lines[1] + len(lines[0]) - 1
+
+    # Path("…/aiopenapi3/__init__.py").parent.parent == "…"
+    libdir = Path(mod.__file__).parent.parent
+    file = Path(file).relative_to(libdir)
+    start, end = lines[1] - 1, lines[1] - 1 + len(lines[0]) - 1
 
     return f"{linkcode_url}/{file}#L{start}-L{end}"
 
