@@ -54,7 +54,7 @@ def test_call():
 
     main(
         shlex.split(
-            """-C tests/data/cache.pickle -P tests/petstore_test.py:OnDocument call https://petstore.swagger.io/v2/swagger.json createUser --authenticate '{"api_key":"special-key"}' --data '{"id":1, "username": "bozo", "firstName": "Bozo", "lastName": "Smith", "email": "bozo@email.com", "password": "letmemin", "phone": "111-222-333", "userStatus": 3 }' """
+            """-C tests/data/cache.pickle -P tests/petstore_test.py:OnDocument call https://petstore.swagger.io/v2/swagger.json --method post /user --authenticate '{"api_key":"special-key"}' --data '{"id":1, "username": "bozo", "firstName": "Bozo", "lastName": "Smith", "email": "bozo@email.com", "password": "letmemin", "phone": "111-222-333", "userStatus": 3 }' """
         )
     )
 
