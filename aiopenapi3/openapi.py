@@ -644,12 +644,13 @@ class OpenAPI:
     def cache_store(self, path: pathlib.Path) -> None:
         """
         write the pickled api object to Path
+        to dismiss potentially local defined objects loader, plugins and the session_factory are dropped
 
         :param path: cache path
         """
 
-        restore = (self.plugins, self._session_factory)
-        self._session_factory = self.plugins = None
+        restore = (self.loader, self.plugins, self._session_factory)
+        self.loader = self._session_factory = self.plugins = None
         with path.open("wb") as f:
             pickle.dump(self, f)
-        self.plugins, self._session_factory = restore
+        self.loader, self.plugins, self._session_factory = restore
