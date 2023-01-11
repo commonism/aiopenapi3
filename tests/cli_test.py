@@ -49,7 +49,8 @@ def test_logging():
 
 def test_call():
     cache = Path("tests/data/cache.pickle")
-    cache.unlink(missing_ok=True)
+    if cache.exists():
+        cache.unlink()
 
     main(
         shlex.split(
@@ -58,7 +59,6 @@ def test_call():
     )
 
     auth = Path("tests/data/auth.json")
-    auth.unlink(missing_ok=True)
     with auth.open("wt") as f:
         f.write(json.dumps({"petstore_auth": "test"}))
 
