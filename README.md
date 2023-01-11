@@ -6,6 +6,7 @@ A Python [OpenAPI 3 Specification](https://github.com/OAI/OpenAPI-Specification/
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/commonism/aiopenapi3/master.svg)](https://results.pre-commit.ci/latest/github/commonism/aiopenapi3/master)
 [![Coverage](https://img.shields.io/codecov/c/github/commonism/aiopenapi3)](https://codecov.io/gh/commonism/aiopenapi3)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/aiopenapi3.svg)](https://pypi.org/project/aiopenapi3)
+[![Documentation Status](https://readthedocs.org/projects/aiopenapi3/badge/?version=latest)](https://aiopenapi3.readthedocs.io/en/latest/?badge=latest)
 
 
 This project is a fork of [Dorthu/openapi3](https://github.com/Dorthu/openapi3/).
