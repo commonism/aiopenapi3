@@ -359,7 +359,7 @@ class Model:  # (BaseModel):
             rename = Model.ALIASES.get(name, name)
 
         try:
-            rename = re.sub(r"[@\.-]", "_", rename)
+            rename = re.sub(r"[#@\.-]", "_", rename)
         except Exception as e:
             print(e)
 

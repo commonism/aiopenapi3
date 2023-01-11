@@ -1,5 +1,5 @@
 fastapi~=0.89.0
-httpx~=0.23.1
+httpx~=0.23.3
 hypercorn~=0.14.3
 pydantic~=1.10.4
 pydantic[email]

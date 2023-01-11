@@ -1,22 +1,24 @@
+import copy
 import sys
-
-import aiopenapi3.request
 
 if sys.version_info >= (3, 9):
     import pathlib
 else:
     import pathlib3x as pathlib
 
-from typing import List, Dict, Set, Union, Callable, Tuple
+from typing import List, Dict, Set, Union, Callable, Tuple, Any
 import collections
 import inspect
 import logging
+import copy
+import pickle
 
 import httpx
 import yarl
 from pydantic import BaseModel
 
 from aiopenapi3.v30.general import Reference
+import aiopenapi3.request
 from .json import JSONReference
 from . import v20
 from . import v30
@@ -61,9 +63,9 @@ class OpenAPI:
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
-        Create an synchronous OpenAPI object from a description document.
+        Create a synchronous OpenAPI object from a description document.
 
-        :param url: description document location
+        :param url: the url of the description document
         :param session_factory: used to create the session for http/s io
         :param loader: the backend to access referenced description documents
         :param plugins: potions to cure defects in the description document or requests/responses
@@ -78,14 +80,14 @@ class OpenAPI:
         cls,
         url: str,
         session_factory: Callable[[], httpx.AsyncClient] = httpx.AsyncClient,
-        loader=None,
+        loader: Loader = None,
         plugins: List[Plugin] = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
         Create an asynchronous OpenAPI object from a description document.
 
-        :param url: description document location
+        :param url: the url of the description document
         :param session_factory: used to create the session for http/s io
         :param loader: the backend to access referenced description documents
         :param plugins: potions to cure defects in the description document or requests/responses
@@ -115,7 +117,7 @@ class OpenAPI:
         Create an OpenAPI object from a description document file.
 
 
-        :param url: api service base url
+        :param url: the fictive url of the description document
         :param path: description document location
         :param session_factory: used to create the session for http/s io, defaults to use an AsyncClient
         :param loader: the backend to access referenced description documents
@@ -140,7 +142,7 @@ class OpenAPI:
     ) -> "OpenAPI":
         """
 
-        :param url: api service base url
+        :param url: the url of the description document
         :param data: description document
         :param session_factory: used to create the session for http/s io, defaults to use an AsyncClient
         :param loader: the backend to access referenced description documents
@@ -152,26 +154,26 @@ class OpenAPI:
         data = loader.parse(Plugins(plugins or []), yarl.URL(url), data)
         return cls(url, data, session_factory, loader, plugins, use_operation_tags)
 
-    def _parse_obj(self, raw_document):
-        v = raw_document.get("openapi", None)
+    def _parse_obj(self, document: Dict[str, Any]) -> RootBase:
+        v = document.get("openapi", None)
         if v:
             v = list(map(int, v.split(".")))
             if v[0] == 3:
                 if v[1] == 0:
-                    return v30.Root.parse_obj(raw_document)
+                    return v30.Root.parse_obj(document)
                 elif v[1] == 1:
-                    return v31.Root.parse_obj(raw_document)
+                    return v31.Root.parse_obj(document)
                 else:
                     raise ValueError(f"openapi version 3.{v[1]} not supported")
             else:
                 raise ValueError(f"openapi major version {v[0]} not supported")
             return
 
-        v = raw_document.get("swagger", None)
+        v = document.get("swagger", None)
         if v:
             v = list(map(int, v.split(".")))
             if v[0] == 2 and v[1] == 0:
-                return v20.Root.parse_obj(raw_document)
+                return v20.Root.parse_obj(document)
             else:
                 raise ValueError(f"swagger version {'.'.join(v)} not supported")
         else:
@@ -179,10 +181,10 @@ class OpenAPI:
 
     def __init__(
         self,
-        url,
-        document,
+        url: str,
+        document: Dict[str, Any],
         session_factory: Callable[[], Union[httpx.Client, httpx.AsyncClient]] = httpx.AsyncClient,
-        loader=None,
+        loader: Loader = None,
         plugins: List[Plugin] = None,
         use_operation_tags: bool = True,
     ) -> "OpenAPI":
@@ -191,8 +193,11 @@ class OpenAPI:
         overridden here because we need to specify the path in the parent
         class' constructor.
 
+        :param url: the url of the description document
         :param document: The raw OpenAPI file loaded into python
         :param session_factory: default uses new session for each call, supply your own if required otherwise.
+        :param loader: the Loader for the description document(s)
+        :param plugins: list of plugins
         :param use_operation_tags: honor tags
         """
 
@@ -276,12 +281,19 @@ class OpenAPI:
         processed = set()
         while True:
             values = {id(x): x for x in self._documents.values()}
+            names = {id(v): k for k, v in self._documents.items()}
             todo = set(values.keys()) - processed
             if not todo:
                 break
             for i in todo:
-                values[i]._resolve_references(self)
+                #                print(names[i])
+                try:
+                    values[i]._resolve_references(self)
+                except ReferenceResolutionError as e:
+                    e.document = names[i]
+                    raise
             processed = set(values.keys())
+        return
 
     #        for i in self._documents.values():
     #            i._resolve_references(self)
@@ -492,6 +504,8 @@ class OpenAPI:
     # public methods
     def authenticate(self, *args, **kwargs):
         """
+        authenticate, multiple authentication schemes can be used simultaneously serving "or" or "and"
+        authentication schemes
 
         :param args: None to remove all credentials / reset the authorizations
         :param kwargs: scheme=value
@@ -520,15 +534,24 @@ class OpenAPI:
         return self._parse_obj(data)
 
     @property
-    def _(self):
+    def _(self) -> OperationIndex:
+        """
+        the sad smiley interface
+        access operations by operationId
+        """
         return self._operationindex
 
     def createRequest(self, operationId: Union[str, Tuple[str, str]]) -> aiopenapi3.request.RequestBase:
         """
         create a Request
+
         lookup the Operation by operationId or path,method
 
-        :param operationId:
+        the type of Request returned depends on the session_factory of the OpenAPI object and OpenAPI/Swagger version
+
+        :param operationId: the operationId or tuple(path,method)
+        :return: the returned Request is either :class:`aiopenapi3.request.RequestBase` or -
+            in case of a httpx.AsyncClient session_factory - :class:`aiopenapi3.request.AsyncRequestBase`
         """
         if isinstance(operationId, str):
             p = operationId.split(".")
@@ -543,6 +566,14 @@ class OpenAPI:
         return req
 
     def resolve_jr(self, root: RootBase, obj, value: Reference):
+        """
+        Resolve a `JSON Reference<https://datatracker.ietf.org/doc/html/draft-pbryan-zyp-json-ref-03>`_ in our documents
+
+        :param root:
+        :param obj:
+        :param value:
+        :return:
+        """
         url, jp = JSONReference.split(value.ref)
         if url != "":
             url = yarl.URL(url)
@@ -556,9 +587,10 @@ class OpenAPI:
         except ReferenceResolutionError as e:
             # add metadata to the error
             e.element = obj
+            e.document = url
             raise
 
-    def __copy__(self):
+    def __copy__(self) -> "OpenAPI":
         """
         shallow copy of an API object allows for a quick & low resource way to interface multiple
         services using the same api instad of creating a new OpenAPI object from the description document for each
@@ -575,3 +607,50 @@ class OpenAPI:
         api._session_factory = self._session_factory
         api.loader = self.loader
         return api
+
+    def clone(self, baseurl: yarl.URL = None) -> "OpenAPI":
+        """
+        shallwo copy the api object
+        optional set a base url
+
+        :param baseurl:
+        """
+        api = copy.copy(self)
+        if baseurl:
+            api._base_url = baseurl
+        return api
+
+    @staticmethod
+    def cache_load(path: pathlib.Path, plugins: List[Plugin] = None, session_factory=None) -> "OpenAPI":
+        """
+        read a pickle api object from path and init the schema types
+
+        :param path: cache path
+        """
+        with path.open("rb") as f:
+            api = pickle.load(f)
+
+        api._init_schema_types()
+
+        if session_factory is not None:
+            api._session_factory = session_factory
+
+        if plugins is not None:
+            api._init_plugins(plugins)
+            api.plugins.init.initialized(initialized=api._root)
+
+        return api
+
+    def cache_store(self, path: pathlib.Path) -> None:
+        """
+        write the pickled api object to Path
+        to dismiss potentially local defined objects loader, plugins and the session_factory are dropped
+
+        :param path: cache path
+        """
+
+        restore = (self.loader, self.plugins, self._session_factory)
+        self.loader = self._session_factory = self.plugins = None
+        with path.open("wb") as f:
+            pickle.dump(self, f)
+        self.loader, self.plugins, self._session_factory = restore

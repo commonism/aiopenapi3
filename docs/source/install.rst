@@ -1,8 +1,8 @@
 .. include:: links.rst
 
-
+************
 Installation
-------------
+************
 
 .. code:: bash
 

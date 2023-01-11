@@ -1,6 +1,6 @@
 import abc
 import json
-
+import logging
 
 import yaml
 import httpx
@@ -18,6 +18,8 @@ from .plugin import Plugins
 """
 https://stackoverflow.com/questions/34667108/ignore-dates-and-times-while-parsing-yaml
 """
+
+log = logging.getLogger("aiopenapi3.loader")
 
 
 def remove_implicit_resolver(cls, tag_to_remove):
@@ -62,13 +64,22 @@ YAMLCompatibilityLoader.remove_implicit_resolver("tag:yaml.org,2002:bool")
 
 
 class Loader(abc.ABC):
+    """
+    Loaders are used to 'get' description documents:
+
+     * load
+     * decode
+     * parse
+    """
+
     def __init__(self, yload: yaml.Loader = yaml.SafeLoader):
         self.yload = yload
 
     @abc.abstractmethod
-    def load(self, plugins: Plugins, url: yarl.URL, codec=None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec: str = None):
         """
         load and decode description document
+
         :param plugins: collection of `aiopenapi3.plugin.Document` plugins
         :param url: location of the description document
         :param codec:
@@ -77,9 +88,10 @@ class Loader(abc.ABC):
         raise NotImplementedError("load")
 
     @classmethod
-    def decode(cls, data: bytes, codec):
+    def decode(cls, data: bytes, codec: str):
         """
         decode bytes to ascii or utf-8
+
         :param data:
         :param codec:
         :return:
@@ -145,18 +157,26 @@ class Loader(abc.ABC):
 
 
 class NullLoader(Loader):
-    def load(self, plugins: Plugins, url: yarl.URL, codec=None):
+    """
+    Loader does not load anything
+    """
+
+    def load(self, plugins: Plugins, url: yarl.URL, codec: str = None):
         raise NotImplementedError("load")
 
 
 class WebLoader(Loader):
-    def __init__(self, baseurl: yarl.URL, session_factory=httpx.Client, yload=yaml.SafeLoader):
+    """
+    Loader downloads data via http/s using the supplied session_factory
+    """
+
+    def __init__(self, baseurl: yarl.URL, session_factory=httpx.Client, yload: yaml.Loader = yaml.SafeLoader):
         super().__init__(yload)
         assert isinstance(baseurl, yarl.URL)
         self.baseurl: yarl.URL = baseurl
         self.session_factory = session_factory
 
-    def load(self, plugins: Plugins, url: yarl.URL, codec=None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec: str = None):
         url = self.baseurl.join(url)
         with self.session_factory() as session:
             data = session.get(str(url))
@@ -171,17 +191,25 @@ class WebLoader(Loader):
 
 
 class FileSystemLoader(Loader):
+    """
+    Loader to use the local filesystem
+    """
+
     def __init__(self, base: Path, yload: yaml.Loader = yaml.SafeLoader):
+        """
+        :param base: basedir - lookups are relative to this
+        :param yload:
+        """
         super().__init__(yload)
         assert isinstance(base, Path)
         self.base = base
 
-    def load(self, plugins: Plugins, url: yarl.URL, codec=None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec: str = None):
         assert isinstance(url, yarl.URL)
         assert plugins
         file = Path(url.path)
         path = self.base / file
-        assert path.is_relative_to(self.base)
+        assert path.is_relative_to(self.base), f"{path} is not relative to {self.base}"
         with path.open("rb") as f:
             data = f.read()
         data = self.decode(data, codec)
@@ -190,3 +218,42 @@ class FileSystemLoader(Loader):
 
     def __repr__(self):
         return f"{self.__class__.__qualname__}(base={self.base})"
+
+
+class RedirectLoader(FileSystemLoader):
+    """
+    Loader to redirect web-requests to a local directory
+    everything but the "name" is stripped of the url
+    """
+
+    def load(self, plugins: "Plugins", url: yarl.URL, codec: str = None):
+        return super().load(plugins, yarl.URL(url.name), codec)
+
+
+class ChainLoader(Loader):
+    """
+    Loader to chain different Loaders: succeed or raise trying
+    """
+
+    def __init__(self, *loaders, yload: yaml.Loader = yaml.SafeLoader):
+        """
+
+        :param loaders: loaders to use
+        :param yload: YAML loader to use
+        """
+        Loader.__init__(self, yload)
+        self.loaders = loaders
+
+    def load(self, plugins: "Plugins", url: yarl.URL, codec: str = None):
+        log.debug(f"load {url}")
+        errors = []
+        for i in self.loaders:
+            try:
+                r = i.load(plugins, url, codec)
+                log.debug(f"using {i}")
+                return r
+            except Exception as e:
+                errors.append((i, str(e)))
+        for l, e in errors:
+            log.debug(f"{l} {e}")
+        raise FileNotFoundError(url)
