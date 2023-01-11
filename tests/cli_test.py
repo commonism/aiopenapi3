@@ -43,3 +43,17 @@ def test_logging():
 
     aiopenapi3.log.handlers = None
     aiopenapi3.log.init(True)
+
+
+def test_call():
+    main(
+        shlex.split(
+            """-P tests/petstore_test.py:OnDocument call https://petstore.swagger.io/v2/swagger.json createUser --authenticate '{"api_key":"special-key"}' --data '{"id":1, "username": "bozo", "firstName": "Bozo", "lastName": "Smith", "email": "bozo@email.com", "password": "letmemin", "phone": "111-222-333", "userStatus": 3 }' """
+        )
+    )
+
+    main(
+        shlex.split(
+            """-P tests/petstore_test.py:OnDocument call https://petstore.swagger.io/v2/swagger.json findPetsByStatus --parameters '{"status": ["available", "pending"]}' --authenticate '{"petstore_auth":"test"}' --format "[? name=='doggie' && status == 'available'].{name:name, photo:photoUrls} | [0:2]" """
+        )
+    )
