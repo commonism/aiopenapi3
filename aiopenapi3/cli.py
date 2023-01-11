@@ -13,6 +13,7 @@ import tracemalloc
 import linecache
 import logging
 
+import jmespath
 import yaml
 import yarl
 import httpx
@@ -247,7 +248,6 @@ def main(argv=None):
         auth = prepare_arg(args.authenticate)
         parameters = prepare_arg(args.parameters)
         data = prepare_arg(args.data)
-        import jmespath
 
         if args.format:
             expr = jmespath.compile(args.format)
@@ -278,6 +278,11 @@ def main(argv=None):
             req = api.createRequest((args.operationId, args.method))
         else:
             req = api.createRequest(args.operationId)
+
+        # validate the body
+        if req.data:
+            req.data.get_type().parse_obj(data)
+
         try:
             headers, ret, response = req.request(parameters=parameters, data=data)
         except aiopenapi3.errors.ResponseSchemaError as e:
@@ -285,10 +290,10 @@ def main(argv=None):
             print(e.response.headers)
             return
 
-        obj = ret.dict(exclude_defaults=True)
-
+        obj = response.json()
         if args.format:
             obj = expr.search(obj)
+
         print(json.dumps(obj, indent=2, sort_keys=True))
 
     cmd.set_defaults(func=cmd_call)

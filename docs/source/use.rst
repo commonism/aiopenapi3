@@ -322,3 +322,86 @@ For valid description documents, it is possible to see some basic statistics abo
     … 0 tests/fixtures/petstore-expanded.yaml: 3
     … ss=3
     OK
+
+
+call
+^^^^
+
+plugins
+"""""""
+
+Description document mangling may be required, therefore plugins can be used.
+
+.. code::
+
+    aiopenapi3 -P tests/petstore_test.py:OnDocument \
+    call https://petstore.swagger.io/v2/swagger.json createUser \
+    --authenticate '{"api_key":"special-key"}'  \
+    --data '{"id":1, "username": "bozo", "firstName": "Bozo", "lastName": "Smith", "email": "bozo@email.com", "password": "letmemin", "phone": "111-222-333", "userStatus": 3 }'
+
+.. code:: json
+
+    {
+      "code": 200,
+      "message": "1",
+      "type": "unknown"
+    }
+
+
+filter
+""""""
+
+jmespath expressions can be used to massage the result
+
+.. code::
+
+    aiopenapi3 -P tests/petstore_test.py:OnDocument \
+    call https://petstore.swagger.io/v2/swagger.json findPetsByStatus \
+    --parameters '{"status": ["available", "pending"]}' \
+    --authenticate '{"petstore_auth":"test"}' \
+    --format "[0]"
+
+.. code:: json
+
+    {
+      "category": {
+        "id": 0,
+        "name": "string"
+      },
+      "id": 9223372036854589760,
+      "name": "doggie",
+      "photoUrls": [
+        "string"
+      ],
+      "status": "available",
+      "tags": [
+        {
+          "id": 0,
+          "name": "string"
+        }
+      ]
+    }
+
+
+.. code::
+
+    …
+    --format "[? name=='doggie' && status == 'available'].{name:name, photo:photoUrls} | [0:2]"
+
+.. code:: json
+
+    [
+      {
+        "name": "doggie",
+        "photo": [
+          "non eu",
+          "Duis Lorem"
+        ]
+      },
+      {
+        "name": "doggie",
+        "photo": [
+          "string"
+        ]
+      }
+    ]

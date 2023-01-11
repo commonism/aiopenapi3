@@ -24,7 +24,10 @@ class Request(RequestBase):
 
     @property
     def data(self) -> SchemaBase:
-        return self._data_parameter.schema_
+        try:
+            return self._data_parameter.schema_
+        except ValueError:
+            return None
 
     @property
     def parameters(self) -> List[ParameterBase]:
