@@ -45,7 +45,7 @@ components:
 
 data = [
     ("petstore-expanded.yaml#/components/schemas/Pet", None),
-    ("no-such.file.yaml#/components/schemas/Pet", FileNotFoundError),
+    ("no-such.file.yaml#/components/schemas/Pet", ReferenceResolutionError),
     ("petstore-expanded.yaml#/components/schemas/NoSuchPet", ReferenceResolutionError),
 ]
 
