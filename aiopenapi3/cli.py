@@ -193,6 +193,7 @@ def main(argv=None):
     parser.add_argument("-P", "--plugins", action="append")
     parser.add_argument("-L", "--locations", action="append")
     parser.add_argument("-C", "--cache")
+    parser.add_argument("--disable-ssl-validation", action="store_true", default=False)
     sub = parser.add_subparsers()
 
     cmd = sub.add_parser("convert")
@@ -227,7 +228,6 @@ def main(argv=None):
     cmd.add_argument("-p", "--parameters")
     cmd.add_argument("-d", "--data")
     cmd.add_argument("-f", "--format")
-    cmd.add_argument("--disable-ssl-validation", action="store_true", default=False)
     loader_args(cmd)
 
     def cmd_call(args):
