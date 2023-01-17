@@ -316,11 +316,11 @@ For valid description documents, it is possible to see some basic statistics abo
 .. code::
 
     aiopenapi3 -v validate tests/fixtures/petstore-expanded.yaml
-    …  0:00:00.017799 (processing time)
-    … len(operations)=4
-    … len(operations)=4 (with operationId)
+    …  0:00:00.018789 (processing time)
+    … 4 #operations
+    … 4 #operations (with operationId)
     … 0 tests/fixtures/petstore-expanded.yaml: 3
-    … ss=3
+    … 3 schemas total
     OK
 
 
@@ -351,7 +351,7 @@ Description document mangling may be required, therefore plugins can be used.
 filter
 """"""
 
-jmespath expressions can be used to massage the result
+jmespath expressions can be used to massage the result via ``--format``
 
 .. code::
 
