@@ -10,7 +10,7 @@ import httpx
 import yarl
 
 from aiopenapi3 import OpenAPI
-
+from aiopenapi3.errors import OperationParameterValidationError
 
 URLBASE = "/"
 
@@ -217,14 +217,12 @@ def test_paths_parameters(httpx_mock, with_paths_parameters):
 
 
 def test_paths_parameters_invalid(with_paths_parameters_invalid):
-    with pytest.raises(Exception, match=r"Parameter names are invalid: \[\'\', \'Path:\'\]"):
+    with pytest.raises(OperationParameterValidationError, match=r"Parameter names are invalid: \[\'\', \'Path:\'\]"):
         OpenAPI(URLBASE, with_paths_parameters_invalid, session_factory=httpx.Client)
 
 
 def test_paths_parameter_missing(with_paths_parameter_missing):
-    from aiopenapi3.errors import SpecError
-
-    with pytest.raises(SpecError, match="Parameter name not found in parameters: missing"):
+    with pytest.raises(OperationParameterValidationError, match="Parameter name not found in parameters: missing"):
         OpenAPI(URLBASE, with_paths_parameter_missing, session_factory=httpx.Client)
 
 

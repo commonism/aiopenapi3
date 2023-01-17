@@ -23,6 +23,18 @@ class ReferenceResolutionError(SpecError):
         self.document = None
 
 
+@dataclasses.dataclass
+class OperationParameterValidationError(SpecError):
+    """
+    The operations parameters do not match the path parameters
+    """
+
+    path: str
+    method: str
+    operationid: str
+    message: str
+
+
 class ParameterFormatError(ValueError):
     """
     The specified parameter encoding is invalid for the parameter family

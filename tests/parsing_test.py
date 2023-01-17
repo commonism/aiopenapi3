@@ -15,6 +15,7 @@ import pytest
 
 from pydantic import ValidationError
 from aiopenapi3 import OpenAPI, SpecError, ReferenceResolutionError, FileSystemLoader
+from aiopenapi3.errors import OperationParameterValidationError
 
 URLBASE = "/"
 
@@ -47,7 +48,7 @@ def test_parsing_wrong_parameter_name(with_parsing_paths_parameter_name_mismatch
     Tests that parsing fails if parameter name for path parameters aren't
     actually in the path.
     """
-    with pytest.raises(SpecError, match="Parameter name not found in path: different"):
+    with pytest.raises(OperationParameterValidationError, match="Parameter name not found in path: different"):
         spec = OpenAPI(URLBASE, with_parsing_paths_parameter_name_mismatch)
 
 
