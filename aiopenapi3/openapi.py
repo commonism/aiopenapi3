@@ -304,7 +304,7 @@ class OpenAPI:
                 for path, obj in self.paths.items():
                     for m in obj.__fields_set__ & HTTP_METHODS:
                         op = getattr(obj, m)
-                        op._validate_path_parameters(obj, path)
+                        op._validate_path_parameters(obj, path, (m, op.operationId))
                         if op.operationId is None:
                             continue
                         for r, response in op.responses.items():
@@ -330,7 +330,7 @@ class OpenAPI:
                 for path, obj in self.paths.items():
                     for m in obj.__fields_set__ & HTTP_METHODS:
                         op = getattr(obj, m)
-                        op._validate_path_parameters(obj, path)
+                        op._validate_path_parameters(obj, path, (m, op.operationId))
                         if op.operationId is None:
                             continue
                         for r, response in op.responses.items():

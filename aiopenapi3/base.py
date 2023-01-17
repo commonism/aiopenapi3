@@ -8,7 +8,7 @@ import uuid
 from pydantic import BaseModel, Field, root_validator, Extra
 
 from .json import JSONPointer
-from .errors import ReferenceResolutionError, SpecError
+from .errors import ReferenceResolutionError, SpecError, OperationParameterValidationError
 
 # from . import me
 
@@ -333,13 +333,13 @@ class SchemaBase:
 
 
 class OperationBase:
-    def _validate_path_parameters(self, pi: "PathItem", path):
+    def _validate_path_parameters(self, pi: "PathItem", path_, loc):
         """
         Ensures that all parameters for this path are valid
         """
-        assert isinstance(path, str)
+        assert isinstance(path_, str)
         # FIXME { and } are allowed in parameter name, regex can't handle this e.g. {name}}
-        path = frozenset(re.findall(r"{([a-zA-Z0-9\-\._~]+)}", path))
+        path = frozenset(re.findall(r"{([a-zA-Z0-9\-\._~]+)}", path_))
 
         op = frozenset(map(lambda x: x.name, filter(lambda c: c.in_ == "path", self.parameters)))
         pi = frozenset(map(lambda x: x.name, filter(lambda c: c.in_ == "path", pi.parameters)))
@@ -349,16 +349,20 @@ class OperationBase:
             # FIXME
             #   OpenAPI does not allow RFC 6570 URI templates
             #   but name:\d+ may be valid though
-            raise SpecError(f"Parameter names are invalid: {invalid}")
+            raise OperationParameterValidationError(path_, *loc, f"Parameter names are invalid: {invalid}")
 
         r = (op | pi) - path
         if r:
-            raise SpecError(f"Parameter name{'s' if len(r) > 1 else ''} not found in path: {', '.join(sorted(r))}")
+            raise OperationParameterValidationError(
+                path_, *loc, f"Parameter name{'s' if len(r) > 1 else ''} not found in path: {', '.join(sorted(r))}"
+            )
 
         r = path - (op | pi)
         if r:
-            raise SpecError(
-                f"Parameter name{'s' if len(r) > 1 else ''} not found in parameters: {', '.join(sorted(r))}"
+            raise OperationParameterValidationError(
+                path_,
+                *loc,
+                f"Parameter name{'s' if len(r) > 1 else ''} not found in parameters: {', '.join(sorted(r))}",
             )
 
 

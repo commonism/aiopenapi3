@@ -124,12 +124,10 @@ class Loader(abc.ABC):
             try:
                 return self.parse(plugins, url.with_path("/test.yaml"), data)
             except Exception as e:
-                print(e)
                 pass
             try:
                 return self.parse(plugins, url.with_path("/test.json"), data)
             except Exception as e:
-                print(e)
                 pass
 
         if file.suffix == ".yaml":
