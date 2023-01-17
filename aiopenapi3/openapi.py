@@ -239,7 +239,7 @@ class OpenAPI:
         """
         self._root = self._parse_obj(document)
 
-        self._documents[yarl.URL(url)] = self._root
+        self._documents[self._base_url] = self._root
 
         self._init_session_factory(session_factory)
         self._init_references()
@@ -501,7 +501,6 @@ class OpenAPI:
         elif isinstance(self._root, (v30.Root, v31.Root)):
             return self._base_url.join(yarl.URL(self._root.servers[0].url))
 
-    # public methods
     def authenticate(self, *args, **kwargs):
         """
         authenticate, multiple authentication schemes can be used simultaneously serving "or" or "and"
@@ -579,7 +578,16 @@ class OpenAPI:
             url = yarl.URL(url)
             if url not in self._documents:
                 self.log.debug(f"Resolving {value.ref} - Description Document {url} unknown …")
-                self._documents[url] = self._load(url)
+                try:
+                    self._documents[url] = self._load(url)
+                except FileNotFoundError:
+                    err = ReferenceResolutionError(f"not found {url}")
+                    for k, v in self._documents.items():
+                        if v == root:
+                            err.document = k
+                            break
+                    raise err
+
             root = self._documents[url]
 
         try:
@@ -587,7 +595,10 @@ class OpenAPI:
         except ReferenceResolutionError as e:
             # add metadata to the error
             e.element = obj
-            e.document = url
+            for k, v in self._documents.items():
+                if v == root:
+                    e.document = k
+                    break
             raise
 
     def __copy__(self) -> "OpenAPI":
