@@ -327,6 +327,8 @@ For valid description documents, it is possible to see some basic statistics abo
 call
 ^^^^
 
+While  `restish <https://github.com/danielgtaylor/restish>`_ will be the better choice calling API from the cli - it is possible with aiopenapi3 as well.
+
 plugins
 """""""
 

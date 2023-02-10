@@ -49,13 +49,15 @@ components:
             - description: Return results that don't match a <code>Dimension</code> object.
 
 
-    NestedElement:
-      additionalProperties: false
+    D:
       description: galaxyproject openapi recursive element
       properties:
-        elements:
+        E:
+          type: string
+        F:
           items:
-            anyOf:
-            - $ref: '#/components/schemas/NestedElement'
+#            anyOf:
+            type: object
+            $ref: '#/components/schemas/D'
           title: Elements
           type: array
