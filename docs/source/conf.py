@@ -33,6 +33,14 @@ extensions = [
 autosectionlabel_prefix_document = True
 
 linkcode_commit = os.environ.get("READTHEDOCS_VERSION", "next")
+if linkcode_commit == "stable":
+    import aiopenapi3.version
+
+    linkcode_commit = f"v{aiopenapi3.version.__version__}"
+elif linkcode_commit == "latest":
+    linkcode_commit = "master"
+elif linkcode_commit == "next":
+    pass
 linkcode_url = f"https://github.com/commonism/aiopenapi3/blob/{linkcode_commit}"
 
 
@@ -65,7 +73,7 @@ def linkcode_resolve(domain, info):
     # Path("…/aiopenapi3/__init__.py").parent.parent == "…"
     libdir = Path(mod.__file__).parent.parent
     file = Path(file).relative_to(libdir)
-    start, end = lines[1] - 1, lines[1] - 1 + len(lines[0]) - 1
+    start, end = lines[1], lines[1] + len(lines[0]) - 1
 
     return f"{linkcode_url}/{file}#L{start}-L{end}"
 
