@@ -33,6 +33,7 @@ While aiopenapi3 supports some of the more exotic features of the Swagger/OpenAP
 * `Discriminator/Polymorphism <https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#models-with-polymorphism-support>`_
 * :doc:`plugin interface </plugin>` to mangle description documents and messages
 * :ref:`api:Parameter Encoding`
+* :ref:`advanced:Forms`
 
 some aspects of the specifications can not be supported.
 

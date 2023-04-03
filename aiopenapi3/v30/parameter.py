@@ -1,4 +1,7 @@
 import enum
+import datetime
+import decimal
+import uuid
 from typing import Union, Optional, Dict, Any
 
 from pydantic import Field, root_validator
@@ -70,7 +73,6 @@ class _ParameterCodec:
             else:
                 # ;R=100;G=200;B=150
                 value = f";{value}"
-            pass
         return {name: value}
 
     def _encode__label(self, name, value, explode):
@@ -255,6 +257,18 @@ class _In(str, enum.Enum):
 class Parameter(ParameterBase, _ParameterCodec):
     name: str = Field(required=True)
     in_: _In = Field(required=True, alias="in")  # TODO must be one of ["query","header","path","cookie"]
+
+
+def encode_parameter(
+    name: str, value: object, style: str, explode: bool, allowReserved: bool, in_: str, schema_: Schema
+) -> Union[str, bytes]:
+    p = Parameter(name=name, style=style, explode=explode, allowReserved=allowReserved, **{"in": in_, "schema": None})
+    p.schema_ = schema_
+    r = p._encode(name, value)[name]
+    if isinstance(r, (int, float, decimal.Decimal, datetime.datetime, datetime.date, datetime.time, uuid.UUID)):
+        r = str(r)
+    assert isinstance(r, (str, bytes))
+    return r
 
 
 class Header(ParameterBase, _ParameterCodec):

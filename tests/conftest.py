@@ -327,3 +327,13 @@ def with_plugin_base():
     with (Path("tests/fixtures/") / filename).open("rt") as f:
         raw = f.read()
     return raw
+
+
+@pytest.fixture
+def with_paths_requestbody_formdata_encoding():
+    yield _get_parsed_yaml("paths-requestbody-formdata-encoding.yaml")
+
+
+@pytest.fixture(scope="session")
+def with_paths_requestbody_formdata_wtforms():
+    yield _get_parsed_yaml("paths-requestbody-formdata-wtforms.yaml")

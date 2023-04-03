@@ -1,0 +1,220 @@
+openapi: 3.1.0
+
+info:
+  title: Forms API
+  version: 1.0.0
+
+servers:
+  - url: TBA
+
+paths:
+  /test:
+    parameters:
+      - name: Accept
+        in: header
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: test
+      responses: &responses
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                string:
+                  type: string
+                number:
+                  type: integer
+                file:
+                    type: string
+                files:
+                    type: array
+                    items:
+                        type: object
+
+  /string:
+    post:
+      operationId: string
+      responses: *responses
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                string:
+                  type: string
+                tel:
+                  type: string
+                url:
+                  type: string
+                hidden:
+                  type: string
+                password:
+                  type: string
+                textareafield:
+                  type: string
+                email:
+                  type: string
+
+  /datetime:
+    post:
+      operationId: datetime
+      responses: *responses
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                time:
+                  type: string
+                  format: time
+                date:
+                  type: string
+                  format: date
+                datetime:
+                  type: string
+                  format: date-time
+                datetimelocal:
+                  type: string
+                  format: date-time
+
+  /numbers:
+    post:
+      operationId: numbers
+      responses: *responses
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                boolean:
+                  type: boolean
+                decimal:
+                  type: number
+                  format: decimal
+                decimalrange:
+                  type: number
+                  format: decimal
+                float:
+                  type: number
+                  format: float
+                integer:
+                  type: integer
+                integerrange:
+                  type: integer
+
+  /file:
+    post:
+      operationId: file
+      responses: *responses
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  contentEncoding: base64
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                    contentEncoding: base16
+                xml:
+                  type: string
+                  format: binary
+                  contentEncoding: quoted-printable
+            encoding:
+              xml:
+                contentType: application/xml; charset=utf-8
+
+  /select:
+    post:
+      operationId: select
+      responses: *responses
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                radio:
+                  type: string
+                select:
+                  type: string
+                selectmultiple:
+                  type: array
+                  items:
+                    type: string
+
+  /control:
+    post:
+      operationId: control
+      responses: *responses
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                submit:
+                  type: string
+                search:
+                  type: string
+
+  /header:
+    post:
+      operationId: header
+      responses: *responses
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                header:
+                  type: string
+            encoding:
+              header:
+                explode: True
+                headers:
+                  X-HEADER:
+                    required: true
+                    schema:
+                      type: string
+
+  /star:
+    post:
+      operationId: star
+      responses: *responses
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                star:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    position:
+                      type: string
+            encoding:
+              star:
+                explode: False
