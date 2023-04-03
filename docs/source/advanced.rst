@@ -87,6 +87,24 @@ reset authentication identifiers
 
     api.authenticate( None )
 
+Forms
+=====
+
+Posting data to Forms using multipart/form-data or application/x-www-form-urlencoded.
+
+OpenAPI 3.x
+-----------
+Please refer to the `unit tests <https://github.com/commonism/aiopenapi3/blob/master/tests/forms_test.py>`_  how to
+  * `describe form fields <https://github.com/commonism/aiopenapi3/blob/master/tests/fixtures/paths-requestbody-formdata-wtforms.yaml>`_
+  * (multi) file upload
+  * controls/radio buttons
+
+
+Swagger 2.0
+-----------
+The `description document <https://github.com/commonism/aiopenapi3/blob/master/tests/fixtures/paths-parameter-format-v20.yaml>`_ and
+`unit tests <https://github.com/commonism/aiopenapi3/blob/master/tests/pathv20_test.py#L149>`_.
+
 
 Manual Requests
 ===============

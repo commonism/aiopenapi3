@@ -1,3 +1,4 @@
+import io
 import uuid
 
 import yarl
@@ -147,7 +148,7 @@ def test_paths_response_header_v20(httpx_mock, with_paths_response_header_v20):
 
 
 def test_paths_parameter_format_v20(httpx_mock, with_paths_parameter_format_v20):
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="ok")
     api = OpenAPI(URLBASE, with_paths_parameter_format_v20, session_factory=httpx.Client)
 
     parameters = {
@@ -166,4 +167,17 @@ def test_paths_parameter_format_v20(httpx_mock, with_paths_parameter_format_v20)
     assert u.query["default"] == "default"
     assert u.query["string"] == "blue"
     assert u.query["array"] == "blue\tblack\tbrown"
+
+    params = {x.name: "" for x in api._.formdata.operation.parameters}
+    params["file0"] = ("file0", io.BytesIO(b"x"), "ct")
+    params["file1"] = ("file1", io.BytesIO(b"y"), "ct")
+    result = api._.formdata(parameters=params)
+    request = httpx_mock.get_requests()[-1]
+    assert result == "ok"
+
+    params = dict(A="a", B=5)
+    result = api._.urlencoded(parameters=params)
+    request = httpx_mock.get_requests()[-1]
+    assert result == "ok"
+
     return

@@ -1,5 +1,6 @@
 from typing import List, Union, cast
 import json
+import urllib.parse
 
 import httpx
 import pydantic
@@ -122,12 +123,15 @@ class Request(RequestBase):
             assert isinstance(values, dict)
 
             if spec.in_ == "formData":
-                if "multipart/form-data" not in self.operation.consumes:
-                    raise ValueError(f"operation does not consume form data but parameter {name} is formData")
-                if spec.type == "file":
-                    self.req.files.update(values)
-                else:
+                if "multipart/form-data" in self.operation.consumes:
+                    if spec.type == "file":
+                        self.req.files.update(values)
+                    else:
+                        self.req.data.update(values)
+                elif "application/x-www-form-urlencoded" in self.operation.consumes:
                     self.req.data.update(values)
+                else:
+                    raise ValueError(f"operation does not consume form data but parameter {name} is formData")
 
             if spec.in_ == "path":
                 # The string method `format` is incapable of partial updates,

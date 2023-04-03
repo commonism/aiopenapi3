@@ -1,0 +1,167 @@
+openapi: 3.1.0
+
+info:
+  title: API
+  version: 1.0.0
+
+servers:
+  - url: http://127.0.0.1/api
+
+
+components:
+  schemas:
+    Address:
+      type: string
+
+paths:
+  /file:
+    post:
+      operationId: file
+      requestBody:
+        content:
+          application/octet-stream: {}
+      responses: &responses
+        200:
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: string
+
+  /media-types:
+    post:
+      operationId: mediaTypes
+      responses: *responses
+      # multiple, specific media types may be specified:
+      requestBody:
+        content:
+          # a binary file of type png or jpeg
+          image/jpeg: {}
+          image/png: {}
+
+  "/multi-file":
+    post:
+      operationId: multiFile
+      responses: *responses
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                # The property name 'file' will be used for all files.
+                file:
+                  type: array
+                  items: {}
+
+  "/url-encoded":
+    post:
+      operationId: urlEncoded
+      responses: *responses
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                address:
+                  # complex types are stringified to support RFC 1866
+                  type: object
+                  properties: {}
+
+  /media-types2:
+    post:
+      operationId: mediaTypes2
+      responses: *responses
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                address:
+                  # default Content-Type for objects is `application/json`
+                  type: object
+                  properties: {}
+                profileImage:
+                  # Content-Type for application-level encoded resource is `text/plain`
+                  type: string
+                  contentMediaType: image/png
+                  contentEncoding: base64
+                children:
+                  # default Content-Type for arrays is based on the _inner_ type (`text/plain` here)
+                  type: array
+                  items:
+                    type: string
+                addresses:
+                  # default Content-Type for arrays is based on the _inner_ type (object shown, so `application/json` in this example)
+                  type: array
+                  items:
+                    type: object
+                    $ref: '#/components/schemas/Address'
+  /encoding:
+    post:
+      operationId: encoding
+      responses: *responses
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                id:
+                  # default is text/plain
+                  type: string
+                  format: uuid
+                address:
+                  # default is application/json
+                  type: object
+                  properties: {}
+                historyMetadata:
+                  # need to declare XML format!
+                  description: metadata in XML format
+                  type: object
+                  properties: {}
+                profileImage:
+                  type: string
+                profileImage2:
+                    type: object
+                    oneOf:
+                      - type: string
+                      - type: integer
+                      - type: boolean
+                      - type: object
+            encoding:
+              historyMetadata:
+                # require XML Content-Type in utf-8 encoding
+                contentType: application/xml; charset=utf-8
+              profileImage:
+                # only accept png/jpeg
+                contentType: image/png, image/jpeg
+                headers:
+                  X-Rate-Limit-Limit:
+                    description: The number of allowed requests in the current period
+                    schema:
+                      type: integer
+  /survey:
+    post:
+      responses: *responses
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:          # <!--- form field name
+                  type: string
+                fav_number:    # <!--- form field name
+                  type: integer
+              required:
+                - name
+                - email

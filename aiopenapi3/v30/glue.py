@@ -1,13 +1,16 @@
 from typing import List, Union, cast
 import json
+import urllib.parse
 
 import httpx
 import pydantic
 import pydantic.json
 
+import aiopenapi3.v30.media
 from ..base import SchemaBase, ParameterBase
 from ..request import RequestBase, AsyncRequestBase
 from ..errors import HTTPStatusError, ContentTypeError, ResponseDecodingError, ResponseSchemaError
+from .formdata import parameters_from_multipart, parameters_from_urlencoded, encode_multipart_parameters
 
 
 class Request(RequestBase):
@@ -110,8 +113,17 @@ class Request(RequestBase):
           https://spec.openapis.org/oas/v3.0.3#parameter-object
           A unique parameter is defined by a combination of a name and location.
         """
+
         provided = provided or dict()
         possible = {_.name: _ for _ in self.operation.parameters + self.root.paths[self.path].parameters}
+
+        if self.operation.requestBody:
+            rbq = dict()  # requestBody Parameters
+            ct = "multipart/form-data"
+            if ct in self.operation.requestBody.content:
+                for k, v in self.operation.requestBody.content[ct].encoding.items():
+                    rbq.update(v.headers)
+                possible.update(rbq)
 
         parameters = {
             i.name: i.schema_.default for i in filter(lambda x: x.schema_.default is not None, possible.values())
@@ -129,29 +141,30 @@ class Request(RequestBase):
             )
 
         path_parameters = {}
-
+        rbqh = dict()
         for name, value in parameters.items():
             spec = possible[name]
             values = spec._encode(name, value)
             assert isinstance(values, dict)
-            if spec.in_ == "path":
+
+            if isinstance(spec, (aiopenapi3.v30.parameter.Header, aiopenapi3.v31.parameter.Header)):
+                rbqh.update(values)
+            elif spec.in_ == "header":
+                self.req.headers.update(values)
+            elif spec.in_ == "path":
                 # The string method `format` is incapable of partial updates,
                 # as such we need to collect all the path parameters before
                 # applying them to the format string.
                 path_parameters.update(values)
-
-            if spec.in_ == "query":
+            elif spec.in_ == "query":
                 self.req.params.update(values)
-
-            if spec.in_ == "header":
-                self.req.headers.update(values)
-
-            if spec.in_ == "cookie":
+            elif spec.in_ == "cookie":
                 self.req.cookies.update(values)
 
         self.req.url = self.req.url.format(**path_parameters)
+        return rbqh
 
-    def _prepare_body(self, data):
+    def _prepare_body(self, data, rbq):
         if not self.operation.requestBody:
             return
 
@@ -173,23 +186,37 @@ class Request(RequestBase):
             data = self.api.plugins.message.sending(operationId=self.operation.operationId, sending=data).sending
             self.req.content = data
             self.req.headers["Content-Type"] = "application/json"
-        #        elif "multipart/form-data" in self.operation.requestBody.content:
-        #            """
-        #            https://swagger.io/docs/specification/describing-request-body/multipart-requests/
-        #            """
-        #            pass
-        #        elif "multipart/mixed" in self.operation.requestBody.content:
-        #            pass
-        #        elif "multipart/form-data" in self.operation.requestBody.content:
-        #            pass
+        elif (ct := "multipart/form-data") in self.operation.requestBody.content:
+            """
+            https://swagger.io/docs/specification/describing-request-body/multipart-requests/
+            https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#media-type-object
+            """
+            media: aiopenapi3.v30.media.MediaType = self.operation.requestBody.content[ct]
+            if not media.schema_ or not isinstance(data, media.schema_.get_type()):
+                """expect the data to be a model"""
+                raise TypeError((type(data), media.schema_.get_type()))
 
+            params = parameters_from_multipart(data, media, rbq)
+            msg = encode_multipart_parameters(params)
+            self.req.content = msg.as_string()
+            self.req.headers["Content-Type"] = f'{msg.get_content_type()}; boundary="{msg.get_boundary()}"'
+        elif (ct := "application/x-www-form-urlencoded") in self.operation.requestBody.content:
+            self.req.headers["Content-Type"] = ct
+            media: aiopenapi3.v30.media.MediaType = self.operation.requestBody.content[ct]
+            if not media.schema_ or not isinstance(data, media.schema_.get_type()):
+                """expect the data to be a model"""
+                raise TypeError((type(data), media.schema_.get_type()))
+
+            params = parameters_from_urlencoded(data, media)
+            msg = urllib.parse.urlencode(params, doseq=True)
+            self.req.content = msg
         else:
-            raise NotImplementedError()
+            raise NotImplementedError(self.operation.requestBody.content)
 
     def _prepare(self, data, parameters):
         self._prepare_security()
-        self._prepare_parameters(parameters)
-        self._prepare_body(data)
+        rbq = self._prepare_parameters(parameters)
+        self._prepare_body(data, rbq)
 
     def _build_req(self, session):
         req = session.build_request(
@@ -280,7 +307,6 @@ class Request(RequestBase):
             )
 
         if content_type.lower() == "application/json":
-
             data = ctx.received
             try:
                 data = json.loads(data)

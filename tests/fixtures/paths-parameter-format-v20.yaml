@@ -39,7 +39,7 @@ paths:
        200:
          description: OK
          schema:
-           type: str
+           type: string
 
   /query:
     get:
@@ -64,4 +64,50 @@ paths:
        200:
          description: OK
          schema:
-           type: str
+           type: string
+
+  '/formdata':
+    post:
+      consumes:
+        - multipart/form-data
+      description: ""
+      operationId: formdata
+      parameters:
+        - description: The JSON file containing the RunDefinition
+          in: formData
+          name: file0
+          required: true
+          type: file
+        - description: The zip archive of the project folder containing the source code to use for the run.
+          in: formData
+          name: file1
+          required: true
+          type: file
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: ok
+          schema:
+            type: string
+      summary: Start a run on a remote compute target.
+
+  '/urlencoded':
+    post:
+      operationId: urlencoded
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - in: formData
+          name: A
+          type: string
+          description: A
+        - in: formData
+          name: B
+          type: number
+          description: B
+      responses:
+        200:
+          description: OK
+          schema:
+            type: string
