@@ -62,7 +62,6 @@ def loader_prepare(args, session_factory):
 
     path = yarl.URL(args.input)
     if path.scheme in ["http", "https"]:
-
         loader = WebLoader(baseurl=path.with_path("/").with_query({}), yload=ylc, session_factory=session_factory)
     else:
         locations = args.locations or [Path(args.input).parent]
@@ -231,7 +230,6 @@ def main(argv=None):
     loader_args(cmd)
 
     def cmd_call(args):
-
         loader, _ = loader_prepare(args, session_factory)
 
         def prepare_arg(value):

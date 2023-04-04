@@ -54,7 +54,6 @@ class LinodeDiscriminators(aiopenapi3.plugin.Document):
             ]["properties"]["is_default"]["$ref"] = "#/components/schemas/CreditCardData/properties/is_default"
 
         for k, v in ctx.document["components"]["schemas"]["PaymentMethod"]["discriminator"]["mapping"].items():
-
             n = v.split("/")[-1]
             ctx.document["components"]["schemas"][n]["properties"]["type"] = {
                 "type": "string",

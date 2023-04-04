@@ -30,7 +30,6 @@ class License(ObjectExtended):
 
     @root_validator
     def validate_License(cls, values):
-
         """
         A URL to the license used for the API. This MUST be in the form of a URL. The url field is mutually exclusive of the identifier field.
         """

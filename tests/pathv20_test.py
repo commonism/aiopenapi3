@@ -92,7 +92,6 @@ def test_paths_security_v20_alternate_securityparameters(httpx_mock, with_paths_
 
 
 def test_paths_security_v20_post_body(httpx_mock, with_paths_security_v20):
-
     auth = str(uuid.uuid4())
     api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
     user = api._.createUser.return_value().get_type().construct(name="test", id=1)
