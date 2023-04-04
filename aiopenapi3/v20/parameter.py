@@ -19,7 +19,6 @@ class _ParameterCodec:
     """
 
     def _encode__collection(self, values):
-
         sep = self.SEPERATOR_VALUES.get(self.collectionFormat, None)
         if sep:
             if self.type == "array":

@@ -65,7 +65,6 @@ class Model:  # (BaseModel):
         discriminators: List["DiscriminatorBase"] = None,
         extra: "SchemaBase" = None,
     ):
-
         if schemanames is None:
             schemanames = []
 

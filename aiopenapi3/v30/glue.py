@@ -280,7 +280,6 @@ class Request(RequestBase):
             )
 
         if content_type.lower() == "application/json":
-
             data = ctx.received
             try:
                 data = json.loads(data)

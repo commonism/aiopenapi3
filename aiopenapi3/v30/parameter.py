@@ -89,7 +89,6 @@ class _ParameterCodec:
             # .blue.black.brown
             value = "." + ".".join(value)
         elif self.schema_.type == "object":
-
             values = value if isinstance(value, dict) else dict(value._iter(to_dict=True))
             if explode:
                 # .R=100.G=200.B=150
