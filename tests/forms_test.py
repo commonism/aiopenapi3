@@ -269,16 +269,9 @@ def config(unused_tcp_port_factory):
     return c
 
 
-@pytest.fixture(scope="session")
-def event_loop(request):
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
-
-
 @pytest_asyncio.fixture(scope="session")
 async def server(event_loop, config, app):
-    uvloop.install()
+    policy = asyncio.get_event_loop_policy()
     try:
         sd = asyncio.Event()
         asgi = WsgiToAsgi(app)
@@ -286,7 +279,9 @@ async def server(event_loop, config, app):
         yield config
     finally:
         sd.set()
+        del asgi
         await task
+    asyncio.set_event_loop_policy(policy)
 
 
 @pytest.fixture(scope="session", params=["application/x-www-form-urlencoded", "multipart/form-data"])
