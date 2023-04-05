@@ -13,15 +13,9 @@ import uvloop
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
-# FIXME
-#  python3.7 compat typing.get_origin
 from typing import ForwardRef
 
-if sys.version_info >= (3, 8):
-    import typing
-else:
-    import typing_extensions as typing
-
+import typing
 
 import aiopenapi3
 from aiopenapi3 import OpenAPI
