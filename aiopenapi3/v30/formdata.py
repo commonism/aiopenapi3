@@ -123,7 +123,7 @@ def encode_multipart_parameters(fields: List[Tuple[str, str, Union[str, bytes], 
     """
     m = MIMEMultipart()
 
-    for (field, ct, value, headers, schema) in fields:
+    for field, ct, value, headers, schema in fields:
         type, subtype, params = decode_content_type(ct)
 
         if type in ["image", "audio", "application"]:
