@@ -35,15 +35,9 @@ def config(unused_tcp_port_factory):
     return c
 
 
-@pytest.fixture(scope="session")
-def event_loop(request):
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
-
-
 @pytest_asyncio.fixture(scope="session")
 async def server(event_loop, config):
+    policy = asyncio.get_event_loop_policy()
     uvloop.install()
     try:
         sd = asyncio.Event()
@@ -52,6 +46,7 @@ async def server(event_loop, config):
     finally:
         sd.set()
         await task
+    asyncio.set_event_loop_policy(policy)
 
 
 @pytest.fixture(scope="session", params=[2])

@@ -1,5 +1,3 @@
-import asyncio
-
 import aiopenapi3.plugin
 from aiopenapi3 import OpenAPI
 import pytest
@@ -68,13 +66,6 @@ class LinodeDiscriminators(aiopenapi3.plugin.Document):
             }
 
         return ctx
-
-
-@pytest_asyncio.fixture(scope="session")
-def event_loop(request):
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest_asyncio.fixture(scope="session")
