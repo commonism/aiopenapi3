@@ -156,16 +156,16 @@ async def test_listPet(event_loop, server, client):
 @pytest.mark.asyncio
 async def test_getPet(event_loop, server, client):
     pet = await client._.createPet(data=randomPet(client, str(uuid.uuid4())))
-    r = await client._.getPet(parameters={"pet_id": pet.__root__.identifier})
+    r = await client._.getPet(parameters={"petId": pet.__root__.identifier})
     assert type(r.__root__).schema() == type(pet.__root__).schema()
 
-    r = await client._.getPet(parameters={"pet_id": "-1"})
+    r = await client._.getPet(parameters={"petId": "-1"})
     assert type(r).schema() == client.components.schemas["Error"].get_type().schema()
 
 
 @pytest.mark.asyncio
 async def test_deletePet(event_loop, server, client):
-    r = await client._.deletePet(parameters={"pet_id": -1})
+    r = await client._.deletePet(parameters={"petId": -1})
     assert type(r).schema() == client.components.schemas["Error"].get_type().schema()
 
     await client._.createPet(data=randomPet(client, str(uuid.uuid4())))
@@ -173,7 +173,7 @@ async def test_deletePet(event_loop, server, client):
     for pet in zoo:
         while hasattr(pet, "__root__"):
             pet = pet.__root__
-        await client._.deletePet(parameters={"pet_id": pet.identifier})
+        await client._.deletePet(parameters={"petId": pet.identifier})
 
 
 @pytest.mark.asyncio

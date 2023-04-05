@@ -4,7 +4,7 @@ import errno
 from typing import Optional
 
 import starlette.status
-from fastapi import FastAPI, APIRouter, Query, Body, Response
+from fastapi import FastAPI, APIRouter, Body, Response, Path
 from fastapi.responses import JSONResponse
 
 from .schema import Pets, Pet, PetCreate, Error
@@ -66,8 +66,8 @@ def listPet(limit: Optional[int] = None) -> Pets:
     return list(ZOO.values())
 
 
-@router.get("/pets/{pet_id}", operation_id="getPet", response_model=Pet, responses={404: {"model": Error}})
-def getPet(pet_id: int = Query(..., alias="petId")) -> Pets:
+@router.get("/pets/{petId}", operation_id="getPet", response_model=Pet, responses={404: {"model": Error}})
+def getPet(pet_id: int = Path(..., alias="petId")) -> Pets:
     for k, v in ZOO.items():
         if pet_id == v.id:
             return v
@@ -78,8 +78,8 @@ def getPet(pet_id: int = Query(..., alias="petId")) -> Pets:
         )
 
 
-@router.delete("/pets/{pet_id}", operation_id="deletePet", responses={204: {"model": None}, 404: {"model": Error}})
-def deletePet(response: Response, pet_id: int = Query(..., alias="petId")) -> Pets:
+@router.delete("/pets/{petId}", operation_id="deletePet", responses={204: {"model": None}, 404: {"model": Error}})
+def deletePet(response: Response, pet_id: int = Path(..., alias="petId")) -> Pets:
     for k, v in ZOO.items():
         if pet_id == v.id:
             del ZOO[k]

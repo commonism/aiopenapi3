@@ -73,21 +73,21 @@ async def test_listPet(event_loop, server, client):
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
 async def test_getPet(event_loop, server, client):
     h, pet = await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
-    r = await asyncio.to_thread(client._.getPet, parameters={"pet_id": pet.id})
+    r = await asyncio.to_thread(client._.getPet, parameters={"petId": pet.id})
     assert type(r).schema() == type(pet).schema()
     assert r.id == pet.id
 
-    r = await asyncio.to_thread(client._.getPet, parameters={"pet_id": -1})
+    r = await asyncio.to_thread(client._.getPet, parameters={"petId": -1})
     assert type(r).schema() == client.components.schemas["Error"].get_type().schema()
 
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
 async def test_deletePet(event_loop, server, client):
-    r = await asyncio.to_thread(client._.deletePet, parameters={"pet_id": -1})
+    r = await asyncio.to_thread(client._.deletePet, parameters={"petId": -1})
     assert type(r).schema() == client.components.schemas["Error"].get_type().schema()
 
     await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
     zoo = await asyncio.to_thread(client._.listPet)
     for pet in zoo:
-        await asyncio.to_thread(client._.deletePet, parameters={"pet_id": pet.id})
+        await asyncio.to_thread(client._.deletePet, parameters={"petId": pet.id})
