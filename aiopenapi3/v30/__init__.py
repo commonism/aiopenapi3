@@ -1,6 +1,64 @@
-from .schemas import Schema
-from .root import Root
-from .paths import PathItem, Operation, SecurityRequirement
-from .parameter import Parameter
 from .glue import Request, AsyncRequest
-from .general import Reference
+
+import pydantic_core
+
+from .components import Components
+from .example import Example
+from .general import ExternalDocumentation, Reference
+from .info import Contact, License, Info
+from .media import Encoding, MediaType
+from .parameter import Parameter, Header
+from .paths import RequestBody, Link, Response, Operation, PathItem, Paths, Callback, RuntimeExpression
+from .root import Root
+from .schemas import Discriminator, Schema
+from .security import OAuthFlow, OAuthFlows, SecurityScheme, SecurityRequirement
+from .servers import ServerVariable, Server
+from .tag import Tag
+from .xml import XML
+
+
+def __init():
+    r = dict()
+    CLASSES = [
+        Components,
+        Example,
+        ExternalDocumentation,
+        Reference,
+        Contact,
+        License,
+        Info,
+        Encoding,
+        MediaType,
+        Parameter,
+        Header,
+        RequestBody,
+        Link,
+        Response,
+        Operation,
+        PathItem,
+        Paths,
+        Callback,
+        RuntimeExpression,
+        Discriminator,
+        Schema,
+        OAuthFlow,
+        OAuthFlows,
+        SecurityScheme,
+        SecurityRequirement,
+        ServerVariable,
+        Server,
+        Tag,
+        XML,
+        Root,
+    ]
+    for i in CLASSES:
+        r[i.__name__] = i
+    for i in CLASSES:
+        print(f"{i.__name__} {i.__pydantic_model_complete__}")
+        try:
+            i.model_rebuild(_localns=r)
+        except pydantic_core.SchemaError as e:
+            print(e)
+
+
+__init()

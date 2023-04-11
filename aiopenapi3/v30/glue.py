@@ -21,7 +21,8 @@ if httpx_auth is not None:
     }
 
 import pydantic
-import pydantic.json
+
+# import pydantic.json
 
 import aiopenapi3.v30.media
 from ..base import SchemaBase, ParameterBase
@@ -69,24 +70,24 @@ class Request(RequestBase):
             return
 
         if not self.security:
-            if any([{} == i.__root__ for i in security]):
+            if any([{} == i.root for i in security]):
                 return
             else:
                 options = " or ".join(
-                    sorted(map(lambda x: f"{{{x}}}", [" and ".join(sorted(i.__root__.keys())) for i in security]))
+                    sorted(map(lambda x: f"{{{x}}}", [" and ".join(sorted(i.root.keys())) for i in security]))
                 )
                 raise ValueError(f"No security requirement satisfied (accepts {options})")
 
         for s in security:
-            if frozenset(s.__root__.keys()) - frozenset(self.security.keys()):
+            if frozenset(s.root.keys()) - frozenset(self.security.keys()):
                 continue
-            for scheme, _ in s.__root__.items():
+            for scheme, _ in s.root.items():
                 value = self.security[scheme]
                 self._prepare_secschemes(scheme, value)
             break
         else:
             options = " or ".join(
-                sorted(map(lambda x: f"{{{x}}}", [" and ".join(sorted(i.__root__.keys())) for i in security]))
+                sorted(map(lambda x: f"{{{x}}}", [" and ".join(sorted(i.root.keys())) for i in security]))
             )
             raise ValueError(
                 f"No security requirement satisfied (accepts {options} given {{{' and '.join(sorted(self.security.keys()))}}}"
@@ -274,13 +275,13 @@ class Request(RequestBase):
             if isinstance(data, (dict, list)):
                 pass
             elif isinstance(data, pydantic.BaseModel):
-                data = dict(data._iter(to_dict=True))
+                data = data.model_dump_json()
             else:
                 raise TypeError(data)
             data = self.api.plugins.message.marshalled(
                 operationId=self.operation.operationId, marshalled=data
             ).marshalled
-            data = json.dumps(data, default=pydantic.json.pydantic_encoder)
+            data = json.dumps(data)
             data = data.encode()
             data = self.api.plugins.message.sending(operationId=self.operation.operationId, sending=data).sending
             self.req.content = data

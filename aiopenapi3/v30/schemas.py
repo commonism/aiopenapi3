@@ -1,6 +1,6 @@
 from typing import Union, List, Any, Optional, Dict
 
-from pydantic import Field, root_validator, Extra
+from pydantic import Field, root_validator, Extra, PrivateAttr
 
 from ..base import ObjectExtended, SchemaBase, DiscriminatorBase
 from .general import Reference
@@ -39,7 +39,7 @@ class Schema(ObjectExtended, SchemaBase):
     maxProperties: Optional[int] = Field(default=None)
     minProperties: Optional[int] = Field(default=None)
     required: Optional[List[str]] = Field(default_factory=list)
-    enum: Optional[List[Union[Reference, Any]]] = Field(default=None)
+    enum: Optional[List[Union[Reference, "str"]]] = Field(default=None)
 
     type: Optional[str] = Field(default=None)
     allOf: Optional[List[Union["Schema", Reference]]] = Field(default_factory=list)
@@ -61,7 +61,7 @@ class Schema(ObjectExtended, SchemaBase):
     example: Optional[Any] = Field(default=None)
     deprecated: Optional[bool] = Field(default=None)
 
-    _model_type: object
+    _model_type: PrivateAttr(None)
     _model_types: List[object]
     _request_model_type: object
 
@@ -74,7 +74,8 @@ class Schema(ObjectExtended, SchemaBase):
         #        keep_untouched = (lru_cache,)
         extra = Extra.forbid
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
+    @classmethod
     def validate_Schema_number_type(cls, values: Dict[str, Any]):
         conv = ["minimum", "maximum"]
         if values.get("type", None) == "integer":

@@ -1,6 +1,6 @@
 from typing import Optional, Dict, List
 
-from pydantic import Field, root_validator, BaseModel, constr
+from pydantic import Field, root_validator, BaseModel, model_serializer, constr
 
 from ..base import ObjectExtended
 
@@ -47,7 +47,7 @@ class SecurityScheme(ObjectExtended):
     flows: Optional[OAuthFlows] = Field(default=None)
     openIdConnectUrl: Optional[str] = Field(default=None)
 
-    @root_validator
+    #    @root_validator
     def validate_SecurityScheme(cls, values):
         t = values.get("type", None)
         keys = set(map(lambda x: x[0], filter(lambda x: x[1] is not None, values.items())))
@@ -70,4 +70,21 @@ class SecurityRequirement(BaseModel):
     .. _SecurityRequirement: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#securityRequirementObject
     """
 
-    __root__: Dict[str, List[str]]
+    root: Dict[str, List[str]]
+
+    @root_validator(pre=True)
+    @classmethod
+    def populate_root(cls, values):
+        return {"root": values}
+
+    @model_serializer(mode="wrap")
+    def _serialize(self, handler, info):
+        data = handler(self)
+        if info.mode == "json":
+            return data["root"]
+        else:
+            return data
+
+    @classmethod
+    def model_modify_json_schema(cls, json_schema):
+        return json_schema["properties"]["root"]

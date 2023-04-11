@@ -223,6 +223,8 @@ class ParameterBase(ObjectExtended, ParameterBase_):
     .. _Parameter Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#external-documentation-object
     """
 
+    model_config = dict(undefined_types_warning=False)
+
     description: Optional[str] = Field(default=None)
     required: Optional[bool] = Field(default=None)
     deprecated: Optional[bool] = Field(default=None)
@@ -235,9 +237,9 @@ class ParameterBase(ObjectExtended, ParameterBase_):
     example: Optional[Any] = Field(default=None)
     examples: Optional[Dict[str, Union["Example", Reference]]] = Field(default_factory=dict)
 
-    content: Optional[Dict[str, "MediaType"]]
+    content: Optional[Dict[str, "MediaType"]] = Field(default_factory=dict)
 
-    @root_validator
+    #    @root_validator
     def validate_ParameterBase(cls, values):
         #        if values["in_"] ==
         #        if self.in_ == "path" and self.required is not True:
@@ -254,8 +256,8 @@ class _In(str, enum.Enum):
 
 
 class Parameter(ParameterBase, _ParameterCodec):
-    name: str = Field(required=True)
-    in_: _In = Field(required=True, alias="in")  # TODO must be one of ["query","header","path","cookie"]
+    name: str = Field()
+    in_: _In = Field(alias="in")  # TODO must be one of ["query","header","path","cookie"]
 
 
 def encode_parameter(

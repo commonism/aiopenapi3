@@ -14,7 +14,14 @@ filterwarnings = [
     "ignore:Ignoring Schema with additionalProperties and named properties:UserWarning",
 #    "error::pytest.PytestUnraisableExceptionWarning",
     # note the use of single quote below to denote "raw" strings in TOML
-#    'ignore:The loop argument is deprecated since Python 3.8, and scheduled for removal in Python 3.10.:DeprecationWarning',
+    'ignore:The loop argument is deprecated since Python 3.8, and scheduled for removal in Python 3.10.:DeprecationWarning',
+    # pydantic2
+    'ignore:Support for "config" as "type" is deprecated and will be removed in a future version:DeprecationWarning',
+    'ignore:Valid config keys have changed in V2:UserWarning',
+    'ignore:The `update_forward_refs` method is deprecated; use `model_rebuild` instead.:DeprecationWarning',
+    'ignore:The `parse_obj` method is deprecated; use `model_validate` instead.:DeprecationWarning',
+    'ignore:The `construct` method is deprecated; use `model_construct` instead.:DeprecationWarning',
+    'ignore:The `dict` method is deprecated; use `model_dump` instead.:DeprecationWarning',
     "ignore:'flask.Markup' is deprecated and will be removed in Flask 2.4. Import 'markupsafe.Markup' instead.:DeprecationWarning"
 ]
 asyncio_mode = "strict"

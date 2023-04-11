@@ -100,8 +100,8 @@ class Parameter(ObjectExtended, _ParameterCodec, ParameterBase):
     .. _Parameter Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#parameter-object
     """
 
-    name: str = Field(required=True)
-    in_: _In = Field(required=True, alias="in")
+    name: str = Field()
+    in_: _In = Field(alias="in")
 
     description: Optional[str] = Field(default=None)
     required: Optional[bool] = Field(default=None)
@@ -155,6 +155,3 @@ class Header(ObjectExtended, _ParameterCodec):
 
     # private storage for an associated Schema so we can create types from this Header & Header.items
     _schema: None
-
-
-Items.update_forward_refs()

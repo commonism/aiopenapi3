@@ -160,9 +160,9 @@ class OpenAPI:
             v = list(map(int, v.split(".")))
             if v[0] == 3:
                 if v[1] == 0:
-                    return v30.Root.parse_obj(document)
+                    return v30.Root.model_validate(document)
                 elif v[1] == 1:
-                    return v31.Root.parse_obj(document)
+                    return v31.Root.model_validate(document)
                 else:
                     raise ValueError(f"openapi version 3.{v[1]} not supported")
             else:
@@ -467,11 +467,11 @@ class OpenAPI:
                 # primitive types: str, int …
                 continue
             try:
-                schema.update_forward_refs(**types)
+                schema.model_rebuild(_localns=types)
                 thes = byname.get(name, None)
                 if thes is not None:
                     for v in byid[id(thes)]._model_types:
-                        v.update_forward_refs(**types)
+                        v.model_rebuild(_localns=types)
             except Exception as e:
                 raise e
 

@@ -1,6 +1,6 @@
 from typing import Union, List, Any, Optional, Dict
 
-from pydantic import Field, root_validator, Extra
+from pydantic import Field, root_validator, Extra, PrivateAttr
 
 from ..base import ObjectExtended, SchemaBase, DiscriminatorBase
 from .general import Reference
@@ -29,7 +29,7 @@ class Schema(ObjectExtended, SchemaBase):
     """
 
     type: Optional[Union[str, List[str]]] = Field(default=None)
-    enum: Optional[List[Union[Reference, Any]]] = Field(default=None)
+    enum: Optional[List[Union[Reference, str]]] = Field(default=None)
     const: Optional[str] = Field(default=None)
 
     """
@@ -152,17 +152,18 @@ class Schema(ObjectExtended, SchemaBase):
     externalDocs: Optional[dict] = Field(default=None)  # 'ExternalDocs'
     example: Optional[Any] = Field(default=None)
 
-    _model_type: object
+    _model_type: PrivateAttr(None)
 
     """
     The _identity attribute is set during OpenAPI.__init__ and used at get_type()
     """
-    _identity: str
+    _identity: PrivateAttr(str)
 
     class Config:
         extra = Extra.allow
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
+    @classmethod
     def validate_Schema_number_type(cls, values: Dict[str, Any]):
         conv = ["minimum", "maximum"]
         if values.get("type", None) == "integer":
@@ -174,6 +175,3 @@ class Schema(ObjectExtended, SchemaBase):
 
     def __getstate__(self):
         return SchemaBase.__getstate__(self)
-
-
-Schema.update_forward_refs()

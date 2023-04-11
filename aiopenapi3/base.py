@@ -5,7 +5,7 @@ import builtins
 import keyword
 import uuid
 
-from pydantic import BaseModel, Field, root_validator, Extra
+from pydantic import BaseModel, Field, root_validator, Extra, AnyUrl, PrivateAttr
 
 from .json import JSONPointer
 from .errors import ReferenceResolutionError, SpecError, OperationParameterValidationError
@@ -31,6 +31,7 @@ class ObjectExtended(ObjectBase):
     extensions: Optional[Any] = Field(default=None)
 
     @root_validator(pre=True)
+    @classmethod
     def validate_ObjectExtended_extensions(cls, values):
         """
         FIXME
@@ -52,8 +53,28 @@ class ObjectExtended(ObjectBase):
         return values
 
 
+from pydantic import BaseModel, ValidationError, model_serializer, parse_obj_as, root_validator
+
+
 class PathsBase(ObjectBase):
-    __root__: Dict[str, Any] = Field(default_factory=dict)
+    paths: Dict[str, Any]  # = Field(default_factory=dict)
+    extensions: Dict[str, Any]
+
+    @property
+    def _paths(self):
+        return self.paths
+
+    @model_serializer(mode="wrap")
+    def _serialize(self, handler, info):
+        data = handler(self)
+        if info.mode == "json":
+            return data["root"]
+        else:
+            return data
+
+    @classmethod
+    def model_modify_json_schema(cls, json_schema):
+        return json_schema["properties"]["root"]
 
     class Config:
         from pydantic import Extra
@@ -65,13 +86,13 @@ class PathsBase(ObjectBase):
         return self._extensions
 
     def __getitem__(self, item):
-        return self._paths[item]
+        return self.paths[item]
 
     def items(self):
-        return self._paths.items()
+        return self.paths.items()
 
     def values(self):
-        return self._paths.values()
+        return self.paths.values()
 
 
 class RootBase:
@@ -139,6 +160,8 @@ class RootBase:
 
                 if isinstance(value, (str, int, float)):  # , datetime.datetime, datetime.date)):
                     continue
+                elif isinstance(value, AnyUrl):
+                    pass
                 elif isinstance(value, _Reference):
                     value._target = api.resolve_jr(root, obj, value)
                 elif issubclass(type(value), ObjectBase) or isinstance(value, (dict, list)):

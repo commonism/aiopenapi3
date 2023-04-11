@@ -26,7 +26,8 @@ else:
     from typing_extensions import Annotated, Literal
 
 from pydantic import BaseModel, Extra, Field
-from pydantic.schema import field_class_to_schema
+from .pydanticv2 import field_class_to_schema
+
 
 type_format_to_class = collections.defaultdict(lambda: dict())
 
@@ -141,7 +142,7 @@ class Model:  # (BaseModel):
         #    xf[k] = (annotations.get(k, None), fields.get(k, None))
         # m = pydantic.create_model(type_name, __base__=BaseModel, **xf, __module__=__name__)
 
-        fields["Config"] = Model.configof(schema)
+        fields["model_config"] = Model.configof(schema)
 
         m = types.new_class(type_name, (BaseModel,), {}, lambda ns: ns.update(fields))
         return m
@@ -149,7 +150,7 @@ class Model:  # (BaseModel):
     @staticmethod
     def configof(schema):
         """
-        create pydantic Config for the BaseModel
+        create pydantic model_config for the BaseModel
         we need to set "extra" - Extra.allow is not an option though …
 
         Extra.allow is a problem
@@ -186,11 +187,7 @@ class Model:  # (BaseModel):
 
         extra_ = Extra.ignore if extra_ == Extra.allow else extra_
 
-        class Config:
-            extra = extra_
-            arbitrary_types_allowed = arbitrary_types_allowed_
-
-        return Config
+        return dict(undefined_types_warning=False, extra=extra_, arbitrary_types_allowed=arbitrary_types_allowed_)
 
     @staticmethod
     def typeof(schema: "SchemaBase", fwdref=False):

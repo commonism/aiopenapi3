@@ -1,6 +1,6 @@
 from typing import Union, List, Optional, Dict, Any
 
-from pydantic import Field, root_validator, validator
+from pydantic import Field, root_validator, validator, model_serializer
 
 from ..base import ObjectBase, ObjectExtended, PathsBase, OperationBase
 from .general import ExternalDocumentation
@@ -30,6 +30,7 @@ class Link(ObjectExtended):
     .. _Link Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#link-object
     """
 
+    model_config = dict(undefined_types_warning=False)
     operationRef: Optional[str] = Field(default=None)
     operationId: Optional[str] = Field(default=None)
     parameters: Optional[Dict[str, Union[str, Any, "RuntimeExpression"]]] = Field(default=None)
@@ -37,7 +38,8 @@ class Link(ObjectExtended):
     description: Optional[str] = Field(default=None)
     server: Optional[Server] = Field(default=None)
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
+    @classmethod
     def validate_Link_operation(cls, values):
         operationId, operationRef = (values.get(i, None) for i in ["operationId", "operationRef"])
         assert not (
@@ -57,6 +59,8 @@ class Response(ObjectExtended):
     .. _Response Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#responseObject
     """
 
+    model_config = dict(undefined_types_warning=False)
+
     description: str = Field(...)
     headers: Optional[Dict[str, Union[Header, Reference]]] = Field(default_factory=dict)
     content: Optional[Dict[str, MediaType]] = Field(default_factory=dict)
@@ -69,6 +73,8 @@ class Operation(ObjectExtended, OperationBase):
 
     .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#operationObject
     """
+
+    model_config = dict(undefined_types_warning=False)
 
     tags: Optional[List[str]] = Field(default=None)
     summary: Optional[str] = Field(default=None)
@@ -92,6 +98,8 @@ class PathItem(ObjectExtended):
     .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#pathItemObject
     """
 
+    model_config = dict(undefined_types_warning=False)
+
     ref: Optional[str] = Field(default=None, alias="$ref")
     summary: Optional[str] = Field(default=None)
     description: Optional[str] = Field(default=None)
@@ -109,16 +117,17 @@ class PathItem(ObjectExtended):
 
 class Paths(PathsBase):
     @root_validator(pre=True)
+    @classmethod
     def validate_Paths(cls, values):
-        assert set(values.keys()) - frozenset(["__root__"]) == set([])
+        assert values is not None
         p = {}
         e = {}
-        for k, v in values.get("__root__", {}).items():
+        for k, v in values.items():
             if k[:2] == "x-":
                 e[k] = v
             else:
                 p[k] = PathItem(**v)
-        return {"_paths": p, "_extensions": e}
+        return {"paths": p, "extensions": e}
 
 
 class Callback(ObjectBase):
@@ -130,7 +139,26 @@ class Callback(ObjectBase):
     This object MAY be extended with Specification Extensions.
     """
 
-    __root__: Dict[str, PathItem]
+    model_config = dict(undefined_types_warning=False)
+
+    root: Dict[str, PathItem]
+
+    @root_validator(pre=True)
+    @classmethod
+    def populate_root(cls, values):
+        return {"root": values}
+
+    @model_serializer(mode="wrap")
+    def _serialize(self, handler, info):
+        data = handler(self)
+        if info.mode == "json":
+            return data["root"]
+        else:
+            return data
+
+    @classmethod
+    def model_modify_json_schema(cls, json_schema):
+        return json_schema["properties"]["root"]
 
 
 class RuntimeExpression(ObjectBase):
@@ -140,8 +168,21 @@ class RuntimeExpression(ObjectBase):
     .. Runtime Expression: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#runtimeExpression
     """
 
-    __root__: str = Field(...)
+    root: str
 
+    @root_validator(pre=True)
+    @classmethod
+    def populate_root(cls, values):
+        return {"root": values}
 
-Operation.update_forward_refs()
-Link.update_forward_refs()
+    @model_serializer(mode="wrap")
+    def _serialize(self, handler, info):
+        data = handler(self)
+        if info.mode == "json":
+            return data["root"]
+        else:
+            return data
+
+    @classmethod
+    def model_modify_json_schema(cls, json_schema):
+        return json_schema["properties"]["root"]
