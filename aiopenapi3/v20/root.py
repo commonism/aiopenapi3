@@ -26,7 +26,7 @@ class Root(ObjectExtended, RootBase):
     schemes: Optional[List[str]] = Field(default_factory=list)
     consumes: Optional[List[str]] = Field(default_factory=list)
     produces: Optional[List[str]] = Field(default_factory=list)
-    paths: Paths = Field(default=None)
+    paths: Paths = Field(default_factory=dict)
     definitions: Optional[Dict[str, Schema]] = Field(default_factory=dict)
     parameters: Optional[Dict[str, Parameter]] = Field(default_factory=dict)
     responses: Optional[Dict[str, Response]] = Field(default_factory=dict)
@@ -37,6 +37,3 @@ class Root(ObjectExtended, RootBase):
 
     def _resolve_references(self, api):
         RootBase.resolve(api, self, self, PathItem, Reference)
-
-
-Root.update_forward_refs()

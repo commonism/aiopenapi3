@@ -16,7 +16,7 @@ class ServerVariable(ObjectExtended):
     default: str = Field(...)
     description: Optional[str] = Field(default=None)
 
-    @root_validator
+    #    @root_validator
     def validate_ServerVariable(cls, values):
         assert isinstance(values.get("enum", None), (list, None.__class__))
 

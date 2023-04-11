@@ -19,6 +19,8 @@ class ParameterBase(ObjectExtended):
     .. _Parameter Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#parameterObject
     """
 
+    model_config = dict(undefined_types_warning=False)
+
     description: Optional[str] = Field(default=None)
     required: Optional[bool] = Field(default=None)
     deprecated: Optional[bool] = Field(default=None)
@@ -31,7 +33,7 @@ class ParameterBase(ObjectExtended):
     example: Optional[Any] = Field(default=None)
     examples: Optional[Dict[str, Union["Example", Reference]]] = Field(default_factory=dict)
 
-    content: Optional[Dict[str, "MediaType"]]
+    content: Optional[Dict[str, "MediaType"]] = None
 
 
 class _In(str, enum.Enum):
@@ -42,8 +44,8 @@ class _In(str, enum.Enum):
 
 
 class Parameter(ParameterBase, _ParameterCodec):
-    name: str = Field(required=True)
-    in_: _In = Field(required=True, alias="in")
+    name: str = Field()
+    in_: _In = Field(alias="in")
 
 
 class Header(ParameterBase, _ParameterCodec):
@@ -52,11 +54,7 @@ class Header(ParameterBase, _ParameterCodec):
     .. _HeaderObject: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#headerObject
     """
 
+    model_config = dict(undefined_types_warning=False)
+
     def _codec(self):
         return "simple", False
-
-
-from .media import MediaType
-
-Parameter.update_forward_refs()
-Header.update_forward_refs()

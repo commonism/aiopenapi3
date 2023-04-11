@@ -7,6 +7,7 @@ from ..base import ObjectExtended
 from .example import Example
 from .general import Reference
 from .schemas import Schema
+from .parameter import Header
 
 
 class Encoding(ObjectExtended):
@@ -16,8 +17,10 @@ class Encoding(ObjectExtended):
     .. _Encoding: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#encodingObject
     """
 
+    model_config = dict(undefined_types_warning=False)
+
     contentType: Optional[str] = Field(default=None)
-    headers: Optional[Dict[str, Union["Header", Reference]]] = Field(default_factory=dict)
+    headers: Optional[Dict[str, Union[Header, Reference]]] = Field(default_factory=dict)
     style: Optional[str] = Field(default=None)
     explode: Optional[bool] = Field(default=None)
     allowReserved: Optional[bool] = Field(default=None)
@@ -31,12 +34,8 @@ class MediaType(ObjectExtended):
     .. _MediaType: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#media-type-object
     """
 
-    schema_: Optional[Schema] = Field(required=True, alias="schema")
+    model_config = dict(undefined_types_warning=False)
+    schema_: Optional[Schema] = Field(default=None, alias="schema")
     example: Optional[Any] = Field(default=None)  # 'any' type
     examples: Optional[Dict[str, Union[Example, Reference]]] = Field(default_factory=dict)
     encoding: Optional[Dict[str, Encoding]] = Field(default_factory=dict)
-
-
-from .parameter import Header
-
-Encoding.update_forward_refs()

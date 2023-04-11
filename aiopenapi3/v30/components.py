@@ -20,6 +20,8 @@ class Components(ObjectExtended):
     .. _Components Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#components-object
     """
 
+    model_config = dict(undefined_types_warning=False)
+
     schemas: Optional[Dict[str, Union[Schema, Reference]]] = Field(default_factory=dict)
     responses: Optional[Dict[str, Union[Response, Reference]]] = Field(default_factory=dict)
     parameters: Optional[Dict[str, Union[Parameter, Reference]]] = Field(default_factory=dict)
@@ -33,4 +35,6 @@ class Components(ObjectExtended):
 
 #    pathItems: Optional[Dict[str, Union[PathItem, Reference]]] = Field(default_factory=dict) #v3.1
 
-Components.update_forward_refs()
+from .media import MediaType
+
+# Components.update_forward_refs()

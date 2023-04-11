@@ -91,7 +91,10 @@ def _get_parsed_yaml(filename, version=None):
     if filename not in LOADED_FILES:
         with open("tests/fixtures/" + filename) as f:
             raw = f.read()
-        parsed = safe_load(raw)
+        import yaml
+        from aiopenapi3.loader import YAMLCompatibilityLoader
+
+        parsed = yaml.load(raw, Loader=YAMLCompatibilityLoader)
 
         LOADED_FILES[filename] = parsed
 

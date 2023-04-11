@@ -65,16 +65,14 @@ class PathItem(ObjectExtended):
 
 class Paths(PathsBase):
     @root_validator(pre=True)
+    @classmethod
     def validate_Paths(cls, values):
-        assert set(values.keys()) - frozenset(["__root__"]) == set([])
+        assert values is not None
         p = {}
         e = {}
-        for k, v in values.get("__root__", {}).items():
+        for k, v in values.items():
             if k[:2] == "x-":
                 e[k] = v
             else:
                 p[k] = PathItem(**v)
-        return {"_paths": p, "_extensions": e}
-
-
-Operation.update_forward_refs()
+        return {"paths": p, "extensions": e}

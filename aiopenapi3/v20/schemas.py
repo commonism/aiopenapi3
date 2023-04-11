@@ -59,6 +59,3 @@ class Schema(ObjectExtended, SchemaBase):
 
     def __getstate__(self):
         return SchemaBase.__getstate__(self)
-
-
-Schema.update_forward_refs()

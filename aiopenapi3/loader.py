@@ -72,7 +72,7 @@ class Loader(abc.ABC):
      * parse
     """
 
-    def __init__(self, yload: yaml.Loader = yaml.SafeLoader):
+    def __init__(self, yload: yaml.Loader = YAMLCompatibilityLoader):
         self.yload = yload
 
     @abc.abstractmethod
