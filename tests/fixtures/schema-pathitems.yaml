@@ -1,0 +1,40 @@
+openapi: "3.1.0"
+info:
+  version: "0.1"
+  title: paths refs
+servers:
+  - url: http://127.0.0.1/
+paths:
+  /a:
+    $ref: "#/components/pathItems/A"
+  /b:
+    $ref: "#/components/pathItems/B"
+components:
+  schemas:
+    D:
+      type: object
+      properties:
+        foo:
+          type: string
+  pathItems:
+    B:
+      get:
+        operationId: b
+        description: ""
+        responses:
+          "200":
+            description: ""
+            content:
+              'application/json':
+                schema:
+                  $ref: '#/components/schemas/D'
+    A:
+      get:
+        description: ""
+        responses:
+          "200":
+            description: ""
+            content:
+              'application/json':
+                schema:
+                  $ref: '#/components/schemas/D'

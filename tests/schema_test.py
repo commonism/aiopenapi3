@@ -437,3 +437,16 @@ def test_schema_enum_object(with_schema_enum_object):
 def test_schema_enum_array(with_schema_enum_array):
     with pytest.raises(NotImplementedError, match="complex enums/const are not supported"):
         api = OpenAPI("/", with_schema_enum_array)
+
+
+def test_schema_pathitems(httpx_mock, with_schema_pathitems):
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json={"foo": "bar"})
+    api = OpenAPI("/", with_schema_pathitems, session_factory=httpx.Client)
+    req = api.createRequest(("/a", "get"))
+    r = req()
+
+    req = api.createRequest("b")
+    r = req()
+    r = api._.b()
+
+    return

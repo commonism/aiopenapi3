@@ -330,6 +330,8 @@ class OpenAPI:
 
             if self.paths:
                 for path, obj in self.paths.items():
+                    if obj.ref:
+                        obj = obj.ref._target
                     for m in obj.model_fields_set & HTTP_METHODS:
                         op = getattr(obj, m)
                         op._validate_path_parameters(obj, path, (m, op.operationId))
@@ -571,7 +573,10 @@ class OpenAPI:
                 assert isinstance(req, aiopenapi3.request.RequestBase)
             else:
                 path, method = operationId
-                op = getattr(self._root.paths[path], method)
+                pathitem = self._root.paths[path]
+                if pathitem.ref:
+                    pathitem = pathitem.ref._target
+                op = getattr(pathitem, method)
                 req = self._createRequest(self, method, path, op)
             return req
         except Exception as e:

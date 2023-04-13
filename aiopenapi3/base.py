@@ -114,8 +114,9 @@ class RootBase:
                 value = getattr(obj, slot)
                 if value is None:
                     continue
-                if isinstance(value, (str, int, bool, float)):
+                if isinstance(value, (int, bool, float)):
                     continue
+
                 # v3.1 - Schema $ref
                 if isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root)):
                     if isinstance(value, SchemaBase):

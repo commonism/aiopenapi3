@@ -423,6 +423,11 @@ def with_schema_constraints():
 
 
 @pytest.fixture
+def with_schema_pathitems(openapi_version):
+    yield _get_parsed_yaml("schema-pathitems.yaml")
+
+
+@pytest.fixture
 def with_plugin_base():
     filename = "plugin-base.yaml"
     with (Path("tests/fixtures/") / filename).open("rt") as f:
