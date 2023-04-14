@@ -22,6 +22,9 @@ filterwarnings = [
     'ignore:The `parse_obj` method is deprecated; use `model_validate` instead.:DeprecationWarning',
     'ignore:The `construct` method is deprecated; use `model_construct` instead.:DeprecationWarning',
     'ignore:The `dict` method is deprecated; use `model_dump` instead.:DeprecationWarning',
+    'ignore:`pydantic.config.Extra` is deprecated, use literal values instead .*$:DeprecationWarning',
+    'ignore:Support for class-based `config` is deprecated, use ConfigDict instead.:DeprecationWarning',
+    'ignore:The `__fields_set__` attribute is deprecated, use `model_fields_set` instead.:DeprecationWarning',
     "ignore:'flask.Markup' is deprecated and will be removed in Flask 2.4. Import 'markupsafe.Markup' instead.:DeprecationWarning"
 ]
 asyncio_mode = "strict"

@@ -42,7 +42,7 @@ paths:
     get:
       operationId: alternateSecurity
       responses:
-        200:
+        "200":
           description: ''
           schema:
             type: str
@@ -55,7 +55,7 @@ paths:
     get:
       operationId: combinedSecurity
       responses:
-        200:
+        "200":
           description: ''
           schema:
             type: str
@@ -73,13 +73,13 @@ paths:
           required: true
           type: integer
       responses:
-        200:
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/User'
-        400:
+        "400":
           description: The specified user ID is invalid (e.g. not a number).
-        404:
+        "404":
           description: A user with the specified ID was not found.
         default:
           description: Unexpected error
@@ -100,7 +100,7 @@ paths:
       produces:
         - application/json
       responses:
-        200:
+        "200":
           description: OK
           schema:
             type: array
@@ -119,7 +119,7 @@ paths:
           schema:
             $ref: '#/definitions/User'
       responses:
-        200:
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/User'
