@@ -467,11 +467,11 @@ class OpenAPI:
                 # primitive types: str, int …
                 continue
             try:
-                schema.model_rebuild(_localns=types)
+                schema.model_rebuild(_types_namespace=types)
                 thes = byname.get(name, None)
                 if thes is not None:
                     for v in byid[id(thes)]._model_types:
-                        v.model_rebuild(_localns=types)
+                        v.model_rebuild(_types_namespace=types)
             except Exception as e:
                 raise e
 

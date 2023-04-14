@@ -94,7 +94,7 @@ def _get_parsed_yaml(filename, version=None):
         import yaml
         from aiopenapi3.loader import YAMLCompatibilityLoader
 
-        parsed = yaml.load(raw, Loader=YAMLCompatibilityLoader)
+        parsed = yaml.load(raw, Loader=yaml.SafeLoader)
 
         LOADED_FILES[filename] = parsed
 

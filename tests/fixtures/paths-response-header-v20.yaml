@@ -20,7 +20,7 @@ paths:
     get:
       operationId: get
       responses:
-       200:
+       "200":
          description: OK
          schema:
            type: string

@@ -188,6 +188,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser("aiopenapi3", description="Swagger 2.0, OpenAPI 3.0, OpenAPI 3.1 validator")
     parser.add_argument("-v", "--verbose", action="store_true", default=False, help="be verbose")
     parser.add_argument("-p", "--profile", action="store_true", default=False)
+    parser.add_argument("--profile-file", type=str, default=None)
     parser.add_argument("-t", "--tracemalloc", action="store_true", default=False)
     parser.add_argument("-P", "--plugins", action="append")
     parser.add_argument("-L", "--locations", action="append")
@@ -357,3 +358,5 @@ def main(argv=None):
     if args.profile:
         pr.disable()
         pr_display_top(pr)
+        if args.profile_file:
+            pr.dump_stats(args.profile_file)

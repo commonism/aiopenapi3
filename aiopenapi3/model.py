@@ -132,8 +132,9 @@ class Model:  # (BaseModel):
         #     )
         #     del annotations["__root__"]
 
-        fields["__annotations__"] = annotations
+        import copy
 
+        fields["__annotations__"] = copy.deepcopy(annotations)
         fields["__module__"] = me.__name__
 
         # dif not work for __root__
@@ -144,7 +145,17 @@ class Model:  # (BaseModel):
 
         fields["model_config"] = Model.configof(schema)
 
-        m = types.new_class(type_name, (BaseModel,), {}, lambda ns: ns.update(fields))
+        if "__root__" in annotations:
+            del fields["__annotations__"]["__root__"]
+            fields["toor"] = Field()
+            fields["__annotations__"]["toor"] = annotations["__root__"]
+            from aiopenapi3.pydanticv2 import RootModel
+
+            m = types.new_class(type_name, (RootModel,), {}, lambda ns: ns.update(fields))
+        #            m = types.new_class(type_name, (RootModel,), fields)
+        else:
+            m = types.new_class(type_name, (BaseModel,), {}, lambda ns: ns.update(fields))
+        #            m = types.new_class(type_name, (BaseModel,), fields)
         return m
 
     @staticmethod
@@ -322,7 +333,16 @@ class Model:  # (BaseModel):
                 warnings.warn("Ignoring Schema with additionalProperties and named properties")
         else:
             for name, f in schema.properties.items():
+                from . import v20, v30, v31
+
                 args = dict()
+                if isinstance(schema, (v20.Schema, v20.Reference)):
+                    if not f.required:
+                        args["default"] = None
+                elif isinstance(schema, (v30.Schema, v31.Schema, v30.Reference, v31.Reference)):
+                    if name not in schema.required:
+                        args["default"] = None
+
                 name = Model.nameof(name, args=args)
                 for i in ["default"]:
                     v = getattr(f, i, None)
