@@ -170,3 +170,7 @@ def test_schema_yaml_tags_invalid(openapi_version, with_schema_yaml_tags_invalid
         loader=FileSystemLoader(Path("tests/fixtures"), yload=YAMLCompatibilityLoader),
         plugins=[OnDocument()],
     )
+
+
+def test_schema_property_name_is_type(with_schema_property_name_is_type):
+    OpenAPI("/", with_schema_property_name_is_type)
