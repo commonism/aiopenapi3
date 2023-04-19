@@ -326,9 +326,9 @@ class SchemaBase:
             if fwdref:
                 if "module" in ForwardRef.__init__.__code__.co_varnames:
                     # FIXME Python < 3.9 compat
-                    return ForwardRef(self._get_identity("FWD"), module="aiopenapi3.me")
+                    return ForwardRef(f'__types["{self._get_identity("FWD")}"]', module="aiopenapi3.me")
                 else:
-                    return ForwardRef(self._get_identity("FWD"))
+                    return ForwardRef(f'__types["{self._get_identity("FWD")}"]')
             else:
                 return self.set_type(names, discriminators)
 

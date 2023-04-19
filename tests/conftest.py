@@ -338,6 +338,11 @@ def with_schema_empty(openapi_version):
 
 
 @pytest.fixture
+def with_schema_property_name_is_type():
+    yield _get_parsed_yaml("schema-property-name-is-type.yaml")
+
+
+@pytest.fixture
 def with_plugin_base():
     filename = "plugin-base.yaml"
     with (Path("tests/fixtures/") / filename).open("rt") as f:
