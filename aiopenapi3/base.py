@@ -352,7 +352,7 @@ class SchemaBase:
         elif self.type == "array":
             return [self.items.model(i) for i in data]
         else:
-            return self.get_type().parse_obj(data)
+            return self.get_type().model_validate(data)
 
 
 class OperationBase:

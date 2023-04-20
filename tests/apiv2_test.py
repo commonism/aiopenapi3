@@ -63,7 +63,7 @@ async def client(event_loop, server, version):
 
 def test_Pet():
     data = Dog.schema()
-    shma = Schema.parse_obj(data)
+    shma = Schema.model_validate(data)
     shma._identity = "Dog"
     assert shma.get_type().schema() == data
 
