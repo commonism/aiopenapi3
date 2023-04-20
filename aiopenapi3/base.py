@@ -21,10 +21,7 @@ class ObjectBase(BaseModel):
     related functions.
     """
 
-    class Config:
-        underscore_attrs_are_private = True
-        arbitrary_types_allowed = False
-        extra = "forbid"
+    model_config = dict(underscore_attrs_are_private=True, arbitrary_types_allowed=False, extra="forbid")
 
 
 class ObjectExtended(ObjectBase):
@@ -76,10 +73,7 @@ class PathsBase(ObjectBase):
     def model_modify_json_schema(cls, json_schema):
         return json_schema["properties"]["root"]
 
-    class Config:
-        from pydantic import Extra
-
-        extra = "allow"
+    model_config = dict(extra="allow")
 
     @property
     def extensions(self):

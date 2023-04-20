@@ -70,9 +70,7 @@ class Schema(ObjectExtended, SchemaBase):
     """
     _identity: str
 
-    class Config:
-        #        keep_untouched = (lru_cache,)
-        extra = "forbid"
+    model_config = dict(extra="forbid")
 
     @root_validator(skip_on_failure=True)
     @classmethod
