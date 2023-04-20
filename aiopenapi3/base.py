@@ -21,7 +21,7 @@ class ObjectBase(BaseModel):
     related functions.
     """
 
-    model_config = dict(underscore_attrs_are_private=True, arbitrary_types_allowed=False, extra="forbid")
+    model_config = dict(arbitrary_types_allowed=False, extra="forbid")
 
 
 class ObjectExtended(ObjectBase):
