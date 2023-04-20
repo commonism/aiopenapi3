@@ -138,7 +138,7 @@ class OperationIndex:
             pi: "PathItem"
             for path, pi in spec.paths.items():
                 op: "Operation"
-                for method in pi.__fields_set__ & HTTP_METHODS:
+                for method in pi.model_fields_set & HTTP_METHODS:
                     op = getattr(pi, method)
                     if op.operationId is None:
                         continue
@@ -164,7 +164,7 @@ class OperationIndex:
 
         for path, pi in self._root.paths.items():
             op: "Operation"
-            for method in pi.__fields_set__ & HTTP_METHODS:
+            for method in pi.model_fields_set & HTTP_METHODS:
                 op = getattr(pi, method)
                 if op.operationId is None:
                     continue

@@ -126,7 +126,7 @@ class RootBase:
                     data.update(new)
 
         if isinstance(obj, ObjectBase):
-            for slot in filter(lambda x: not x.startswith("_") or x == "__root__", obj.__fields_set__):
+            for slot in filter(lambda x: not x.startswith("_") or x == "__root__", obj.model_fields_set):
                 value = getattr(obj, slot)
                 if value is None:
                     continue

@@ -302,7 +302,7 @@ class OpenAPI:
         if isinstance(self._root, v20.Root):
             if self.paths:
                 for path, obj in self.paths.items():
-                    for m in obj.__fields_set__ & HTTP_METHODS:
+                    for m in obj.model_fields_set & HTTP_METHODS:
                         op = getattr(obj, m)
                         op._validate_path_parameters(obj, path, (m, op.operationId))
                         if op.operationId is None:
@@ -328,7 +328,7 @@ class OpenAPI:
 
             if self.paths:
                 for path, obj in self.paths.items():
-                    for m in obj.__fields_set__ & HTTP_METHODS:
+                    for m in obj.model_fields_set & HTTP_METHODS:
                         op = getattr(obj, m)
                         op._validate_path_parameters(obj, path, (m, op.operationId))
                         if op.operationId is None:
@@ -422,7 +422,7 @@ class OpenAPI:
 
             # Request
             for path, obj in (self.paths or dict()).items():
-                for m in obj.__fields_set__ & HTTP_METHODS:
+                for m in obj.model_fields_set & HTTP_METHODS:
                     op = getattr(obj, m)
 
                     if op.requestBody:
