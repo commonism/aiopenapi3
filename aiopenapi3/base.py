@@ -24,7 +24,7 @@ class ObjectBase(BaseModel):
     class Config:
         underscore_attrs_are_private = True
         arbitrary_types_allowed = False
-        extra = Extra.forbid
+        extra = "forbid"
 
 
 class ObjectExtended(ObjectBase):
@@ -79,7 +79,7 @@ class PathsBase(ObjectBase):
     class Config:
         from pydantic import Extra
 
-        extra = Extra.allow
+        extra = "allow"
 
     @property
     def extensions(self):

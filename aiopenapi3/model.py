@@ -54,7 +54,7 @@ def class_from_schema(s):
 
 class Model:  # (BaseModel):
     #    class Config:
-    #        extra: Extra.forbid
+    #        extra: "forbid"
 
     ALIASES = dict()
 
@@ -162,9 +162,9 @@ class Model:  # (BaseModel):
     def configof(schema):
         """
         create pydantic model_config for the BaseModel
-        we need to set "extra" - Extra.allow is not an option though …
+        we need to set "extra" - "allow" is not an option though …
 
-        Extra.allow is a problem
+        "allow" is a problem
           * overwriting class attributes/members/methods
           * pydantic type identification does not work reliable due to missing rejects,
 
@@ -173,12 +173,12 @@ class Model:  # (BaseModel):
         if schema.additionalProperties is not None:
             if isinstance(schema.additionalProperties, bool):
                 if schema.additionalProperties == False:
-                    extra_ = Extra.forbid
+                    extra_ = "forbid"
                 else:
-                    extra_ = Extra.allow
+                    extra_ = "allow"
                     arbitrary_types_allowed_ = True
             elif isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase)):
-                extra_ = Extra.forbid
+                extra_ = "forbid"
                 """
                 we allow arbitrary types if additionalProperties has no properties
                 """
@@ -188,15 +188,15 @@ class Model:  # (BaseModel):
             else:
                 raise TypeError(schema.additionalProperties)
         else:
-            extra_ = Extra.allow
+            extra_ = "allow"
 
         """
         PR?
         """
-        if extra_ == Extra.forbid and schema.extensions:
-            extra_ = Extra.ignore
+        if extra_ == "forbid" and schema.extensions:
+            extra_ = "ignore"
 
-        extra_ = Extra.ignore if extra_ == Extra.allow else extra_
+        extra_ = "ignore" if extra_ == "allow" else extra_
 
         return dict(undefined_types_warning=False, extra=extra_, arbitrary_types_allowed=arbitrary_types_allowed_)
 

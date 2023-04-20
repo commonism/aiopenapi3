@@ -72,7 +72,7 @@ class Schema(ObjectExtended, SchemaBase):
 
     class Config:
         #        keep_untouched = (lru_cache,)
-        extra = Extra.forbid
+        extra = "forbid"
 
     @root_validator(skip_on_failure=True)
     @classmethod
