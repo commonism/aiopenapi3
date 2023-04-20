@@ -280,7 +280,7 @@ def main(argv=None):
 
         # validate the body
         if req.data:
-            req.data.get_type().parse_obj(data)
+            req.data.get_type().model_validate(data)
 
         try:
             headers, ret, response = req.request(parameters=parameters, data=data)

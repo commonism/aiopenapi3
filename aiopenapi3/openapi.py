@@ -173,7 +173,7 @@ class OpenAPI:
         if v:
             v = list(map(int, v.split(".")))
             if v[0] == 2 and v[1] == 0:
-                return v20.Root.parse_obj(document)
+                return v20.Root.model_validate(document)
             else:
                 raise ValueError(f"swagger version {'.'.join(v)} not supported")
         else:
