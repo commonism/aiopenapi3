@@ -27,7 +27,7 @@ from .parameter import encode_parameter
 
 def parameters_from_multipart(data, media, rbq):
     params = list()
-    for k in data.__fields_set__:
+    for k in data.model_fields_set:
         v = getattr(data, k)
         ct = "text/plain"
 
