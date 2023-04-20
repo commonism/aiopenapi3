@@ -29,7 +29,7 @@ class Reference(ObjectBase, ReferenceBase):
     _target: object = None
 
     class Config:
-        extra = Extra.ignore
+        extra = "ignore"
 
     def __getattr__(self, item):
         if item != "_target":

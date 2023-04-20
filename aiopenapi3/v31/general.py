@@ -33,7 +33,7 @@ class Reference(ObjectBase, ReferenceBase):
     class Config:
         """This object cannot be extended with additional properties and any properties added SHALL be ignored."""
 
-        extra = Extra.ignore
+        extra = "ignore"
 
     def __getattr__(self, item):
         if item != "_target":
