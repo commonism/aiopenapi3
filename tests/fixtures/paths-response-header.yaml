@@ -13,7 +13,7 @@ paths:
     get:
       operationId: get
       responses:
-        200:
+        "200":
           description: "ok"
           content:
             application/json:
@@ -33,7 +33,7 @@ paths:
     get:
       operationId: types
       responses:
-        200:
+        "200":
           description: "ok"
           content:
             application/json:
