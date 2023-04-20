@@ -18,7 +18,7 @@ filterwarnings = [
     # pydantic2
     'ignore:Support for "config" as "type" is deprecated and will be removed in a future version:DeprecationWarning',
     'ignore:Valid config keys have changed in V2:UserWarning',
-    'ignore:The `update_forward_refs` method is deprecated; use `model_rebuild` instead.:DeprecationWarning',
+#    'ignore:The `update_forward_refs` method is deprecated; use `model_rebuild` instead.:DeprecationWarning',
     'ignore:The `parse_obj` method is deprecated; use `model_validate` instead.:DeprecationWarning',
     'ignore:The `construct` method is deprecated; use `model_construct` instead.:DeprecationWarning',
     'ignore:The `dict` method is deprecated; use `model_dump` instead.:DeprecationWarning',

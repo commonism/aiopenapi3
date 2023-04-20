@@ -39,8 +39,3 @@ class MediaType(ObjectExtended):
     example: Optional[Any] = Field(default=None)  # 'any' type
     examples: Optional[Dict[str, Union[Example, Reference]]] = Field(default_factory=dict)
     encoding: Optional[Dict[str, Encoding]] = Field(default_factory=dict)
-
-
-from .parameter import Header
-
-Encoding.update_forward_refs()
