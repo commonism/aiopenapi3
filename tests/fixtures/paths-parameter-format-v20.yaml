@@ -36,7 +36,7 @@ paths:
     get:
       operationId: path
       responses:
-       200:
+       "200":
          description: OK
          schema:
            type: string
@@ -61,7 +61,7 @@ paths:
           default: "default"
       operationId: query
       responses:
-       200:
+       "200":
          description: OK
          schema:
            type: string
@@ -107,7 +107,7 @@ paths:
           type: number
           description: B
       responses:
-        200:
+        "200":
           description: OK
           schema:
             type: string

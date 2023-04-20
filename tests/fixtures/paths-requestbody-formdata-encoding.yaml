@@ -21,7 +21,7 @@ paths:
         content:
           application/octet-stream: {}
       responses: &responses
-        200:
+        "200":
           description: "ok"
           content:
             application/json:
