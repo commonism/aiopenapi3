@@ -107,7 +107,7 @@ class RootBase:
                 r = getattr(value, "ref", None)
                 if not r:
                     return value
-                return _Reference.construct(ref=r)
+                return _Reference.model_construct(ref=r)
 
             if isinstance(data, list):
                 for idx, item in enumerate(data):
@@ -136,7 +136,7 @@ class RootBase:
                     if isinstance(value, SchemaBase):
                         r = getattr(value, "ref", None)
                         if r and not isinstance(r, ReferenceBase):
-                            value = _Reference.construct(ref=r)
+                            value = _Reference.model_construct(ref=r)
                             setattr(obj, slot, value)
 
                 if not isinstance(value, ReferenceBase):
@@ -148,7 +148,7 @@ class RootBase:
                     """
                     if isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root)):
                         if isinstance(obj, _PathItem) and slot == "ref":
-                            ref = _Reference.construct(ref=value)
+                            ref = _Reference.model_construct(ref=value)
                             ref._target = api.resolve_jr(root, obj, ref)
                             setattr(obj, slot, ref)
 

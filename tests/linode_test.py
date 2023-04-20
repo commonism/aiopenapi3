@@ -90,7 +90,7 @@ async def test_linode_components_schemas(api):
         u = schema.get_type()
         assert t == u
         assert not isinstance(t, ForwardRef)
-        t.construct()
+        t.model_construct()
 
     pay = api.components.schemas["PayPalData"].get_type()(email="a@b.de", paypal_id="1")
     data = pay.json()
@@ -108,4 +108,4 @@ async def test_linode_return_values(api):
         except KeyError:
             pass
         else:
-            a.get_type().construct()
+            a.get_type().model_construct()

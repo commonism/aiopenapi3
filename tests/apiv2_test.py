@@ -101,10 +101,10 @@ async def test_model(event_loop, server, client):
 
 def randomPet(client, name=None):
     if name:
-        return client._.createPet.data.get_type().construct(
+        return client._.createPet.data.get_type().model_construct(
             pet=client.components.schemas["Dog"]
             .get_type()
-            .construct(name=name, age=datetime.timedelta(seconds=random.randint(1, 2**32)))
+            .model_construct(name=name, age=datetime.timedelta(seconds=random.randint(1, 2**32)))
         )
     else:
         return {
@@ -176,12 +176,12 @@ async def test_patchPet(event_loop, server, client):
     pets = [
         client.components.schemas["Dog"]
         .get_type()
-        .construct(name=str(uuid.uuid4()), age=datetime.timedelta(seconds=random.randint(1, 2**32)))
+        .model_construct(name=str(uuid.uuid4()), age=datetime.timedelta(seconds=random.randint(1, 2**32)))
         for i in range(2)
     ]
     print(pets)
     p = client._.patchPets.data.get_type()
-    p = p.construct(__root__=pets)
+    p = p.model_construct(__root__=pets)
     r = await client._.patchPets(data=p)
     assert isinstance(r, list)
     print(r)

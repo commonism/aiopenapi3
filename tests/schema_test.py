@@ -72,12 +72,12 @@ def test_schema_recursion(with_schema_recursion):
     #    with pytest.raises(RecursionError):
     api = OpenAPI("/", with_schema_recursion)
 
-    a = api.components.schemas["A"].get_type().construct(ofA=1)
-    b = api.components.schemas["B"].get_type().construct(ofB=2, a=a)
+    a = api.components.schemas["A"].get_type().model_construct(ofA=1)
+    b = api.components.schemas["B"].get_type().model_construct(ofB=2, a=a)
 
 
 #    e = api.components.schemas["D"].get_type().model_fields["F"].type_(__root__={"E": 0})
-#    d = api.components.schemas["D"].get_type().construct(E=e)
+#    d = api.components.schemas["D"].get_type().model_construct(E=e)
 
 
 def test_schema_Of_parent_properties(with_schema_Of_parent_properties):

@@ -32,7 +32,7 @@ def test_pickle(with_paths_security_v20, with_schema_anyof, with_parsing_paths_l
         p = Path(f"{name}.pickle")
 
         if dd == with_schema_anyof:
-            A = api.components.schemas["A"].construct()
+            A = api.components.schemas["A"].model_construct()
             with p.open("wb") as f:
                 pickle.dump(A, f)
             with p.open("rb") as f:
