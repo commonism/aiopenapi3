@@ -31,10 +31,3 @@ class Components(ObjectExtended):
     securitySchemes: Optional[Dict[str, Union[SecurityScheme, Reference]]] = Field(default_factory=dict)
     links: Optional[Dict[str, Union[Link, Reference]]] = Field(default_factory=dict)
     callbacks: Optional[Dict[str, Union[Callback, Reference]]] = Field(default_factory=dict)
-
-
-#    pathItems: Optional[Dict[str, Union[PathItem, Reference]]] = Field(default_factory=dict) #v3.1
-
-from .media import MediaType
-
-# Components.update_forward_refs()

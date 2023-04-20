@@ -280,9 +280,3 @@ class Header(ParameterBase, _ParameterCodec):
 
     def _codec(self):
         return "simple", False
-
-
-from .media import MediaType
-
-Parameter.update_forward_refs()
-Header.update_forward_refs()
