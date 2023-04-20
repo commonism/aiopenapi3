@@ -154,9 +154,11 @@ def test_schema_allof_discriminator(with_schema_allof_discriminator):
 
     schema = api.components.schemas["Object1"]
     type_ = schema.get_type()
-    obj1 = type_.construct(
+    obj1 = type_.model_construct(
         type="obj1",
-        subtypeProperties=schema.properties["subtypeProperties"].get_type().construct(property1a="1a", property1b="1b"),
+        subtypeProperties=schema.properties["subtypeProperties"]
+        .get_type()
+        .model_construct(property1a="1a", property1b="1b"),
         id=uuid.uuid4(),
     )
     data = obj1.json()

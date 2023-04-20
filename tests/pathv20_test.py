@@ -21,7 +21,7 @@ def test_paths_security_v20_url(with_paths_security_v20):
 
 def test_paths_security_v20_securityparameters(httpx_mock, with_paths_security_v20):
     api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
-    user = api._.createUser.return_value().get_type().construct(name="test", id=1)
+    user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.dict())
 
     auth = str(uuid.uuid4())
@@ -55,7 +55,7 @@ def test_paths_security_v20_securityparameters(httpx_mock, with_paths_security_v
 
 def test_paths_security_v20_combined_securityparameters(httpx_mock, with_paths_security_v20):
     api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
-    user = api._.createUser.return_value().get_type().construct(name="test", id=1)
+    user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.dict())
 
     api.authenticate(user="u")
@@ -72,7 +72,7 @@ def test_paths_security_v20_combined_securityparameters(httpx_mock, with_paths_s
 
 def test_paths_security_v20_alternate_securityparameters(httpx_mock, with_paths_security_v20):
     api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
-    user = api._.createUser.return_value().get_type().construct(name="test", id=1)
+    user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.dict())
 
     api.authenticate(user="u")
@@ -94,7 +94,7 @@ def test_paths_security_v20_alternate_securityparameters(httpx_mock, with_paths_
 def test_paths_security_v20_post_body(httpx_mock, with_paths_security_v20):
     auth = str(uuid.uuid4())
     api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
-    user = api._.createUser.return_value().get_type().construct(name="test", id=1)
+    user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.dict())
 
     api.authenticate(HeaderAuth="Bearer %s" % (auth,))
@@ -106,7 +106,7 @@ def test_paths_security_v20_post_body(httpx_mock, with_paths_security_v20):
 
 def test_paths_security_v20_parameters(httpx_mock, with_paths_security_v20):
     api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
-    user = api._.createUser.return_value().get_type().construct(name="test", id=1)
+    user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
 
     auth = str(uuid.uuid4())
     api.authenticate(BasicAuth=(auth, auth))
