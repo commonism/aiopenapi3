@@ -159,8 +159,7 @@ class Schema(ObjectExtended, SchemaBase):
     """
     _identity: PrivateAttr(str)
 
-    class Config:
-        extra = "allow"
+    model_config = dict(extra="allow")
 
     @root_validator(skip_on_failure=True)
     @classmethod

@@ -28,8 +28,7 @@ class Reference(ObjectBase, ReferenceBase):
 
     _target: object = None
 
-    class Config:
-        extra = "ignore"
+    model_config = dict(extra="ignore")
 
     def __getattr__(self, item):
         if item != "_target":

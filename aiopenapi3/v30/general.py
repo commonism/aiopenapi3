@@ -28,10 +28,9 @@ class Reference(ObjectBase, ReferenceBase):
 
     _target: object = None
 
-    class Config:
-        """This object cannot be extended with additional properties and any properties added SHALL be ignored."""
-
-        extra = "ignore"
+    model_config = dict(
+        extra="ignore",  # """This object cannot be extended with additional properties and any properties added SHALL be ignored."""
+    )
 
     def __getattr__(self, item):
         if item != "_target":
