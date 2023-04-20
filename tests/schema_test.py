@@ -63,7 +63,7 @@ def test_schema_anyof(with_schema_anyof):
 #    A = next(filter(lambda x: x.type_.__name__ == "A", t.model_fields["root"].sub_fields))
 #    kwargs = {"ofA": 1, "id": 2}
 #    obj = A.type_(**kwargs)
-#    assert obj.dict() == kwargs
+#    assert obj.model_dump() == kwargs
 #    ab = t(__root__=obj)
 #    assert ab
 

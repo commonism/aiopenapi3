@@ -52,9 +52,9 @@ def createPet(
     if pet.name in ZOO:
         return JSONResponse(
             status_code=starlette.status.HTTP_409_CONFLICT,
-            content=Error(code=errno.EEXIST, message=f"{pet.name} already exists").dict(),
+            content=Error(code=errno.EEXIST, message=f"{pet.name} already exists").model_dump(),
         )
-    ZOO[pet.name] = r = Pet(id=next(idx), **pet.dict())
+    ZOO[pet.name] = r = Pet(id=next(idx), **pet.model_dump())
     response.status_code = starlette.status.HTTP_201_CREATED
     response.headers["X-Limit-Remain"] = "5"
     #    response.headers["model"] = r
@@ -74,7 +74,7 @@ def getPet(pet_id: int = Path(..., alias="petId")) -> Pets:
     else:
         return JSONResponse(
             status_code=starlette.status.HTTP_404_NOT_FOUND,
-            content=Error(code=errno.ENOENT, message=f"{pet_id} not found").dict(),
+            content=Error(code=errno.ENOENT, message=f"{pet_id} not found").model_dump(),
         )
 
 
@@ -88,6 +88,6 @@ def deletePet(response: Response, pet_id: int = Path(..., alias="petId")) -> Pet
     else:
         return JSONResponse(
             status_code=starlette.status.HTTP_404_NOT_FOUND,
-            content=Error(code=errno.ENOENT, message=f"{pet_id} not found").dict(),
+            content=Error(code=errno.ENOENT, message=f"{pet_id} not found").model_dump(),
             media_type="application/json; utf-8",
         )

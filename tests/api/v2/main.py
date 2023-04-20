@@ -41,7 +41,7 @@ def createPet(
     if pet.name in ZOO:
         return JSONResponse(
             status_code=starlette.status.HTTP_409_CONFLICT,
-            content=schema.Error(code=errno.EEXIST, message=f"{pet.name} already exists").dict(),
+            content=schema.Error(code=errno.EEXIST, message=f"{pet.name} already exists").model_dump(),
         )
     pet.identifier = str(uuid.uuid4())
     ZOO[pet.name] = r = pet
@@ -62,7 +62,7 @@ def getPet(pet_id: str = Path(..., alias="petId")) -> schema.Pets:
     else:
         return JSONResponse(
             status_code=starlette.status.HTTP_404_NOT_FOUND,
-            content=schema.Error(code=errno.ENOENT, message=f"{pet_id} not found").dict(),
+            content=schema.Error(code=errno.ENOENT, message=f"{pet_id} not found").model_dump(),
         )
 
 
@@ -78,7 +78,7 @@ def deletePet(response: Response, pet_id: int = Path(..., alias="petId")) -> Non
     else:
         return JSONResponse(
             status_code=starlette.status.HTTP_404_NOT_FOUND,
-            content=schema.Error(code=errno.ENOENT, message=f"{pet_id} not found").dict(),
+            content=schema.Error(code=errno.ENOENT, message=f"{pet_id} not found").model_dump(),
         )
 
 

@@ -78,11 +78,11 @@ async def test_sync(event_loop, server, version):
 
 @pytest.mark.asyncio
 async def test_model(event_loop, server, client):
-    orig = client.components.schemas["WhiteCat"].dict(exclude_unset=True)
+    orig = client.components.schemas["WhiteCat"].model_dump(exclude_unset=True)
     crea = client.components.schemas["WhiteCat"].get_type().schema()
     assert orig == crea
 
-    orig = client.components.schemas["Cat"].dict(exclude_unset=True, by_alias=True)
+    orig = client.components.schemas["Cat"].model_dump(exclude_unset=True, by_alias=True)
     crea = (
         client.components.schemas["Cat"].get_type().schema(ref_template="#/components/schemas/{model}", by_alias=True)
     )
@@ -90,7 +90,7 @@ async def test_model(event_loop, server, client):
         del crea["definitions"]
     assert crea == orig
 
-    orig = client.components.schemas["Pet"].dict(exclude_unset=True, by_alias=True)
+    orig = client.components.schemas["Pet"].model_dump(exclude_unset=True, by_alias=True)
     crea = (
         client.components.schemas["Pet"].get_type().schema(ref_template="#/components/schemas/{model}", by_alias=True)
     )
@@ -110,7 +110,7 @@ def randomPet(client, name=None):
         return {
             "pet": client.components.schemas["WhiteCat"]
             .model({"name": str(uuid.uuid4()), "white_name": str(uuid.uuid4())})
-            .dict()
+            .model_dump()
         }
 
 
@@ -127,7 +127,7 @@ async def test_createPet(event_loop, server, client):
     data = {
         "pet": client.components.schemas["WhiteCat"]
         .model({"name": str(uuid.uuid4()), "white_name": str(uuid.uuid4())})
-        .dict()
+        .model_dump()
     }
     #    r = await client._.createPet( data=data)
     r = await client._.createPet(data=data)
