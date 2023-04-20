@@ -22,7 +22,7 @@ def test_paths_security_v20_url(with_paths_security_v20):
 def test_paths_security_v20_securityparameters(httpx_mock, with_paths_security_v20):
     api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
     user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.dict())
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.model_dump())
 
     auth = str(uuid.uuid4())
 
@@ -48,7 +48,7 @@ def test_paths_security_v20_securityparameters(httpx_mock, with_paths_security_v
     assert request.headers["Authorization"] == "Bearer %s" % (auth,)
 
     # null session
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=[user.dict()])
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=[user.model_dump()])
     api.authenticate(None)
     api._.listUsers(data={}, parameters={})
 
@@ -56,7 +56,7 @@ def test_paths_security_v20_securityparameters(httpx_mock, with_paths_security_v
 def test_paths_security_v20_combined_securityparameters(httpx_mock, with_paths_security_v20):
     api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
     user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.dict())
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.model_dump())
 
     api.authenticate(user="u")
     with pytest.raises(ValueError, match="No security requirement satisfied"):
@@ -73,7 +73,7 @@ def test_paths_security_v20_combined_securityparameters(httpx_mock, with_paths_s
 def test_paths_security_v20_alternate_securityparameters(httpx_mock, with_paths_security_v20):
     api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
     user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.dict())
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.model_dump())
 
     api.authenticate(user="u")
     with pytest.raises(
@@ -95,7 +95,7 @@ def test_paths_security_v20_post_body(httpx_mock, with_paths_security_v20):
     auth = str(uuid.uuid4())
     api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
     user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.dict())
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.model_dump())
 
     api.authenticate(HeaderAuth="Bearer %s" % (auth,))
     with pytest.raises(ValueError, match="Request Body is required but none was provided."):
@@ -114,7 +114,7 @@ def test_paths_security_v20_parameters(httpx_mock, with_paths_security_v20):
     with pytest.raises(ValueError, match=r"Required Parameter \['userId'\] missing \(provided \[\]\)"):
         api._.getUser(data={}, parameters={})
 
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=[user.dict()])
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=[user.model_dump()])
     api.authenticate(None)
     api._.listUsers(data={}, parameters={"inQuery": "Q", "inHeader": "H"})
 

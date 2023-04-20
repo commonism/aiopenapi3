@@ -190,7 +190,7 @@ def test_schema_enum(openapi_version, with_schema_enum):
         pay = t(__root__=dict(created=datetime.datetime.now(), id=5, is_default=True, type="no_pay", data=None))
 
     pp = api.components.schemas["PayPalData"].get_type()(email="a@b.de", paypal_id="1")
-    assert pp.dict()["type"] == "paypal"
+    assert pp.model_dump()["type"] == "paypal"
 
 
 def test_parsing_properties_empty_name(with_parsing_schema_properties_name_empty):
