@@ -6,4 +6,4 @@ pydantic[email]
 pytest~=7.2.2
 PyYAML~=6.0
 uvloop~=0.17.0
-yarl~=1.8.2
+yarl~=1.9.2
