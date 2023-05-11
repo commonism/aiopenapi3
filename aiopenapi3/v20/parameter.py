@@ -154,4 +154,4 @@ class Header(ObjectExtended, _ParameterCodec):
     multipleOf: Optional[int] = Field(default=None)
 
     # private storage for an associated Schema so we can create types from this Header & Header.items
-    _schema: None
+    _schema: Any
