@@ -275,7 +275,7 @@ class Request(RequestBase):
             if isinstance(data, (dict, list)):
                 pass
             elif isinstance(data, pydantic.BaseModel):
-                data = data.model_dump_json()
+                data = data.model_dump(exclude_unset=True)
             else:
                 raise TypeError(data)
             data = self.api.plugins.message.marshalled(
