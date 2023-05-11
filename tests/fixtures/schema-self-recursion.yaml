@@ -1,0 +1,14 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: OpenAPI schema with Self recursion
+
+components:
+  schemas:
+    Any:
+      type: ["string","number","object"]
+      $ref: '#/components/schemas/Any'
+
+    Self:
+      type: "object"
+      $ref: '#/components/schemas/Self'

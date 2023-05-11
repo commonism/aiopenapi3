@@ -51,6 +51,7 @@ components:
 
     D:
       description: galaxyproject openapi recursive element
+      type: object
       properties:
         E:
           type: string
