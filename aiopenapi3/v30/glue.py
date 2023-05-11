@@ -310,6 +310,9 @@ class Request(RequestBase):
             params = parameters_from_urlencoded(data, media)
             msg = urllib.parse.urlencode(params, doseq=True)
             self.req.content = msg
+        elif (ct := "application/octet-stream") in self.operation.requestBody.content:
+            self.req.headers["Content-Type"] = ct
+            self.req.content = data[1].read()
         else:
             raise NotImplementedError(self.operation.requestBody.content)
 
