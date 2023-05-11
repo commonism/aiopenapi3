@@ -86,6 +86,16 @@ def test_schema_recursion(with_schema_recursion):
 #    d = api.components.schemas["D"].get_type().model_construct(E=e)
 
 
+def test_schema_self_recursion(with_schema_self_recursion):
+    api = OpenAPI("/", with_schema_self_recursion)
+
+    with pytest.raises(RecursionError):
+        api.components.schemas["Self"].get_type().model_construct()
+
+    with pytest.raises(RecursionError):
+        api.components.schemas["Any"].get_type().model_construct()
+
+
 def test_schema_type_list(with_schema_type_list):
     api = OpenAPI("/", with_schema_type_list)
     _Any = api.components.schemas["Any"]
