@@ -1,0 +1,15 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: with additionalProperties and named properties
+
+components:
+  schemas:
+    A:
+      type: object
+      additionalProperties:
+        type: integer
+        format: int32
+      properties:
+        B:
+          type: string

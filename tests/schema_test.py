@@ -190,3 +190,12 @@ def test_schema_yaml_tags_invalid(openapi_version, with_schema_yaml_tags_invalid
 
 def test_schema_property_name_is_type(with_schema_property_name_is_type):
     OpenAPI("/", with_schema_property_name_is_type)
+
+
+def test_schema_x(with_schema_additionalProperties_and_named_properties):
+    with pytest.warns(UserWarning, match="Ignoring Schema with additionalProperties and named properties"):
+        api = OpenAPI("/", with_schema_additionalProperties_and_named_properties)
+
+    # A = api.components.schemas['A'].get_type()
+    # A.model_validate({1:"test"})
+    # A.model_validate({"1":1, "5":5, "B":"test"})
