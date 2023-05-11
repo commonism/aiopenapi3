@@ -1,0 +1,9 @@
+openapi: "3.1.0"
+info:
+  version: 1.0.0
+  title: OpenAPI schema where the type is a list
+
+components:
+  schemas:
+    Any:
+      type: ["string","number"]
