@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict
 
-from pydantic import Field, root_validator
+from pydantic import Field, model_validator
 
 from ..base import ObjectExtended
 
@@ -16,13 +16,12 @@ class ServerVariable(ObjectExtended):
     default: str = Field(...)
     description: Optional[str] = Field(default=None)
 
-    #    @root_validator
-    def validate_ServerVariable(cls, values):
-        assert isinstance(values.get("enum", None), (list, None.__class__))
-
+    @model_validator(mode="after")
+    def validate_ServerVariable(cls, s: "ServerVariable"):
+        assert isinstance(s.enum, (list, None.__class__))
         # default value must be in enum
-        assert values.get("default", None) in values.get("enum", [None])
-        return values
+        assert s.default in (s.enum or [None])
+        return s
 
 
 class Server(ObjectExtended):

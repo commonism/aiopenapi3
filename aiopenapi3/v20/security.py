@@ -1,6 +1,6 @@
 from typing import Optional, Dict, List
 
-from pydantic import Field, BaseModel, root_validator, model_serializer
+from pydantic import Field, RootModel, model_validator
 
 from ..base import ObjectExtended
 
@@ -23,11 +23,11 @@ class SecurityScheme(ObjectExtended):
     refreshUrl: Optional[str] = Field(default=None)
     scopes: Dict[str, str] = Field(default_factory=dict)
 
-    #    @root_validator
+    @model_validator(mode="before")
     def validate_SecurityScheme(cls, values):
         if values["type"] == "apiKey":
             assert values["name"], "name is required for apiKey"
-            assert values["in_"] in frozenset(["query", "header"]), "in must be query or header"
+            assert values["in"] in frozenset(["query", "header"]), "in must be query or header"
         return values
 
 

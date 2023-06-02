@@ -4,7 +4,7 @@ import decimal
 import uuid
 from typing import Union, Optional, Dict, Any
 
-from pydantic import Field, root_validator
+from pydantic import Field, model_validator
 import more_itertools
 
 from ..base import ObjectExtended, ParameterBase as ParameterBase_
@@ -239,14 +239,6 @@ class ParameterBase(ObjectExtended, ParameterBase_):
 
     content: Optional[Dict[str, "MediaType"]] = Field(default_factory=dict)
 
-    #    @root_validator
-    def validate_ParameterBase(cls, values):
-        #        if values["in_"] ==
-        #        if self.in_ == "path" and self.required is not True:
-        #            err_msg = 'Parameter {} must be required since it is in the path'
-        #            raise SpecError(err_msg.format(self.get_path()), path=self._path)
-        return values
-
 
 class _In(str, enum.Enum):
     query = "query"
@@ -258,6 +250,11 @@ class _In(str, enum.Enum):
 class Parameter(ParameterBase, _ParameterCodec):
     name: str = Field()
     in_: _In = Field(alias="in")  # TODO must be one of ["query","header","path","cookie"]
+
+    @model_validator(mode="after")
+    def validate_Parameter(cls, p: "ParameterBase"):
+        assert p.in_ != "path" or p.required is True, "Parameter '%s' must be required since it is in the path" % p.name
+        return p
 
 
 def encode_parameter(

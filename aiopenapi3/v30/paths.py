@@ -1,8 +1,8 @@
 from typing import Union, List, Optional, Dict, Any
 
-from pydantic import Field, root_validator, model_serializer
+from pydantic import Field, model_validator, RootModel
 
-from ..base import ObjectBase, ObjectExtended, PathsBase, OperationBase
+from ..base import ObjectExtended, PathsBase, OperationBase
 from .general import ExternalDocumentation
 from .general import Reference
 from .media import MediaType
@@ -39,17 +39,16 @@ class Link(ObjectExtended):
     description: Optional[str] = Field(default=None)
     server: Optional[Server] = Field(default=None)
 
-    @root_validator(skip_on_failure=True)
+    @model_validator(mode="after")
     @classmethod
-    def validate_Link_operation(cls, values):
-        operationId, operationRef = (values.get(i, None) for i in ["operationId", "operationRef"])
+    def validate_Link_operation(cls, l: '__types["Link"]'):
         assert not (
-            operationId != None and operationRef != None
+            l.operationId != None and l.operationRef != None
         ), "operationId and operationRef are mutually exclusive, only one of them is allowed"
         assert not (
-            operationId == operationRef == None
+            l.operationId == l.operationRef == None
         ), "operationId and operationRef are mutually exclusive, one of them must be specified"
-        return values
+        return l
 
 
 class Response(ObjectExtended):
@@ -117,8 +116,7 @@ class PathItem(ObjectExtended):
 
 
 class Paths(PathsBase):
-    @root_validator(pre=True)
-    @classmethod
+    @model_validator(mode="before")
     def validate_Paths(cls, values):
         assert values is not None
         p = {}
