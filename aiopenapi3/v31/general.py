@@ -1,6 +1,7 @@
 from typing import Optional
 
-from pydantic import Field, Extra, AnyUrl
+from pydantic import Field, AnyUrl, PrivateAttr
+from pydantic._internal._model_construction import model_extra_private_getattr
 
 from ..base import ObjectExtended, ObjectBase, ReferenceBase
 
@@ -28,21 +29,24 @@ class Reference(ObjectBase, ReferenceBase):
     summary: Optional[str] = Field(default=None)
     description: Optional[str] = Field(default=None)
 
-    _target: object = None
+    _target: object = PrivateAttr()
 
     model_config = dict(
         # """This object cannot be extended with additional properties and any properties added SHALL be ignored."""
         extra="ignore"
     )
 
-    def __getattr__(self, item):
+    def l__getattr__(self, item):
         if item != "_target":
             return getattr(self._target, item)
         else:
-            return getattr(self, item)
+            return model_extra_private_getattr(self, "_target")
 
     def __setattr__(self, item, value):
         if item != "_target":
             setattr(self._target, item, value)
         else:
             super().__setattr__(item, value)
+
+
+Reference.__getattr__ = Reference.l__getattr__
