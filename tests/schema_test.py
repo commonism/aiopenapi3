@@ -106,6 +106,42 @@ def test_schema_type_list(with_schema_type_list):
     print(A)
 
 
+def test_schema_type_missing(with_schema_type_missing):
+    """
+    https://stackoverflow.com/questions/47374980/schema-object-without-a-type-attribute-in-swagger-2-0
+
+    :param with_schema_type_missing:
+    :return:
+    """
+    api = OpenAPI("/", with_schema_type_missing)
+    t = api.components.schemas["Any"].get_type()
+    v = t.model_validate(dict(id=1))
+    assert v.root.id == 1
+
+
+def test_schema_type_string_format_byte_base64(with_schema_type_string_format_byte_base64):
+    api = OpenAPI("/", with_schema_type_string_format_byte_base64)
+    b64 = api.components.schemas["Base64Property"].get_type()
+    RAW = "test"
+    B64 = {"data": "dGVzdA==\n"}
+    v = b64.model_validate(B64)
+    assert v.model_dump() == B64
+    assert v.data == RAW
+
+    v = b64(**B64)
+    assert v.model_dump() == B64
+    assert v.data == RAW
+
+    v = b64.model_construct(data=RAW)
+    assert v.model_dump() == B64
+    assert v.data == RAW
+
+    b64 = api.components.schemas["Base64Root"].get_type()
+    v = b64.model_construct(root=RAW)
+    assert v.model_dump() == B64["data"]
+    assert v.root == RAW
+
+
 def test_schema_Of_parent_properties(with_schema_Of_parent_properties):
     # this is supposed to work
     #    with pytest.raises(ValueError, match="__root__ cannot be mixed with other fields"):

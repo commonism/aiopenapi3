@@ -460,7 +460,8 @@ class OpenAPI:
         types: Dict[int, "BaseModel"] = dict()
         for i in todo | data:
             b = byid[i]
-            types[b._get_identity("X")] = b.get_type()
+            name = b._get_identity("X")
+            types[name] = b.get_type()
 
         for name, schema in types.items():
             if not (inspect.isclass(schema) and issubclass(schema, BaseModel)):
