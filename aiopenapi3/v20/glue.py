@@ -1,7 +1,7 @@
 from typing import List, Union, cast
 import json
 
-import httpx_auth
+import httpx
 import pydantic
 
 from ..base import SchemaBase, ParameterBase
@@ -9,6 +9,11 @@ from ..request import RequestBase, AsyncRequestBase
 from ..errors import HTTPStatusError, ContentTypeError, ResponseSchemaError, ResponseDecodingError
 
 from .parameter import Parameter
+
+try:
+    import httpx_auth
+except:
+    httpx_auth = None
 
 
 class Request(RequestBase):
@@ -82,17 +87,23 @@ class Request(RequestBase):
 
         if ss.type == "basic":
             value = cast(List[str], value)
-            self.req.auth = httpx_auth.Basic(*value)
+            self.req.auth = httpx_auth.Basic(*value) if httpx_auth else httpx.BasicAuth(*value)
 
         value = cast(str, value)
         if ss.type == "apiKey":
             if ss.in_ == "query":
                 # apiKey in query parameter
-                self.req.auth = httpx_auth.QueryApiKey(value, getattr(ss, "name", None))
+                if httpx_auth:
+                    self.req.auth = httpx_auth.QueryApiKey(value, getattr(ss, "name", None))
+                else:
+                    self.req.params[ss.name] = value
 
             if ss.in_ == "header":
                 # apiKey in query header data
-                self.req.auth = httpx_auth.HeaderApiKey(value, getattr(ss, "name", None))
+                if httpx_auth:
+                    self.req.auth = httpx_auth.HeaderApiKey(value, getattr(ss, "name", None))
+                else:
+                    self.req.headers[ss.name] = value
 
     def _prepare_parameters(self, provided):
         provided = provided or dict()
