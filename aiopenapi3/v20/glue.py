@@ -1,10 +1,7 @@
 from typing import List, Union, cast
 import json
-import urllib.parse
 
-import httpx
 import httpx_auth
-import inspect
 import pydantic
 
 from ..base import SchemaBase, ParameterBase
