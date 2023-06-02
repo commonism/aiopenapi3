@@ -13,7 +13,7 @@ components:
       type: object
       properties:
         id:
-          type: str
+          type: string
           enum:
             - {"$ref": "#/components/schemas/Enum/enum/0"}
     Enum:
