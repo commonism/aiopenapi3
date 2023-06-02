@@ -88,11 +88,11 @@ class Request(RequestBase):
         if ss.type == "apiKey":
             if ss.in_ == "query":
                 # apiKey in query parameter
-                httpx_auth.QueryApiKey(value, getattr(ss, "name", None))
+                self.req.auth = httpx_auth.QueryApiKey(value, getattr(ss, "name", None))
 
             if ss.in_ == "header":
                 # apiKey in query header data
-                httpx_auth.HeaderApiKey(value, getattr(ss, "name", None))
+                self.req.auth = httpx_auth.HeaderApiKey(value, getattr(ss, "name", None))
 
     def _prepare_parameters(self, provided):
         provided = provided or dict()
