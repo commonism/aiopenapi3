@@ -1,6 +1,7 @@
 from typing import Optional
 
-from pydantic import Field, Extra
+from pydantic import Field
+from pydantic._internal._model_construction import model_extra_private_getattr
 
 from ..base import ObjectExtended, ObjectBase, ReferenceBase
 
@@ -30,14 +31,17 @@ class Reference(ObjectBase, ReferenceBase):
 
     model_config = dict(extra="ignore")
 
-    def __getattr__(self, item):
+    def l__getattr__(self, item):
         if item != "_target":
             return getattr(self._target, item)
         else:
-            return getattr(self, item)
+            return model_extra_private_getattr(self, "_target")
 
     def __setattr__(self, item, value):
         if item != "_target":
             setattr(self._target, item, value)
         else:
             super().__setattr__(item, value)
+
+
+Reference.__getattr__ = Reference.l__getattr__
