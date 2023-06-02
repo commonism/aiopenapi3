@@ -4,6 +4,7 @@ import urllib.parse
 
 import httpx
 import httpx_auth
+from httpx_auth.authentication import SupportMultiAuth
 import inspect
 import pydantic
 import pydantic.json
@@ -146,7 +147,7 @@ class Request(RequestBase):
                 self.req.cookies = {ss.name: value}
         
         for auth in add_auths:
-            if self.req.auth:
+            if self.req.auth and isinstance(self.req.auth, SupportMultiAuth):
                 self.req.auth += auth
             else:
                 self.req.auth = auth
