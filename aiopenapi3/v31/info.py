@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import Field, AnyUrl, EmailStr, root_validator
+from pydantic import Field, AnyUrl, EmailStr, model_validator
 
 from aiopenapi3.base import ObjectExtended
 
@@ -28,13 +28,13 @@ class License(ObjectExtended):
     identifier: Optional[str] = Field(default=None)
     url: Optional[AnyUrl] = Field(default=None)
 
-    #    @root_validator
-    def validate_License(cls, values):
+    @model_validator(mode="after")
+    def validate_License(cls, l: "License"):
         """
         A URL to the license used for the API. This MUST be in the form of a URL. The url field is mutually exclusive of the identifier field.
         """
-        assert not all([values.get(i, None) is not None for i in ["identifier", "url"]])
-        return values
+        assert not all([getattr(l, i, None) is not None for i in ["identifier", "url"]])
+        return l
 
 
 class Info(ObjectExtended):

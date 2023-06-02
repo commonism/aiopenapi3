@@ -1,7 +1,6 @@
 from typing import Any, List, Optional, Dict, Union
 
-import pydantic_core
-from pydantic import Field, root_validator, validator
+from pydantic import Field, model_validator
 
 from ..base import ObjectExtended, RootBase
 
@@ -37,9 +36,10 @@ class Root(ObjectExtended, RootBase):
     tags: Optional[List[Tag]] = Field(default_factory=list)
     externalDocs: Optional[Dict[Any, Any]] = Field(default_factory=dict)
 
-    def validate_Root(cls, values):
-        assert any([values.get(i) is not None for i in ["paths", "components", "webhooks"]]), values
-        return values
+    @model_validator(mode="after")
+    def validate_Root(cls, r: "Root"):
+        assert r.paths or r.components or r.webhooks
+        return r
 
     def _resolve_references(self, api):
         RootBase.resolve(api, self, self, PathItem, Reference)

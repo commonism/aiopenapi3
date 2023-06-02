@@ -1,6 +1,6 @@
 from typing import Union, List, Optional, Dict, Any
 
-from pydantic import Field, root_validator
+from pydantic import Field, model_validator
 
 from .general import ExternalDocumentation
 from .general import Reference
@@ -64,8 +64,7 @@ class PathItem(ObjectExtended):
 
 
 class Paths(PathsBase):
-    @root_validator(pre=True)
-    @classmethod
+    @model_validator(mode="before")
     def validate_Paths(cls, values):
         assert values is not None
         p = {}

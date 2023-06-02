@@ -1,6 +1,6 @@
 from typing import Union, List, Any, Optional, Dict
 
-from pydantic import Field, root_validator, Extra, PrivateAttr
+from pydantic import Field, model_validator, PrivateAttr
 
 from ..base import ObjectExtended, SchemaBase, DiscriminatorBase
 from .general import Reference
@@ -161,16 +161,13 @@ class Schema(ObjectExtended, SchemaBase):
 
     model_config = dict(extra="allow")
 
-    @root_validator(skip_on_failure=True)
-    @classmethod
-    def validate_Schema_number_type(cls, values: Dict[str, Any]):
-        conv = ["minimum", "maximum"]
-        if values.get("type", None) == "integer":
-            for i in conv:
-                v: str = values.get(i, None)
-                if v is not None:
-                    values[i] = int(v)
-        return values
+    @model_validator(mode="after")
+    def validate_Schema_number_type(cls, s: "Schema"):
+        if s.type == "integer":
+            for i in ["minimum", "maximum"]:
+                if v := getattr(s, i, None) and not isinstance(v, int):
+                    setattr(s, i, int(v))
+        return s
 
     def __getstate__(self):
         return SchemaBase.__getstate__(self)

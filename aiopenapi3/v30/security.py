@@ -1,6 +1,6 @@
 from typing import Optional, Dict, List
 
-from pydantic import Field, root_validator, BaseModel, model_serializer, constr
+from pydantic import Field, model_validator, BaseModel, RootModel, constr
 
 from ..base import ObjectExtended
 
@@ -42,25 +42,24 @@ class SecurityScheme(ObjectExtended):
     description: Optional[str] = Field(default=None)
     name: Optional[str] = Field(default=None)
     in_: Optional[str] = Field(default=None, alias="in")
-    scheme_: Optional[constr(to_lower=True)] = Field(default=None, alias="scheme")
+    scheme_: Optional[str] = Field(default=None, alias="scheme")
     bearerFormat: Optional[str] = Field(default=None)
     flows: Optional[OAuthFlows] = Field(default=None)
     openIdConnectUrl: Optional[str] = Field(default=None)
 
-    @root_validator
-    def validate_SecurityScheme(cls, values):
-        t = values.get("type", None)
-        keys = set(map(lambda x: x[0], filter(lambda x: x[1] is not None, values.items())))
+    @model_validator(mode="after")
+    def validate_SecurityScheme(cls, s: "SecurityScheme"):
+        keys = set(s.model_fields_set)
         keys -= frozenset(["type", "description", "extensions"])
-        if t == "apikey":
+        if s.type == "apikey":
             assert keys == set(["in_", "name"])
-        if t == "http":
+        if s.type == "http":
             assert keys - frozenset(["scheme_", "bearerFormat"]) == set([])
-        if t == "oauth2":
+        if s.type == "oauth2":
             assert keys == frozenset(["flows"])
-        if t == "openIdConnect":
+        if s.type == "openIdConnect":
             assert keys - frozenset(["openIdConnectUrl"]) == set([])
-        return values
+        return s
 
 
 class SecurityRequirement(BaseModel):

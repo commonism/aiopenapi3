@@ -5,7 +5,7 @@ import builtins
 import keyword
 import uuid
 
-from pydantic import BaseModel, Field, root_validator, Extra, AnyUrl, PrivateAttr
+from pydantic import BaseModel, Field, AnyUrl, model_validator
 
 from .json import JSONPointer
 from .errors import ReferenceResolutionError, SpecError, OperationParameterValidationError
@@ -27,8 +27,7 @@ class ObjectBase(BaseModel):
 class ObjectExtended(ObjectBase):
     extensions: Optional[Any] = Field(default=None)
 
-    @root_validator(pre=True)
-    @classmethod
+    @model_validator(mode="before")
     def validate_ObjectExtended_extensions(cls, values):
         """
         FIXME
@@ -36,13 +35,19 @@ class ObjectExtended(ObjectBase):
         :param values:
         :return: values
         """
+        if values is None:
+            return None
+        if not isinstance(values, dict):
+            return values
         e = dict()
+        rm = set()
         for k, v in values.items():
             if k.startswith("x-"):
                 e[k[2:]] = v
+                rm.add(k)
         if len(e):
-            for i in e.keys():
-                del values[f"x-{i}"]
+            for i in rm:
+                del values[i]
             if "extensions" in values.keys():
                 raise ValueError("extensions")
             values["extensions"] = e
