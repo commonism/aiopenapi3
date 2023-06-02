@@ -127,7 +127,7 @@ class Paths(PathsBase):
         return {"paths": p, "extensions": e}
 
 
-class Callback(ObjectBase):
+class Callback(RootModel):
     """
     A map of possible out-of band callbacks related to the parent operation.
 
@@ -140,25 +140,8 @@ class Callback(ObjectBase):
 
     root: Dict[str, PathItem]
 
-    @root_validator(pre=True)
-    @classmethod
-    def populate_root(cls, values):
-        return {"root": values}
 
-    @model_serializer(mode="wrap")
-    def _serialize(self, handler, info):
-        data = handler(self)
-        if info.mode == "json":
-            return data["root"]
-        else:
-            return data
-
-    @classmethod
-    def model_modify_json_schema(cls, json_schema):
-        return json_schema["properties"]["root"]
-
-
-class RuntimeExpression(ObjectBase):
+class RuntimeExpression(RootModel):
     """
 
 
@@ -166,20 +149,3 @@ class RuntimeExpression(ObjectBase):
     """
 
     root: str
-
-    @root_validator(pre=True)
-    @classmethod
-    def populate_root(cls, values):
-        return {"root": values}
-
-    @model_serializer(mode="wrap")
-    def _serialize(self, handler, info):
-        data = handler(self)
-        if info.mode == "json":
-            return data["root"]
-        else:
-            return data
-
-    @classmethod
-    def model_modify_json_schema(cls, json_schema):
-        return json_schema["properties"]["root"]

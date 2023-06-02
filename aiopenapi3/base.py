@@ -8,7 +8,7 @@ import uuid
 from pydantic import BaseModel, Field, AnyUrl, model_validator
 
 from .json import JSONPointer
-from .errors import ReferenceResolutionError, SpecError, OperationParameterValidationError
+from .errors import ReferenceResolutionError, OperationParameterValidationError
 
 # from . import me
 
@@ -55,9 +55,6 @@ class ObjectExtended(ObjectBase):
         return values
 
 
-from pydantic import BaseModel, ValidationError, model_serializer, parse_obj_as, root_validator
-
-
 class PathsBase(ObjectBase):
     paths: Dict[str, Any]  # = Field(default_factory=dict)
     extensions: Dict[str, Any]
@@ -65,20 +62,6 @@ class PathsBase(ObjectBase):
     @property
     def _paths(self):
         return self.paths
-
-    @model_serializer(mode="wrap")
-    def _serialize(self, handler, info):
-        data = handler(self)
-        if info.mode == "json":
-            return data["root"]
-        else:
-            return data
-
-    @classmethod
-    def model_modify_json_schema(cls, json_schema):
-        return json_schema["properties"]["root"]
-
-    model_config = dict(extra="allow")
 
     @property
     def extensions(self):
