@@ -62,7 +62,7 @@ class SecurityScheme(ObjectExtended):
         return s
 
 
-class SecurityRequirement(BaseModel):
+class SecurityRequirement(RootModel):
     """
     A `SecurityRequirement`_ object describes security schemes for API access.
 
@@ -70,20 +70,3 @@ class SecurityRequirement(BaseModel):
     """
 
     root: Dict[str, List[str]]
-
-    @root_validator(pre=True)
-    @classmethod
-    def populate_root(cls, values):
-        return {"root": values}
-
-    @model_serializer(mode="wrap")
-    def _serialize(self, handler, info):
-        data = handler(self)
-        if info.mode == "json":
-            return data["root"]
-        else:
-            return data
-
-    @classmethod
-    def model_modify_json_schema(cls, json_schema):
-        return json_schema["properties"]["root"]
