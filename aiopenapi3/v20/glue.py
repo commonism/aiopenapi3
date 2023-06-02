@@ -3,6 +3,8 @@ import json
 import urllib.parse
 
 import httpx
+import httpx_auth
+import inspect
 import pydantic
 
 from ..base import SchemaBase, ParameterBase
@@ -83,17 +85,17 @@ class Request(RequestBase):
 
         if ss.type == "basic":
             value = cast(List[str], value)
-            self.req.auth = httpx.BasicAuth(*value)
+            self.req.auth = httpx_auth.Basic(*value)
 
         value = cast(str, value)
         if ss.type == "apiKey":
             if ss.in_ == "query":
                 # apiKey in query parameter
-                self.req.params[ss.name] = value
+                httpx_auth.QueryApiKey(value, getattr(ss, "name", None))
 
             if ss.in_ == "header":
                 # apiKey in query header data
-                self.req.headers[ss.name] = value
+                httpx_auth.HeaderApiKey(value, getattr(ss, "name", None))
 
     def _prepare_parameters(self, provided):
         provided = provided or dict()
