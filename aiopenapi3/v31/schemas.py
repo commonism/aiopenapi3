@@ -139,7 +139,7 @@ class Schema(ObjectExtended, SchemaBase):
     9.3.2.  Keywords for Applying Subschemas to Objects
     """
     properties: Optional[Dict[str, "Schema"]] = Field(default_factory=dict)
-    patternProperties: Optional[Dict[str, str]] = Field(default_factory=dict)
+    patternProperties: Optional[Dict[str, "Schema"]] = Field(default_factory=dict)
     additionalProperties: Optional[Union[bool, "Schema"]] = Field(default=None)
     unevaluatedProperties: Optional["Schema"] = Field(default=None)
     propertyNames: Optional["Schema"] = Field(default=None)
