@@ -67,7 +67,7 @@ def parameters_from_multipart(data, media, rbq):
 
 def parameters_from_urlencoded(data: "BaseModel", media: "Media"):
     params = collections.defaultdict(lambda: list())
-    for k in data.__fields_set__:
+    for k in data.model_fields_set:
         v = getattr(data, k)
 
         if (e := media.encoding.get(k, None)) != None:
