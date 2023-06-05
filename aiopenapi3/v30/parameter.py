@@ -124,7 +124,7 @@ class _ParameterCodec:
                 pass
             return {name: value}
         elif self.schema_.type == "object":
-            values = value if isinstance(value, dict) else dict(value._iter(to_dict=True))
+            values = value if isinstance(value, dict) else value.model_dump()
 
             if explode is False:
                 # color=R,100,G,200,B,150
@@ -189,7 +189,7 @@ class _ParameterCodec:
         if not value:
             return dict()
 
-        values = value if isinstance(value, dict) else dict(value._iter(to_dict=True))
+        values = value if isinstance(value, dict) else value.model_dump()
         # color[R]=100&color[G]=200&color[B]=150
         values = {f"{name}[{k}]": v for k, v in values.items()}
         return values
