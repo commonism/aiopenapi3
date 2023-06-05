@@ -243,9 +243,9 @@ class SchemaBase:
         r = BaseModel.__getstate__(self)
         try:
             for i in ["_model_type", "_model_types"]:
-                if i in r["__private_attribute_values__"]:
-                    r["__private_attribute_values__"] = r["__private_attribute_values__"].copy()
-                    del r["__private_attribute_values__"][i]
+                if i in r["__pydantic_private__"]:
+                    r["__pydantic_private__"] = r["__pydantic_private__"].copy()
+                    del r["__pydantic_private__"][i]
 
         except Exception:
             pass
