@@ -374,6 +374,9 @@ class Model:  # (BaseModel):
         else:
             rename = Model.ALIASES.get(name, name)
 
+        if name.startswith("model_"):
+            rename = f"x{name}"
+
         try:
             rename = re.sub(r"[#@\.-]", "_", rename)
         except Exception as e:
