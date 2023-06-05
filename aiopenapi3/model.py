@@ -229,7 +229,7 @@ class Model:  # (BaseModel):
                     r = bool
                 elif schema.type == "array":
                     if isinstance(schema.items, list):
-                        r = Tuple[tuple(i.ref.get_type(fwdref=True) for i in schema.items)]
+                        r = Tuple[tuple(Model.typeof(i, fwdref=True) for i in schema.items)]
                     elif schema.items:
                         r = List[Model.typeof(schema.items, fwdref=fwdref)]
                     elif schema.items is None:
