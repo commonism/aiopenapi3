@@ -127,7 +127,7 @@ class Model:  # (BaseModel):
                 # default schema properties …
                 annotations.update(Model.annotationsof(schema, discriminators, schemanames, fwdref=True))
                 fields.update(Model.fieldof(schema))
-                if schema.patternProperties:
+                if "patternProperties" in schema.model_fields_set:
                     for pattern, schema_ in schema.patternProperties.items():
                         fields[pattern] = Field(default=None)
                         annotations[pattern] = str
@@ -195,7 +195,7 @@ class Model:  # (BaseModel):
         if extra_ == "forbid" and schema.extensions:
             extra_ = "ignore"
 
-        extra_ = "ignore" if extra_ == "allow" else extra_
+        #        extra_ = "ignore" if extra_ == "allow" else extra_
 
         return dict(
             undefined_types_warning=False,
