@@ -289,8 +289,6 @@ class Request(RequestBase):
                 data = expected_response.schema_.model(data)
             except pydantic.ValidationError as e:
                 raise ResponseSchemaError(self.operation, expected_response, expected_response.schema_, result, e)
-            except pydantic.errors.ConfigError as e1:
-                raise ResponseSchemaError(self.operation, expected_response, expected_response.schema_, result, e1)
 
             data = self.api.plugins.message.unmarshalled(
                 operationId=self.operation.operationId, unmarshalled=data
