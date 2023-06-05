@@ -210,6 +210,24 @@ def test_schema_with_empty(with_schema_empty):
     OpenAPI("/", with_schema_empty)
 
 
+def test_schema_with_extensions(with_schema_extensions):
+    api = OpenAPI("/", with_schema_extensions)
+    assert api._root.extensions["root"] == "root"
+    assert api.servers[0].extensions["Server"] == "Server"
+
+    assert api.components.schemas["X"].extensions["Schema"] == "Schema"
+    assert api.components.schemas["Y"].properties["Z"].extensions["Add"] == "Add"
+    assert api.components.securitySchemes["user"].extensions["SecurityScheme"] == "SecurityScheme"
+    assert api.components.parameters["X"].extensions["Parameter"] == "Parameter"
+    assert api.paths.extensions["Paths"] == "Paths"
+    assert api.paths["/x"].extensions["PathItem"] == "PathItem"
+    assert api.paths["/x"].post.extensions["Operation"] == "Operation"
+    assert api.paths["/x"].post.requestBody.extensions["requestBody"] == "requestBody"
+
+    assert api.paths["/x"].post.requestBody.content["multipart/form-data"].extensions["MediaType"] == "MediaType"
+    assert api.paths["/x"].post.responses["200"].extensions["Response"] == "Response"
+
+
 def test_schema_properties_default(with_schema_properties_default):
     api = OpenAPI("/", with_schema_properties_default)
     a = api.components.schemas["Number"].model({})

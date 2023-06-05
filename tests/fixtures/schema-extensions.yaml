@@ -1,0 +1,85 @@
+openapi: "3.0.2"
+info:
+  x-Info: Info
+  version: 1.0.0
+  title: with emptieness
+
+servers:
+  - url: TBA
+    x-Server: Server
+
+x-root: root
+
+components:
+  schemas:
+    X:
+      type: string
+      x-Schema: Schema
+    Y:
+      type: object
+      additionalProperties:
+        type: object
+      description: Additional information provided through arbitrary metadata.
+      properties:
+        Z:
+          description: Contact details of the people or organization responsible for the image.
+          type: object
+          x-Add: Add
+
+  securitySchemes:
+    user:
+      x-SecurityScheme: SecurityScheme
+      type: apiKey
+      in: header
+      name: x-user
+  parameters:
+    X:
+      x-Parameter: Parameter
+      name: Path
+      in: path
+      required: true
+      schema:
+        type: string
+
+
+
+security:
+  - user: []
+
+
+paths:
+  x-Paths: Paths
+  /x:
+    x-PathItem: PathItem
+    post:
+      operationId: emptyRequest
+      x-Operation: Operation
+      requestBody:
+        x-requestBody: requestBody
+        content:
+          multipart/form-data:
+            x-MediaType: MediaType
+            encoding:
+              xml:
+                x-Encoding: Encoding
+                contentType: application/xml; charset=utf-8
+
+
+      responses:
+        "200":
+          x-Response: Response
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: string
+          headers:
+            X-required:
+              required: true
+              schema:
+                type: string
+            X-optional:
+              schema:
+                type: array
+                items:
+                  type: string
