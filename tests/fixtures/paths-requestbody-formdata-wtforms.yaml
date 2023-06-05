@@ -18,7 +18,7 @@ paths:
     post:
       operationId: test
       responses: &responses
-        200:
+        "200":
           description: "ok"
           content:
             application/json:

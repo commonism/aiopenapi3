@@ -61,7 +61,7 @@ class OnMessage(Message):
         return ctx
 
     def received(self, ctx):
-        ctx.received = """[{"id":1,"name":"theanimal"}]"""
+        ctx.received = """[{"id":1,"name":"theanimal", "weight": null}]"""
         return ctx
 
     def parsed(self, ctx):

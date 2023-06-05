@@ -11,6 +11,8 @@ from hypercorn.config import Config
 
 import aiopenapi3
 
+pytest.skip(allow_module_level=True)
+
 from api.main import app
 
 

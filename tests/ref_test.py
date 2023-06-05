@@ -12,7 +12,10 @@ import typing
 import pytest
 from aiopenapi3 import OpenAPI
 
-from pydantic.main import ModelMetaclass
+from pydantic._internal._model_construction import ModelMetaclass
+
+import pydantic._internal._fields
+from pydantic import RootModel
 
 
 def test_ref_resolution(openapi_version, petstore_expanded):
@@ -46,27 +49,44 @@ def test_allOf_resolution(petstore_expanded):
 
     ref = petstore_expanded_spec.paths["/pets"].get.responses["200"].content["application/json"].schema_.get_type()
 
+    # RootModel[List[ForwardRef('__types["Pet"]')]]
     assert type(ref) == ModelMetaclass
 
-    assert typing.get_origin(ref.__fields__["__root__"].outer_type_) == list
+    assert issubclass(ref, RootModel)
+    assert typing.get_origin(ref.model_fields["root"].annotation) == list
 
-    # outer_type may be ForwardRef
-    if isinstance(typing.get_args(ref.__fields__["__root__"].outer_type_)[0], ForwardRef):
-        assert ref.__fields__["__root__"].sub_fields[0].type_.__name__ == "Pet"
-        items = ref.__fields__["__root__"].sub_fields[0].type_.__fields__
+    fwd = typing.get_args(ref.model_fields["root"].annotation)[0]
+    if isinstance(fwd, ForwardRef):
+        pet = fwd.__forward_value__
     else:
-        assert typing.get_args(ref.__fields__["__root__"].outer_type_)[0].__name__ == "Pet"
-        items = typing.get_args(ref.__fields__["__root__"].outer_type_)[0].__fields__
+        pet = fwd
+    items = pet.model_fields
 
-    assert sorted(map(lambda x: x.name, filter(lambda y: y.required == True, items.values()))) == sorted(
+    assert sorted(items.keys()) == ["id", "name", "tag"]
+
+    def is_nullable(x):
+        # Optional[…] or | None
+        return typing.get_origin(x.annotation) == typing.Union and type(None) in typing.get_args(x.annotation)
+
+    assert sorted(map(lambda x: x[0], filter(lambda y: is_nullable(y[1]), items.items()))) == sorted(
+        ["tag"]
+    ), ref.schema()
+
+    def is_required(x):
+        # not assign a default '= Field(default=…)' or '= …'
+        return x.default == pydantic._internal._fields.Undefined
+
+    assert sorted(map(lambda x: x[0], filter(lambda y: is_required(y[1]), items.items()))) == sorted(
         ["id", "name"]
     ), ref.schema()
 
-    assert sorted(map(lambda x: x.name, items.values())) == ["id", "name", "tag"]
+    assert items["id"].annotation == int
+    assert items["name"].annotation == str
+    assert items["tag"].annotation == typing.Optional[str]
 
-    assert items["id"].outer_type_ == int
-    assert items["name"].outer_type_ == str
-    assert items["tag"].outer_type_ == str
+    r = ref.model_validate([dict(id=1, name="dog"), dict(id=2, name="cat", tag="x")])
+    assert len(r.root) == 2
+    assert r.root[1].tag == "x"
 
 
 def test_paths_content_schema_array_ref(openapi_version):
@@ -82,7 +102,7 @@ info:
 paths:
   /pets:
     get:
-      description: yes
+      description: "yes"
       operationId: findPets
       responses:
         '200':
@@ -96,7 +116,7 @@ paths:
 components:
   schemas:
     Pet:
-      type: str
+      type: string
     """
     api = OpenAPI.loads("test.yaml", SPEC)
     assert api.paths["/pets"].get.responses["200"].content["application/json"].schema_.items.__class__ == expected

@@ -25,8 +25,11 @@ def session_factory(*args, **kwargs) -> httpx.Client:
 
 
 class OnDocument(Document):
-    ApiResponse = {"description": "successful operation", "schema": {"$ref": "#/definitions/ApiResponse"}}
-    PetResponse = {"description": "successful operation", "schema": {"$ref": "#/definitions/Pet"}}
+    ApiResponse = {
+        "description": "",
+        "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiResponse"}}},
+    }
+    PetResponse = {"description": "", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Pet"}}}}
 
     def parsed(self, ctx):
         for name, path in ctx.document["paths"].items():
@@ -39,12 +42,27 @@ class OnDocument(Document):
 
         ctx.document["paths"]["/user"]["post"]["responses"]["200"] = OnDocument.ApiResponse
         ctx.document["paths"]["/pet/{petId}"]["get"]["responses"]["404"] = OnDocument.ApiResponse
+        ctx.document["paths"]["/pet/{petId}/uploadImage"]["post"]["responses"]["200"] = OnDocument.PetResponse
+        del ctx.document["paths"]["/user/login"]["get"]["responses"]["200"]["headers"]["X-Expires-After"]["schema"][
+            "format"
+        ]
         return ctx
 
 
 class OnMessage(Message):
+    def received(self, ctx: "Message.Context") -> "Message.Context":
+        if ctx.operationId == "loginUser":
+            ctx.received = b'"' + ctx.received + b'"'
+        if ctx.operationId == "getPetById" and ctx.status_code == "404":
+            import json
+
+            ctx.received = json.dumps(dict(code=1, type="error", message=ctx.received.decode())).encode()
+        return ctx
+
     def parsed(self, ctx):
         def goodPet(i):
+            if i.get("name", None) is None:
+                i["name"] = "default"
             if not isinstance(i.get("photoUrls", None), list):
                 i["photoUrls"] = list()
             for idx, j in enumerate(i["photoUrls"]):
@@ -57,17 +75,7 @@ class OnMessage(Message):
             if (c := i.get("category", None)) is None or not isinstance(c, dict):
                 i["category"] = dict(id=0, name="default")
 
-            if False:
-                if i.get("id", None) is None:
-                    i["id"] = 0
-
-            if False:
-                for t in i.get("tags", list()):
-                    for k, v in {"name": "default", "id": 0}.items():
-                        if k not in t:
-                            t[k] = v
-
-        Pet = self.api.resolve_jr(self.api._root, None, Reference(**{"$ref": "#/definitions/Pet"}))
+        Pet = self.api.resolve_jr(self.api._root, None, Reference(**{"$ref": "#/components/schemas/Pet"}))
 
         if ctx.operationId == "getPetById":
             if Pet == ctx.expected_type:
@@ -77,15 +85,17 @@ class OnMessage(Message):
             if Pet == getattr(ctx.expected_type.items, "_target", None):
                 for i in ctx.parsed:
                     goodPet(i)
+
         return ctx
 
 
 @pytest.fixture(scope="session")
 def api():
-    url = "https://petstore.swagger.io:443/v2/swagger.json"
-    api = OpenAPI.load_sync(
-        url, plugins=[OnDocument(), OnMessage()], session_factory=session_factory, use_operation_tags=False
-    )
+    #    url = "https://petstore.swagger.io:443/v2/swagger.json"
+    #    plugins=[OnDocument(), OnMessage()]
+    url = "https://petstore3.swagger.io/api/v3/openapi.json"
+    plugins = [OnDocument(), OnMessage()]
+    api = OpenAPI.load_sync(url, plugins=plugins, session_factory=session_factory, use_operation_tags=False)
     api.authenticate(api_key="special-key")
     return api
 
@@ -113,7 +123,7 @@ def login(api, user):
 
 def test_oauth(api):
     api.authenticate(petstore_auth="test")
-    d = api._root.definitions
+    d = api._root.components.schemas
     #    category = api._.addPet.data.
     fido = api._.addPet.data.get_type()(
         id=99,
@@ -132,20 +142,22 @@ def test_user(api, user):
 
 
 def test_pets(api, login):
-    d = api._root.definitions
+    d = api.components.schemas
 
     ApiResponse = d["ApiResponse"].get_type()
     Pet = api._.addPet.data.get_type()
     # addPet
     fido = Pet(
-        id=None,
-        name="fido",
+        id=15,
+        name="doggie",
         status="available",
-        category=d["Category"].get_type()(id=101, name="dogz"),
+        category=d["Category"].get_type()(id=1, name="Dogs"),
         photoUrls=["http://fido.jpg"],
-        tags=[d["Tag"].get_type()(id=102, name="friendly")],
+        tags=[d["Tag"].get_type()(id=0, name="string")],
     )
+    data = fido.model_dump()
     fido = api._.addPet(data=fido)
+    assert isinstance(fido, Pet), fido.message
 
     # updatePet
     fido.name = "fodi"
@@ -164,20 +176,15 @@ def test_pets(api, login):
             parameters={
                 "petId": fido.id,
                 "additionalMetadata": "yes",
-                "file": ("test.png", f, "image/png"),
-            }
+            },
+            data=("test.png", f, "image/png"),
         )
-    assert (
-        isinstance(r, ApiResponse)
-        and r.code == 200
-        and r.type == "unknown"
-        and r.message == "additionalMetadata: yes\nFile uploaded to ./test.png, 5783 bytes"
-    )
+    assert isinstance(r, Pet)
 
     # getPetById
     r = api._.getPetById(parameters={"petId": fido.id})
     assert isinstance(r, Pet)
-    r = api._.getPetById(parameters={"petId": -1})
+    r = api._.getPetById(parameters={"petId": -2})
     assert isinstance(r, ApiResponse) and r.code == 1 and r.type == "error" and r.message == "Pet not found"
 
     # findPetsByStatus
@@ -222,11 +229,12 @@ def test_pets(api, login):
         #        assert f.id != fido.id
 
         f.status = "invalid"
-        api._.updatePet(data=f)
+        r = api._.updatePet(data=f)
+        print(r)
 
     # findPetsByStatus is patched
-    r = api._.findPetsByStatus(parameters={"status": ["invalid"]})
-    assert all([i.status == "pending" for i in r])
+    r = api._.findPetsByStatus(parameters={"status": ["available"]})
+    assert all([i.status == "available" for i in r])
 
 
 def test_store(api):

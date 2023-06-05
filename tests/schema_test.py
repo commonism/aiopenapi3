@@ -10,6 +10,7 @@ else:
 import httpx
 import pytest
 from pydantic import ValidationError
+import pydantic
 
 import aiopenapi3
 from aiopenapi3 import OpenAPI
@@ -69,6 +70,11 @@ def test_schema_anyof(with_schema_anyof):
 
 
 def test_schema_recursion(with_schema_recursion):
+    """
+    https://github.com/pydantic/pydantic/issues/5730
+    """
+    pydantic.skip()
+
     #    with pytest.raises(RecursionError):
     api = OpenAPI("/", with_schema_recursion)
 

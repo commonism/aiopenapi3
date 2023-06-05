@@ -313,6 +313,26 @@ def with_schema_recursion(openapi_version):
 
 
 @pytest.fixture
+def with_schema_self_recursion(openapi_version):
+    yield _get_parsed_yaml("schema-self-recursion.yaml", openapi_version)
+
+
+@pytest.fixture
+def with_schema_type_list():
+    yield _get_parsed_yaml("schema-type-list.yaml")
+
+
+@pytest.fixture
+def with_schema_type_missing():
+    yield _get_parsed_yaml("schema-type-missing.yaml")
+
+
+@pytest.fixture
+def with_schema_type_string_format_byte_base64():
+    yield _get_parsed_yaml("schema-type-string-format-byte-base64.yaml")
+
+
+@pytest.fixture
 def with_schema_array(openapi_version):
     yield _get_parsed_yaml("schema-array.yaml")
 
@@ -330,6 +350,11 @@ def with_schema_additionalProperties(openapi_version):
 @pytest.fixture
 def with_schema_additionalProperties_v20():
     yield _get_parsed_yaml("schema-additionalProperties-v20.yaml")
+
+
+@pytest.fixture
+def with_schema_additionalProperties_and_named_properties():
+    yield _get_parsed_yaml("schema-additionalProperties-and-named-properties" ".yaml")
 
 
 @pytest.fixture

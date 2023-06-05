@@ -2,6 +2,13 @@ from pathlib import Path
 
 from aiopenapi3 import OpenAPI
 
+import pytest
+
+"""
+https://github.com/pydantic/pydantic/issues/6010
+"""
+pytest.skip(allow_module_level=True)
+
 
 def test_clone(petstore_expanded):
     api = OpenAPI("/", petstore_expanded)

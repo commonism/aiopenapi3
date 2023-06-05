@@ -45,7 +45,7 @@ paths:
         "200":
           description: ''
           schema:
-            type: str
+            type: string
       security:
         - user: []
           token: []
@@ -58,7 +58,7 @@ paths:
         "200":
           description: ''
           schema:
-            type: str
+            type: string
       security:
         - user: []
           token: []
@@ -126,6 +126,7 @@ paths:
 
 definitions:
   User:
+    type: object
     properties:
       id:
         type: integer

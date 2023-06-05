@@ -6,7 +6,7 @@ info:
 components:
   schemas:
     Bool:
-      type: bool
+      type: boolean
 
     Array:
       type: array
@@ -16,9 +16,8 @@ components:
     ListArray:
       type: array
       items:
-        type:
-          - string
-          - integer
+        - type: integer
+        - type: string
 
     ArbitraryArray:
       type: array

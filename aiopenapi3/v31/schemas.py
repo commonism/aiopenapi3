@@ -165,7 +165,7 @@ class Schema(ObjectExtended, SchemaBase):
     def validate_Schema_number_type(cls, s: "Schema"):
         if s.type == "integer":
             for i in ["minimum", "maximum"]:
-                if v := getattr(s, i, None) and not isinstance(v, int):
+                if (v := getattr(s, i, None)) is not None and not isinstance(v, int):
                     setattr(s, i, int(v))
         return s
 
