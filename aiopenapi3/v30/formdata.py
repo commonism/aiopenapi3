@@ -55,6 +55,10 @@ def parameters_from_multipart(data, media, rbq):
             headers = dict()
 
         m = media.schema_.properties[k]
+        """
+        using in=query should be fine
+        it is only used to lookup the codec (style,explode) which is provided anyway
+        """
         if isinstance(v, list):
             for i in v:
                 r = encode_parameter(k, i, style, explode, allowReserved, "query", m.items)
@@ -143,6 +147,11 @@ def encode_multipart_parameters(fields: List[Tuple[str, str, Union[str, bytes], 
                 """OpenAPI 3.0"""
 
             data = encode_content(v, codec)
+
+            """
+            email.message_from_… uses content-transfer-encoding
+            """
+            headers["Content-Transfer-Encoding"] = codec
 
         elif type in ["text", "rfc822"]:
             data = value
