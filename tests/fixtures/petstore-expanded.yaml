@@ -125,6 +125,7 @@ paths:
 components:
   schemas:
     Pet:
+      type: object
       allOf:
         - $ref: '#/components/schemas/NewPet'
         - type: object

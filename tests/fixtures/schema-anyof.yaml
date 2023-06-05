@@ -6,6 +6,7 @@ info:
 components:
   schemas:
     AB:
+      type: object
       oneOf:
       - $ref: "#/components/schemas/A"
       - $ref: "#/components/schemas/B"
@@ -14,11 +15,13 @@ components:
           type: integer
 
     B:
+      type: object
       properties:
         ofB:
           type: string
 
     A:
+      type: object
       properties:
         ofA:
           type: integer

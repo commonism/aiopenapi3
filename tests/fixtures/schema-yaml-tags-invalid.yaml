@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: yes
-  version: 1
+  title: "yes"
+  version: "1.0"
 servers:
   - url: http://127.0.0.1/api
 

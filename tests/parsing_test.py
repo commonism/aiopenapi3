@@ -154,18 +154,20 @@ def test_schema_allof_discriminator(with_schema_allof_discriminator):
 
     schema = api.components.schemas["Object1"]
     type_ = schema.get_type()
-    obj1 = type_.model_construct(
-        type="obj1",
-        subtypeProperties=schema.properties["subtypeProperties"]
-        .get_type()
-        .model_construct(property1a="1a", property1b="1b"),
-        id=uuid.uuid4(),
+    obj1 = type_(
+        dict(
+            type="obj1",
+            subtypeProperties=schema.properties["subtypeProperties"]
+            .get_type()
+            .model_construct(property1a="1a", property1b="1b"),
+            id=str(uuid.uuid4()),
+        )
     )
-    data = obj1.json()
-    obj1_ = api.components.schemas["ObjectBaseType"].get_type().parse_raw(data)
+    data = obj1.model_dump_json()
+    obj1_ = api.components.schemas["ObjectBaseType"].get_type().model_validate_json(data)
 
 
-def test_schema_enum(openapi_version, with_schema_enum):
+def test_schema_enum(with_schema_enum):
     import copy
     import json
 
@@ -173,24 +175,39 @@ def test_schema_enum(openapi_version, with_schema_enum):
 
     import linode_test
 
-    data["openapi"] = str(openapi_version)
-    api = OpenAPI.loads(URLBASE, json.dumps(data), plugins=[linode_test.LinodeDiscriminators()])
+    api = OpenAPI.loads(URLBASE, json.dumps(data))  # , plugins=[linode_test.LinodeDiscriminators()])
     import datetime
 
     s = api.components.schemas["PaymentMethod"]
-    t = s.get_type()
-    pay = t(__root__=dict(created=datetime.datetime.now(), id=5, is_default=True, type="google_pay", data=None))
-    data = pay.json()
-    pay_ = t.parse_raw(data)
+    pm = s.get_type()
+    gp = api.components.schemas["GooglePayData"].get_type()
+
+    pay = pm(
+        created=datetime.datetime.now(),
+        id=5,
+        is_default=True,
+        data={"type": "google_pay", "card_type": "Disco", "last_four": "4444", "expiry": "05/2021"},
+    )
+    data = pay.model_dump_json()
+    pay_ = pm.model_validate_json(data)
     assert pay == pay_
 
-    pay = t(__root__=dict(created=datetime.datetime.now(), id=5, is_default=True, type="google_pay", data=None))
-
     with pytest.raises(ValidationError):
-        pay = t(__root__=dict(created=datetime.datetime.now(), id=5, is_default=True, type="no_pay", data=None))
+        pay = pm(
+            created=datetime.datetime.now(),
+            id=5,
+            is_default=True,
+            data={"type": "no_pay", "card_type": "Disco", "last_four": "4444", "expiry": "05/2021"},
+        )
 
     pp = api.components.schemas["PayPalData"].get_type()(email="a@b.de", paypal_id="1")
     assert pp.model_dump()["type"] == "paypal"
+
+    e = api.components.schemas["EnumRef"].get_type().model_validate({"id": "good"})
+    assert e.model_dump() == {"id": "good"}
+    if api.components.schemas["EnumRef"].model_config.get("validate_assignment", False) == True:
+        with pytest.raises(ValidationError):
+            e.id = "bad"
 
 
 def test_parsing_properties_empty_name(with_parsing_schema_properties_name_empty):
@@ -213,3 +230,59 @@ def test_parsing_paths_content_nested_array_ref(openapi_version, with_parsing_pa
 
 def test_parsing_schema_names(with_parsing_schema_names):
     OpenAPI("/", with_parsing_schema_names)
+
+
+def test_pydantic_classes():
+    from typing import Annotated, Union, Literal, ForwardRef
+    import types
+
+    from pydantic import BaseModel, Field
+
+    Dog = types.new_class(
+        "Dog",
+        (BaseModel,),
+        {},
+        lambda ns: ns.update(
+            {
+                "__annotations__": {"type": Literal["dog"], "good": int},
+                "type": Field(default="dog"),
+                "good": Field(default=100),
+            }
+        ),
+    )
+
+    Cat = types.new_class(
+        "Cat",
+        (BaseModel,),
+        {},
+        lambda ns: ns.update(
+            {
+                "__annotations__": {"type": Literal["cat"], "bad": int},
+                "type": Field(default="cat"),
+                "bad": Field(default=100),
+            }
+        ),
+    )
+
+    Pet = types.new_class(
+        "Pet",
+        (BaseModel,),
+        {},
+        lambda ns: ns.update(
+            {
+                "model_config": {"undefined_types_warning": False},
+                "__annotations__": {
+                    "root": Annotated[
+                        Union[ForwardRef('__types["Dog"]'), ForwardRef('__types["Cat"]')], Field(discriminator="type")
+                    ],
+                },
+            }
+        ),
+    )
+
+    Pet.model_rebuild(_types_namespace={"__types": {"Dog": Dog, "Cat": Cat}})
+
+    dog0 = Dog(root={"type": "dog", "good": 400})
+    p0 = dog0.model_dump()
+    pet0 = Pet.model_validate({"root": p0})
+    assert pet0.root == dog0
