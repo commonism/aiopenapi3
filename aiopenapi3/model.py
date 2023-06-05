@@ -4,6 +4,7 @@ import collections
 import logging
 import sys
 import re
+import copy
 import warnings
 
 import types
@@ -25,13 +26,16 @@ else:
     from typing import List, Optional, Union, Dict
     from typing_extensions import Annotated, Literal
 
-from pydantic import BaseModel, Extra, Field
+from pydantic import BaseModel, Extra, Field, RootModel
 from .pydanticv2 import field_class_to_schema
 
 
 type_format_to_class = collections.defaultdict(lambda: dict())
 
 log = logging.getLogger("aiopenapi3.model")
+
+SCHEMA_TYPES_MAP = {"string": str, "number": float, "boolean": bool, "integer": int}
+SCHEMA_TYPES = frozenset(SCHEMA_TYPES_MAP.keys())
 
 
 def generate_type_format_to_class():
@@ -41,9 +45,15 @@ def generate_type_format_to_class():
     """
     global type_format_to_class
     for cls, spec in field_class_to_schema:
+        if "type" not in spec:
+            # FIXME Decimal is anyOf now
+            continue
         if spec["type"] not in frozenset(["string", "number"]):
             continue
         type_format_to_class[spec["type"]][spec.get("format", None)] = cls
+    from pydantic import Base64Str, Base64Bytes
+
+    type_format_to_class["string"]["byte"] = Base64Str
 
 
 def class_from_schema(s):
@@ -73,89 +83,78 @@ class Model:  # (BaseModel):
             discriminators = []
 
         # do not create models for primitive types
-        if schema.type in ("string", "integer", "number", "boolean"):
+        if schema.type in ("string", "integer", "number", "boolean") and schema.format is None:
             return Model.typeof(schema)
 
         type_name = schema._get_identity("L8")
         fields = dict()
         annotations = dict()
 
-        if hasattr(schema, "anyOf") and schema.anyOf:
-            assert all(schema.anyOf)
-            t = tuple(
-                i.get_type(
-                    names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
-                    discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
-                    extra=schema,
+        if schema.type == "object":
+            if hasattr(schema, "anyOf") and schema.anyOf:
+                assert all(schema.anyOf)
+                t = tuple(
+                    i.get_type(
+                        names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
+                        discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
+                        extra=schema,
+                    )
+                    for i in schema.anyOf
                 )
-                for i in schema.anyOf
-            )
-            if schema.discriminator and schema.discriminator.mapping:
-                annotations["__root__"] = Annotated[Union[t], Field(discriminator=schema.discriminator.propertyName)]
-            else:
-                annotations["__root__"] = Union[t]
-        elif hasattr(schema, "oneOf") and schema.oneOf:
-            t = tuple(
-                i.get_type(
-                    names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
-                    discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
-                    extra=schema,
+                if schema.discriminator and schema.discriminator.mapping:
+                    annotations["__root__"] = Annotated[
+                        Union[t], Field(discriminator=schema.discriminator.propertyName)
+                    ]
+                else:
+                    annotations["__root__"] = Union[t]
+            elif hasattr(schema, "oneOf") and schema.oneOf:
+                t = tuple(
+                    i.get_type(
+                        names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
+                        discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
+                        extra=schema,
+                    )
+                    for i in schema.oneOf
                 )
-                for i in schema.oneOf
-            )
 
-            if schema.discriminator and schema.discriminator.mapping:
-                annotations["__root__"] = Annotated[Union[t], Field(discriminator=schema.discriminator.propertyName)]
+                if schema.discriminator and schema.discriminator.mapping:
+                    annotations["__root__"] = Annotated[
+                        Union[t], Field(discriminator=schema.discriminator.propertyName)
+                    ]
+                else:
+                    annotations["__root__"] = Union[t]
             else:
-                annotations["__root__"] = Union[t]
+                # default schema properties …
+                annotations.update(Model.annotationsof(schema, discriminators, schemanames, fwdref=True))
+                fields.update(Model.fieldof(schema))
+                if schema.patternProperties:
+                    for pattern, schema_ in schema.patternProperties.items():
+                        fields[pattern] = Field(default=None)
+                        annotations[pattern] = str
+                if schema.allOf:
+                    for i in schema.allOf:
+                        annotations.update(Model.annotationsof(i, discriminators, schemanames, fwdref=True))
+                        fields.update(Model.fieldof(i))
+
+            # this is a anyOf/oneOf - the parent may have properties which will collide with __root__
+            # so - add the parent properties to this model
+            if extra:
+                annotations.update(Model.annotationsof(extra, discriminators, schemanames))
+                fields.update(Model.fieldof(extra))
         else:
-            # default schema properties …
-            annotations.update(Model.annotationsof(schema, discriminators, schemanames, fwdref=True))
-            fields.update(Model.fieldof(schema))
-
-            if schema.allOf:
-                for i in schema.allOf:
-                    annotations.update(Model.annotationsof(i, discriminators, schemanames, fwdref=True))
-
-        # this is a anyOf/oneOf - the parent may have properties which will collide with __root__
-        # so - add the parent properties to this model
-        if extra:
-            annotations.update(Model.annotationsof(extra, discriminators, schemanames))
-            fields.update(Model.fieldof(extra))
-
-        # FAILS ON PYTHON3.7
-        #
-        # if fields and "__root__" in annotations and typing.get_origin(annotations["__root__"]) == typing.Dict:
-        #     warnings.warn("Dropping __root__ Dict mapping …")
-        #     log.warning(
-        #         f"Dropping __root__ Dict mapping {annotations['__root__']} due to fields {sorted(fields.keys())}"
-        #     )
-        #     del annotations["__root__"]
-
-        import copy
+            annotations["__root__"] = Model.typeof(schema)
 
         fields["__annotations__"] = copy.deepcopy(annotations)
         fields["__module__"] = me.__name__
-
-        # dif not work for __root__
-        # xf = dict()
-        # for k in filter(lambda x: x != "__annotations__", fields.keys()):
-        #    xf[k] = (annotations.get(k, None), fields.get(k, None))
-        # m = pydantic.create_model(type_name, __base__=BaseModel, **xf, __module__=__name__)
 
         fields["model_config"] = Model.configof(schema)
 
         if "__root__" in annotations:
             del fields["__annotations__"]["__root__"]
-            fields["toor"] = Field()
             fields["__annotations__"]["toor"] = annotations["__root__"]
-            from aiopenapi3.pydanticv2 import RootModel
-
-            m = types.new_class(type_name, (RootModel,), {}, lambda ns: ns.update(fields))
-        #            m = types.new_class(type_name, (RootModel,), fields)
+            m = types.new_class(type_name, (RootModel[annotations["__root__"]],), {}, lambda ns: ns.update({}))
         else:
             m = types.new_class(type_name, (BaseModel,), {}, lambda ns: ns.update(fields))
-        #            m = types.new_class(type_name, (BaseModel,), fields)
         return m
 
     @staticmethod
@@ -198,7 +197,12 @@ class Model:  # (BaseModel):
 
         extra_ = "ignore" if extra_ == "allow" else extra_
 
-        return dict(undefined_types_warning=False, extra=extra_, arbitrary_types_allowed=arbitrary_types_allowed_)
+        return dict(
+            undefined_types_warning=False,
+            extra=extra_,
+            arbitrary_types_allowed=arbitrary_types_allowed_,
+            #                    validate_assignment=True
+        )
 
     @staticmethod
     def typeof(schema: "SchemaBase", fwdref=False):
@@ -207,34 +211,51 @@ class Model:  # (BaseModel):
         if schema is None:
             return BaseModel
         if isinstance(schema, SchemaBase):
-            if schema.enum:
-                # un-Reference
-                _names = tuple(i for i in map(lambda x: x._target if isinstance(x, ReferenceBase) else x, schema.enum))
-                r = Literal[_names]
-            elif schema.type == "integer":
-                r = int
-            elif schema.type == "number":
-                r = class_from_schema(schema)
-            elif schema.type == "string":
-                r = class_from_schema(schema)
-            elif schema.type == "boolean":
-                r = bool
-            elif schema.type == "array":
-                if isinstance(schema.items, list):
-                    r = Tuple[tuple(i.ref.get_type(fwdref=True) for i in schema.items)]
-                elif schema.items:
-                    r = List[Model.typeof(schema.items, fwdref=fwdref)]
-                elif schema.items is None:
-                    return
+            if isinstance(schema.type, str):
+                if schema.type == "integer":
+                    r = int
+                elif schema.type == "number":
+                    r = class_from_schema(schema)
+                elif schema.type == "string":
+                    if schema.enum:
+                        # un-Reference
+                        _names = tuple(
+                            i for i in map(lambda x: x._target if isinstance(x, ReferenceBase) else x, schema.enum)
+                        )
+                        r = Literal[_names]
+                    else:
+                        r = class_from_schema(schema)
+                elif schema.type == "boolean":
+                    r = bool
+                elif schema.type == "array":
+                    if isinstance(schema.items, list):
+                        r = Tuple[tuple(i.ref.get_type(fwdref=True) for i in schema.items)]
+                    elif schema.items:
+                        r = List[Model.typeof(schema.items, fwdref=fwdref)]
+                    elif schema.items is None:
+                        return
+                    else:
+                        raise TypeError(schema.items)
+                elif schema.type == "object":
+                    return schema.get_type(fwdref=fwdref)
                 else:
-                    raise TypeError(schema.items)
-            elif schema.type == "object":
-                return schema.get_type(fwdref=fwdref)
-            elif schema.type is None:  # discriminated root
-                """
-                recursively define related discriminated objects
-                """
-                return schema.get_type(fwdref=fwdref)
+                    raise ValueError(f"schema type {schema.type} is not valid")
+            elif isinstance(schema.type, list):
+                """this will end up as RootModel with Union[]"""
+                r = list()
+                for i in schema.type:
+                    r.append(SCHEMA_TYPES_MAP[i])
+                r = Union[tuple(r)]
+                return r
+            elif schema.type is None:  # allow all
+                r = list(SCHEMA_TYPES_MAP.values())
+                schema.type = "object"
+                r.append(schema.get_type(fwdref=fwdref, extra=schema))
+                schema.type = None
+                r = Union[tuple(r)]
+                return r
+            else:
+                raise ValueError("y")
         elif isinstance(schema, ReferenceBase):
             r = Model.typeof(schema._target, fwdref=True)
         else:
@@ -247,70 +268,73 @@ class Model:  # (BaseModel):
         from . import v20
 
         annotations = dict()
-        if schema.type == "array":
-            annotations["__root__"] = Model.typeof(schema)
-        elif (
-            schema.type == "object"
-            and schema.additionalProperties
-            and isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase))
-        ):
-            """
-            https://swagger.io/docs/specification/data-models/dictionaries/
+        if isinstance(schema.type, str):
+            if schema.type == "array":
+                annotations["__root__"] = Model.typeof(schema)
+            elif (
+                schema.type == "object"
+                and schema.additionalProperties
+                and isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase))
+            ):
+                """
+                https://swagger.io/docs/specification/data-models/dictionaries/
 
-            For example, a string-to-string dictionary like this:
+                For example, a string-to-string dictionary like this:
 
-                {
-                  "en": "English",
-                  "fr": "French"
-                }
+                    {
+                      "en": "English",
+                      "fr": "French"
+                    }
 
-            is defined using the following schema:
+                is defined using the following schema:
 
-                type: object
-                additionalProperties:
-                  type: string
-            """
-            annotations["__root__"] = Dict[str, Model.typeof(schema.additionalProperties)]
-        else:
-            for name, f in schema.properties.items():
-                r = None
-                try:
-                    discriminator = next(filter(lambda x: name == x.propertyName, discriminators))
-                    # the property is a discriminiator
-                    if discriminator.mapping:
-                        for disc, v in discriminator.mapping.items():
-                            # lookup the mapping value for the schema
-                            if v in shmanm:
-                                r = Literal[disc]
-                                break
+                    type: object
+                    additionalProperties:
+                      type: string
+                """
+                annotations["__root__"] = Dict[str, Model.typeof(schema.additionalProperties)]
+            else:
+                for name, f in schema.properties.items():
+                    r = None
+                    try:
+                        discriminator = next(filter(lambda x: name == x.propertyName, discriminators))
+                        # the property is a discriminiator
+                        if discriminator.mapping:
+                            for disc, v in discriminator.mapping.items():
+                                # lookup the mapping value for the schema
+                                if v in shmanm:
+                                    r = Literal[disc]
+                                    break
+                            else:
+                                raise ValueError(f"unmatched discriminator in mapping for {schema}")
                         else:
-                            raise ValueError(f"unmatched discriminator in mapping for {schema}")
-                    else:
-                        # the discriminator lacks a mapping, use the last name
-                        # JSONPointer.decode required ?
-                        literal = Path(JSONReference.split(shmanm[-1])[1]).parts[-1]
-                        r = Literal[literal]
+                            # the discriminator lacks a mapping, use the last name
+                            # JSONPointer.decode required ?
+                            literal = Path(JSONReference.split(shmanm[-1])[1]).parts[-1]
+                            r = Literal[literal]
 
-                    # this got Literal avoid getting Optional
-                    annotations[Model.nameof(name)] = r
-                    continue
-                except StopIteration:
-                    r = Model.typeof(f, fwdref=fwdref)
-
-                from . import v20, v30, v31
-
-                if isinstance(schema, (v20.Schema, v20.Reference)):
-                    if not f.required:
-                        annotations[Model.nameof(name)] = Optional[r]
-                    else:
+                        # this got Literal avoid getting Optional
                         annotations[Model.nameof(name)] = r
-                elif isinstance(schema, (v30.Schema, v31.Schema, v30.Reference, v31.Reference)):
-                    if name not in schema.required:
-                        annotations[Model.nameof(name)] = Optional[r]
+                        continue
+                    except StopIteration:
+                        r = Model.typeof(f, fwdref=fwdref)
+
+                    from . import v20, v30, v31
+
+                    if isinstance(schema, (v20.Schema, v20.Reference)):
+                        if not f.required:
+                            annotations[Model.nameof(name)] = Optional[r]
+                        else:
+                            annotations[Model.nameof(name)] = r
+                    elif isinstance(schema, (v30.Schema, v31.Schema, v30.Reference, v31.Reference)):
+                        if name not in schema.required:
+                            annotations[Model.nameof(name)] = Optional[r]
+                        else:
+                            annotations[Model.nameof(name)] = r
                     else:
-                        annotations[Model.nameof(name)] = r
-                else:
-                    raise TypeError(schema)
+                        raise TypeError(schema)
+        elif isinstance(schema.type, list):
+            annotations["__root__"] = Model.typeof(schema)
 
         return annotations
 
@@ -319,36 +343,33 @@ class Model:  # (BaseModel):
         fields = dict()
         if schema.type == "array":
             return fields
-        elif (
-            schema.type == "object"
-            and schema.additionalProperties
-            and isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase))
-        ):
-            if schema.properties:
-                """
-                Schema with additionalProperties and named properties …
+        elif schema.type == "object":
+            if schema.additionalProperties and isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase)):
+                if schema.properties:
+                    """
+                    Schema with additionalProperties and named properties …
 
-                we can't serve this.
-                """
-                warnings.warn("Ignoring Schema with additionalProperties and named properties")
-        else:
-            for name, f in schema.properties.items():
-                from . import v20, v30, v31
+                    we can't serve this.
+                    """
+                    warnings.warn("Ignoring Schema with additionalProperties and named properties")
+            else:
+                for name, f in schema.properties.items():
+                    from . import v20, v30, v31
 
-                args = dict()
-                if isinstance(schema, (v20.Schema, v20.Reference)):
-                    if not f.required:
-                        args["default"] = None
-                elif isinstance(schema, (v30.Schema, v31.Schema, v30.Reference, v31.Reference)):
-                    if name not in schema.required:
-                        args["default"] = None
+                    args = dict()
+                    if isinstance(schema, (v20.Schema, v20.Reference)):
+                        if not f.required:
+                            args["default"] = None
+                    elif isinstance(schema, (v30.Schema, v31.Schema, v30.Reference, v31.Reference)):
+                        if name not in schema.required:
+                            args["default"] = None
 
-                name = Model.nameof(name, args=args)
-                for i in ["default"]:
-                    v = getattr(f, i, None)
-                    if v:
-                        args[i] = v
-                fields[name] = Field(**args)
+                    name = Model.nameof(name, args=args)
+                    for i in ["default"]:
+                        v = getattr(f, i, None)
+                        if v:
+                            args[i] = v
+                    fields[name] = Field(**args)
 
         return fields
 
