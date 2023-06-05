@@ -123,7 +123,7 @@ class Paths(PathsBase):
         e = {}
         for k, v in values.items():
             if k[:2] == "x-":
-                e[k] = v
+                e[k[2:]] = v
             else:
                 p[k] = PathItem(**v)
         return {"paths": p, "extensions": e}
