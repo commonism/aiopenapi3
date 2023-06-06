@@ -21,9 +21,9 @@ from .base import ReferenceBase, SchemaBase
 from . import me
 
 if sys.version_info >= (3, 9):
-    from typing import List, Optional, Literal, Union, Annotated, Tuple, Dict
+    from typing import List, Optional, Union, Tuple, Dict, Annotated, Literal
 else:
-    from typing import List, Optional, Union, Dict
+    from typing import List, Optional, Union, Tuple, Dict
     from typing_extensions import Annotated, Literal
 
 from pydantic import BaseModel, Extra, Field, RootModel

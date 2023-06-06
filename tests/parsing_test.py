@@ -233,7 +233,12 @@ def test_parsing_schema_names(with_parsing_schema_names):
 
 
 def test_pydantic_classes():
-    from typing import Annotated, Union, Literal, ForwardRef
+    if sys.version_info >= (3, 9):
+        from typing import Union, ForwardRef, Annotated, Literal
+    else:
+        from typing import Union, ForwardRef
+        from typing_extensions import Annotated, Literal
+
     import types
 
     from pydantic import BaseModel, Field
