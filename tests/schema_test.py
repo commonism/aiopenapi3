@@ -134,10 +134,6 @@ def test_schema_type_string_format_byte_base64(with_schema_type_string_format_by
     assert v.data == RAW
 
     v = b64.model_construct(data="test")
-    """
-    https://github.com/pydantic/pydantic/issues/6011
-    """
-    pytest.skip()
     assert v.model_dump() == B64
     assert v.data == RAW
 
