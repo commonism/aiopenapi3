@@ -61,8 +61,7 @@ def test_call():
     )
 
     auth = Path("tests/data/auth.json")
-    with auth.open("wt") as f:
-        f.write(json.dumps({"petstore_auth": "test"}))
+    auth.write_text(json.dumps({"petstore_auth": "test"}))
 
     main(
         shlex.split(
@@ -74,3 +73,4 @@ def test_call():
             """-P tests/petstore_test.py:OnDocument call https://petstore.swagger.io/v2/swagger.json findPetsByStatus --parameters '{"status": ["available", "pending"]}' --authenticate '{"petstore_auth":"test"}' --format "[? name=='doggie' && status == 'available'].{name:name, photo:photoUrls} | [0:2]" """
         )
     )
+    auth.unlink()
