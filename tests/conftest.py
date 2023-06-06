@@ -299,17 +299,22 @@ def with_schema_allof_discriminator(openapi_version):
 
 @pytest.fixture
 def with_schema_enum(openapi_version):
-    yield _get_parsed_yaml("schema-enum.yaml")
+    yield _get_parsed_yaml("schema-enum.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_schema_anyof(openapi_version):
+def with_schema_extensions(openapi_version):
+    yield _get_parsed_yaml("schema-extensions.yaml", openapi_version)
+
+
+@pytest.fixture
+def with_schema_anyof():
     yield _get_parsed_yaml("schema-anyof.yaml")
 
 
 @pytest.fixture
 def with_schema_recursion(openapi_version):
-    yield _get_parsed_yaml("schema-recursion.yaml")
+    yield _get_parsed_yaml("schema-recursion.yaml", openapi_version)
 
 
 @pytest.fixture
@@ -333,18 +338,23 @@ def with_schema_type_string_format_byte_base64():
 
 
 @pytest.fixture
-def with_schema_array(openapi_version):
+def with_schema_array():
     yield _get_parsed_yaml("schema-array.yaml")
 
 
 @pytest.fixture
 def with_schema_Of_parent_properties(openapi_version):
-    yield _get_parsed_yaml("schema-Of-parent-properties.yaml")
+    yield _get_parsed_yaml("schema-Of-parent-properties.yaml", openapi_version)
 
 
 @pytest.fixture
 def with_schema_additionalProperties(openapi_version):
-    yield _get_parsed_yaml("schema-additionalProperties.yaml")
+    yield _get_parsed_yaml("schema-additionalProperties.yaml", openapi_version)
+
+
+@pytest.fixture
+def with_schema_patternProperties():
+    yield _get_parsed_yaml("schema-patternProperties.yaml")
 
 
 @pytest.fixture
@@ -359,7 +369,7 @@ def with_schema_additionalProperties_and_named_properties():
 
 @pytest.fixture
 def with_schema_empty(openapi_version):
-    yield _get_parsed_yaml("schema-empty.yaml")
+    yield _get_parsed_yaml("schema-empty.yaml", openapi_version)
 
 
 @pytest.fixture
