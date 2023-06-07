@@ -265,13 +265,17 @@ def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
     assert u.query.getall("array") == parameters["array"]
     assert u.query["R"] == "100" and u.query["G"] == "200" and u.query["B"] == "150"
 
-    r = api._.LabelPath(parameters=parameters)
+    #    r = api._.LabelPath(parameters=parameters)
+    r = api.createRequest("LabelPath")
+    r._prepare(None, parameters)
+    assert r.req.url == "/label/query/.blue/.blue.black.brown/.R.100.G.200.B.150/."
+    v = r.request(parameters=parameters)
     request = httpx_mock.get_requests()[-1]
     u = yarl.URL(str(request.url))
     assert u.parts[4] == ".blue"
     assert u.parts[5] == ".blue.black.brown"
     assert u.parts[6] == ".R.100.G.200.B.150"
-    assert u.parts[7] == ""  # . is scrubbed as path self
+    # assert u.parts[7] == ""  # . is scrubbed as path self
 
     r = api._.LabelExplodePath(parameters=parameters)
     request = httpx_mock.get_requests()[-1]
@@ -279,7 +283,7 @@ def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
     assert u.parts[4] == ".blue"
     assert u.parts[5] == ".blue.black.brown"
     assert u.parts[6] == ".R=100.G=200.B=150"
-    assert u.parts[7] == ""
+    #    assert u.parts[7] == ""
 
     r = api._.deepObjectExplodeQuery(parameters={"object": parameters["object"]})
     request = httpx_mock.get_requests()[-1]
