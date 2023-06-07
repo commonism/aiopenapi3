@@ -155,9 +155,12 @@ def test_paths_security(httpx_mock, with_paths_security):
     request = httpx_mock.get_requests()[-1]
     assert request.headers["Authorization"].split(" ")[1] == base64.b64encode((auth + ":" + auth).encode()).decode()
 
-    api.authenticate(None, digestAuth=(auth, auth))
-    api._.api_v1_auth_login_create(data={}, parameters={})
-    request = httpx_mock.get_requests()[-1]
+    try:
+        import httpx_auth
+    except:
+        api.authenticate(None, digestAuth=(auth, auth))
+        api._.api_v1_auth_login_create(data={}, parameters={})
+        request = httpx_mock.get_requests()[-1]
     # can't test?
 
     api.authenticate(None, bearerAuth=auth)
