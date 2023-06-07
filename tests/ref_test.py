@@ -56,10 +56,8 @@ def test_allOf_resolution(petstore_expanded):
     assert typing.get_origin(ref.model_fields["root"].annotation) == list
 
     fwd = typing.get_args(ref.model_fields["root"].annotation)[0]
-    if isinstance(fwd, ForwardRef):
-        pet = fwd.__forward_value__
-    else:
-        pet = fwd
+    assert isinstance(fwd, ForwardRef)
+    pet = fwd.__forward_value__
     items = pet.model_fields
 
     assert sorted(items.keys()) == ["id", "name", "tag"]

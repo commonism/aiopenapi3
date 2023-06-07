@@ -299,20 +299,19 @@ class SchemaBase:
         extra: "SchemaBase" = None,
         fwdref: bool = False,
     ) -> Union[BaseModel, ForwardRef]:
+        if fwdref:
+            if "module" in ForwardRef.__init__.__code__.co_varnames:
+                # FIXME Python < 3.9 compat
+                return ForwardRef(f'__types["{self._get_identity("FWD")}"]', module="aiopenapi3.me")
+            else:
+                return ForwardRef(f'__types["{self._get_identity("FWD")}"]')
         try:
             if extra is None:
                 return self._model_type
             else:
                 return self.set_type(names, discriminators, extra)
         except AttributeError:
-            if fwdref:
-                if "module" in ForwardRef.__init__.__code__.co_varnames:
-                    # FIXME Python < 3.9 compat
-                    return ForwardRef(f'__types["{self._get_identity("FWD")}"]', module="aiopenapi3.me")
-                else:
-                    return ForwardRef(f'__types["{self._get_identity("FWD")}"]')
-            else:
-                return self.set_type(names, discriminators)
+            return self.set_type(names, discriminators)
 
     def model(self, data: Dict):
         """
