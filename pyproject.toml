@@ -14,7 +14,8 @@ filterwarnings = [
     "ignore:Ignoring Schema with additionalProperties and named properties:UserWarning",
 #    "error::pytest.PytestUnraisableExceptionWarning",
     # note the use of single quote below to denote "raw" strings in TOML
-    'ignore:The loop argument is deprecated since Python 3.8, and scheduled for removal in Python 3.10.:DeprecationWarning',
+#    'ignore:The loop argument is deprecated since Python 3.8, and scheduled for removal in Python 3.10.:DeprecationWarning',
+    "ignore:'flask.Markup' is deprecated and will be removed in Flask 2.4. Import 'markupsafe.Markup' instead.:DeprecationWarning"
 ]
 asyncio_mode = "strict"
 
