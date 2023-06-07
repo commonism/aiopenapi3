@@ -151,8 +151,9 @@ class Model:  # (BaseModel):
 
         if "__root__" in annotations:
             del fields["__annotations__"]["__root__"]
-            fields["__annotations__"]["toor"] = annotations["__root__"]
-            m = types.new_class(type_name, (RootModel[annotations["__root__"]],), {}, lambda ns: ns.update({}))
+            m = types.new_class(
+                type_name, (RootModel[annotations["__root__"]],), {}, lambda ns: ns.update({"__module__": me.__name__})
+            )
         else:
             m = types.new_class(type_name, (BaseModel,), {}, lambda ns: ns.update(fields))
         return m
