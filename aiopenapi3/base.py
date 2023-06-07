@@ -288,8 +288,11 @@ class SchemaBase:
             self._model_type = Model.from_schema(self, names, discriminators)
             return self._model_type
         else:
+            identity = self._identity
+            self._identity = f"{identity}.c{len(self._model_types)}"
             r = Model.from_schema(self, names, discriminators, extra)
             self._model_types.append(r)
+            self._identity = identity
             return r
 
     def get_type(
