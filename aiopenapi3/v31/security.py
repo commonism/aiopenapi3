@@ -1,6 +1,6 @@
 from typing import Optional, Dict, List
 
-from pydantic import Field, root_validator, BaseModel
+from pydantic import Field, root_validator, BaseModel, constr
 
 from ..base import ObjectExtended
 
@@ -42,7 +42,7 @@ class SecurityScheme(ObjectExtended):
     description: Optional[str] = Field(default=None)
     name: Optional[str] = Field(default=None)
     in_: Optional[str] = Field(default=None, alias="in")
-    scheme_: Optional[str] = Field(default=None, alias="scheme")
+    scheme_: Optional[constr(to_lower=True)] = Field(default=None, alias="scheme")
     bearerFormat: Optional[str] = Field(default=None)
     flows: Optional[OAuthFlows] = Field(default=None)
     openIdConnectUrl: Optional[str] = Field(default=None)
