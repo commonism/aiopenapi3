@@ -492,6 +492,7 @@ class OpenAPI:
 
             if self._root.host:
                 host, _, port = self._root.host.partition(":")
+                port = None if port == "" else port
             else:
                 host, port = base.host, base.port
 
