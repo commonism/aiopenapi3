@@ -86,8 +86,7 @@ class Request(RequestBase):
 
         value = cast(str, value)
         if ss.type == "http" and ss.scheme_ == "bearer":
-            header = ss.bearerFormat or "Bearer {}"
-            self.req.headers["Authorization"] = header.format(value)
+            self.req.headers["Authorization"] = "Bearer {}".format(value)
 
         if ss.type == "mutualTLS":
             # TLS Client certificates (mutualTLS)
