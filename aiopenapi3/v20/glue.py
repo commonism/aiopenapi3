@@ -80,30 +80,44 @@ class Request(RequestBase):
             )
 
     def _prepare_secschemes(self, scheme: str, value: Union[str, List[str]]):
-        """
-        https://swagger.io/specification/v2/#security-scheme-object
-        """
+        if httpx_auth is not None:
+            return self._prepare_secschemes_extra(scheme, value)
+        else:
+            return self._prepare_secschemes_default(scheme, value)
+
+    def _prepare_secschemes_default(self, scheme: str, value: Union[str, List[str]]):
         ss = self.root.securityDefinitions[scheme]
 
         if ss.type == "basic":
             value = cast(List[str], value)
-            self.req.auth = httpx_auth.Basic(*value) if httpx_auth else httpx.BasicAuth(*value)
+            self.req.auth = httpx.BasicAuth(*value)
 
         value = cast(str, value)
         if ss.type == "apiKey":
             if ss.in_ == "query":
                 # apiKey in query parameter
-                if httpx_auth:
-                    self.req.auth = httpx_auth.QueryApiKey(value, getattr(ss, "name", None))
-                else:
-                    self.req.params[ss.name] = value
+                self.req.params[ss.name] = value
 
             if ss.in_ == "header":
                 # apiKey in query header data
-                if httpx_auth:
-                    self.req.auth = httpx_auth.HeaderApiKey(value, getattr(ss, "name", None))
-                else:
-                    self.req.headers[ss.name] = value
+                self.req.headers[ss.name] = value
+
+    def _prepare_secschemes_extra(self, scheme: str, value: Union[str, List[str]]):
+        ss = self.root.securityDefinitions[scheme]
+
+        if ss.type == "basic":
+            value = cast(List[str], value)
+            self.req.auth = httpx_auth.Basic(*value)
+
+        value = cast(str, value)
+        if ss.type == "apiKey":
+            if ss.in_ == "query":
+                # apiKey in query parameter
+                self.req.auth = httpx_auth.QueryApiKey(value, ss.name)
+
+            if ss.in_ == "header":
+                # apiKey in query header data
+                self.req.auth = httpx_auth.HeaderApiKey(value, ss.name)
 
     def _prepare_parameters(self, provided):
         provided = provided or dict()
@@ -294,4 +308,9 @@ class Request(RequestBase):
 
 
 class AsyncRequest(Request, AsyncRequestBase):
-    pass
+    def _prepare_secschemes(self, scheme: str, value: Union[str, List[str]]):
+        """
+        httpx_auth does not support async yet
+        https://github.com/Colin-b/httpx_auth/pull/48
+        """
+        return self._prepare_secschemes_default(scheme, value)

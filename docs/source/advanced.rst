@@ -7,8 +7,9 @@ Advanced usage
 
 Authentication
 ==============
+
 The authentication requirements are part of the definition of an operation, either global or - it it exists - operation scope.
-Authentication can combine/require multiple identifiert as well as providing a choice of a set.
+Authentication can combine/require multiple identifiers as well as providing a choice of a set.
 
 Given the following section of a description document:
 

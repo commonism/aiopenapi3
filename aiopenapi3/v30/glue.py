@@ -8,7 +8,17 @@ try:
     from httpx_auth.authentication import SupportMultiAuth
 except:
     httpx_auth = None
-import inspect
+
+if httpx_auth is not None:
+    import inspect
+
+    HTTPX_AUTH_METHODS = {
+        name.lower(): getattr(httpx_auth, name)
+        for name in httpx_auth.__all__
+        if inspect.isclass((class_ := getattr(httpx_auth, name)))
+        if issubclass(class_, httpx.Auth)
+    }
+
 import pydantic
 import pydantic.json
 
@@ -82,107 +92,116 @@ class Request(RequestBase):
             )
 
     def _prepare_secschemes(self, scheme: str, value: Union[str, List[str]]):
+        if httpx_auth is not None:
+            return self._prepare_secschemes_extra(scheme, value)
+        else:
+            return self._prepare_secschemes_default(scheme, value)
+
+    def _prepare_secschemes_default(self, scheme: str, value: Union[str, List[str]]):
         ss = self.root.components.securitySchemes[scheme]
-        if httpx_auth:
-            auth_methods = {
-                name.lower(): getattr(httpx_auth, name)
-                for name in httpx_auth.__all__
-                if inspect.isclass((class_ := getattr(httpx_auth, name)))
-                if issubclass(class_, httpx.Auth)
-            }
-            add_auths = []
 
-            if ss.type == "oauth2":
-                # NOTE: refresh_url is not currently supported by httpx_auth
-                # REF: https://github.com/Colin-b/httpx_auth/issues/17
-                if flow := getattr(ss.flows, "implicit", None):
-                    add_auths.append(httpx_auth.OAuth2Implicit(
-                        **value,
-                        authorization_url=flow.authorizationUrl,
-                        scopes=flow.scopes,
-                        # refresh_url=getattr(flow, "refreshUrl", None),
-                    ))
-                if flow := getattr(ss.flows, "password", None):
-                    add_auths.append(httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
-                        **value,
-                        token_url=flow.tokenUrl,
-                        scopes=flow.scopes,
-                        # refresh_url=getattr(flow, "refreshUrl", None),
-                    ))
-                if flow := getattr(ss.flows, "clientCredentials", None):
-                    add_auths.append(httpx_auth.OAuth2ClientCredentials(
-                        **value,
-                        token_url=flow.tokenUrl,
-                        scopes=flow.scopes,
-                        # refresh_url=getattr(flow, "refreshUrl", None),
-                    ))
-                if flow := getattr(ss.flows, "authorizationCode", None):
-                    add_auths.append(httpx_auth.OAuth2AuthorizationCode(
-                        **value,
-                        authorization_url=flow.authorizationUrl,
-                        token_url=flow.tokenUrl,
-                        scopes=flow.scopes,
-                        # refresh_url=getattr(flow, "refreshUrl", None),
-                    ))
+        if ss.type == "http":
+            if ss.scheme_ == "basic":
+                self.req.auth = httpx.BasicAuth(*value)
+            elif ss.scheme_ == "digest":
+                self.req.auth = httpx.DigestAuth(*value)
+            elif ss.scheme_ == "bearer":
+                self.req.headers["Authorization"] = f"Bearer {value:s}"
+            else:
+                raise ValueError(f"Authentication {ss.type}/{ss.scheme_} is not supported.")
 
-            if ss.type == "http":
-                if auth := auth_methods.get(ss.scheme_, None):
-                    if isinstance(value, tuple):
-                        add_auths.append(auth(*value))
-                    if isinstance(value, dict):
-                        add_auths.append(auth(**value))
-                if ss.scheme_ == "bearer":
-                    add_auths.append(auth_methods["headerapikey"](
-                        f"{ss.bearerFormat or 'Bearer'} {value}",
-                        "Authorization"
-                    ))
+        value = cast(str, value)
 
-            value = cast(str, value)
-
-            if ss.type == "mutualTLS":
-                # TLS Client certificates (mutualTLS)
-                self.req.cert = value
+        if ss.type == "mutualTLS":
+            # TLS Client certificates (mutualTLS)
+            self.req.cert = value
 
         if ss.type == "apiKey":
-            if auth := auth_methods.get((ss.in_+ss.type).lower(), None):
-                add_auths.append(auth(value, getattr(ss, "name", None)))
+            if ss.in_ == "query":
+                # apiKey in query parameter
+                self.req.params[ss.name] = value
 
-                if ss.in_ == "cookie":
-                    self.req.cookies = {ss.name: value}
+            if ss.in_ == "header":
+                # apiKey in query header data
+                self.req.headers[ss.name] = value
 
-            for auth in add_auths:
-                if self.req.auth and isinstance(self.req.auth, SupportMultiAuth):
-                    self.req.auth += auth
-                else:
-                    self.req.auth = auth
-        else:
-            if ss.type == "http" and ss.scheme_ == "basic":
-                self.req.auth = httpx.BasicAuth(*value)
+            if ss.in_ == "cookie":
+                self.req.cookies = {ss.name: value}
 
-            if ss.type == "http" and ss.scheme_ == "digest":
-                self.req.auth = httpx.DigestAuth(*value)
+    def _prepare_secschemes_extra(self, scheme: str, value: Union[str, List[str]]):
+        ss = self.root.components.securitySchemes[scheme]
+        auths = []
 
-            value = cast(str, value)
-            if ss.type == "http" and ss.scheme_ == "bearer":
-                header = ss.bearerFormat or "Bearer {}"
-                self.req.headers["Authorization"] = header.format(value)
+        if ss.type == "oauth2":
+            # NOTE: refresh_url is not currently supported by httpx_auth
+            # REF: https://github.com/Colin-b/httpx_auth/issues/17
+            if flow := ss.flows.implicit:
+                auths.append(
+                    httpx_auth.OAuth2Implicit(
+                        **value,
+                        authorization_url=flow.authorizationUrl,
+                        scopes=flow.scopes,
+                        # refresh_url=flow.refreshUrl,
+                    )
+                )
+            if flow := ss.flows.password:
+                auths.append(
+                    httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
+                        **value,
+                        token_url=flow.tokenUrl,
+                        scopes=flow.scopes,
+                        # refresh_url=flow.refreshUrl,
+                    )
+                )
+            if flow := ss.flows.clientCredentials:
+                auths.append(
+                    httpx_auth.OAuth2ClientCredentials(
+                        **value,
+                        token_url=flow.tokenUrl,
+                        scopes=flow.scopes,
+                        # refresh_url=flow.refreshUrl,
+                    )
+                )
+            if flow := ss.flows.authorizationCode:
+                auths.append(
+                    httpx_auth.OAuth2AuthorizationCode(
+                        **value,
+                        authorization_url=flow.authorizationUrl,
+                        token_url=flow.tokenUrl,
+                        scopes=flow.scopes,
+                        # refresh_url=flow.refreshUrl,
+                    )
+                )
 
-            if ss.type == "mutualTLS":
-                # TLS Client certificates (mutualTLS)
-                self.req.cert = value
+        if ss.type == "http":
+            if auth := HTTPX_AUTH_METHODS.get(ss.scheme_, None):
+                if isinstance(value, tuple):
+                    auths.append(auth(*value))
+                elif isinstance(value, dict):
+                    auths.append(auth(**value))
+            elif ss.scheme_ == "bearer":
+                auths.append(httpx_auth.HeaderApiKey(f"Bearer {value}", "Authorization"))
+            else:
+                raise ValueError(f"Authentication method {ss.type}/{ss.scheme_} is not supported by httpx-auth")
 
-            if ss.type == "apiKey":
-                if ss.in_ == "query":
-                    # apiKey in query parameter
-                    self.req.params[ss.name] = value
+        value = cast(str, value)
 
-                if ss.in_ == "header":
-                    # apiKey in query header data
-                    self.req.headers[ss.name] = value
+        if ss.type == "mutualTLS":
+            # TLS Client certificates (mutualTLS)
+            self.req.cert = value
 
-                if ss.in_ == "cookie":
-                    self.req.cookies = {ss.name: value}
-                
+        if ss.type == "apiKey":
+            if auth := HTTPX_AUTH_METHODS.get((ss.in_ + ss.type).lower(), None):
+                auths.append(auth(value, ss.name))
+
+            if ss.in_ == "cookie":
+                self.req.cookies = {ss.name: value}
+
+        for auth in auths:
+            if self.req.auth and isinstance(self.req.auth, SupportMultiAuth):
+                self.req.auth += auth
+            else:
+                self.req.auth = auth
 
     def _prepare_parameters(self, provided):
         """
