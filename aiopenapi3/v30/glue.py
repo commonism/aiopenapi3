@@ -3,6 +3,7 @@ import json
 import urllib.parse
 
 import httpx
+
 try:
     import httpx_auth
     from httpx_auth.authentication import SupportMultiAuth
