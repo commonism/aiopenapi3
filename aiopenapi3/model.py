@@ -90,58 +90,50 @@ class Model:  # (BaseModel):
         fields = dict()
         annotations = dict()
 
-        if schema.type == "object":
-            if hasattr(schema, "anyOf") and schema.anyOf:
-                assert all(schema.anyOf)
-                t = tuple(
-                    i.get_type(
-                        names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
-                        discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
-                        extra=schema,
-                    )
-                    for i in schema.anyOf
+        if hasattr(schema, "anyOf") and schema.anyOf:
+            assert all(schema.anyOf)
+            t = tuple(
+                i.get_type(
+                    names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
+                    discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
+                    extra=schema,
                 )
-                if schema.discriminator and schema.discriminator.mapping:
-                    annotations["__root__"] = Annotated[
-                        Union[t], Field(discriminator=schema.discriminator.propertyName)
-                    ]
-                else:
-                    annotations["__root__"] = Union[t]
-            elif hasattr(schema, "oneOf") and schema.oneOf:
-                t = tuple(
-                    i.get_type(
-                        names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
-                        discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
-                        extra=schema,
-                    )
-                    for i in schema.oneOf
-                )
-
-                if schema.discriminator and schema.discriminator.mapping:
-                    annotations["__root__"] = Annotated[
-                        Union[t], Field(discriminator=schema.discriminator.propertyName)
-                    ]
-                else:
-                    annotations["__root__"] = Union[t]
+                for i in schema.anyOf
+            )
+            if schema.discriminator and schema.discriminator.mapping:
+                annotations["__root__"] = Annotated[Union[t], Field(discriminator=schema.discriminator.propertyName)]
             else:
-                # default schema properties …
-                annotations.update(Model.annotationsof(schema, discriminators, schemanames, fwdref=True))
-                fields.update(Model.fieldof(schema))
-                if "patternProperties" in schema.model_fields_set:
-                    for pattern, schema_ in schema.patternProperties.items():
-                        fields[pattern] = Field(default=None)
-                        annotations[pattern] = str
-                if schema.allOf:
-                    for i in schema.allOf:
-                        annotations.update(Model.annotationsof(i, discriminators, schemanames, fwdref=True))
-                        fields.update(Model.fieldof(i))
+                annotations["__root__"] = Union[t]
+        elif hasattr(schema, "oneOf") and schema.oneOf:
+            t = tuple(
+                i.get_type(
+                    names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
+                    discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
+                    extra=schema,
+                )
+                for i in schema.oneOf
+            )
 
-            # this is a anyOf/oneOf - the parent may have properties which will collide with __root__
-            # so - add the parent properties to this model
-            if extra:
-                annotations.update(Model.annotationsof(extra, discriminators, schemanames))
-                fields.update(Model.fieldof(extra))
+            if schema.discriminator and schema.discriminator.mapping:
+                annotations["__root__"] = Annotated[Union[t], Field(discriminator=schema.discriminator.propertyName)]
+            else:
+                annotations["__root__"] = Union[t]
         else:
+            # default schema properties …
+            annotations.update(Model.annotationsof(schema, discriminators, schemanames, fwdref=True))
+            fields.update(Model.fieldof(schema))
+            if schema.allOf:
+                for i in schema.allOf:
+                    annotations.update(Model.annotationsof(i, discriminators, schemanames, fwdref=True))
+                    fields.update(Model.fieldof(i))
+
+        # this is a anyOf/oneOf - the parent may have properties which will collide with __root__
+        # so - add the parent properties to this model
+        if extra:
+            annotations.update(Model.annotationsof(extra, discriminators, schemanames))
+            fields.update(Model.fieldof(extra))
+
+        if schema.type != "object" and not annotations and not fields and not extra:
             annotations["__root__"] = Model.typeof(schema)
 
         fields["__annotations__"] = copy.deepcopy(annotations)
