@@ -5,7 +5,6 @@ import logging
 import sys
 import re
 import copy
-import warnings
 
 import types
 import pydantic
@@ -141,6 +140,16 @@ class Model:  # (BaseModel):
 
         fields["model_config"] = Model.configof(schema)
 
+        if fields["model_config"]["extra"] == "allow" and "__root__" not in annotations:
+
+            def mkx():
+                def get_additionalProperties(x):
+                    return x.model_extra
+
+                return get_additionalProperties, None, None
+
+            fields["aio3_additionalProperties"] = property(mkx()[0])
+
         if "__root__" in annotations:
             del fields["__annotations__"]["__root__"]
             m = types.new_class(
@@ -162,25 +171,22 @@ class Model:  # (BaseModel):
 
         """
         arbitrary_types_allowed_ = False
+        extra_ = "allow"
+
         if schema.additionalProperties is not None:
             if isinstance(schema.additionalProperties, bool):
                 if schema.additionalProperties == False:
                     extra_ = "forbid"
                 else:
-                    extra_ = "allow"
                     arbitrary_types_allowed_ = True
             elif isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase)):
-                extra_ = "forbid"
                 """
                 we allow arbitrary types if additionalProperties has no properties
                 """
-
                 if len(schema.additionalProperties.properties) == 0:
                     arbitrary_types_allowed_ = True
             else:
                 raise TypeError(schema.additionalProperties)
-        else:
-            extra_ = "allow"
 
         """
         PR?
@@ -266,6 +272,7 @@ class Model:  # (BaseModel):
                 schema.type == "object"
                 and schema.additionalProperties
                 and isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase))
+                and not schema.properties
             ):
                 """
                 https://swagger.io/docs/specification/data-models/dictionaries/
@@ -325,25 +332,16 @@ class Model:  # (BaseModel):
         if schema.type == "array":
             return fields
         elif schema.type == "object":
-            if schema.additionalProperties and isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase)):
-                if schema.properties:
-                    """
-                    Schema with additionalProperties and named properties …
-
-                    we can't serve this.
-                    """
-                    warnings.warn("Ignoring Schema with additionalProperties and named properties")
-            else:
-                for name, f in schema.properties.items():
-                    args = dict()
-                    if name not in schema.required:
-                        args["default"] = None
-                    name = Model.nameof(name, args=args)
-                    for i in ["default"]:
-                        v = getattr(f, i, None)
-                        if v:
-                            args[i] = v
-                    fields[name] = Field(**args)
+            for name, f in schema.properties.items():
+                args = dict()
+                if name not in schema.required:
+                    args["default"] = None
+                name = Model.nameof(name, args=args)
+                for i in ["default"]:
+                    v = getattr(f, i, None)
+                    if v:
+                        args[i] = v
+                fields[name] = Field(**args)
 
         return fields
 

@@ -48,6 +48,7 @@ components:
         $ref: '#/components/schemas/Errno'
     Errno:
       type: object
+      additionalProperties: False
       required: [code, text]
       properties:
         code:
