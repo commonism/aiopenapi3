@@ -462,6 +462,8 @@ class OpenAPI:
             b = byid[i]
             name = b._get_identity("X")
             types[name] = b.get_type()
+            for idx, i in enumerate(b._model_types):
+                types[f"{name}.c{idx}"] = i
 
         for name, schema in types.items():
             if not (inspect.isclass(schema) and issubclass(schema, BaseModel)):
