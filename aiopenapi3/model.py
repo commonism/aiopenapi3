@@ -258,8 +258,6 @@ class Model:  # (BaseModel):
 
     @staticmethod
     def annotationsof(schema: "SchemaBase", discriminators, shmanm, fwdref=False):
-        from . import v20
-
         annotations = dict()
         if isinstance(schema.type, str):
             if schema.type == "array":
@@ -312,20 +310,10 @@ class Model:  # (BaseModel):
                     except StopIteration:
                         r = Model.typeof(f, fwdref=fwdref)
 
-                    from . import v20, v30, v31
-
-                    if isinstance(schema, (v20.Schema, v20.Reference)):
-                        if not f.required:
-                            annotations[Model.nameof(name)] = Optional[r]
-                        else:
-                            annotations[Model.nameof(name)] = r
-                    elif isinstance(schema, (v30.Schema, v31.Schema, v30.Reference, v31.Reference)):
-                        if name not in schema.required:
-                            annotations[Model.nameof(name)] = Optional[r]
-                        else:
-                            annotations[Model.nameof(name)] = r
+                    if name not in schema.required:
+                        annotations[Model.nameof(name)] = Optional[r]
                     else:
-                        raise TypeError(schema)
+                        annotations[Model.nameof(name)] = r
         elif isinstance(schema.type, list):
             annotations["__root__"] = Model.typeof(schema)
 
@@ -347,16 +335,9 @@ class Model:  # (BaseModel):
                     warnings.warn("Ignoring Schema with additionalProperties and named properties")
             else:
                 for name, f in schema.properties.items():
-                    from . import v20, v30, v31
-
                     args = dict()
-                    if isinstance(schema, (v20.Schema, v20.Reference)):
-                        if not f.required:
-                            args["default"] = None
-                    elif isinstance(schema, (v30.Schema, v31.Schema, v30.Reference, v31.Reference)):
-                        if name not in schema.required:
-                            args["default"] = None
-
+                    if name not in schema.required:
+                        args["default"] = None
                     name = Model.nameof(name, args=args)
                     for i in ["default"]:
                         v = getattr(f, i, None)
