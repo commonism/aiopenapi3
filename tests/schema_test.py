@@ -113,6 +113,7 @@ def test_schema_type_missing(with_schema_type_missing):
     t = api.components.schemas["Any"].get_type()
     v = t.model_validate(dict(id=1))
     assert v.root.id == 1
+    v = t.model_validate("1")
 
 
 def test_schema_type_string_format_byte_base64(with_schema_type_string_format_byte_base64):
