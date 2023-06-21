@@ -7,7 +7,7 @@ import pytest
 """
 https://github.com/pydantic/pydantic/issues/6010
 """
-pytest.skip(allow_module_level=True)
+# pytest.skip(allow_module_level=True)
 
 
 def test_clone(petstore_expanded):
