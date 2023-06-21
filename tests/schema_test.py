@@ -70,21 +70,16 @@ def test_schema_anyof(with_schema_anyof):
 
 
 def test_schema_recursion(with_schema_recursion):
-    """
-    https://github.com/pydantic/pydantic/issues/5730
-    """
-    pytest.skip()
-
     #    with pytest.raises(RecursionError):
     api = OpenAPI("/", with_schema_recursion)
 
+    a = api.components.schemas["A"].get_type().model_construct(ofA=1)
+    b = api.components.schemas["B"].get_type().model_construct(ofB=2, a=a)
+    assert b.a.ofA == 1
 
-#    a = api.components.schemas["A"].get_type().model_construct(ofA=1)
-#    b = api.components.schemas["B"].get_type().model_construct(ofB=2, a=a)
-
-
-#    e = api.components.schemas["D"].get_type().model_fields["F"].type_(__root__={"E": 0})
-#    d = api.components.schemas["D"].get_type().model_construct(E=e)
+    D = api.components.schemas["D"].get_type()
+    d = api.components.schemas["D"].get_type().model_construct(E="e", F=[D(e="esub")])
+    assert d.F[0].e == "esub"
 
 
 def test_schema_self_recursion(with_schema_self_recursion):
