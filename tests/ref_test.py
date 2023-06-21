@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pydantic_core
+
 """
 This file tests that $ref resolution works as expected, and that
 allOfs are populated as expected as well.
@@ -72,7 +74,7 @@ def test_allOf_resolution(petstore_expanded):
 
     def is_required(x):
         # not assign a default '= Field(default=…)' or '= …'
-        return x.default == pydantic._internal._fields.Undefined
+        return x.default == pydantic_core.PydanticUndefined
 
     assert sorted(map(lambda x: x[0], filter(lambda y: is_required(y[1]), items.items()))) == sorted(
         ["id", "name"]

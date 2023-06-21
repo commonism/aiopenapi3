@@ -81,16 +81,21 @@ class Model:  # (BaseModel):
         if discriminators is None:
             discriminators = []
 
-        # do not create models for primitive types
-        if schema.type in ("string", "integer", "number", "boolean") and schema.format is None:
-            return Model.typeof(schema)
-
         type_name = schema._get_identity("L8")
         fields = dict()
         annotations = dict()
 
+        # do not create models for primitive types
+        if schema.type in ("string", "integer", "number", "boolean"):
+            if schema.format is None:
+                return Model.typeof(schema)
+            else:
+                annotations["__root__"] = Model.typeof(schema)
+
+        types_ = set([schema.type] if not isinstance(schema.type, list) else schema.type)
         if hasattr(schema, "anyOf") and schema.anyOf:
             assert all(schema.anyOf)
+            types_ |= set(map(lambda x: x.type, schema.anyOf))
             t = tuple(
                 i.get_type(
                     names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
@@ -104,6 +109,7 @@ class Model:  # (BaseModel):
             else:
                 annotations["__root__"] = Union[t]
         elif hasattr(schema, "oneOf") and schema.oneOf:
+            types_ &= set(map(lambda x: x.type, schema.anyOf))
             t = tuple(
                 i.get_type(
                     names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
@@ -136,6 +142,7 @@ class Model:  # (BaseModel):
 
                 fields["aio3_patternProperties"] = mkx()
             if schema.allOf:
+                types_ &= set(map(lambda x: x.type, schema.allOf))
                 for i in schema.allOf:
                     annotations.update(Model.annotationsof(i, discriminators, schemanames, fwdref=True))
                     fields.update(Model.fieldof(i))
@@ -146,7 +153,7 @@ class Model:  # (BaseModel):
             annotations.update(Model.annotationsof(extra, discriminators, schemanames))
             fields.update(Model.fieldof(extra))
 
-        if schema.type != "object" and not annotations and not fields and not extra:
+        if types_ == {None} and not extra:
             annotations["__root__"] = Model.typeof(schema)
 
         fields["__annotations__"] = copy.deepcopy(annotations)
