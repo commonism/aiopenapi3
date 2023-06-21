@@ -278,7 +278,7 @@ class Model:  # (BaseModel):
     @staticmethod
     def annotationsof(schema: "SchemaBase", discriminators, shmanm, fwdref=False):
         annotations = dict()
-        if isinstance(schema.type, str):
+        if schema.type is None or isinstance(schema.type, str):
             if schema.type == "array":
                 annotations["__root__"] = Model.typeof(schema)
             elif (
@@ -344,7 +344,7 @@ class Model:  # (BaseModel):
         fields = dict()
         if schema.type == "array":
             return fields
-        elif schema.type == "object":
+        elif schema.type in ("object", None):
             for name, f in schema.properties.items():
                 args = dict()
                 if name not in schema.required:
