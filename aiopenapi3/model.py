@@ -121,6 +121,20 @@ class Model:  # (BaseModel):
             # default schema properties …
             annotations.update(Model.annotationsof(schema, discriminators, schemanames, fwdref=True))
             fields.update(Model.fieldof(schema))
+            if "patternProperties" in schema.model_fields_set:
+
+                def mkx():
+                    def get_patternProperties(x, item):
+                        for name, value in x.model_extra.items():
+                            if re.match(item, name):
+                                yield name, value
+
+                    get_patternProperties.__annotations__["item"] = Literal[
+                        tuple(sorted(schema.patternProperties.keys()))
+                    ]
+                    return get_patternProperties
+
+                fields["aio3_patternProperties"] = mkx()
             if schema.allOf:
                 for i in schema.allOf:
                     annotations.update(Model.annotationsof(i, discriminators, schemanames, fwdref=True))
@@ -137,7 +151,6 @@ class Model:  # (BaseModel):
 
         fields["__annotations__"] = copy.deepcopy(annotations)
         fields["__module__"] = me.__name__
-
         fields["model_config"] = Model.configof(schema)
 
         if fields["model_config"]["extra"] == "allow" and "__root__" not in annotations:
@@ -200,7 +213,7 @@ class Model:  # (BaseModel):
             undefined_types_warning=False,
             extra=extra_,
             arbitrary_types_allowed=arbitrary_types_allowed_,
-            #                    validate_assignment=True
+            # validate_assignment=True
         )
 
     @staticmethod
