@@ -145,51 +145,71 @@ def test_schema_Of_parent_properties(with_schema_Of_parent_properties):
     api = OpenAPI("/", with_schema_Of_parent_properties)
 
 
-def test_schema_with_additionalProperties(with_schema_additionalProperties):
-    api = OpenAPI("/", with_schema_additionalProperties)
+def _test_schema_with_additionalProperties(api):
+    def gettype(name):
+        from aiopenapi3 import v20
 
-    A = api.components.schemas["A"].get_type()
+        if isinstance(api._root, v20.Root):
+            return api._root.definitions[name]
+        else:
+            return api.components.schemas[name]
+
+    A = gettype("A").get_type()
+    assert issubclass(A, pydantic.RootModel)
     a = A({"a": 1})
     with pytest.raises(ValidationError):
         A({"1": {"1": 1}})
 
-    B = api.components.schemas["B"].get_type()
+    B = gettype("B").get_type()
+    assert issubclass(B, pydantic.RootModel)
     b = B({"As": a})
 
     with pytest.raises(ValidationError):
         B({"1": 1})
 
-    C = api.components.schemas["C"].get_type()
-    # we do not allow additional properties …
-    # c = C(dict=1)  # overwriting …
+    C = gettype("C").get_type()
+    assert issubclass(C, pydantic.BaseModel) and not issubclass(C, pydantic.RootModel)
     with pytest.raises(ValidationError):
         C(i="!")  # not integer
 
-    D = api.components.schemas["D"].get_type()
+    c = C(dict=1)
+    assert "dict" in c.aio3_additionalProperties
+
+    c = C(i=0, bar={"A": "B"})
+    assert c.aio3_additionalProperties["bar"] == {"A": "B"}
+
+    D = gettype("D").get_type()
+    assert issubclass(D, pydantic.BaseModel) and not issubclass(D, pydantic.RootModel)
     D()
 
     with pytest.raises(ValidationError):
         D(dict=1)
 
-    Translation = api.components.schemas["Translation"].get_type()
+    Translation = gettype("Translation").get_type()
+    assert issubclass(Translation, pydantic.RootModel)
     t = Translation({"en": "yes", "fr": "qui"})
 
     import errno, os
 
     data = {v: {"code": k, "text": os.strerror(k)} for k, v in errno.errorcode.items()}
 
-    Errors = api.components.schemas["Errors"].get_type()
+    Errors = gettype("Errors").get_type()
+    assert issubclass(Errors, pydantic.RootModel)
 
     e = Errors(data)
 
-    Errnos = api.components.schemas["Errnos"].get_type()
-    Errno = api.components.schemas["Errno"].get_type()
+    Errnos = gettype("Errnos").get_type()
+    assert issubclass(Errnos, pydantic.RootModel)
+    Errno = gettype("Errno").get_type()
     e = Errnos(data)
 
     e = Errno(code=errno.EIO, text=errno.errorcode[errno.EIO])
 
-    with pytest.raises(ValidationError):
-        Errno(a=errno.EIO)
+    with pytest.raises(ValidationError, match=r"a\W+Extra inputs are not permitted"):
+        Errno(code=errno.EIO, text=errno.errorcode[errno.EIO], a=1)
+
+    with pytest.raises(ValidationError, match=r"text\W+Field required"):
+        Errno(code=errno.EIO)
 
     with pytest.raises(ValidationError):
         Errnos({"1": 1})
@@ -198,8 +218,14 @@ def test_schema_with_additionalProperties(with_schema_additionalProperties):
         Errnos({"1": {"1": 1}})
 
 
+def test_schema_with_additionalProperties(with_schema_additionalProperties):
+    api = OpenAPI("/", with_schema_additionalProperties)
+    _test_schema_with_additionalProperties(api)
+
+
 def test_schema_with_additionalProperties_v20(with_schema_additionalProperties_v20):
-    OpenAPI("/", with_schema_additionalProperties_v20)
+    api = OpenAPI("/", with_schema_additionalProperties_v20)
+    _test_schema_with_additionalProperties(api)
 
 
 def test_schema_with_empty(with_schema_empty):
@@ -252,13 +278,17 @@ def test_schema_property_name_is_type(with_schema_property_name_is_type):
     OpenAPI("/", with_schema_property_name_is_type)
 
 
-def test_schema_x(with_schema_additionalProperties_and_named_properties):
-    with pytest.warns(UserWarning, match="Ignoring Schema with additionalProperties and named properties"):
-        api = OpenAPI("/", with_schema_additionalProperties_and_named_properties)
+def test_schema_with_additionalProperties_and_named_properties(with_schema_additionalProperties_and_named_properties):
+    api = OpenAPI("/", with_schema_additionalProperties_and_named_properties)
 
-    # A = api.components.schemas['A'].get_type()
-    # A.model_validate({1:"test"})
-    # A.model_validate({"1":1, "5":5, "B":"test"})
+    A = api.components.schemas["A"].get_type()
+    A.model_validate({"1": 1})
+    A.model_validate({"1": 1, "5": 5, "B": "test"})
+
+    B = api.components.schemas["B"].get_type()
+    data = typing.get_args(B.model_fields["data"].annotation)[0].__forward_value__(b0="string", b1=0)
+    b = B(data=data, foo="bar", bar={"a": "a"})
+    assert b.aio3_additionalProperties["foo"] == "bar"
 
 
 def test_schema_with_patternProperties(with_schema_patternProperties):

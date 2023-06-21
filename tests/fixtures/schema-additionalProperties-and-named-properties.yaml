@@ -13,3 +13,15 @@ components:
       properties:
         B:
           type: string
+
+    B:
+      type: object
+      additionalProperties: True
+      properties:
+        data:
+          type: object
+          properties:
+            b0:
+              type: string
+            b1:
+              type: integer
