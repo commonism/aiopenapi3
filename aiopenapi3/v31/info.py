@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import Field, AnyUrl, EmailStr, model_validator
+from pydantic import Field, EmailStr, model_validator
 
 from aiopenapi3.base import ObjectExtended
 
@@ -14,7 +14,7 @@ class Contact(ObjectExtended):
 
     email: EmailStr = Field(default=None)
     name: str = Field(default=None)
-    url: AnyUrl = Field(default=None)
+    url: str = Field(default=None)
 
 
 class License(ObjectExtended):
@@ -26,7 +26,7 @@ class License(ObjectExtended):
 
     name: str = Field(...)
     identifier: Optional[str] = Field(default=None)
-    url: Optional[AnyUrl] = Field(default=None)
+    url: Optional[str] = Field(default=None)
 
     @model_validator(mode="after")
     def validate_License(cls, l: "License"):
