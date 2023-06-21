@@ -1,4 +1,4 @@
-import errno
+import typing
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -295,5 +295,6 @@ def test_schema_with_patternProperties(with_schema_patternProperties):
     api = OpenAPI("/", with_schema_patternProperties)
     A = api.components.schemas["A"].get_type()
     a = A.model_validate({"I_5": 100})
-
+    assert list(a.aio3_patternProperties("^I_")) == [("I_5", 100)]
+    sorted(typing.get_args(a.aio3_patternProperties.__annotations__["item"])) == ["^I_", "^S_"]
     return
