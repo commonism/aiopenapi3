@@ -11,8 +11,10 @@ else:
 
 
 import pydantic
-from pydantic import BaseModel, Field
-from pydantic.fields import Undefined
+from pydantic import BaseModel, RootModel, Field
+
+# from pydantic.fields import Undefined
+from pydantic_core import PydanticUndefined as Undefined
 
 
 class PetBase(BaseModel):
@@ -35,8 +37,8 @@ class WhiteCat(PetBase):
 
 # Can also be written with a custom root type
 #
-class Cat(BaseModel):
-    __root__: Annotated[Union[BlackCat, WhiteCat], Field(discriminator="color")]
+class Cat(RootModel):
+    root: Annotated[Union[BlackCat, WhiteCat], Field(discriminator="color")]
 
     def __getattr__(self, item):
         return getattr(self.__root__, item)
@@ -45,7 +47,7 @@ class Cat(BaseModel):
         return setattr(self.__root__, item, value)
 
 
-# Cat = Annotated[Union[BlackCat, WhiteCat], Field(default=Undefined, discriminator='color')]
+Cat = Annotated[Union[BlackCat, WhiteCat], Field(default=Undefined, discriminator="color")]
 
 
 class Dog(PetBase):
@@ -57,18 +59,19 @@ class Dog(PetBase):
 # Pet = Annotated[Union[Cat, Dog], Field(default=Undefined, discriminator='pet_type')]
 
 
-class Pet(BaseModel):
-    __root__: Annotated[Union[Cat, Dog], Field(discriminator="pet_type")]
-
-    def __getattr__(self, item):
-        return getattr(self.__root__, item)
-
-    def __setattr__(self, item, value):
-        return setattr(self.__root__, item, value)
+class Pet(RootModel):
+    root: Annotated[Union[Cat, Dog], Field(discriminator="pet_type")]
 
 
-class Pets(BaseModel):
-    __root__: List[Pet] = Field(..., description="list of pet")
+#    def __getattr__(self, item):
+#        return getattr(self.__root__, item)
+
+#    def __setattr__(self, item, value):
+#        return setattr(self.__root__, item, value)
+
+
+class Pets(RootModel):
+    root: List[Pet] = Field(..., description="list of pet")
 
 
 class Error(BaseModel):

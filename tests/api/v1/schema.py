@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, RootModel, Field
 
 
 class PetBase(BaseModel):
@@ -16,8 +16,8 @@ class Pet(PetBase):
     id: int
 
 
-class Pets(BaseModel):
-    __root__: List[Pet] = Field(..., description="list of pet")
+class Pets(RootModel):
+    root: List[Pet] = Field(..., description="list of pet")
 
 
 class Error(BaseModel):

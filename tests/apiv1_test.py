@@ -11,7 +11,7 @@ from hypercorn.config import Config
 
 import aiopenapi3
 
-pytest.skip(allow_module_level=True)
+# pytest.skip(allow_module_level=True)
 
 from api.main import app
 
@@ -51,11 +51,11 @@ def randomPet(name=None):
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
 async def test_createPet(event_loop, server, client):
     h, r = await asyncio.to_thread(client._.createPet, **randomPet())
-    assert type(r).schema() == client.components.schemas["Pet"].get_type().schema()
+    assert type(r).model_json_schema() == client.components.schemas["Pet"].get_type().model_json_schema()
     assert h["X-Limit-Remain"] == 5
 
     r = await asyncio.to_thread(client._.createPet, data={"pet": {"name": r.name}})
-    assert type(r).schema() == client.components.schemas["Error"].get_type().schema()
+    assert type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
 
 
 @pytest.mark.asyncio
@@ -71,18 +71,18 @@ async def test_listPet(event_loop, server, client):
 async def test_getPet(event_loop, server, client):
     h, pet = await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
     r = await asyncio.to_thread(client._.getPet, parameters={"petId": pet.id})
-    assert type(r).schema() == type(pet).schema()
+    assert type(r).model_json_schema() == type(pet).model_json_schema()
     assert r.id == pet.id
 
     r = await asyncio.to_thread(client._.getPet, parameters={"petId": -1})
-    assert type(r).schema() == client.components.schemas["Error"].get_type().schema()
+    assert type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
 
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
 async def test_deletePet(event_loop, server, client):
     r = await asyncio.to_thread(client._.deletePet, parameters={"petId": -1})
-    assert type(r).schema() == client.components.schemas["Error"].get_type().schema()
+    assert type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
 
     await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
     zoo = await asyncio.to_thread(client._.listPet)
