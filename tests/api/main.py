@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+from pydantic_core import PydanticUndefined
+import pydantic._internal._fields
+
+pydantic._internal._fields.Undefined = PydanticUndefined
+pydantic._internal._fields._UndefinedType = type(PydanticUndefined)
+
 from fastapi import FastAPI
 from fastapi_versioning import VersionedFastAPI, version
 
