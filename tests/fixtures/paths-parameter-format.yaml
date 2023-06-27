@@ -69,6 +69,15 @@ paths:
 
       responses: *resp
 
+  /deepObject/nested/query:
+    get:
+      operationId: deepObjectNestedExplodeQuery
+      parameters:
+        - $ref: "#/components/parameters/ObjectdeepObjectNestedExplodeQuery"
+
+      responses: *resp
+
+
   /Delimited/query:
     get:
       operationId: DelimitedQuery
@@ -127,6 +136,15 @@ components:
           type: integer
         B:
           type: integer
+
+    Matrjoschka:
+      type: object
+      properties:
+        size:
+          type: integer
+        inner:
+          type: object
+          $ref: "#/components/schemas/Matrjoschka"
 
   headers:
 
@@ -283,6 +301,15 @@ components:
       required: true
       schema:
         $ref: "#/components/schemas/RGB"
+
+    ObjectdeepObjectNestedExplodeQuery:
+      in: query
+      name: object
+      style: deepObject
+      explode: true
+      required: true
+      schema:
+        $ref: "#/components/schemas/Matrjoschka"
 
     ArrayspaceDelimitedQuery:
       in: query
