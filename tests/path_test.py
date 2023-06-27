@@ -245,12 +245,14 @@ def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
 
     # using values from
     # https://spec.openapis.org/oas/v3.1.0#style-examples
+
     parameters = {
         "array": ["blue", "black", "brown"],
         "string": "blue",
         "empty": None,
         "object": {"R": 100, "G": 200, "B": 150},
     }
+
     ne = parameters.copy()
     del ne["empty"]
     r = api._.FormQuery(parameters=parameters)
@@ -292,6 +294,24 @@ def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
     request = httpx_mock.get_requests()[-1]
     u = yarl.URL(str(request.url))
     assert u.query["object[R]"] == "100" and u.query["object[G]"] == "200" and u.query["object[B]"] == "150"
+
+    def mknested(n):
+        c = r = dict()
+        for i in range(n, 0, -1):
+            c["size"] = i
+            c["inner"] = c = dict()
+        return r
+
+    depth = 3
+    data = mknested(depth)
+    # {"size": 3, "inner": {"size": 2, "inner": {"size": 1, "inner": {}}}}
+    r = api._.deepObjectNestedExplodeQuery(parameters={"object": data})
+    request = httpx_mock.get_requests()[-1]
+    u = yarl.URL(str(request.url))
+    expected = dict(
+        list(map(lambda x: (f'object{"".join("[inner]" for _ in range(x))}[size]', depth - x), range(depth)))
+    )
+    assert all(u.query[k] == str(v) for k, v in expected.items())
 
     r = api._.DelimitedQuery(parameters={"pipe": ["a", "b"], "space": ["1", "2"], "object": parameters["object"]})
     request = httpx_mock.get_requests()[-1]

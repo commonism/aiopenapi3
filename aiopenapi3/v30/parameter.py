@@ -3,6 +3,7 @@ import datetime
 import decimal
 import uuid
 from typing import Union, Optional, Dict, Any
+from collections.abc import MutableMapping
 
 from pydantic import Field, model_validator
 import more_itertools
@@ -191,7 +192,19 @@ class _ParameterCodec:
 
         values = value if isinstance(value, dict) else value.model_dump()
         # color[R]=100&color[G]=200&color[B]=150
-        values = {f"{name}[{k}]": v for k, v in values.items()}
+
+        def _flatten_dict(data, key_):
+            for k, v in data.items():
+                key = f"{key_}[{k}]"
+                if isinstance(v, MutableMapping):
+                    yield from flatten_dict(v, key).items()
+                else:
+                    yield key, v
+
+        def flatten_dict(d: MutableMapping, key: str = ""):
+            return dict(_flatten_dict(d, key))
+
+        values = {k: v for k, v in flatten_dict(values, name).items()}
         return values
 
     def _decode(self, value):
