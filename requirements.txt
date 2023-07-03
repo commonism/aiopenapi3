@@ -1,7 +1,7 @@
 fastapi~=0.96.0
 httpx~=0.24.1
 hypercorn~=0.14.3
-pydantic~=1.10.7
+pydantic~=2.0
 pydantic[email]
 pytest~=7.3.1
 PyYAML~=6.0
