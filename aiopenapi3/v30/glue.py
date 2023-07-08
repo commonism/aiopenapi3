@@ -432,7 +432,9 @@ class Request(RequestBase):
             ).unmarshalled
             return rheaders, data
         else:
-            raise NotImplementedError()
+            # We have received a valid (i.e. expected) content type,
+            # but we can't validate it since it's not json.
+            return rheaders, ctx.received
 
 
 class AsyncRequest(Request, AsyncRequestBase):
