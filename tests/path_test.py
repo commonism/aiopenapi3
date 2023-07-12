@@ -295,23 +295,23 @@ def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
     u = yarl.URL(str(request.url))
     assert u.query["object[R]"] == "100" and u.query["object[G]"] == "200" and u.query["object[B]"] == "150"
 
-    def mknested(n):
-        c = r = dict()
-        for i in range(n, 0, -1):
-            c["size"] = i
-            c["inner"] = c = dict()
-        return r
-
+    # Matrjoschka
+    Matrjoschka = api.components.schemas["Matrjoschka"].get_type()
+    o = None
     depth = 3
-    data = mknested(depth)
-    # {"size": 3, "inner": {"size": 2, "inner": {"size": 1, "inner": {}}}}
-    r = api._.deepObjectNestedExplodeQuery(parameters={"object": data})
-    request = httpx_mock.get_requests()[-1]
-    u = yarl.URL(str(request.url))
-    expected = dict(
-        list(map(lambda x: (f'object{"".join("[inner]" for _ in range(x))}[size]', depth - x), range(depth)))
-    )
-    assert all(u.query[k] == str(v) for k, v in expected.items())
+    for i in range(1, depth + 1):
+        o = Matrjoschka(size=i, inner=o)
+
+    for data in [o, o.model_dump()]:
+        # {"size": 3, "inner": {"size": 2, "inner": {"size": 1, "inner": {}}}}
+        r = api._.deepObjectNestedExplodeQuery(parameters={"object": data})
+        request = httpx_mock.get_requests()[-1]
+        u = yarl.URL(str(request.url))
+        expected = dict(
+            list(map(lambda x: (f'object{"".join("[inner]" for _ in range(x))}[size]', depth - x), range(depth)))
+        )
+        # 'object[size]=3&object[inner][size]=2&object[inner][inner][size]=1'
+        assert all(u.query[k] == str(v) for k, v in expected.items())
 
     r = api._.DelimitedQuery(parameters={"pipe": ["a", "b"], "space": ["1", "2"], "object": parameters["object"]})
     request = httpx_mock.get_requests()[-1]
