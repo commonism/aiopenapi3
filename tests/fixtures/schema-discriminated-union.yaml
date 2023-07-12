@@ -1,0 +1,45 @@
+openapi: "3.1.0"
+info:
+  version: 1.0.0
+  title: enum test
+
+components:
+  schemas:
+    A:
+      title: A
+      type: object
+      additionalProperties: False
+      properties:
+        object_type:
+          type: string
+        a:
+          type: string
+
+    B:
+      title: B
+      type: object
+      additionalProperties: False
+      properties:
+        object_type:
+          type: string
+        b:
+          type: string
+
+
+    AB:
+      title: AB
+      type: object
+      additionalProperties: False
+      oneOf:
+        - $ref: '#/components/schemas/A'
+        - $ref: '#/components/schemas/B'
+      discriminator:
+        propertyName: object_type
+        mapping:
+          a: '#/components/schemas/A'
+          b: '#/components/schemas/B'
+
+    L:
+      type: array
+      items:
+        $ref: '#/components/schemas/AB'

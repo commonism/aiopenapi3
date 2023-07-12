@@ -298,6 +298,16 @@ def with_schema_allof_discriminator(openapi_version):
 
 
 @pytest.fixture
+def with_schema_discriminated_union(openapi_version):
+    yield _get_parsed_yaml("schema-discriminated-union.yaml", openapi_version)
+
+
+@pytest.fixture
+def with_schema_create_update_read():
+    yield _get_parsed_yaml("schema-create-update-read.yaml")
+
+
+@pytest.fixture
 def with_schema_enum(openapi_version):
     yield _get_parsed_yaml("schema-enum.yaml", openapi_version)
 

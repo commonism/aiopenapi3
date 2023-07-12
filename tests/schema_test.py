@@ -299,3 +299,15 @@ def test_schema_with_patternProperties(with_schema_patternProperties):
     assert list(a.aio3_patternProperties("^I_")) == [("I_5", 100)]
     sorted(typing.get_args(a.aio3_patternProperties.__annotations__["item"])) == ["^I_", "^S_"]
     return
+
+
+def test_schema_discriminated_union(with_schema_discriminated_union):
+    api = OpenAPI("/", with_schema_discriminated_union)
+
+
+def test_schema_create_update_read(with_schema_create_update_read):
+    api = OpenAPI("/", with_schema_create_update_read)
+    A = api.components.schemas["A"].get_type()
+    AB = api.components.schemas["AB"].get_type()
+    A.model_validate(dict(a="a"))
+    AB.model_validate({})

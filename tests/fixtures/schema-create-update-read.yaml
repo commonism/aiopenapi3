@@ -1,0 +1,23 @@
+openapi: "3.1.0"
+info:
+  version: 1.0.0
+  title: enum test
+
+components:
+  schemas:
+    A:
+      type: object
+      additionalProperties: False
+      required: [ a ]
+      properties:
+        a:
+          type: string
+    AB:
+      type: object
+      additionalProperties: False
+      required: [ b ]
+      properties:
+        b:
+          type: string
+      allOf:
+        - $ref: "#/components/schemas/A"
