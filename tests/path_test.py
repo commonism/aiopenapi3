@@ -352,6 +352,20 @@ def test_paths_response_header(httpx_mock, with_paths_response_header):
     return
 
 
+def test_paths_response_content_type_octet(httpx_mock, with_paths_response_content_type_octet):
+    CONTENT = b"\x00\x11"
+    httpx_mock.add_response(headers={"Content-Type": "application/octet-stream", "X-required": "1"}, content=CONTENT)
+    api = OpenAPI(URLBASE, with_paths_response_content_type_octet, session_factory=httpx.Client)
+    headers, data = api._.header(return_headers=True)
+    assert isinstance(headers["X-required"], str)
+    assert data == CONTENT
+    request = httpx_mock.get_requests()[-1]
+
+    data = api._.octet()
+    assert data == CONTENT
+    request = httpx_mock.get_requests()[-1]
+
+
 def test_paths_tags(httpx_mock, with_paths_tags):
     import copy
 
