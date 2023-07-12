@@ -54,11 +54,7 @@ def __init():
     for i in CLASSES:
         r[i.__name__] = i
     for i in CLASSES:
-        #        print(f"{i.__name__} {i.__pydantic_model_complete__}")
-        try:
-            i.model_rebuild(_types_namespace=r)
-        except pydantic_core.SchemaError as e:
-            print(e)
+        i.model_rebuild(_types_namespace=r)
 
 
 __init()
