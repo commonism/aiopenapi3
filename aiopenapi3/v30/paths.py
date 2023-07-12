@@ -116,6 +116,8 @@ class PathItem(ObjectExtended):
 
 
 class Paths(PathsBase):
+    paths: Dict[str, PathItem]
+
     @model_validator(mode="before")
     def validate_Paths(cls, values):
         assert values is not None
@@ -125,7 +127,7 @@ class Paths(PathsBase):
             if k[:2] == "x-":
                 e[k[2:]] = v
             else:
-                p[k] = PathItem(**v)
+                p[k] = v
         return {"paths": p, "extensions": e}
 
 
