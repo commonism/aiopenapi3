@@ -310,4 +310,8 @@ def test_schema_create_update_read(with_schema_create_update_read):
     A = api.components.schemas["A"].get_type()
     AB = api.components.schemas["AB"].get_type()
     A.model_validate(dict(a="a"))
-    AB.model_validate({})
+    with pytest.raises(ValidationError):
+        AB.model_validate(dict(a="a"))
+    with pytest.raises(ValidationError):
+        AB.model_validate(dict(b="b"))
+    AB.model_validate(dict(b="b", a="a"))
