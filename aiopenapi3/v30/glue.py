@@ -432,8 +432,11 @@ class Request(RequestBase):
             ).unmarshalled
             return rheaders, data
         else:
-            # We have received a valid (i.e. expected) content type,
-            # but we can't validate it since it's not json.
+            """
+            We have received a valid (i.e. expected) content type,
+            e.g. application/octet-stream
+            but we can't validate it since it's not json.
+            """
             return rheaders, ctx.received
 
 

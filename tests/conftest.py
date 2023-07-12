@@ -267,6 +267,11 @@ def with_paths_response_header(openapi_version):
 
 
 @pytest.fixture
+def with_paths_response_content_type_octet():
+    yield _get_parsed_yaml("paths-response-content-type-octet.yaml")
+
+
+@pytest.fixture
 def with_paths_response_header_v20():
     yield _get_parsed_yaml("paths-response-header-v20.yaml")
 

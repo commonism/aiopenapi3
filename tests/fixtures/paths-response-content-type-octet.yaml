@@ -1,0 +1,38 @@
+openapi: 3.0.3
+info:
+  title: ''
+  version: 0.0.0
+servers:
+  - url: http://127.0.0.1/api
+
+security:
+  - {}
+
+paths:
+  /octet/headers:
+    get:
+      operationId: header
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: byte
+          headers:
+            X-required:
+              required: true
+              schema:
+                type: string
+  /octet:
+    get:
+      operationId: octet
+      responses:
+        200:
+          description: "ok"
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: byte
