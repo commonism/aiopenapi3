@@ -33,11 +33,12 @@ idx = _idx(100)
 def createPet(
     response: Response,
     pet: schema.Pet = Body(..., embed=True),
-) -> None:
+) -> schema.Pet:
     # if isinstance(pet, Cat):
     #     pet = pet.__root__
     # elif isinstance(pet, Dog):
     #     pass
+    #    name = getattr(pet, "name") or getattr(pet, "white_name") or getattr(pet, "black_name")
     if pet.name in ZOO:
         return JSONResponse(
             status_code=starlette.status.HTTP_409_CONFLICT,
@@ -85,4 +86,4 @@ def deletePet(response: Response, pet_id: int = Path(..., alias="petId")) -> Non
 @router.patch("/pets", operation_id="patchPets", responses={200: {"model": schema.Pets}})
 def patchPets(response: Response, pets: schema.Pets):
     print(pets)
-    return pets.__root__ + list(ZOO.values())
+    return pets + list(ZOO.values())
