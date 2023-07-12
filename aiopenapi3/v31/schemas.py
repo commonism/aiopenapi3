@@ -24,6 +24,73 @@ class Schema(ObjectExtended, SchemaBase):
     .. _Schema Object: https://datatracker.ietf.org/doc/html/draft-bhutton-json-schema-validation-00#section-6
     """
 
+    model_config = dict(extra="allow")
+
+    """
+    JSON Schema: A Media Type for Describing JSON Documents
+    https://json-schema.org/draft/2020-12/json-schema-core.html
+    """
+
+    """
+    8.  The JSON Schema Core Vocabulary
+    """
+    schema_: Optional[str] = Field(default=None, alias="$schema")
+    vocabulary: Optional[Dict[str, bool]] = Field(default=None, alias="$vocabulary")
+    id: Optional[str] = Field(default=None, alias="$id")
+    anchor: Optional[str] = Field(default=None, alias="$anchor")
+    dynamicAnchor: Optional[bool] = Field(default=None, alias="$dynamicAnchor")
+    ref: Optional[str] = Field(default=None, alias="$ref")
+    dynamicRef: Optional[str] = Field(default=None, alias="$dynamicRef")
+    defs: Optional[Dict[str, Any]] = Field(default=None, alias="$defs")
+    comment: Optional[str] = Field(default=None, alias="$comment")
+
+    """
+    10. A Vocabulary for Applying Subschemas
+    """
+
+    """
+    10.2.1. Keywords for Applying Subschemas With Logic
+    """
+    allOf: Optional[List["Schema"]] = Field(default_factory=list)
+    oneOf: Optional[List["Schema"]] = Field(default_factory=list)
+    anyOf: Optional[List["Schema"]] = Field(default_factory=list)
+    not_: Optional["Schema"] = Field(default=None, alias="not")
+
+    """
+    10.2.2. Keywords for Applying Subschemas Conditionally
+    """
+    if_: Optional["Schema"] = Field(default=None, alias="if")
+    then_: Optional["Schema"] = Field(default=None, alias="then")
+    else_: Optional["Schema"] = Field(default=None, alias="else")
+    dependentSchemas: Optional[Dict[str, "Schema"]] = Field(default_factory=dict)
+
+    """
+    10.3.1. Keywords for Applying Subschemas to Arrays
+    """
+    prefixItems: Optional[List["Schema"]] = Field(default=None)
+    items: Optional[Union["Schema", List["Schema"]]] = Field(default=None)
+    contains: Optional["Schema"] = Field(default=None)
+
+    """
+    10.3.2. Keywords for Applying Subschemas to Objects
+    """
+    properties: Optional[Dict[str, "Schema"]] = Field(default_factory=dict)
+    patternProperties: Optional[Dict[str, "Schema"]] = Field(default_factory=dict)
+    additionalProperties: Optional[Union[bool, "Schema"]] = Field(default=None)
+    unevaluatedProperties: Optional["Schema"] = Field(default=None)
+    propertyNames: Optional["Schema"] = Field(default=None)
+
+    """
+    11. A Vocabulary for Unevaluated Locations
+    """
+    unevaluatedItems: Optional["Schema"] = Field(default=None)
+    unevaluatedProperties: Optional["Schema"] = Field(default=None)
+
+    """
+    JSON Schema Validation: A Vocabulary for Structural Validation of JSON
+    https://json-schema.org/draft/2020-12/json-schema-validation.html
+    """
+
     """
     6.1.  Validation Keywords for Any Instance Type
     """
@@ -89,62 +156,6 @@ class Schema(ObjectExtended, SchemaBase):
     examples: Optional[Any] = Field(default=None)
 
     """
-    https://datatracker.ietf.org/doc/html/draft-handrews-json-schema-validation-02
-    """
-
-    """
-    8.  The JSON Schema Core Vocabulary
-    """
-    id: Optional[str] = Field(default=None, alias="$id")
-    schema_: Optional[str] = Field(default=None, alias="$schema")
-    anchor: Optional[str] = Field(default=None, alias="$anchor")
-
-    """
-    8.2.4.  Schema References
-    """
-    ref: Optional[str] = Field(default=None, alias="$ref")
-    recursiveRef: Optional[str] = Field(default=None, alias="$recursiveRef")
-    recursiveAnchor: Optional[bool] = Field(default=None, alias="$recursiveAnchor")
-
-    vocabulary: Optional[Dict[str, bool]] = Field(default=None, alias="$vocabulary")
-    comment: Optional[str] = Field(default=None, alias="$comment")
-    defs: Optional[Dict[str, Any]] = Field(default=None, alias="$defs")
-
-    """
-    https://datatracker.ietf.org/doc/html/draft-handrews-json-schema-02#section-9.2
-    9.2.  Keywords for Applying Subschemas in Place
-    """
-    allOf: Optional[List["Schema"]] = Field(default_factory=list)
-    oneOf: Optional[List["Schema"]] = Field(default_factory=list)
-    anyOf: Optional[List["Schema"]] = Field(default_factory=list)
-    not_: Optional["Schema"] = Field(default=None, alias="not")
-
-    """
-    9.2.2.  Keywords for Applying Subschemas Conditionally
-    """
-    if_: Optional["Schema"] = Field(default=None, alias="if")
-    then_: Optional["Schema"] = Field(default=None, alias="then")
-    else_: Optional["Schema"] = Field(default=None, alias="else")
-    dependentSchemas: Optional[Dict[str, "Schema"]] = Field(default_factory=dict)
-
-    """
-    9.3.1.  Keywords for Applying Subschemas to Arrays
-    """
-    items: Optional[Union["Schema", List["Schema"]]] = Field(default=None)
-    additionalItem: Optional["Schema"] = Field(default=None)
-    unevaluatedItems: Optional["Schema"] = Field(default=None)
-    contains: Optional["Schema"] = Field(default=None)
-
-    """
-    9.3.2.  Keywords for Applying Subschemas to Objects
-    """
-    properties: Optional[Dict[str, "Schema"]] = Field(default_factory=dict)
-    patternProperties: Optional[Dict[str, "Schema"]] = Field(default_factory=dict)
-    additionalProperties: Optional[Union[bool, "Schema"]] = Field(default=None)
-    unevaluatedProperties: Optional["Schema"] = Field(default=None)
-    propertyNames: Optional["Schema"] = Field(default=None)
-
-    """
     The OpenAPI Specification's base vocabulary is comprised of the following keywords:
     """
     discriminator: Optional[Discriminator] = Field(default=None)  # 'Discriminator'
@@ -158,8 +169,6 @@ class Schema(ObjectExtended, SchemaBase):
     The _identity attribute is set during OpenAPI.__init__ and used at get_type()
     """
     _identity: PrivateAttr(str)
-
-    model_config = dict(extra="allow")
 
     @model_validator(mode="after")
     def validate_Schema_number_type(cls, s: "Schema"):
