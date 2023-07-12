@@ -56,16 +56,11 @@ class ObjectExtended(ObjectBase):
 
 
 class PathsBase(ObjectBase):
-    paths: Dict[str, Any]  # = Field(default_factory=dict)
     extensions: Dict[str, Any]
 
     @property
     def _paths(self):
         return self.paths
-
-    @property
-    def extensions(self):
-        return self._extensions
 
     def __getitem__(self, item):
         return self.paths[item]
