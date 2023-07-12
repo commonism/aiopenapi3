@@ -171,8 +171,6 @@ def test_schema_enum(with_schema_enum):
 
     data = copy.deepcopy(with_schema_enum)  # .deepcopy()
 
-    import linode_test
-
     api = OpenAPI.loads(URLBASE, json.dumps(data))  # , plugins=[linode_test.LinodeDiscriminators()])
     import datetime
 
