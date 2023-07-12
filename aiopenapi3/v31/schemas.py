@@ -96,7 +96,7 @@ class Schema(ObjectExtended, SchemaBase):
     """
 
     type: Optional[Union[str, List[str]]] = Field(default=None)
-    enum: Optional[List[Union[Reference, str]]] = Field(default=None)
+    enum: Optional[List[Any]] = Field(default=None)
     const: Optional[str] = Field(default=None)
 
     """
