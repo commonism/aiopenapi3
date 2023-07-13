@@ -13,7 +13,7 @@ paths:
     get:
       operationId: header
       responses:
-        200:
+        "200":
           description: "ok"
           content:
             application/octet-stream:
@@ -29,7 +29,7 @@ paths:
     get:
       operationId: octet
       responses:
-        200:
+        "200":
           description: "ok"
           content:
             application/octet-stream:
