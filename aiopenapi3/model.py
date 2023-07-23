@@ -8,6 +8,7 @@ import copy
 
 import types
 import pydantic
+import pydantic_core
 
 if sys.version_info >= (3, 9):
     from pathlib import Path
@@ -55,8 +56,8 @@ def generate_type_format_to_class():
     type_format_to_class["string"]["byte"] = Base64Str
 
 
-def class_from_schema(s):
-    a = type_format_to_class[s.type]
+def class_from_schema(s, type):
+    a = type_format_to_class[type]
     b = a.get(s.format, a[None])
     return b
 
@@ -230,49 +231,47 @@ class Model:  # (BaseModel):
         if schema is None:
             return BaseModel
         if isinstance(schema, SchemaBase):
-            if isinstance(schema.type, str):
-                if schema.type == "integer":
-                    r = int
-                elif schema.type == "number":
-                    r = class_from_schema(schema)
-                elif schema.type == "string":
-                    if schema.enum:
-                        # un-Reference
-                        _names = tuple(
-                            i for i in map(lambda x: x._target if isinstance(x, ReferenceBase) else x, schema.enum)
-                        )
-                        r = Literal[_names]
-                    else:
-                        r = class_from_schema(schema)
-                elif schema.type == "boolean":
-                    r = bool
-                elif schema.type == "array":
-                    if isinstance(schema.items, list):
-                        r = Tuple[tuple(Model.typeof(i, fwdref=True) for i in schema.items)]
-                    elif schema.items:
-                        r = List[Model.typeof(schema.items, fwdref=fwdref)]
-                    elif schema.items is None:
-                        return
-                    else:
-                        raise TypeError(schema.items)
-                elif schema.type == "object":
-                    return schema.get_type(fwdref=fwdref)
+            if Model.is_type(schema, "integer"):
+                r = int
+            elif Model.is_type(schema, "number"):
+                r = class_from_schema(schema, "number")
+            elif Model.is_type(schema, "string"):
+                if schema.enum:
+                    # un-Reference
+                    _names = tuple(
+                        i for i in map(lambda x: x._target if isinstance(x, ReferenceBase) else x, schema.enum)
+                    )
+                    r = Literal[_names]
                 else:
-                    raise ValueError(f"schema type {schema.type} is not valid")
+                    r = class_from_schema(schema, "string")
+            elif Model.is_type(schema, "boolean"):
+                r = bool
+            elif Model.is_type(schema, "array"):
+                if isinstance(schema.items, list):
+                    r = Tuple[tuple(Model.typeof(i, fwdref=True) for i in schema.items)]
+                elif schema.items:
+                    r = List[Model.typeof(schema.items, fwdref=fwdref)]
+                elif schema.items is None:
+                    return
+                else:
+                    raise TypeError(schema.items)
+            elif Model.is_type(schema, "object"):
+                r = schema.get_type(fwdref=fwdref)
             elif isinstance(schema.type, list):
                 """this will end up as RootModel with Union[]"""
                 r = list()
                 for i in schema.type:
+                    if i == "null":
+                        continue
                     r.append(SCHEMA_TYPES_MAP[i])
-                r = Union[tuple(r)]
-                return r
+                if len(r) > 1:
+                    r = Union[tuple(r)]
             elif schema.type is None:  # allow all
                 r = list(SCHEMA_TYPES_MAP.values())
                 schema.type = "object"
                 r.append(schema.get_type(fwdref=fwdref, extra=schema))
                 schema.type = None
                 r = Union[tuple(r)]
-                return r
             else:
                 raise ValueError("y")
         elif isinstance(schema, ReferenceBase):
@@ -280,17 +279,21 @@ class Model:  # (BaseModel):
         else:
             raise TypeError(type(schema))
 
+        if Model.is_nullable(schema):
+            r = Optional[r]
         return r
 
     @staticmethod
     def annotationsof(schema: "SchemaBase", discriminators, shmanm, fwdref=False):
         annotations = dict()
-        if schema.type is None or isinstance(schema.type, str):
-            if schema.type == "array":
-                annotations["__root__"] = Model.typeof(schema)
-            elif (
-                schema.type == "object"
-                and schema.additionalProperties
+        if Model.is_type(schema, "array"):
+            v = Model.typeof(schema)
+            if Model.is_nullable(schema):
+                v = Optional[v]
+            annotations["__root__"] = v
+        elif Model.is_type(schema, "object"):
+            if (
+                schema.additionalProperties
                 and isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase))
                 and not schema.properties
             ):
@@ -310,7 +313,10 @@ class Model:  # (BaseModel):
                     additionalProperties:
                       type: string
                 """
-                annotations["__root__"] = Dict[str, Model.typeof(schema.additionalProperties)]
+                v = Dict[str, Model.typeof(schema.additionalProperties)]
+                if Model.is_nullable(schema):
+                    v = Optional[v]
+                annotations["__root__"] = v
             else:
                 for name, f in schema.properties.items():
                     r = None
@@ -340,29 +346,57 @@ class Model:  # (BaseModel):
                     if name not in schema.required:
                         annotations[Model.nameof(name)] = Optional[r]
                     else:
+                        if Model.is_nullable(f):
+                            r = Optional[r]
                         annotations[Model.nameof(name)] = r
         elif isinstance(schema.type, list):
             annotations["__root__"] = Model.typeof(schema)
-
+        elif schema.type is None:
+            pass
+        elif Model.is_type(schema, "string") or Model.is_type(schema, "integer") or Model.is_type(schema, "boolean"):
+            pass
+        else:
+            raise ValueError()
         return annotations
+
+    @staticmethod
+    def is_type(schema: "SchemaBase", type_) -> bool:
+        if isinstance(schema.type, str) and schema.type == type_ or Model.or_type(schema, type_):
+            return True
+
+    @staticmethod
+    def or_type(schema: "SchemaBase", type_: str) -> bool:
+        return isinstance((t := schema.type), list) and len(t) == 2 and type_ in t
+
+    @staticmethod
+    def is_nullable(schema: "SchemaBase") -> bool:
+        return Model.is_type(schema, "null")
+
+    @staticmethod
+    def or_nullable(schema: "SchemaBase") -> bool:
+        return Model.or_type(schema, "null")
+
+    @staticmethod
+    def is_type_any(schema: "SchemaBase"):
+        return schema.type is None
 
     @staticmethod
     def fieldof(schema: "SchemaBase"):
         fields = dict()
         if schema.type == "array":
             return fields
-        elif schema.type in ("object", None):
+        if Model.is_type(schema, "object") or Model.is_type_any(schema):
             for name, f in schema.properties.items():
                 args = dict()
                 if name not in schema.required:
                     args["default"] = None
                 name = Model.nameof(name, args=args)
+                if Model.is_nullable(f):
+                    args["default"] = f"default-{name}"
                 for i in ["default"]:
-                    v = getattr(f, i, None)
-                    if v:
+                    if (v := getattr(f, i, None)) is not None:
                         args[i] = v
                 fields[name] = Field(**args)
-
         return fields
 
     @staticmethod
