@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import collections
+import dataclasses
 import logging
 import sys
 import re
-import copy
+from typing import Any
 
-import types
+
 import pydantic
 import pydantic_core
 
@@ -62,10 +63,25 @@ def class_from_schema(s, type):
     return b
 
 
+@dataclasses.dataclass
+class _ClassInfo:
+    @dataclasses.dataclass
+    class _PropertyInfo:
+        annotation: Any = None
+        default: Any = None
+
+    root: Any = None
+    config: Dict[str, Any] = None
+    properties: Dict[str, _PropertyInfo] = dataclasses.field(
+        default_factory=lambda: collections.defaultdict(lambda: _ClassInfo._PropertyInfo())
+    )
+
+
 class Model:  # (BaseModel):
     #    class Config:
     #        extra: "forbid"
 
+    TypeInfo = collections.namedtuple("annotation", "value")
     ALIASES = dict()
 
     @classmethod
@@ -83,12 +99,14 @@ class Model:  # (BaseModel):
             discriminators = []
 
         r = list()
-        for type in Model.types(schema):
-            r.append(Model.from_schema_type(schema, type, schemanames, discriminators, extra))
+
+        for _type in Model.types(schema):
+            r.append(Model.from_schema_type(schema, _type, schemanames, discriminators, extra))
+
         if len(r) > 1:
             r = Union[tuple(r)]
             type_name = schema._get_identity("L8")
-            m = types.new_class(type_name, (RootModel[r],), {}, lambda ns: ns.update({"__module__": me.__name__}))
+            m = pydantic.create_model(type_name, __base__=(RootModel[r],), __module__=me.__name__)
         else:
             m = r[0]
         return m
@@ -104,17 +122,15 @@ class Model:  # (BaseModel):
     ):
         type_name = schema._get_identity("L8") + f"_{type}"
 
-        fields = dict()
-        annotations = dict()
+        classinfo = _ClassInfo()
 
         # do not create models for primitive types
         if type in ("string", "integer", "number", "boolean"):
             if schema.format is None:
                 return Model.typeof(schema, type=type)
             else:
-                annotations["__root__"] = Model.typeof(schema, type=type)
+                classinfo.root = Model.typeof(schema, type=type)
         elif type == "object":
-            #            types_ = set([schema.type] if not isinstance(schema.type, list) else schema.type)
             if hasattr(schema, "anyOf") and schema.anyOf:
                 assert all(schema.anyOf)
                 #                types_ |= set(map(lambda x: x.type, schema.anyOf))
@@ -127,11 +143,9 @@ class Model:  # (BaseModel):
                     for i in schema.anyOf
                 )
                 if schema.discriminator and schema.discriminator.mapping:
-                    annotations["__root__"] = Annotated[
-                        Union[t], Field(discriminator=schema.discriminator.propertyName)
-                    ]
+                    classinfo.root = Annotated[Union[t], Field(discriminator=schema.discriminator.propertyName)]
                 else:
-                    annotations["__root__"] = Union[t]
+                    classinfo.root = Union[t]
             elif hasattr(schema, "oneOf") and schema.oneOf:
                 #                types_ &= set(map(lambda x: x.type, schema.anyOf))
                 t = tuple(
@@ -144,15 +158,13 @@ class Model:  # (BaseModel):
                 )
 
                 if schema.discriminator and schema.discriminator.mapping:
-                    annotations["__root__"] = Annotated[
-                        Union[t], Field(discriminator=schema.discriminator.propertyName)
-                    ]
+                    classinfo.root = Annotated[Union[t], Field(discriminator=schema.discriminator.propertyName)]
                 else:
-                    annotations["__root__"] = Union[t]
+                    classinfo.root = Union[t]
             else:
                 # default schema properties …
-                annotations.update(Model.annotationsof_type(schema, type, discriminators, schemanames, fwdref=True))
-                fields.update(Model.fieldof(schema))
+                Model.annotationsof_type(schema, type, discriminators, schemanames, classinfo, fwdref=True)
+                Model.fieldof(schema, classinfo)
                 if "patternProperties" in schema.model_fields_set:
 
                     def mkx():
@@ -166,27 +178,25 @@ class Model:  # (BaseModel):
                         ]
                         return get_patternProperties
 
-                    fields["aio3_patternProperties"] = mkx()
+                    classinfo.properties["aio3_patternProperties"].default = mkx()
                 if schema.allOf:
                     #                    types_ &= set(map(lambda x: x.type, schema.allOf))
                     for i in schema.allOf:
-                        annotations.update(Model.annotationsof(i, discriminators, schemanames, fwdref=True))
-                        fields.update(Model.fieldof(i))
+                        Model.annotationsof(i, discriminators, schemanames, classinfo, fwdref=True)
+                        Model.fieldof(i, classinfo)
 
-        # this is a anyOf/oneOf - the parent may have properties which will collide with __root__
-        # so - add the parent properties to this model
-        if extra:
-            annotations.update(Model.annotationsof(extra, discriminators, schemanames))
-            fields.update(Model.fieldof(extra))
+            # this is a anyOf/oneOf - the parent may have properties which will collide with __root__
+            # so - add the parent properties to this model
+            if extra:
+                Model.annotationsof(extra, discriminators, schemanames, classinfo)
+                Model.fieldof(extra, classinfo)
+        elif type == "array":
+            classinfo.root = Model.typeof(schema, "array")
 
-        #        if types_ == {None} and not extra:
-        #            annotations["__root__"] = Model.typeof(schema)
+        classinfo.properties["__module__"].default = me.__name__
+        classinfo.config = Model.configof(schema)
 
-        fields["__annotations__"] = copy.deepcopy(annotations)
-        fields["__module__"] = me.__name__
-        fields["model_config"] = Model.configof(schema)
-
-        if fields["model_config"]["extra"] == "allow" and "__root__" not in annotations:
+        if classinfo.config["extra"] == "allow" and classinfo.root is None:
 
             def mkx():
                 def get_additionalProperties(x):
@@ -194,15 +204,13 @@ class Model:  # (BaseModel):
 
                 return get_additionalProperties, None, None
 
-            fields["aio3_additionalProperties"] = property(mkx()[0])
+            classinfo.properties["aio3_additionalProperties"].default = property(mkx()[0])
 
-        if "__root__" in annotations:
-            del fields["__annotations__"]["__root__"]
-            m = types.new_class(
-                type_name, (RootModel[annotations["__root__"]],), {}, lambda ns: ns.update({"__module__": me.__name__})
-            )
+        if classinfo.root:
+            m = pydantic.create_model(type_name, __base__=(RootModel[classinfo.root],), __module__=me.__name__)
         else:
-            m = types.new_class(type_name, (BaseModel,), {}, lambda ns: ns.update(fields))
+            properties = dict([(k, (v.annotation, v.default)) for k, v in classinfo.properties.items()])
+            m = pydantic.create_model(type_name, __base__=(BaseModel,), model_config=classinfo.config, **properties)
         return m
 
     @staticmethod
@@ -281,7 +289,7 @@ class Model:  # (BaseModel):
                     elif schema.items:
                         v = List[Model.typeof(schema.items, fwdref=fwdref)]
                     elif schema.items is None:
-                        return
+                        return None
                     else:
                         raise TypeError(schema.items)
                     r.append(v)
@@ -290,7 +298,7 @@ class Model:  # (BaseModel):
                 elif type == "null":
                     nullable = True
                 else:
-                    raise ValueError("y")
+                    raise ValueError(type)
             if len(r) == 1:
                 r = r[0]
             else:
@@ -304,23 +312,24 @@ class Model:  # (BaseModel):
         return r
 
     @staticmethod
-    def annotationsof(schema: "SchemaBase", discriminators, shmanm, fwdref=False):
+    def annotationsof(schema: "SchemaBase", discriminators, shmanm, classinfo: _ClassInfo, fwdref=False):
         if isinstance(schema.type, list):
-            return dict(__root__=Model.typeof(schema))
+            classinfo.root = Model.typeof(schema)
         elif schema.type is None:
             pass
         else:
-            return Model.annotationsof_type(schema, schema.type, discriminators, shmanm, fwdref)
-        return dict()
+            return Model.annotationsof_type(schema, schema.type, discriminators, shmanm, classinfo, fwdref)
+        return classinfo
 
     @staticmethod
-    def annotationsof_type(schema: "SchemaBase", type: str, discriminators, shmanm, fwdref=False):
-        annotations = dict()
+    def annotationsof_type(
+        schema: "SchemaBase", type: str, discriminators, shmanm, classinfo: _ClassInfo, fwdref=False
+    ):
         if type == "array":
             v = Model.typeof(schema)
             if Model.is_nullable(schema):
                 v = Optional[v]
-            annotations["__root__"] = v
+            classinfo.root = v
         elif type == "object":
             if (
                 schema.additionalProperties
@@ -346,7 +355,7 @@ class Model:  # (BaseModel):
                 v = Dict[str, Model.typeof(schema.additionalProperties)]
                 if Model.is_nullable(schema):
                     v = Optional[v]
-                annotations["__root__"] = v
+                classinfo.root = v
             else:
                 for name, f in schema.properties.items():
                     r = None
@@ -368,34 +377,45 @@ class Model:  # (BaseModel):
                             r = Literal[literal]
 
                         # this got Literal avoid getting Optional
-                        annotations[Model.nameof(name)] = r
+                        classinfo.properties[Model.nameof(name)].annotation = r
                         continue
                     except StopIteration:
                         r = Model.typeof(f, fwdref=fwdref)
 
-                    if name not in schema.required:
-                        annotations[Model.nameof(name)] = Optional[r]
-                    else:
-                        if Model.is_nullable(f):
-                            r = Optional[r]
-                        annotations[Model.nameof(name)] = r
+                    if name not in schema.required or Model.is_nullable(f):
+                        r = Optional[r]
+
+                    classinfo.properties[Model.nameof(name)].annotation = r
+
         elif type in ("string", "integer", "boolean", "number"):
             pass
         else:
             raise ValueError()
-        return annotations
+        return classinfo
 
     @staticmethod
     def types(schema: "SchemaBase"):
         if isinstance(schema.type, str):
             yield schema.type
         else:
+            typesfilter = None
             if isinstance(schema.type, list):
                 values = schema.type
             elif schema.type is None:
-                values = list(SCHEMA_TYPES) + ["object"]
+                values = list(SCHEMA_TYPES) + ["object", "array"]
+                typesfilter = set()
+                if (const := getattr(schema, "const", None)) is not None:
+                    typesfilter.add(type(const))
+
+                if enum := getattr(schema, "enum", None):
+                    typesfilter |= set([type(i) for i in enum])
 
             for i in values:
+                if typesfilter and SCHEMA_TYPES_MAP.get(i) not in typesfilter:
+                    """
+                    filter types using enum & const
+                    """
+                    continue
                 yield i
 
     @staticmethod
@@ -420,10 +440,9 @@ class Model:  # (BaseModel):
         return schema.type is None
 
     @staticmethod
-    def fieldof(schema: "SchemaBase"):
-        fields = dict()
+    def fieldof(schema: "SchemaBase", classinfo: _ClassInfo):
         if schema.type == "array":
-            return fields
+            return classinfo
         if Model.is_type(schema, "object") or Model.is_type_any(schema):
             for name, f in schema.properties.items():
                 args = dict()
@@ -435,8 +454,8 @@ class Model:  # (BaseModel):
                 for i in ["default"]:
                     if (v := getattr(f, i, None)) is not None:
                         args[i] = v
-                fields[name] = Field(**args)
-        return fields
+                classinfo.properties[name].default = Field(**args)
+        return classinfo
 
     @staticmethod
     def nameof(name: str, args=None):
