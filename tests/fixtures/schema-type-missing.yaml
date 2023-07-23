@@ -9,3 +9,6 @@ components:
       properties:
         id:
           type: integer
+    Ref:
+      allOf:
+        - $ref: "#/components/schemas/Any"
