@@ -1,0 +1,147 @@
+openapi: "3.1.0"
+info:
+  version: 1.0.0
+  title: enum test
+
+paths: {}
+servers: []
+
+components:
+  schemas:
+    BlackCat:
+      title: BlackCat
+      type: object
+      required:
+      - name
+      - black_name
+      properties: &catproperties
+        color:
+          title: Color
+#          const: black
+          default: black
+        black_name:
+          title: Black Name
+          type: string
+        identifier:
+          title: Identifier
+          type: [string, 'null']
+        name:
+          title: Name
+          type: string
+        pet_type:
+          title: Pet Type
+          type: string
+          default: cat
+#          const: cat
+        tags:
+          title: Tags
+          type: array
+          items:
+            type: string
+    WhiteCat:
+      title: WhiteCat
+      type: object
+      required:
+      - name
+      - white_name
+      properties:
+        <<: *catproperties
+        color:
+          title: Color
+#          const: white
+          default: white
+        white_name:
+          title: White Name
+          type: string
+
+    Cat:
+      type: object
+      title: Cat
+      discriminator:
+        mapping:
+          black: '#/components/schemas/BlackCat'
+          white: '#/components/schemas/WhiteCat'
+        propertyName: color
+      oneOf:
+      - $ref: '#/components/schemas/BlackCat'
+      - $ref: '#/components/schemas/WhiteCat'
+
+    Dog:
+      properties:
+        age:
+          format: duration
+          title: Age
+          type: string
+        identifier:
+          type: [string, 'null']
+          title: Identifier
+        name:
+          title: Name
+          type: string
+        pet_type:
+          const: dog
+          default: dog
+          title: Pet Type
+        tags:
+          items:
+            type: string
+          title: Tags
+          type: array
+      required:
+      - name
+      - age
+      title: Dog
+      type: object
+    Error:
+      properties:
+        code:
+          title: Code
+          type: integer
+        message:
+          title: Message
+          type: string
+      required:
+      - code
+      - message
+      title: Error
+      type: object
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          title: Detail
+          type: array
+      title: HTTPValidationError
+      type: object
+    Pet:
+      discriminator:
+        mapping:
+          cat: '#/components/schemas/Cat'
+          dog: '#/components/schemas/Dog'
+        propertyName: pet_type
+      oneOf:
+      - $ref: '#/components/schemas/Cat'
+      - $ref: '#/components/schemas/Dog'
+      title: Pet
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          title: Location
+          type: array
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+      type: object
