@@ -329,7 +329,10 @@ class Model:  # (BaseModel):
         if isinstance(schema.type, list):
             classinfo.root = Model.typeof(schema)
         elif schema.type is None:
-            pass
+            if schema.properties:
+                return Model.annotationsof_type(schema, "object", discriminators, shmanm, classinfo, fwdref)
+            elif schema.items:
+                return Model.annotationsof_type(schema, "array", discriminators, shmanm, classinfo, fwdref)
         else:
             return Model.annotationsof_type(schema, schema.type, discriminators, shmanm, classinfo, fwdref)
         return classinfo
