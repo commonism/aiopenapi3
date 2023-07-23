@@ -5,7 +5,7 @@ import dataclasses
 import logging
 import sys
 import re
-from typing import Any
+from typing import Any, Set
 
 
 import pydantic
@@ -35,7 +35,15 @@ type_format_to_class = collections.defaultdict(lambda: dict())
 
 log = logging.getLogger("aiopenapi3.model")
 
-SCHEMA_TYPES_MAP = {"string": str, "number": float, "boolean": bool, "integer": int}
+SCHEMA_TYPES_MAP = {
+    "string": str,
+    "number": float,
+    "boolean": bool,
+    "integer": int,
+    "null": None.__class__,
+    "object": SchemaBase,
+}
+TYPES_SCHEMA_MAP = {v: k for k, v in SCHEMA_TYPES_MAP.items()}
 SCHEMA_TYPES = frozenset(SCHEMA_TYPES_MAP.keys())
 
 
@@ -107,8 +115,10 @@ class Model:  # (BaseModel):
             r = Union[tuple(r)]
             type_name = schema._get_identity("L8")
             m = pydantic.create_model(type_name, __base__=(RootModel[r],), __module__=me.__name__)
-        else:
+        elif len(r) == 1:
             m = r[0]
+        else:  # == 0
+            raise ValueError(r)
         return m
 
     @classmethod
@@ -120,16 +130,16 @@ class Model:  # (BaseModel):
         discriminators: List["DiscriminatorBase"] = None,
         extra: "SchemaBase" = None,
     ):
-        type_name = schema._get_identity("L8") + f"_{type}"
+        type_name = schema._get_identity("L8")  # + f"_{type}"
 
         classinfo = _ClassInfo()
 
         # do not create models for primitive types
         if type in ("string", "integer", "number", "boolean"):
             if schema.format is None:
-                return Model.typeof(schema, type=type)
+                return Model.typeof(schema, _type=type)
             else:
-                classinfo.root = Model.typeof(schema, type=type)
+                classinfo.root = Model.typeof(schema, _type=type)
         elif type == "object":
             if hasattr(schema, "anyOf") and schema.anyOf:
                 assert all(schema.anyOf)
@@ -191,9 +201,8 @@ class Model:  # (BaseModel):
                 Model.annotationsof(extra, discriminators, schemanames, classinfo)
                 Model.fieldof(extra, classinfo)
         elif type == "array":
-            classinfo.root = Model.typeof(schema, "array")
+            classinfo.root = Model.typeof(schema, _type="array")
 
-        classinfo.properties["__module__"].default = me.__name__
         classinfo.config = Model.configof(schema)
 
         if classinfo.config["extra"] == "allow" and classinfo.root is None:
@@ -210,7 +219,9 @@ class Model:  # (BaseModel):
             m = pydantic.create_model(type_name, __base__=(RootModel[classinfo.root],), __module__=me.__name__)
         else:
             properties = dict([(k, (v.annotation, v.default)) for k, v in classinfo.properties.items()])
-            m = pydantic.create_model(type_name, __base__=(BaseModel,), model_config=classinfo.config, **properties)
+            m = pydantic.create_model(
+                type_name, __base__=(BaseModel,), __module__=me.__name__, model_config=classinfo.config, **properties
+            )
         return m
 
     @staticmethod
@@ -258,7 +269,7 @@ class Model:  # (BaseModel):
         )
 
     @staticmethod
-    def typeof(schema: "SchemaBase", type=None, fwdref=False):
+    def typeof(schema: "SchemaBase", _type=None, fwdref=False):
         r = None
         #        assert schema is not None
         if schema is None:
@@ -266,7 +277,7 @@ class Model:  # (BaseModel):
         if isinstance(schema, SchemaBase):
             nullable = False
             r = list()
-            for type in Model.types(schema) if not type else [type]:
+            for type in Model.types(schema) if not _type else [_type]:
                 if type == "integer":
                     r.append(int)
                 elif type == "number":
@@ -301,8 +312,10 @@ class Model:  # (BaseModel):
                     raise ValueError(type)
             if len(r) == 1:
                 r = r[0]
-            else:
+            elif len(r) >= 1:
                 r = Union[tuple(r)]
+            else:
+                raise ValueError("x")
             if nullable is True:
                 r = Optional[r]
         elif isinstance(schema, ReferenceBase):
@@ -398,24 +411,33 @@ class Model:  # (BaseModel):
         if isinstance(schema.type, str):
             yield schema.type
         else:
-            typesfilter = None
+            typesfilter = set()
+            values: Set[str]
             if isinstance(schema.type, list):
-                values = schema.type
+                values = set(schema.type)
             elif schema.type is None:
-                values = list(SCHEMA_TYPES) + ["object", "array"]
+                values = set(SCHEMA_TYPES)
                 typesfilter = set()
+
                 if (const := getattr(schema, "const", None)) is not None:
-                    typesfilter.add(type(const))
+                    typesfilter.add(TYPES_SCHEMA_MAP.get(type(const)))
 
                 if enum := getattr(schema, "enum", None):
-                    typesfilter |= set([type(i) for i in enum])
+                    typesfilter |= set([TYPES_SCHEMA_MAP.get(type(i)) for i in enum])
+
+                """
+                anyOf / oneOf / allOf do not need to be of type object
+                but the type of their children can be used to limit the type of the parent
+                """
+
+                if totalOf := sum([getattr(schema, i, []) for i in ["anyOf", "allOf", "oneOf"]], []):
+                    tmp = set.union(*[set(Model.types(x)) for x in totalOf])
+                    typesfilter |= tmp
+
+            if typesfilter:
+                values = values & typesfilter
 
             for i in values:
-                if typesfilter and SCHEMA_TYPES_MAP.get(i) not in typesfilter:
-                    """
-                    filter types using enum & const
-                    """
-                    continue
                 yield i
 
     @staticmethod

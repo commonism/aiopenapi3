@@ -305,6 +305,14 @@ def test_schema_discriminated_union(with_schema_discriminated_union):
     api = OpenAPI("/", with_schema_discriminated_union)
 
 
+def test_schema_discriminated_union_deep(with_schema_discriminated_union_deep):
+    api = OpenAPI("/", with_schema_discriminated_union_deep)
+    Dog = api.components.schemas["Dog"].get_type()
+
+    d = Dog.model_construct()
+    return None
+
+
 def test_schema_create_update_read(with_schema_create_update_read):
     api = OpenAPI("/", with_schema_create_update_read)
     A = api.components.schemas["A"].get_type()
