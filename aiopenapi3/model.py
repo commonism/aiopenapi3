@@ -82,71 +82,96 @@ class Model:  # (BaseModel):
         if discriminators is None:
             discriminators = []
 
-        type_name = schema._get_identity("L8")
+        r = list()
+        for type in Model.types(schema):
+            r.append(Model.from_schema_type(schema, type, schemanames, discriminators, extra))
+        if len(r) > 1:
+            r = Union[tuple(r)]
+            type_name = schema._get_identity("L8")
+            m = types.new_class(type_name, (RootModel[r],), {}, lambda ns: ns.update({"__module__": me.__name__}))
+        else:
+            m = r[0]
+        return m
+
+    @classmethod
+    def from_schema_type(
+        cls,
+        schema: "SchemaBase",
+        type: str,
+        schemanames: List[str] = None,
+        discriminators: List["DiscriminatorBase"] = None,
+        extra: "SchemaBase" = None,
+    ):
+        type_name = schema._get_identity("L8") + f"_{type}"
+
         fields = dict()
         annotations = dict()
 
         # do not create models for primitive types
-        if schema.type in ("string", "integer", "number", "boolean"):
+        if type in ("string", "integer", "number", "boolean"):
             if schema.format is None:
-                return Model.typeof(schema)
+                return Model.typeof(schema, type=type)
             else:
-                annotations["__root__"] = Model.typeof(schema)
-
-        types_ = set([schema.type] if not isinstance(schema.type, list) else schema.type)
-        if hasattr(schema, "anyOf") and schema.anyOf:
-            assert all(schema.anyOf)
-            types_ |= set(map(lambda x: x.type, schema.anyOf))
-            t = tuple(
-                i.get_type(
-                    names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
-                    discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
-                    extra=schema,
+                annotations["__root__"] = Model.typeof(schema, type=type)
+        elif type == "object":
+            #            types_ = set([schema.type] if not isinstance(schema.type, list) else schema.type)
+            if hasattr(schema, "anyOf") and schema.anyOf:
+                assert all(schema.anyOf)
+                #                types_ |= set(map(lambda x: x.type, schema.anyOf))
+                t = tuple(
+                    i.get_type(
+                        names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
+                        discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
+                        extra=schema,
+                    )
+                    for i in schema.anyOf
                 )
-                for i in schema.anyOf
-            )
-            if schema.discriminator and schema.discriminator.mapping:
-                annotations["__root__"] = Annotated[Union[t], Field(discriminator=schema.discriminator.propertyName)]
-            else:
-                annotations["__root__"] = Union[t]
-        elif hasattr(schema, "oneOf") and schema.oneOf:
-            types_ &= set(map(lambda x: x.type, schema.anyOf))
-            t = tuple(
-                i.get_type(
-                    names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
-                    discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
-                    extra=schema,
-                )
-                for i in schema.oneOf
-            )
-
-            if schema.discriminator and schema.discriminator.mapping:
-                annotations["__root__"] = Annotated[Union[t], Field(discriminator=schema.discriminator.propertyName)]
-            else:
-                annotations["__root__"] = Union[t]
-        else:
-            # default schema properties …
-            annotations.update(Model.annotationsof(schema, discriminators, schemanames, fwdref=True))
-            fields.update(Model.fieldof(schema))
-            if "patternProperties" in schema.model_fields_set:
-
-                def mkx():
-                    def get_patternProperties(x, item):
-                        for name, value in x.model_extra.items():
-                            if re.match(item, name):
-                                yield name, value
-
-                    get_patternProperties.__annotations__["item"] = Literal[
-                        tuple(sorted(schema.patternProperties.keys()))
+                if schema.discriminator and schema.discriminator.mapping:
+                    annotations["__root__"] = Annotated[
+                        Union[t], Field(discriminator=schema.discriminator.propertyName)
                     ]
-                    return get_patternProperties
+                else:
+                    annotations["__root__"] = Union[t]
+            elif hasattr(schema, "oneOf") and schema.oneOf:
+                #                types_ &= set(map(lambda x: x.type, schema.anyOf))
+                t = tuple(
+                    i.get_type(
+                        names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
+                        discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
+                        extra=schema,
+                    )
+                    for i in schema.oneOf
+                )
 
-                fields["aio3_patternProperties"] = mkx()
-            if schema.allOf:
-                types_ &= set(map(lambda x: x.type, schema.allOf))
-                for i in schema.allOf:
-                    annotations.update(Model.annotationsof(i, discriminators, schemanames, fwdref=True))
-                    fields.update(Model.fieldof(i))
+                if schema.discriminator and schema.discriminator.mapping:
+                    annotations["__root__"] = Annotated[
+                        Union[t], Field(discriminator=schema.discriminator.propertyName)
+                    ]
+                else:
+                    annotations["__root__"] = Union[t]
+            else:
+                # default schema properties …
+                annotations.update(Model.annotationsof_type(schema, type, discriminators, schemanames, fwdref=True))
+                fields.update(Model.fieldof(schema))
+                if "patternProperties" in schema.model_fields_set:
+
+                    def mkx():
+                        def get_patternProperties(x, item):
+                            for name, value in x.model_extra.items():
+                                if re.match(item, name):
+                                    yield name, value
+
+                        get_patternProperties.__annotations__["item"] = Literal[
+                            tuple(sorted(schema.patternProperties.keys()))
+                        ]
+                        return get_patternProperties
+
+                    fields["aio3_patternProperties"] = mkx()
+                if schema.allOf:
+                    #                    types_ &= set(map(lambda x: x.type, schema.allOf))
+                    for i in schema.allOf:
+                        annotations.update(Model.annotationsof(i, discriminators, schemanames, fwdref=True))
+                        fields.update(Model.fieldof(i))
 
         # this is a anyOf/oneOf - the parent may have properties which will collide with __root__
         # so - add the parent properties to this model
@@ -154,8 +179,8 @@ class Model:  # (BaseModel):
             annotations.update(Model.annotationsof(extra, discriminators, schemanames))
             fields.update(Model.fieldof(extra))
 
-        if types_ == {None} and not extra:
-            annotations["__root__"] = Model.typeof(schema)
+        #        if types_ == {None} and not extra:
+        #            annotations["__root__"] = Model.typeof(schema)
 
         fields["__annotations__"] = copy.deepcopy(annotations)
         fields["__module__"] = me.__name__
@@ -225,73 +250,78 @@ class Model:  # (BaseModel):
         )
 
     @staticmethod
-    def typeof(schema: "SchemaBase", fwdref=False):
+    def typeof(schema: "SchemaBase", type=None, fwdref=False):
         r = None
         #        assert schema is not None
         if schema is None:
             return BaseModel
         if isinstance(schema, SchemaBase):
-            if Model.is_type(schema, "integer"):
-                r = int
-            elif Model.is_type(schema, "number"):
-                r = class_from_schema(schema, "number")
-            elif Model.is_type(schema, "string"):
-                if schema.enum:
-                    # un-Reference
-                    _names = tuple(
-                        i for i in map(lambda x: x._target if isinstance(x, ReferenceBase) else x, schema.enum)
-                    )
-                    r = Literal[_names]
+            nullable = False
+            r = list()
+            for type in Model.types(schema) if not type else [type]:
+                if type == "integer":
+                    r.append(int)
+                elif type == "number":
+                    r.append(class_from_schema(schema, "number"))
+                elif type == "string":
+                    if schema.enum:
+                        # un-Reference
+                        _names = tuple(
+                            i for i in map(lambda x: x._target if isinstance(x, ReferenceBase) else x, schema.enum)
+                        )
+                        v = Literal[_names]
+                    else:
+                        v = class_from_schema(schema, "string")
+                    r.append(v)
+                elif type == "boolean":
+                    r.append(bool)
+                elif type == "array":
+                    if isinstance(schema.items, list):
+                        v = Tuple[tuple(Model.typeof(i, fwdref=True) for i in schema.items)]
+                    elif schema.items:
+                        v = List[Model.typeof(schema.items, fwdref=fwdref)]
+                    elif schema.items is None:
+                        return
+                    else:
+                        raise TypeError(schema.items)
+                    r.append(v)
+                elif type == "object":
+                    r.append(schema.get_type(fwdref=fwdref))
+                elif type == "null":
+                    nullable = True
                 else:
-                    r = class_from_schema(schema, "string")
-            elif Model.is_type(schema, "boolean"):
-                r = bool
-            elif Model.is_type(schema, "array"):
-                if isinstance(schema.items, list):
-                    r = Tuple[tuple(Model.typeof(i, fwdref=True) for i in schema.items)]
-                elif schema.items:
-                    r = List[Model.typeof(schema.items, fwdref=fwdref)]
-                elif schema.items is None:
-                    return
-                else:
-                    raise TypeError(schema.items)
-            elif Model.is_type(schema, "object"):
-                r = schema.get_type(fwdref=fwdref)
-            elif isinstance(schema.type, list):
-                """this will end up as RootModel with Union[]"""
-                r = list()
-                for i in schema.type:
-                    if i == "null":
-                        continue
-                    r.append(SCHEMA_TYPES_MAP[i])
-                if len(r) > 1:
-                    r = Union[tuple(r)]
-            elif schema.type is None:  # allow all
-                r = list(SCHEMA_TYPES_MAP.values())
-                schema.type = "object"
-                r.append(schema.get_type(fwdref=fwdref, extra=schema))
-                schema.type = None
-                r = Union[tuple(r)]
+                    raise ValueError("y")
+            if len(r) == 1:
+                r = r[0]
             else:
-                raise ValueError("y")
+                r = Union[tuple(r)]
+            if nullable is True:
+                r = Optional[r]
         elif isinstance(schema, ReferenceBase):
             r = Model.typeof(schema._target, fwdref=True)
         else:
             raise TypeError(type(schema))
-
-        if Model.is_nullable(schema):
-            r = Optional[r]
         return r
 
     @staticmethod
     def annotationsof(schema: "SchemaBase", discriminators, shmanm, fwdref=False):
+        if isinstance(schema.type, list):
+            return dict(__root__=Model.typeof(schema))
+        elif schema.type is None:
+            pass
+        else:
+            return Model.annotationsof_type(schema, schema.type, discriminators, shmanm, fwdref)
+        return dict()
+
+    @staticmethod
+    def annotationsof_type(schema: "SchemaBase", type: str, discriminators, shmanm, fwdref=False):
         annotations = dict()
-        if Model.is_type(schema, "array"):
+        if type == "array":
             v = Model.typeof(schema)
             if Model.is_nullable(schema):
                 v = Optional[v]
             annotations["__root__"] = v
-        elif Model.is_type(schema, "object"):
+        elif type == "object":
             if (
                 schema.additionalProperties
                 and isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase))
@@ -349,15 +379,24 @@ class Model:  # (BaseModel):
                         if Model.is_nullable(f):
                             r = Optional[r]
                         annotations[Model.nameof(name)] = r
-        elif isinstance(schema.type, list):
-            annotations["__root__"] = Model.typeof(schema)
-        elif schema.type is None:
-            pass
-        elif Model.is_type(schema, "string") or Model.is_type(schema, "integer") or Model.is_type(schema, "boolean"):
+        elif type in ("string", "integer", "boolean", "number"):
             pass
         else:
             raise ValueError()
         return annotations
+
+    @staticmethod
+    def types(schema: "SchemaBase"):
+        if isinstance(schema.type, str):
+            yield schema.type
+        else:
+            if isinstance(schema.type, list):
+                values = schema.type
+            elif schema.type is None:
+                values = list(SCHEMA_TYPES) + ["object"]
+
+            for i in values:
+                yield i
 
     @staticmethod
     def is_type(schema: "SchemaBase", type_) -> bool:
