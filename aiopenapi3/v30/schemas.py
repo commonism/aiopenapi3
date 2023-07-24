@@ -61,15 +61,6 @@ class Schema(ObjectExtended, SchemaBase):
     example: Optional[Any] = Field(default=None)
     deprecated: Optional[bool] = Field(default=None)
 
-    _model_type: PrivateAttr(None)
-    _model_types: List[object]
-    _request_model_type: object
-
-    """
-    The _identity attribute is set during OpenAPI.__init__ and used at get_type()
-    """
-    _identity: str
-
     model_config = dict(extra="forbid")
 
     @model_validator(mode="after")

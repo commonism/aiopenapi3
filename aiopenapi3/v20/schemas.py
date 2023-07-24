@@ -1,6 +1,6 @@
 from typing import Union, List, Any, Optional, Dict
 
-from pydantic import Field
+from pydantic import Field, PrivateAttr
 
 from .general import Reference
 from .xml import XML
@@ -47,15 +47,6 @@ class Schema(ObjectExtended, SchemaBase):
     xml: Optional[XML] = Field(default=None)  # 'XML'
     externalDocs: Optional[dict] = Field(default=None)  # 'ExternalDocs'
     example: Optional[Any] = Field(default=None)
-
-    _model_type: object
-    _model_types: List[object]
-    _request_model_type: object
-
-    """
-    The _identity attribute is set during OpenAPI.__init__ and used at get_type()
-    """
-    _identity: str
 
     def __getstate__(self):
         return SchemaBase.__getstate__(self)

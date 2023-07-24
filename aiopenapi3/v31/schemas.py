@@ -163,13 +163,6 @@ class Schema(ObjectExtended, SchemaBase):
     externalDocs: Optional[dict] = Field(default=None)  # 'ExternalDocs'
     example: Optional[Any] = Field(default=None)
 
-    _model_type: PrivateAttr(None)
-
-    """
-    The _identity attribute is set during OpenAPI.__init__ and used at get_type()
-    """
-    _identity: PrivateAttr(str)
-
     @model_validator(mode="after")
     def validate_Schema_number_type(cls, s: "Schema"):
         if s.type == "integer":

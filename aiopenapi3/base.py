@@ -5,7 +5,7 @@ import builtins
 import keyword
 import uuid
 
-from pydantic import BaseModel, Field, AnyUrl, model_validator
+from pydantic import BaseModel, Field, AnyUrl, model_validator, PrivateAttr
 
 from .json import JSONPointer
 from .errors import ReferenceResolutionError, OperationParameterValidationError
@@ -229,7 +229,27 @@ class DiscriminatorBase:
     pass
 
 
-class SchemaBase:
+class SchemaBase(BaseModel):
+    """
+    The Base for the Schema
+    """
+
+    _model_type: "BaseModel" = PrivateAttr(default=None)
+    """
+    use to store _the_ model
+    """
+
+    _model_types: List["BaseModel"] = PrivateAttr(default_factory=list)
+    """
+    the use of discriminators can change the semantics of a model - e.g. the Literal of the discriminator property
+    _model_types is used to store these different model representations of the same schema
+    """
+
+    _identity: str = PrivateAttr(default=None)
+    """
+    The _identity attribute is set during OpenAPI.__init__ and used to create the class name in get_type()
+    """
+
     def __getstate__(self):
         """
         pickle can't do the _model_type - remove from pydantic's __getstate__
@@ -237,17 +257,17 @@ class SchemaBase:
         """
         r = BaseModel.__getstate__(self)
         try:
-            for i in ["_model_type", "_model_types"]:
-                if i in r["__pydantic_private__"]:
+            for k, v in {"_model_type": None, "_model_types": list()}.items():
+                if k in r["__pydantic_private__"]:
                     r["__pydantic_private__"] = r["__pydantic_private__"].copy()
-                    del r["__pydantic_private__"][i]
+                    r["__pydantic_private__"][k] = v
 
         except Exception:
             pass
         return r
 
     def _get_identity(self, prefix="XLS", name=None):
-        if not hasattr(self, "_identity"):
+        if self._identity is None:
             if name is None:
                 name = self.title
             if name:
@@ -276,9 +296,6 @@ class SchemaBase:
     ) -> BaseModel:
         from .model import Model
 
-        if not hasattr(self, "_model_types"):
-            self._model_types = list()
-
         if extra is None:
             self._model_type = Model.from_schema(self, names, discriminators)
             return self._model_type
@@ -303,13 +320,12 @@ class SchemaBase:
                 return ForwardRef(f'__types["{self._get_identity("FWD")}"]', module="aiopenapi3.me")
             else:
                 return ForwardRef(f'__types["{self._get_identity("FWD")}"]')
-        try:
-            if extra is None:
-                return self._model_type
-            else:
-                return self.set_type(names, discriminators, extra)
-        except AttributeError:
-            return self.set_type(names, discriminators)
+        if extra is None:
+            if self._model_type is None:
+                self._model_type = self.set_type(names, discriminators, extra)
+            return self._model_type
+        else:
+            return self.set_type(names, discriminators, extra)
 
     def model(self, data: Dict):
         """
