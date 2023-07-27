@@ -42,6 +42,7 @@ SCHEMA_TYPES_MAP = {
     "integer": int,
     "null": None.__class__,
     "object": SchemaBase,
+    "array": list,
 }
 TYPES_SCHEMA_MAP = {v: k for k, v in SCHEMA_TYPES_MAP.items()}
 SCHEMA_TYPES = frozenset(SCHEMA_TYPES_MAP.keys())
@@ -94,7 +95,6 @@ class _ClassInfo:
         for k, v in self.properties.items():
             r.append((k, (v.annotation, v.default)))
         return dict(r)
-
 
 
 class Model:  # (BaseModel):
@@ -299,51 +299,62 @@ class Model:  # (BaseModel):
             Required, can be None: Optional[str]
             Not required, can be None, is … by default: f4: Optional[str] = …
             """
-            r = list()
-            for type in Model.types(schema) if not _type else [_type]:
-                if type == "integer":
-                    r.append(int)
-                elif type == "number":
-                    r.append(class_from_schema(schema, "number"))
-                elif type == "string":
-                    if schema.enum:
-                        # un-Reference
-                        _names = tuple(
-                            i for i in map(lambda x: x._target if isinstance(x, ReferenceBase) else x, schema.enum)
-                        )
-                        v = Literal[_names]
-                    else:
-                        v = class_from_schema(schema, "string")
-                    r.append(v)
-                elif type == "boolean":
-                    r.append(bool)
-                elif type == "array":
-                    if isinstance(schema.items, list):
-                        v = Tuple[tuple(Model.typeof(i, fwdref=True) for i in schema.items)]
-                    elif schema.items:
-                        v = List[Model.typeof(schema.items, fwdref=fwdref)]
-                    elif schema.items is None:
-                        return None
-                    else:
-                        raise TypeError(schema.items)
-                    r.append(v)
-                elif type == "object":
-                    r.append(schema.get_type(fwdref=fwdref))
-                elif type == "null":
+
+            if (v := getattr(schema, "const", None)) != None:
+                """
+                const - is not nullable
+                """
+                r = [Literal[v]]
+                nullable = False
+            elif schema.enum:
+                # un-Reference
+                _names = tuple(i for i in map(lambda x: x._target if isinstance(x, ReferenceBase) else x, schema.enum))
+                if None in _names:
                     nullable = True
-                else:
-                    raise ValueError(type)
+                    _names = list(filter(lambda x: x, _names))
+                r = [Literal[tuple(_names)]]
+            #                nullable = False
+            else:
+                r = list()
+                for type in Model.types(schema) if not _type else [_type]:
+                    if type == "integer":
+                        r.append(int)
+                    elif type == "number":
+                        r.append(class_from_schema(schema, "number"))
+                    elif type == "string":
+                        v = class_from_schema(schema, "string")
+                        r.append(v)
+                    elif type == "boolean":
+                        r.append(bool)
+                    elif type == "array":
+                        if isinstance(schema.items, list):
+                            v = Tuple[tuple(Model.typeof(i, fwdref=True) for i in schema.items)]
+                        elif schema.items:
+                            if isinstance(schema.items, ReferenceBase) and schema.items._target == schema:
+                                """
+                                self referencing array
+                                """
+                                v = List[schema.get_type(fwdref=True)]
+                            else:
+                                v = List[Model.typeof(schema.items, fwdref=True)]
+                        elif schema.items is None:
+                            continue
+                        else:
+                            raise TypeError(schema.items)
+                        r.append(v)
+                    elif type == "object":
+                        r.append(schema.get_type(fwdref=fwdref))
+                    elif type == "null":
+                        nullable = True
+                    else:
+                        raise ValueError(type)
+
             if len(r) == 1:
-                """this may be const related"""
-                if (v := getattr(schema, "const", None)) != None:
-                    r = Literal[v]
-                    nullable = False
-                else:
-                    r = r[0]
-            elif len(r) >= 1:
+                r = r[0]
+            elif len(r) > 1:
                 r = Union[tuple(r)]
             else:
-                raise ValueError("x")
+                r = None
             if nullable is True:
                 r = Optional[r]
         elif isinstance(schema, ReferenceBase):
@@ -512,6 +523,7 @@ class Model:  # (BaseModel):
         else:
             raise ValueError("x")
         return classinfo
+
     @staticmethod
     def fieldof_args(schema: "SchemaBase", args=None):
         if args is None:
@@ -545,8 +557,7 @@ class Model:  # (BaseModel):
                 }.items():
                     if (v := getattr(schema, k, None)) is not None:
                         args[m] = v
-            return Field(**args)
-        elif Model.is_type(schema, "string"):
+        if Model.is_type(schema, "string"):
             """
             https://docs.pydantic.dev/latest/usage/fields/#string-constraints
             """
@@ -556,7 +567,6 @@ class Model:  # (BaseModel):
 
             if (v := getattr(schema, "minLength", None)) is not None:
                 args["min_length"] = v
-            return Field(**args)
         return Field(**args)
 
     @staticmethod
