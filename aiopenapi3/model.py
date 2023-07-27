@@ -528,13 +528,20 @@ class Model:  # (BaseModel):
                         args[i] = v
                 classinfo.properties[name].default = Model.fieldof_args(f, args)
         else:
-            raise ValueError("x")
+            raise ValueError(schema.type)
         return classinfo
 
     @staticmethod
     def fieldof_args(schema: "SchemaBase", args=None):
         if args is None:
             args = dict(default=getattr(schema, "default", None))
+
+        # """
+        # readOnly & writeOnly are Optional default None
+        # """
+        # if (v:= (getattr(schema,"readOnly", None) or getattr(schema,"writeOnly", None))) is not None:
+        #     if "default" not in args:
+        #         args["default"] = None
 
         if Model.is_type(schema, "integer") or Model.is_type(schema, "number"):
             """
