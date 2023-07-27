@@ -414,6 +414,7 @@ class Model:  # (BaseModel):
             else:
                 for name, f in schema.properties.items():
                     r = None
+                    canbenull = True
                     try:
                         discriminator = next(filter(lambda x: name == x.propertyName, discriminators))
                         # the property is a discriminiator
@@ -430,6 +431,7 @@ class Model:  # (BaseModel):
                             # JSONPointer.decode required ?
                             literal = Path(JSONReference.split(shmanm[-1])[1]).parts[-1]
                             r = Literal[literal]
+                            canbenull = False
 
                         # this got Literal avoid getting Optional
                         classinfo.properties[Model.nameof(name)].annotation = r
@@ -437,11 +439,12 @@ class Model:  # (BaseModel):
                     except StopIteration:
                         r = Model.typeof(f, fwdref=fwdref)
 
-                    if getattr(f, "const", None) == None:
-                        """not const"""
-                        if (name not in schema.required or Model.is_nullable(f)):
-                            """not required - or nullable"""
-                            r = Optional[r]
+                    if canbenull:
+                        if getattr(f, "const", None) == None:
+                            """not const"""
+                            if name not in schema.required or Model.is_nullable(f):
+                                """not required - or nullable"""
+                                r = Optional[r]
 
                     classinfo.properties[Model.nameof(name)].annotation = r
 
