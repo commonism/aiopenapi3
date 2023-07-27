@@ -393,6 +393,12 @@ def with_schema_property_name_is_type():
 
 
 @pytest.fixture
+def with_schema_constraints():
+    yield _get_parsed_yaml("schema-constraints.yaml")
+
+
+
+@pytest.fixture
 def with_plugin_base():
     filename = "plugin-base.yaml"
     with (Path("tests/fixtures/") / filename).open("rt") as f:
@@ -408,3 +414,4 @@ def with_paths_requestbody_formdata_encoding():
 @pytest.fixture(scope="session")
 def with_paths_requestbody_formdata_wtforms():
     yield _get_parsed_yaml("paths-requestbody-formdata-wtforms.yaml")
+

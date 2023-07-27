@@ -323,3 +323,33 @@ def test_schema_create_update_read(with_schema_create_update_read):
     with pytest.raises(ValidationError):
         AB.model_validate(dict(b="b"))
     AB.model_validate(dict(b="b", a="a"))
+
+
+def test_schema_constraints(with_schema_constraints):
+    api = OpenAPI("/", with_schema_constraints)
+    A = (_A:=api.components.schemas["A"]).get_type()
+
+
+    for i in [0,1,5,6,10,11]:
+        if _A.maxLength >= i >= _A.minLength:
+            A("i" * i)
+        else:
+            with pytest.raises(ValidationError):
+                A("i"*i)
+
+    B = (_B:=api.components.schemas["B"]).get_type()
+    for i in range(0, 12):
+        if _B.exclusiveMaximum > i > _B.exclusiveMinimum:
+            B(i)
+        else:
+            with pytest.raises(ValidationError):
+                B(i)
+
+    C = (_C:=api.components.schemas["C"]).get_type()
+    for i in range(0, 12):
+        if i % _C.multipleOf != 0:
+            with pytest.raises(ValidationError):
+                C(i)
+        else:
+            C(i)
+
