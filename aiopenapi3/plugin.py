@@ -30,7 +30,11 @@ class Plugin(abc.ABC):
 class Init(Plugin):
     @dataclasses.dataclass
     class Context:
-        initialized: "OpenAPI"
+        initialized: "OpenAPI" = None
+        schema: Dict[str, "Schema"] = None
+
+    def schema(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
+        pass
 
     def initialized(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
         pass

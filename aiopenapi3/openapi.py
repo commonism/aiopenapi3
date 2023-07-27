@@ -351,6 +351,9 @@ class OpenAPI:
 
     @staticmethod
     def _iterate_schemas(schemas: Dict[int, SchemaBase], next: Set[int], processed: Set[int]):
+        """
+        recursively collect all schemas related to the starting set
+        """
         if not next:
             return processed
 
@@ -395,22 +398,20 @@ class OpenAPI:
 
         return OpenAPI._iterate_schemas(schemas, sets, processed)
 
-    def _init_schema_types(self):
+    def _init_schema_types_collect(self):
         byname: Dict[str, SchemaBase] = dict()
-        data: Set[int] = set()
+
         if isinstance(self._root, v20.Root):
             # Schema
             for byid in map(lambda x: x.definitions, self._documents.values()):
                 for name, schema in filter(lambda v: isinstance(v[1], SchemaBase), byid.items()):
                     byname[schema._get_identity(name=name)] = schema
-                    data.add(id(schema))
             # Request
 
             # Response
             for byid in map(lambda x: x.responses, self._documents.values()):
                 for name, response in filter(lambda v: isinstance(v[1].schema_, SchemaBase), byid.items()):
                     byname[response.schema_._get_identity(name=name)] = response.schema_
-                    data.add(id(response.schema_))
 
         elif isinstance(self._root, (v30.Root, v31.Root)):
             # Schema
@@ -418,7 +419,6 @@ class OpenAPI:
             for byid in map(lambda x: x.schemas, components):
                 for name, schema in filter(lambda v: isinstance(v[1], SchemaBase), byid.items()):
                     byname[schema._get_identity(name=name)] = schema
-                    data.add(id(schema))
 
             # Request
             for path, obj in (self.paths or dict()).items():
@@ -451,8 +451,12 @@ class OpenAPI:
                         if media_type.schema_ is None:
                             continue
                         byname[media_type.schema_._get_identity("R")] = media_type.schema_
-                        data.add(id(media_type.schema_))
 
+        byname = self.plugins.init.schema(initialized=self._root, schema=byname, paths=None).schema
+        return byname
+
+    def _init_schema_types(self):
+        byname: Dict[str, SchemaBase] = self._init_schema_types_collect()
         byid: Dict[int, SchemaBase] = {id(i): i for i in byname.values()}
         data: Set[int] = set(byid.keys())
         todo: Set[int] = self._iterate_schemas(byid, data, set())
