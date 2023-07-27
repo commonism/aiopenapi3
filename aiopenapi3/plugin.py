@@ -32,8 +32,12 @@ class Init(Plugin):
     class Context:
         initialized: "OpenAPI" = None
         schema: Dict[str, "Schema"] = None
+        paths: Dict[str, "PathItemBase"] = None
 
     def schema(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
+        pass
+
+    def paths(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
         pass
 
     def initialized(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
@@ -89,6 +93,9 @@ class Message(Plugin):
         """
         modify the text before sending
         """
+        pass
+
+    def _prepared(self, ctx: "Message.Context") -> "Message.Context":  # pragma: no cover
         pass
 
     def received(self, ctx: "Message.Context") -> "Message.Context":  # pragma: no cover
