@@ -234,9 +234,12 @@ class Model:  # (BaseModel):
         if classinfo.root:
             m = pydantic.create_model(type_name, __base__=(RootModel[classinfo.root],), __module__=me.__name__)
         else:
-
             m = pydantic.create_model(
-                type_name, __base__=(BaseModel,), __module__=me.__name__, model_config=classinfo.config, **classinfo.fields
+                type_name,
+                __base__=(BaseModel,),
+                __module__=me.__name__,
+                model_config=classinfo.config,
+                **classinfo.fields,
             )
         return m
 
@@ -525,17 +528,21 @@ class Model:  # (BaseModel):
                 if (v := getattr(schema, todo[0], None)) is not None:
                     args[todo[1]] = v
 
-                todo = [("maximum", "exclusiveMaximum", "le", "lt"),
-                        ("minimum", "exclusiveMinimum", "ge", "gt")]
+                todo = [("maximum", "exclusiveMaximum", "le", "lt"), ("minimum", "exclusiveMinimum", "ge", "gt")]
                 for v0, v1, t0, t1 in todo:
-                    if (v := getattr(schema, v0)):
+                    if v := getattr(schema, v0):
                         if getattr(schema, v1, False):  # exclusive
                             args[t1] = v
                         else:
                             args[t0] = v
             elif isinstance(schema, v31.Schema):
-                for k, m in {"multipleOf": "multiple_of", "exclusiveMaximum": "lt", "maximum": "le",
-                             "exclusiveMinimum": "gt", "minimum": "ge"}.items():
+                for k, m in {
+                    "multipleOf": "multiple_of",
+                    "exclusiveMaximum": "lt",
+                    "maximum": "le",
+                    "exclusiveMinimum": "gt",
+                    "minimum": "ge",
+                }.items():
                     if (v := getattr(schema, k, None)) is not None:
                         args[m] = v
             return Field(**args)
