@@ -158,7 +158,7 @@ class Model:  # (BaseModel):
                     i.get_type(
                         names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
                         discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
-                        extra=schema,
+                        extra=schema if schema.properties else None,
                     )
                     for i in schema.anyOf
                 )
@@ -172,7 +172,7 @@ class Model:  # (BaseModel):
                     i.get_type(
                         names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
                         discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
-                        extra=schema,
+                        extra=schema if schema.properties else None,
                     )
                     for i in schema.oneOf
                 )
