@@ -3,10 +3,9 @@ from __future__ import annotations
 import collections
 import dataclasses
 import logging
-import sys
 import re
+import sys
 from typing import Any, Set
-
 
 import pydantic
 import pydantic_core
@@ -27,7 +26,7 @@ else:
     from typing import List, Optional, Union, Tuple, Dict
     from typing_extensions import Annotated, Literal
 
-from pydantic import BaseModel, Extra, Field, RootModel
+from pydantic import BaseModel, Field, RootModel
 from .pydanticv2 import field_class_to_schema
 
 
@@ -60,7 +59,7 @@ def generate_type_format_to_class():
         if spec["type"] not in frozenset(["string", "number"]):
             continue
         type_format_to_class[spec["type"]][spec.get("format", None)] = cls
-    from pydantic import Base64Str, Base64Bytes
+    from pydantic import Base64Str
 
     type_format_to_class["string"]["byte"] = Base64Str
 
@@ -83,6 +82,18 @@ class _ClassInfo:
     properties: Dict[str, _PropertyInfo] = dataclasses.field(
         default_factory=lambda: collections.defaultdict(lambda: _ClassInfo._PropertyInfo())
     )
+
+    def validate(self):
+        report = list(filter(lambda i: not (i[1].annotation or i[0].startswith("aio3_")),self.properties.items()))
+        assert len(report) == 0, report
+
+    @property
+    def fields(self):
+        r = list()
+        for k, v in self.properties.items():
+            r.append((k, (v.annotation, v.default)))
+        return dict(r)
+
 
 
 class Model:  # (BaseModel):
@@ -136,10 +147,9 @@ class Model:  # (BaseModel):
 
         # do not create models for primitive types
         if type in ("string", "integer", "number", "boolean"):
-            if schema.format is None:
-                return Model.typeof(schema, _type=type)
-            else:
-                classinfo.root = Model.typeof(schema, _type=type)
+            if type == "boolean":
+                return bool
+            classinfo.root = Annotated[Model.typeof(schema, _type=type), Model.fieldof_args(schema, None)]
         elif type == "object":
             if hasattr(schema, "anyOf") and schema.anyOf:
                 assert all(schema.anyOf)
@@ -215,12 +225,13 @@ class Model:  # (BaseModel):
 
             classinfo.properties["aio3_additionalProperties"].default = property(mkx()[0])
 
+        classinfo.validate()
         if classinfo.root:
             m = pydantic.create_model(type_name, __base__=(RootModel[classinfo.root],), __module__=me.__name__)
         else:
-            properties = dict([(k, (v.annotation, v.default)) for k, v in classinfo.properties.items()])
+
             m = pydantic.create_model(
-                type_name, __base__=(BaseModel,), __module__=me.__name__, model_config=classinfo.config, **properties
+                type_name, __base__=(BaseModel,), __module__=me.__name__, model_config=classinfo.config, **classinfo.fields
             )
         return m
 
@@ -276,6 +287,10 @@ class Model:  # (BaseModel):
             return BaseModel
         if isinstance(schema, SchemaBase):
             nullable = False
+            """
+            Required, can be None: Optional[str]
+            Not required, can be None, is … by default: f4: Optional[str] = …
+            """
             r = list()
             for type in Model.types(schema) if not _type else [_type]:
                 if type == "integer":
@@ -311,7 +326,12 @@ class Model:  # (BaseModel):
                 else:
                     raise ValueError(type)
             if len(r) == 1:
-                r = r[0]
+                """this may be const related"""
+                if (v := getattr(schema, "const", None)) != None:
+                    r = Literal[v]
+                    nullable = False
+                else:
+                    r = r[0]
             elif len(r) >= 1:
                 r = Union[tuple(r)]
             else:
@@ -398,8 +418,11 @@ class Model:  # (BaseModel):
                     except StopIteration:
                         r = Model.typeof(f, fwdref=fwdref)
 
-                    if name not in schema.required or Model.is_nullable(f):
-                        r = Optional[r]
+                    if getattr(f, "const", None) == None:
+                        """not const"""
+                        if (name not in schema.required or Model.is_nullable(f)):
+                            """not required - or nullable"""
+                            r = Optional[r]
 
                     classinfo.properties[Model.nameof(name)].annotation = r
 
@@ -449,16 +472,12 @@ class Model:  # (BaseModel):
             return True
 
     @staticmethod
-    def or_type(schema: "SchemaBase", type_: str) -> bool:
-        return isinstance((t := schema.type), list) and len(t) == 2 and type_ in t
+    def or_type(schema: "SchemaBase", type_: str, l=2) -> bool:
+        return isinstance((t := schema.type), list) and (l is None or len(t) == l) and type_ in t
 
     @staticmethod
     def is_nullable(schema: "SchemaBase") -> bool:
-        return Model.is_type(schema, "null")
-
-    @staticmethod
-    def or_nullable(schema: "SchemaBase") -> bool:
-        return Model.or_type(schema, "null")
+        return Model.or_type(schema, "null", l=None) or getattr(schema, "nullable", False)
 
     @staticmethod
     def is_type_any(schema: "SchemaBase"):
@@ -468,19 +487,65 @@ class Model:  # (BaseModel):
     def fieldof(schema: "SchemaBase", classinfo: _ClassInfo):
         if schema.type == "array":
             return classinfo
+
         if Model.is_type(schema, "object") or Model.is_type_any(schema):
             for name, f in schema.properties.items():
+                f: SchemaBase
                 args = dict()
                 if name not in schema.required:
                     args["default"] = None
                 name = Model.nameof(name, args=args)
                 if Model.is_nullable(f):
-                    args["default"] = f"default-{name}"
+                    args["default"] = None
                 for i in ["default"]:
                     if (v := getattr(f, i, None)) is not None:
                         args[i] = v
-                classinfo.properties[name].default = Field(**args)
+                classinfo.properties[name].default = Model.fieldof_args(f, args)
+        else:
+            raise ValueError("x")
         return classinfo
+    @staticmethod
+    def fieldof_args(schema: "SchemaBase", args=None):
+        if args is None:
+            args = dict(default=getattr(schema, "default", None))
+
+        if Model.is_type(schema, "integer") or Model.is_type(schema, "number"):
+            """
+            https://docs.pydantic.dev/latest/usage/fields/#numeric-constraints
+            """
+            from . import v20, v30, v31
+
+            if isinstance(schema, (v20.Schema, v30.Schema)):
+                todo = ("multipleOf", "multiple_of")
+                if (v := getattr(schema, todo[0], None)) is not None:
+                    args[todo[1]] = v
+
+                todo = [("maximum", "exclusiveMaximum", "le", "lt"),
+                        ("minimum", "exclusiveMinimum", "ge", "gt")]
+                for v0, v1, t0, t1 in todo:
+                    if (v := getattr(schema, v0)):
+                        if getattr(schema, v1, False):  # exclusive
+                            args[t1] = v
+                        else:
+                            args[t0] = v
+            elif isinstance(schema, v31.Schema):
+                for k, m in {"multipleOf": "multiple_of", "exclusiveMaximum": "lt", "maximum": "le",
+                             "exclusiveMinimum": "gt", "minimum": "ge"}.items():
+                    if (v := getattr(schema, k, None)) is not None:
+                        args[m] = v
+            return Field(**args)
+        elif Model.is_type(schema, "string"):
+            """
+            https://docs.pydantic.dev/latest/usage/fields/#string-constraints
+            """
+
+            if (v := getattr(schema, "maxLength", None)) is not None:
+                args["max_length"] = v
+
+            if (v := getattr(schema, "minLength", None)) is not None:
+                args["min_length"] = v
+            return Field(**args)
+        return Field(**args)
 
     @staticmethod
     def nameof(name: str, args=None):

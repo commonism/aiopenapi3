@@ -1,0 +1,18 @@
+openapi: "3.1.0"
+info:
+  version: 1.0.0
+  title: enum test
+
+components:
+  schemas:
+    A:
+      type: string
+      minLength: 5
+      maxLength: 10
+    B:
+      type: number
+      exclusiveMinimum: 0
+      exclusiveMaximum: 10
+    C:
+      type: number
+      multipleOf: 2
