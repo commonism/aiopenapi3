@@ -241,7 +241,23 @@ class SchemaBase(BaseModel):
 
     _model_types: List["BaseModel"] = PrivateAttr(default_factory=list)
     """
-    the use of discriminators can change the semantics of a model - e.g. the Literal of the discriminator property
+    sub-schemas add the properties of the parent to the model of the subschemas
+
+    e.g.:
+
+    A:
+      type: object
+      allOf:
+      - B
+      - C
+      properties:
+        data: str
+
+    has to add 'A.data' to B - making B(&A) incompatible to B
+    same for C
+
+    A = Union[B(&A)|C(&A)]
+
     _model_types is used to store these different model representations of the same schema
     """
 
