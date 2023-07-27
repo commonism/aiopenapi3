@@ -481,6 +481,10 @@ class Model:  # (BaseModel):
                 if totalOf := sum([getattr(schema, i, []) for i in ["anyOf", "allOf", "oneOf"]], []):
                     tmp = set.union(*[set(Model.types(x)) for x in totalOf])
                     typesfilter |= tmp
+            #                    typesfilter.add("object")
+
+            #                if (v:=getattr(schema, "items", None)) is None and "array" not in typesfilter:
+            #                    values.discard("array")
 
             if typesfilter:
                 values = values & typesfilter
@@ -490,7 +494,7 @@ class Model:  # (BaseModel):
 
     @staticmethod
     def is_type(schema: "SchemaBase", type_) -> bool:
-        if isinstance(schema.type, str) and schema.type == type_ or Model.or_type(schema, type_):
+        if isinstance(schema.type, str) and schema.type == type_ or Model.or_type(schema, type_, l=None):
             return True
 
     @staticmethod
