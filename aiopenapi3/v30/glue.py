@@ -283,9 +283,12 @@ class Request(RequestBase):
             ).marshalled
             data = json.dumps(data)
             data = data.encode()
-            data = self.api.plugins.message.sending(operationId=self.operation.operationId, sending=data).sending
-            self.req.content = data
             self.req.headers["Content-Type"] = "application/json"
+            ctx = self.api.plugins.message.sending(
+                operationId=self.operation.operationId, sending=data, headers=self.req.headers
+            )
+            self.req.content = ctx.sending
+            self.req.headers = ctx.headers
         elif (ct := "multipart/form-data") in self.operation.requestBody.content:
             """
             https://swagger.io/docs/specification/describing-request-body/multipart-requests/
