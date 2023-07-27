@@ -120,7 +120,7 @@ class Paths(PathsBase):
 
     @model_validator(mode="before")
     def validate_Paths(cls, values):
-        assert values is not None
+        assert values is not None and isinstance(values, dict)
         p = {}
         e = {}
         for k, v in values.items():
