@@ -6,6 +6,7 @@ import logging
 import re
 import sys
 from typing import Any, Set
+import typing
 
 import pydantic
 import pydantic_core
@@ -149,7 +150,11 @@ class Model:  # (BaseModel):
         if type in ("string", "integer", "number", "boolean"):
             if type == "boolean":
                 return bool
-            classinfo.root = Annotated[Model.typeof(schema, _type=type), Model.fieldof_args(schema, None)]
+
+            if typing.get_origin((_t := Model.typeof(schema, _type=type))) != Literal:
+                classinfo.root = Annotated[_t, Model.fieldof_args(schema, None)]
+            else:
+                classinfo.root = _t
         elif type == "object":
             if hasattr(schema, "anyOf") and schema.anyOf:
                 assert all(schema.anyOf)
