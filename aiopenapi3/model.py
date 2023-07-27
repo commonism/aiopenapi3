@@ -86,7 +86,7 @@ class _ClassInfo:
     )
 
     def validate(self):
-        report = list(filter(lambda i: not (i[1].annotation or i[0].startswith("aio3_")),self.properties.items()))
+        report = list(filter(lambda i: not (i[1].annotation or i[0].startswith("aio3_")), self.properties.items()))
         assert len(report) == 0, report
 
     @property
