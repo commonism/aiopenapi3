@@ -1,3 +1,4 @@
+import warnings
 from typing import Optional, Any, List, Dict, ForwardRef, Union
 
 import re
@@ -107,14 +108,65 @@ class RootBase:
                 value = getattr(obj, slot)
                 if value is None:
                     continue
-
+                if isinstance(value, (str, int, bool, float)):
+                    continue
                 # v3.1 - Schema $ref
                 if isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root)):
                     if isinstance(value, SchemaBase):
-                        r = getattr(value, "ref", None)
-                        if r and not isinstance(r, ReferenceBase):
+                        if (r := getattr(value, "ref", None)) and not isinstance(r, ReferenceBase):
                             value = _Reference.model_construct(ref=r)
                             setattr(obj, slot, value)
+
+                if isinstance(root, (v30.root.Root, v31.root.Root)):
+                    if isinstance(value, DiscriminatorBase):
+                        """
+                        Discriminated Unions - implementing undefined behavior
+                        sub-schemas not having the discriminated property "const" or enum or mismatching the mapping
+                        are a problem
+                        pydantic requires these to be mapping Literal and unique
+                        creating a seperate Model for the sub-schema with the mapping Literal is possible
+                        but makes using them horrible
+
+                        we warn about it and force feed the mapping Literal to make it work
+                        """
+
+                        if not value.mapping:
+                            raise ValueError("x")
+                            value.mapping = dict()
+                            import Path
+                            from .json import JSONReference
+
+                            for v in (value.oneOf or []) + (value.anyOf or []):
+                                k = Path(JSONReference.split(v)[1]).parts[-1]
+                                value.mapping[k] = v
+
+                        for k, v in value.mapping.items():
+                            if not isinstance(v, _Reference):
+                                value.mapping[k] = _Reference.model_construct(ref=v)
+                            else:
+                                if (p := v.properties.get(value.propertyName, None)) is None:
+                                    continue
+                                from . import errors
+
+                                if (c := getattr(p, "const", None)) is None and len(p.enum or []) == 0:
+                                    warnings.warn(
+                                        f"Discriminated Union member {v.ref} without const/enum key property {value.propertyName}",
+                                        category=errors.BaseWarning,
+                                    )
+                                    v.properties[value.propertyName].enum = [k]
+                                else:
+                                    if c and c != k:
+                                        warnings.warn(
+                                            f"Discriminated Union member key property const mismatches property mapping {c} != {k}",
+                                            category=errors.BaseWarning,
+                                        )
+                                        v.properties[value.propertyName].const = k
+                                    if p.enum and (len(p.enum) != 1 or p.enum[0] != k):
+                                        warnings.warn(
+                                            f"Discriminated Union member key property enum mismatches property mapping {p.enum[0]} != {k}",
+                                            category=errors.BaseWarning,
+                                        )
+                                        v.properties[value.propertyName].enum = [k]
 
                 if not isinstance(value, ReferenceBase):
                     """
