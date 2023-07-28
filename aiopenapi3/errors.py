@@ -1,9 +1,15 @@
 import dataclasses
 
+
+class BaseError(Exception):
+    pass
+
+
 class BaseWarning(UserWarning):
     pass
 
-class SpecError(ValueError):
+
+class SpecError(BaseError, ValueError):
     """
     This error class is used when an invalid format is found while parsing an
     object in the spec.
@@ -37,7 +43,7 @@ class OperationParameterValidationError(SpecError):
     message: str
 
 
-class ParameterFormatError(ValueError):
+class ParameterFormatError(BaseError):
     """
     The specified parameter encoding is invalid for the parameter family
     """
@@ -45,7 +51,7 @@ class ParameterFormatError(ValueError):
     pass
 
 
-class HTTPError(ValueError):
+class HTTPError(BaseError):
     pass
 
 
