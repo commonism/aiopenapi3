@@ -1,4 +1,3 @@
-
 openapi: "3.1.0"
 info:
   version: 1.0.0
@@ -13,7 +12,6 @@ components:
       properties:
         object_type:
           type: string
-          enum: ["a"]
         a:
           type: string
 
@@ -24,26 +22,37 @@ components:
       properties:
         object_type:
           type: string
-          enum: ["b"]
+          enum: ["f"]
         b:
           type: string
 
+    C:
+      title: B
+      type: object
+      additionalProperties: False
+      properties:
+        object_type:
+          type: string
+#          const: "f"
+        c:
+          type: string
 
-
-    AB:
+    ABC:
       title: AB
       type: object
       additionalProperties: False
       oneOf:
         - $ref: '#/components/schemas/A'
         - $ref: '#/components/schemas/B'
+        - $ref: '#/components/schemas/C'
       discriminator:
         propertyName: object_type
         mapping:
           a: '#/components/schemas/A'
           b: '#/components/schemas/B'
+          c: '#/components/schemas/C'
 
     L:
       type: array
       items:
-        $ref: '#/components/schemas/AB'
+        $ref: '#/components/schemas/ABC'

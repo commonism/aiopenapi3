@@ -303,6 +303,11 @@ def with_schema_discriminated_union(openapi_version):
 
 
 @pytest.fixture
+def with_schema_discriminated_union_warning(openapi_version):
+    yield _get_parsed_yaml("schema-discriminated-union-warning.yaml", openapi_version)
+
+
+@pytest.fixture
 def with_schema_discriminated_union_deep():
     yield _get_parsed_yaml("schema-discriminated-union-deep.yaml")
 
@@ -397,7 +402,6 @@ def with_schema_constraints():
     yield _get_parsed_yaml("schema-constraints.yaml")
 
 
-
 @pytest.fixture
 def with_plugin_base():
     filename = "plugin-base.yaml"
@@ -414,4 +418,3 @@ def with_paths_requestbody_formdata_encoding():
 @pytest.fixture(scope="session")
 def with_paths_requestbody_formdata_wtforms():
     yield _get_parsed_yaml("paths-requestbody-formdata-wtforms.yaml")
-

@@ -6,6 +6,7 @@ info:
 components:
   schemas:
     A:
+      title: A
       type: object
       additionalProperties:
         type: integer
