@@ -1,5 +1,7 @@
 import dataclasses
 
+class BaseWarning(UserWarning):
+    pass
 
 class SpecError(ValueError):
     """

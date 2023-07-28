@@ -12,12 +12,11 @@ import pydantic
 import pydantic_core
 
 if sys.version_info >= (3, 9):
-    from pathlib import Path
+    pass
 else:
     from pathlib3x import Path
 
 
-from .json import JSONReference
 from .base import ReferenceBase, SchemaBase
 from . import me
 
@@ -158,7 +157,6 @@ class Model:  # (BaseModel):
         elif type == "object":
             if hasattr(schema, "anyOf") and schema.anyOf:
                 assert all(schema.anyOf)
-                #                types_ |= set(map(lambda x: x.type, schema.anyOf))
                 t = tuple(
                     i.get_type(
                         names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
@@ -415,29 +413,9 @@ class Model:  # (BaseModel):
                 for name, f in schema.properties.items():
                     r = None
                     canbenull = True
-                    try:
-                        discriminator = next(filter(lambda x: name == x.propertyName, discriminators))
-                        # the property is a discriminiator
-                        if discriminator.mapping:
-                            for disc, v in discriminator.mapping.items():
-                                # lookup the mapping value for the schema
-                                if v in shmanm:
-                                    r = Literal[disc]
-                                    break
-                            else:
-                                raise ValueError(f"unmatched discriminator in mapping for {schema}")
-                        else:
-                            # the discriminator lacks a mapping, use the last name
-                            # JSONPointer.decode required ?
-                            literal = Path(JSONReference.split(shmanm[-1])[1]).parts[-1]
-                            r = Literal[literal]
-                            canbenull = False
-
-                        # this got Literal avoid getting Optional
-                        classinfo.properties[Model.nameof(name)].annotation = r
-                        continue
-                    except StopIteration:
-                        r = Model.typeof(f, fwdref=fwdref)
+                    r = Model.typeof(f, fwdref=fwdref)
+                    if typing.get_origin(r) == Literal:
+                        canbenull = False
 
                     if canbenull:
                         if getattr(f, "const", None) == None:
