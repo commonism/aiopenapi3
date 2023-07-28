@@ -246,7 +246,7 @@ class OpenAPI:
         self._init_operationindex(use_operation_tags)
         self._init_schema_types()
 
-        self.plugins.init.initialized(initialized=self._root)
+        self.plugins.init.initialized(initialized=self._root, schema=None)
 
     def _init_plugins(self, plugins):
         for i in plugins or []:
@@ -452,7 +452,7 @@ class OpenAPI:
                             continue
                         byname[media_type.schema_._get_identity("R")] = media_type.schema_
 
-        byname = self.plugins.init.schema(initialized=self._root, schema=byname, paths=None).schema
+        byname = self.plugins.init.schema(initialized=self._root, schema=byname).schema
         return byname
 
     def _init_schema_types(self):
@@ -649,14 +649,14 @@ class OpenAPI:
         with path.open("rb") as f:
             api = pickle.load(f)
 
+        api._init_plugins(plugins)
+
         api._init_schema_types()
 
         if session_factory is not None:
             api._session_factory = session_factory
 
-        if plugins is not None:
-            api._init_plugins(plugins)
-            api.plugins.init.initialized(initialized=api._root)
+        api.plugins.init.initialized(initialized=api._root)
 
         return api
 
