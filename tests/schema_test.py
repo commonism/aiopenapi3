@@ -1,3 +1,4 @@
+import copy
 import typing
 import sys
 from unittest.mock import MagicMock, patch
@@ -78,8 +79,8 @@ def test_schema_recursion(with_schema_recursion):
     assert b.a.ofA == 1
 
     D = api.components.schemas["D"].get_type()
-    d = api.components.schemas["D"].get_type().model_construct(E="e", F=[D(e="esub")])
-    assert d.F[0].e == "esub"
+    d = api.components.schemas["D"].get_type().model_construct(E="e", F=[D(E="esub")])
+    assert d.F[0].E == "esub"
 
 
 def test_schema_self_recursion(with_schema_self_recursion):
@@ -302,12 +303,38 @@ def test_schema_with_patternProperties(with_schema_patternProperties):
 
 
 def test_schema_discriminated_union(with_schema_discriminated_union):
+    from aiopenapi3.errors import BaseWarning
+
     api = OpenAPI("/", with_schema_discriminated_union)
+
+
+def test_schema_discriminated_union_warnings(with_schema_discriminated_union_warning, openapi_version):
+    from aiopenapi3.errors import BaseWarning
+
+    with pytest.warns(BaseWarning, match=r"Discriminated Union member \S+ without const/enum key property \S+"):
+        api = OpenAPI("/", with_schema_discriminated_union_warning)
+
+    with pytest.warns(
+        BaseWarning, match=r"Discriminated Union member key property enum mismatches property mapping \S+ \!= \S+"
+    ):
+        api = OpenAPI("/", with_schema_discriminated_union_warning)
+
+    if (openapi_version.major, openapi_version.minor, openapi_version.patch) >= (3, 1, 0):
+        s = copy.deepcopy(with_schema_discriminated_union_warning)
+        #        del s["components"]["schemas"]["C"]["properties"]["object_type"]["enum"]
+        s["components"]["schemas"]["C"]["properties"]["object_type"]["const"] = "f"
+        with pytest.warns(
+            BaseWarning, match=r"Discriminated Union member key property const mismatches property mapping \S+ \!= \S+"
+        ):
+            api = OpenAPI("/", s)
 
 
 def test_schema_discriminated_union_deep(with_schema_discriminated_union_deep):
     api = OpenAPI("/", with_schema_discriminated_union_deep)
     Dog = api.components.schemas["Dog"].get_type()
+    Pet = api.components.schemas["Pet"].get_type()
+    dog = Dog.model_construct()
+    pet = Pet(dog)
 
     d = Dog.model_construct()
     return None
@@ -327,17 +354,16 @@ def test_schema_create_update_read(with_schema_create_update_read):
 
 def test_schema_constraints(with_schema_constraints):
     api = OpenAPI("/", with_schema_constraints)
-    A = (_A:=api.components.schemas["A"]).get_type()
+    A = (_A := api.components.schemas["A"]).get_type()
 
-
-    for i in [0,1,5,6,10,11]:
+    for i in [0, 1, 5, 6, 10, 11]:
         if _A.maxLength >= i >= _A.minLength:
             A("i" * i)
         else:
             with pytest.raises(ValidationError):
-                A("i"*i)
+                A("i" * i)
 
-    B = (_B:=api.components.schemas["B"]).get_type()
+    B = (_B := api.components.schemas["B"]).get_type()
     for i in range(0, 12):
         if _B.exclusiveMaximum > i > _B.exclusiveMinimum:
             B(i)
@@ -345,11 +371,10 @@ def test_schema_constraints(with_schema_constraints):
             with pytest.raises(ValidationError):
                 B(i)
 
-    C = (_C:=api.components.schemas["C"]).get_type()
+    C = (_C := api.components.schemas["C"]).get_type()
     for i in range(0, 12):
         if i % _C.multipleOf != 0:
             with pytest.raises(ValidationError):
                 C(i)
         else:
             C(i)
-
