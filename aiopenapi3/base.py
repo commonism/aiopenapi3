@@ -151,20 +151,20 @@ class RootBase:
                                 if (c := getattr(p, "const", None)) is None and len(p.enum or []) == 0:
                                     warnings.warn(
                                         f"Discriminated Union member {v.ref} without const/enum key property {value.propertyName}",
-                                        category=errors.BaseWarning,
+                                        category=errors.DiscriminatorWarning,
                                     )
                                     v.properties[value.propertyName].enum = [k]
                                 else:
                                     if c and c != k:
                                         warnings.warn(
                                             f"Discriminated Union member key property const mismatches property mapping {c} != {k}",
-                                            category=errors.BaseWarning,
+                                            category=errors.DiscriminatorWarning,
                                         )
                                         v.properties[value.propertyName].const = k
                                     if p.enum and (len(p.enum) != 1 or p.enum[0] != k):
                                         warnings.warn(
                                             f"Discriminated Union member key property enum mismatches property mapping {p.enum[0]} != {k}",
-                                            category=errors.BaseWarning,
+                                            category=errors.DiscriminatorWarning,
                                         )
                                         v.properties[value.propertyName].enum = [k]
 

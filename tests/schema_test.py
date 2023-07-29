@@ -303,19 +303,20 @@ def test_schema_with_patternProperties(with_schema_patternProperties):
 
 
 def test_schema_discriminated_union(with_schema_discriminated_union):
-    from aiopenapi3.errors import BaseWarning
-
     api = OpenAPI("/", with_schema_discriminated_union)
 
 
 def test_schema_discriminated_union_warnings(with_schema_discriminated_union_warning, openapi_version):
-    from aiopenapi3.errors import BaseWarning
+    from aiopenapi3.errors import DiscriminatorWarning
 
-    with pytest.warns(BaseWarning, match=r"Discriminated Union member \S+ without const/enum key property \S+"):
+    with pytest.warns(
+        DiscriminatorWarning, match=r"Discriminated Union member \S+ without const/enum key property \S+"
+    ):
         api = OpenAPI("/", with_schema_discriminated_union_warning)
 
     with pytest.warns(
-        BaseWarning, match=r"Discriminated Union member key property enum mismatches property mapping \S+ \!= \S+"
+        DiscriminatorWarning,
+        match=r"Discriminated Union member key property enum mismatches property mapping \S+ \!= \S+",
     ):
         api = OpenAPI("/", with_schema_discriminated_union_warning)
 
@@ -324,7 +325,8 @@ def test_schema_discriminated_union_warnings(with_schema_discriminated_union_war
         #        del s["components"]["schemas"]["C"]["properties"]["object_type"]["enum"]
         s["components"]["schemas"]["C"]["properties"]["object_type"]["const"] = "f"
         with pytest.warns(
-            BaseWarning, match=r"Discriminated Union member key property const mismatches property mapping \S+ \!= \S+"
+            DiscriminatorWarning,
+            match=r"Discriminated Union member key property const mismatches property mapping \S+ \!= \S+",
         ):
             api = OpenAPI("/", s)
 

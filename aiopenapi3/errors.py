@@ -9,6 +9,10 @@ class BaseWarning(UserWarning):
     pass
 
 
+class DiscriminatorWarning(BaseWarning):
+    pass
+
+
 class SpecError(BaseError, ValueError):
     """
     This error class is used when an invalid format is found while parsing an
