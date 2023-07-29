@@ -57,6 +57,9 @@ class OnMessage(Message):
             if (c := i.get("category", None)) is None or not isinstance(c, dict):
                 i["category"] = dict(id=0, name="default")
 
+            if (c := i.get("name", None)) is None or not isinstance(c, str):
+                i["name"] = ""
+
             if False:
                 if i.get("id", None) is None:
                     i["id"] = 0
