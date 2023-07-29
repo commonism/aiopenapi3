@@ -5,10 +5,16 @@ import re
 import builtins
 import keyword
 import uuid
+import sys
+
+if sys.version_info >= (3, 9):
+    from pathlib import Path
+else:
+    from pathlib3x import Path
 
 from pydantic import BaseModel, Field, AnyUrl, model_validator, PrivateAttr
 
-from .json import JSONPointer
+from .json import JSONPointer, JSONReference
 from .errors import ReferenceResolutionError, OperationParameterValidationError
 
 # from . import me
@@ -131,22 +137,29 @@ class RootBase:
                         """
 
                         if not value.mapping:
-                            raise ValueError("x")
                             value.mapping = dict()
-                            import Path
-                            from .json import JSONReference
 
-                            for v in (value.oneOf or []) + (value.anyOf or []):
-                                k = Path(JSONReference.split(v)[1]).parts[-1]
+                            for v in (obj.oneOf or []) + (obj.anyOf or []):
+                                k = Path(JSONReference.split(v.ref)[1]).parts[-1]
                                 value.mapping[k] = v
 
                         for k, v in value.mapping.items():
                             if not isinstance(v, _Reference):
                                 value.mapping[k] = _Reference.model_construct(ref=v)
                             else:
-                                if (p := v.properties.get(value.propertyName, None)) is None:
+                                if v._target is None:
                                     continue
+                                from .model import Model
                                 from . import errors
+
+                                if not "object" in (t := sorted(Model.types(v._target))):
+                                    raise errors.SpecError(f"Discriminated Union on a schema with types {t}")
+
+                                if (p := v.properties.get(value.propertyName, None)) is None:
+                                    # Warning Model 'Volume' needs a discriminator field for key 'type'
+                                    p = v.properties[value.propertyName] = v._target.__class__(
+                                        type="string", additionalProperties=False, enum=[k]
+                                    )
 
                                 if (c := getattr(p, "const", None)) is None and len(p.enum or []) == 0:
                                     warnings.warn(
