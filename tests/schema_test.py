@@ -306,6 +306,15 @@ def test_schema_discriminated_union(with_schema_discriminated_union):
     api = OpenAPI("/", with_schema_discriminated_union)
 
 
+def test_schema_discriminated_union_discriminator_name(with_schema_discriminated_union_discriminator_name):
+    api = OpenAPI("/", with_schema_discriminated_union_discriminator_name)
+
+
+def test_schema_discriminated_union_array(with_schema_discriminated_union_array):
+    with pytest.raises(aiopenapi3.errors.SpecError):
+        api = OpenAPI("/", with_schema_discriminated_union_array)
+
+
 def test_schema_discriminated_union_warnings(with_schema_discriminated_union_warning, openapi_version):
     from aiopenapi3.errors import DiscriminatorWarning
 
