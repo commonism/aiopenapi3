@@ -1,0 +1,27 @@
+
+openapi: "3.1.0"
+info:
+  version: 1.0.0
+  title: aliased discriminator key
+
+components:
+  schemas:
+    A:
+      title: A
+      type: object
+      additionalProperties: False
+      properties:
+        t-d:
+          type: string
+          enum: ["a"]
+
+    AB:
+      title: AB
+      type: object
+      additionalProperties: False
+      oneOf:
+        - $ref: '#/components/schemas/A'
+      discriminator:
+        propertyName: t-d
+        mapping:
+          a: '#/components/schemas/A'
