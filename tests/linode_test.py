@@ -6,7 +6,7 @@ import pytest_asyncio
 
 class LinodeDiscriminators(aiopenapi3.plugin.Document):
     def parsed(self, ctx):
-        if False:
+        if True:
             ctx.document["paths"]["/tags/{label}"]["get"]["responses"]["200"]["content"]["application/json"]["schema"][
                 "properties"
             ]["data"]["items"]["properties"]["data"]["discriminator"].update(
@@ -71,12 +71,13 @@ class LinodeDiscriminators(aiopenapi3.plugin.Document):
 async def api():
     from aiopenapi3.loader import NullLoader, YAMLCompatibilityLoader
 
-    return await OpenAPI.load_async(
-        "https://www.linode.com/docs/api/openapi.yaml",
-        loader=NullLoader(YAMLCompatibilityLoader),
-        plugins=[LinodeDiscriminators()],
-        use_operation_tags=False,
-    )
+    with pytest.warns(aiopenapi3.errors.DiscriminatorWarning):
+        return await OpenAPI.load_async(
+            "https://www.linode.com/docs/api/openapi.yaml",
+            loader=NullLoader(YAMLCompatibilityLoader),
+            plugins=[LinodeDiscriminators()],
+            use_operation_tags=False,
+        )
 
 
 from typing import ForwardRef
