@@ -166,11 +166,12 @@ class Model:  # (BaseModel):
                     for i in schema.anyOf
                 )
                 if schema.discriminator and schema.discriminator.mapping:
-                    classinfo.root = Annotated[Union[t], Field(discriminator=schema.discriminator.propertyName)]
+                    classinfo.root = Annotated[
+                        Union[t], Field(discriminator=Model.nameof(schema.discriminator.propertyName))
+                    ]
                 else:
                     classinfo.root = Union[t]
             elif hasattr(schema, "oneOf") and schema.oneOf:
-                #                types_ &= set(map(lambda x: x.type, schema.anyOf))
                 t = tuple(
                     i.get_type(
                         names=schemanames + ([i.ref] if isinstance(i, ReferenceBase) else []),
@@ -181,7 +182,9 @@ class Model:  # (BaseModel):
                 )
 
                 if schema.discriminator and schema.discriminator.mapping:
-                    classinfo.root = Annotated[Union[t], Field(discriminator=schema.discriminator.propertyName)]
+                    classinfo.root = Annotated[
+                        Union[t], Field(discriminator=Model.nameof(schema.discriminator.propertyName))
+                    ]
                 else:
                     classinfo.root = Union[t]
             else:
@@ -203,7 +206,6 @@ class Model:  # (BaseModel):
 
                     classinfo.properties["aio3_patternProperties"].default = mkx()
                 if schema.allOf:
-                    #                    types_ &= set(map(lambda x: x.type, schema.allOf))
                     for i in schema.allOf:
                         Model.annotationsof(i, discriminators, schemanames, classinfo, fwdref=True)
                         Model.fieldof(i, classinfo)
