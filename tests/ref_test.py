@@ -57,9 +57,12 @@ def test_allOf_resolution(petstore_expanded):
     assert issubclass(ref, RootModel)
     assert typing.get_origin(ref.model_fields["root"].annotation) == list
 
-    fwd = typing.get_args(ref.model_fields["root"].annotation)[0]
-    assert isinstance(fwd, ForwardRef)
-    pet = fwd.__forward_value__
+    pet = typing.get_args(ref.model_fields["root"].annotation)[0]
+    if isinstance(pet, ForwardRef):
+        pet = pet.__forward_value__
+    else:
+        # pydantic >= 2.0.3
+        pass
     items = pet.model_fields
 
     assert sorted(items.keys()) == ["id", "name", "tag"]
