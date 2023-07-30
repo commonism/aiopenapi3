@@ -11,7 +11,7 @@ dependencies = [
     "yarl==1.8.1",
     "httpx",
     "more-itertools",
-    'typing_extensions; python_version<"3.8"',
+    'typing_extensions; python_version<"3.9"',
     'pathlib3x; python_version<"3.9"',
     "jmespath",
 ]
@@ -48,21 +48,6 @@ Documentation = "aiopenapi3.readthedocs.io/"
 Repository = "https://github.com/commonism/aiopenapi3"
 
 [project.optional-dependencies]
-tests = [
-    "pytest",
-    "pytest-asyncio",
-    "pytest-httpx",
-    "pytest-cov",
-    "fastapi @ git+https://github.com/tiangolo/fastapi.git",
-    "fastapi-versioning",
-    "hypercorn",
-    "uvloop",
-    "flask",
-    "flask_bootstrap",
-    "flask_wtf",
-    "wtforms",
-    "asgiref",
-]
 auth = [
     "httpx-auth",
 ]
@@ -106,3 +91,20 @@ log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(linen
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
 addopts = "--ignore-glob 'tests/my_*.py'"
+
+[tool.pdm.dev-dependencies]
+tests = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-httpx",
+    "pytest-cov",
+    "fastapi @ git+https://github.com/tiangolo/fastapi.git",
+    "fastapi-versioning",
+    "hypercorn",
+    "uvloop",
+    "flask",
+    "flask_bootstrap",
+    "flask_wtf",
+    "wtforms",
+    "asgiref",
+]
