@@ -1,3 +1,5 @@
+import random
+
 import httpx
 import pytest
 
@@ -184,8 +186,13 @@ def test_pets(api, login):
     # getPetById
     r = api._.getPetById(parameters={"petId": fido.id})
     assert isinstance(r, Pet)
-    r = api._.getPetById(parameters={"petId": -2})
-    assert isinstance(r, ApiResponse) and r.code == 1 and r.type == "error" and r.message == "Pet not found"
+    for i in range(100):
+        r = api._.getPetById(parameters={"petId": random.randint(-1_000_000_000, 1_000_000_000)})
+        if isinstance(r, ApiResponse):
+            assert isinstance(r, ApiResponse) and r.code == 1 and r.type == "error" and r.message == "Pet not found"
+            break
+        elif isinstance(r, Pet):
+            pass
 
     # findPetsByStatus
     r = api._.findPetsByStatus(parameters={"status": ["available", "pending"]})

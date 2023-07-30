@@ -20,8 +20,8 @@ import aiopenapi3
 from aiopenapi3 import OpenAPI
 from aiopenapi3.v31.schemas import Schema
 
-from tests.api.main import app
-from tests.api.v2.schema import Dog as _Dog
+from api.main import app
+from api.v2.schema import Dog as _Dog
 
 # pytest.skip(allow_module_level=True)
 
