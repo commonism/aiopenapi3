@@ -166,9 +166,7 @@ class Model:  # (BaseModel):
                     for i in schema.anyOf
                 )
                 if schema.discriminator and schema.discriminator.mapping:
-                    classinfo.root = Annotated[
-                        Union[t], Field(discriminator=Model.nameof(schema.discriminator.propertyName))
-                    ]
+                    classinfo.root = Annotated[Union[t], Field(discriminator=schema.discriminator.propertyName)]
                 else:
                     classinfo.root = Union[t]
             elif hasattr(schema, "oneOf") and schema.oneOf:
