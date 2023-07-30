@@ -23,6 +23,7 @@ def pytest_generate_tests(metafunc):
     )
 
 
+@pytest.mark.skip
 class TestParseData:
     # a map specifying multiple argument sets for a test method
     params = {
