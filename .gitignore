@@ -9,3 +9,4 @@ dist/*
 tests/data/
 tests/my_*.py
 docs/build/
+.pdm-python
