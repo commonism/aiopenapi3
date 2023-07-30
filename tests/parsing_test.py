@@ -165,49 +165,6 @@ def test_schema_allof_discriminator(with_schema_allof_discriminator):
     obj1_ = api.components.schemas["ObjectBaseType"].get_type().model_validate_json(data)
 
 
-def test_schema_enum(with_schema_enum):
-    import copy
-    import json
-
-    data = copy.deepcopy(with_schema_enum)  # .deepcopy()
-    import aiopenapi3.errors
-
-    with pytest.warns(aiopenapi3.errors.DiscriminatorWarning):
-        api = OpenAPI.loads(URLBASE, json.dumps(data))  # , plugins=[linode_test.LinodeDiscriminators()])
-        import datetime
-
-        s = api.components.schemas["PaymentMethod"]
-        pm = s.get_type()
-        gp = api.components.schemas["GooglePayData"].get_type()
-
-        pay = pm(
-            created=datetime.datetime.now(),
-            id=5,
-            is_default=True,
-            data={"type": "google_pay", "card_type": "Disco", "last_four": "4444", "expiry": "05/2021"},
-        )
-        data = pay.model_dump_json()
-        pay_ = pm.model_validate_json(data)
-        assert pay == pay_
-
-        with pytest.raises(ValidationError):
-            pay = pm(
-                created=datetime.datetime.now(),
-                id=5,
-                is_default=True,
-                data={"type": "no_pay", "card_type": "Disco", "last_four": "4444", "expiry": "05/2021"},
-            )
-
-        pp = api.components.schemas["PayPalData"].get_type()(email="a@b.de", paypal_id="1")
-        assert pp.model_dump()["type"] == "paypal"
-
-        e = api.components.schemas["EnumRef"].get_type().model_validate({"id": "good"})
-        assert e.model_dump() == {"id": "good"}
-        if api.components.schemas["EnumRef"].model_config.get("validate_assignment", False) == True:
-            with pytest.raises(ValidationError):
-                e.id = "bad"
-
-
 def test_parsing_properties_empty_name(with_parsing_schema_properties_name_empty):
     with pytest.raises(ValueError, match=r"empty property name"):
         OpenAPI("/", with_parsing_schema_properties_name_empty)

@@ -389,3 +389,45 @@ def test_schema_constraints(with_schema_constraints):
                 C(i)
         else:
             C(i)
+
+
+def test_schema_enum(with_schema_enum):
+    api = OpenAPI("/", with_schema_enum)
+    Integer = api.components.schemas["Integer"].get_type()
+    Integer(2)
+    with pytest.raises(ValidationError):
+        Integer(5)
+    with pytest.raises(ValidationError):
+        Integer(None)
+
+    String = api.components.schemas["String"].get_type()
+    String("a")
+    with pytest.raises(ValidationError):
+        String("c")
+    with pytest.raises(ValidationError):
+        String(None)
+
+    Nullable = api.components.schemas["Nullable"].get_type()
+    Nullable("a")
+    Nullable(None)
+    with pytest.raises(ValidationError):
+        Nullable("c")
+
+    Mixed = api.components.schemas["Mixed"].get_type()
+    Mixed(1)
+    Mixed("good")
+    Mixed("yes")
+    Mixed(True)
+    Mixed(None)
+    with pytest.raises(ValidationError):
+        Mixed(2)
+
+
+def test_schema_enum_object(with_schema_enum_object):
+    with pytest.raises(NotImplementedError, match="complex enums/const are not supported"):
+        api = OpenAPI("/", with_schema_enum_object)
+
+
+def test_schema_enum_array(with_schema_enum_array):
+    with pytest.raises(NotImplementedError, match="complex enums/const are not supported"):
+        api = OpenAPI("/", with_schema_enum_array)

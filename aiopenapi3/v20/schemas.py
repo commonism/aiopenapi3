@@ -34,7 +34,7 @@ class Schema(ObjectExtended, SchemaBase):
     maxProperties: Optional[int] = Field(default=None)
     minProperties: Optional[int] = Field(default=None)
     required: Optional[List[str]] = Field(default_factory=list)
-    enum: Optional[list] = Field(default=None)
+    enum: Optional[List[Any]] = Field(default=None)
     type: Optional[str] = Field(default=None)
 
     items: Optional[Union[List[Union["Schema", Reference]], Union["Schema", Reference]]] = Field(default=None)

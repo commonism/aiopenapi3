@@ -328,8 +328,18 @@ def with_schema_create_update_read():
 
 
 @pytest.fixture
-def with_schema_enum(openapi_version):
-    yield _get_parsed_yaml("schema-enum.yaml", openapi_version)
+def with_schema_enum():
+    yield _get_parsed_yaml("schema-enum.yaml")
+
+
+@pytest.fixture
+def with_schema_enum_object():
+    yield _get_parsed_yaml("schema-enum-object.yaml")
+
+
+@pytest.fixture
+def with_schema_enum_array():
+    yield _get_parsed_yaml("schema-enum-array.yaml")
 
 
 @pytest.fixture
