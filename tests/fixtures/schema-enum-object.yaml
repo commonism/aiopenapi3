@@ -1,0 +1,15 @@
+openapi: "3.1.0"
+info:
+  version: 1.0.0
+  title: enum with complex type - not supported
+
+components:
+  schemas:
+    obj:
+      type: object
+      properties:
+        id:
+          type: integer
+      enum:
+        - {id: 1}
+        - [1,2,3]

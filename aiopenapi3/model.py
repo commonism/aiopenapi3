@@ -218,6 +218,10 @@ class Model:  # (BaseModel):
         elif type == "array":
             classinfo.root = Model.typeof(schema, _type="array")
 
+        if type in ("array", "object"):
+            if schema.enum or getattr(schema, "const", None):
+                raise NotImplementedError("complex enums/const are not supported")
+
         classinfo.config = Model.configof(schema)
 
         if classinfo.config["extra"] == "allow" and classinfo.root is None:
@@ -307,13 +311,10 @@ class Model:  # (BaseModel):
                 r = [Literal[v]]
                 nullable = False
             elif schema.enum:
-                # un-Reference
-                _names = tuple(i for i in map(lambda x: x._target if isinstance(x, ReferenceBase) else x, schema.enum))
-                if None in _names:
+                if None in (_names := tuple(schema.enum)):
                     nullable = True
-                    _names = list(filter(lambda x: x, _names))
-                r = [Literal[tuple(_names)]]
-            #                nullable = False
+                    _names = tuple(filter(lambda x: x, _names))
+                r = [Literal[_names]]
             else:
                 r = list()
                 for type in Model.types(schema) if not _type else [_type]:
