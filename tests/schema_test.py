@@ -288,7 +288,7 @@ def test_schema_with_additionalProperties_and_named_properties(with_schema_addit
     A.model_validate({"1": 1, "5": 5, "B": "test"})
 
     B = api.components.schemas["B"].get_type()
-    data = typing.get_args(B.model_fields["data"].annotation)[0].__forward_value__(b0="string", b1=0)
+    data = typing.get_args(B.model_fields["data"].annotation)[0](b0="string", b1=0)
     b = B(data=data, foo="bar", bar={"a": "a"})
     assert b.aio3_additionalProperties["foo"] == "bar"
 
