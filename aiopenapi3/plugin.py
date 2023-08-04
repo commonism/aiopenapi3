@@ -31,10 +31,10 @@ class Init(Plugin):
     @dataclasses.dataclass
     class Context:
         initialized: "OpenAPI" = None
-        schema: Dict[str, "Schema"] = None
+        schemas: Dict[str, "Schema"] = None
         paths: Dict[str, "PathItemBase"] = None
 
-    def schema(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
+    def schemas(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
         pass
 
     def paths(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
