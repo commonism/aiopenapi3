@@ -24,6 +24,10 @@ def log_request(request):
         print(f"{k}:{v}")
 
 
+async def log_request_async(request):
+    log_request(request)
+
+
 def log_response(response):
     request = response.request
     print(f"Response event hook: {request.method} {request.url} - Status {response.status_code}")
@@ -32,5 +36,13 @@ def log_response(response):
         print(json.dumps(json.loads(data.decode()), indent=4))
 
 
+async def log_response_async(response):
+    log_response(response)
+
+
 def httpx_debug_event_hooks():
     return {"request": [log_request], "response": [log_response]}
+
+
+def httpx_debug_event_hooks_async():
+    return {"request": [log_request_async], "response": [log_response_async]}
