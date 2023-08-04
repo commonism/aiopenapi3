@@ -246,7 +246,7 @@ class OpenAPI:
         self._init_operationindex(use_operation_tags)
         self._init_schema_types()
 
-        self.plugins.init.initialized(initialized=self._root, schema=None)
+        self.plugins.init.initialized(initialized=self._root)
 
     def _init_plugins(self, plugins):
         for i in plugins or []:
@@ -299,6 +299,8 @@ class OpenAPI:
     #            i._resolve_references(self)
 
     def _init_operationindex(self, use_operation_tags: bool):
+        self._root.paths = self.plugins.init.paths(initialized=self._root, paths=self.paths).paths
+
         if isinstance(self._root, v20.Root):
             if self.paths:
                 for path, obj in self.paths.items():
@@ -452,7 +454,7 @@ class OpenAPI:
                             continue
                         byname[media_type.schema_._get_identity("R")] = media_type.schema_
 
-        byname = self.plugins.init.schema(initialized=self._root, schema=byname).schema
+        byname = self.plugins.init.schemas(initialized=self._root, schemas=byname).schemas
         return byname
 
     def _init_schema_types(self):
