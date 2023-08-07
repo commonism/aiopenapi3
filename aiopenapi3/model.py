@@ -192,17 +192,38 @@ class Model:  # (BaseModel):
                 if "patternProperties" in schema.model_fields_set:
 
                     def mkx():
-                        def get_patternProperties(x, item):
-                            for name, value in x.model_extra.items():
+                        def get_patternProperty(self_, item):
+                            patterns = typing.get_args(self_.aio3_patternProperty.__annotations__["item"])
+
+                            for name, value in self_.model_extra.items():
                                 if re.match(item, name):
                                     yield name, value
 
-                        get_patternProperties.__annotations__["item"] = Literal[
+                        get_patternProperty.__annotations__["item"] = Literal[
                             tuple(sorted(schema.patternProperties.keys()))
                         ]
+                        return get_patternProperty
+
+                    classinfo.properties["aio3_patternProperty"].default = mkx()
+
+                    def mkx():
+                        def get_patternProperties(self_):
+                            patterns = typing.get_args(self_.aio3_patternProperty.__annotations__["item"])
+                            r = {k: list() for k in patterns}
+                            for name, value in self_.model_extra.items():
+                                for pattern in patterns:
+                                    if re.match(pattern, name):
+                                        r[pattern].append((name, value))
+                                        break
+                                    else:
+                                        # unmatched …
+                                        pass
+                            return r
+
                         return get_patternProperties
 
-                    classinfo.properties["aio3_patternProperties"].default = mkx()
+                    classinfo.properties["aio3_patternProperties"].default = property(mkx())
+
                 if schema.allOf:
                     for i in schema.allOf:
                         Model.annotationsof(i, discriminators, schemanames, classinfo, fwdref=True)
@@ -274,13 +295,8 @@ class Model:  # (BaseModel):
             else:
                 raise TypeError(schema.additionalProperties)
 
-        """
-        PR?
-        """
-        if extra_ == "forbid" and schema.extensions:
-            extra_ = "ignore"
-
-        #        extra_ = "ignore" if extra_ == "allow" else extra_
+        if getattr(schema, "patternProperties", None):
+            extra_ = "allow"
 
         return dict(
             undefined_types_warning=False,
