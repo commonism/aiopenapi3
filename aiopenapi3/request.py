@@ -78,8 +78,8 @@ class RequestBase:
             req = self._build_req(session)
             try:
                 result = session.send(req)
-            except Exception:
-                raise RequestError(self.operation, req, data, parameters)
+            except Exception as e:
+                raise RequestError(self.operation, req, data, parameters) from e
         headers, data = self._process(result)
 
         return headers, data, result
@@ -115,7 +115,7 @@ class AsyncRequestBase(RequestBase):
             try:
                 result = await session.send(req)
             except Exception as e:
-                raise RequestError(self.operation, req, data, parameters)
+                raise RequestError(self.operation, req, data, parameters) from e
 
         headers, data = self._process(result)
         return headers, data, result
