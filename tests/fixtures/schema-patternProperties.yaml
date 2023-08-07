@@ -7,8 +7,14 @@ components:
   schemas:
     A:
       type: object
+      additionalProperties: False
       patternProperties:
         "^S_":
           type: "string"
         "^I_":
           type: "integer"
+    O:
+      type: object
+      additionalProperties: False
+      patternProperties:
+        "^O_": {}
