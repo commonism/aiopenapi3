@@ -25,5 +25,8 @@ class JSONPointer:
 class JSONReference:
     @staticmethod
     def split(url):
+        """
+        split the url into path and fragment
+        """
         u = URL(url)
         return str(u.with_fragment("")), u.raw_fragment
