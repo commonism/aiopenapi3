@@ -562,17 +562,20 @@ class OpenAPI:
         :return: the returned Request is either :class:`aiopenapi3.request.RequestBase` or -
             in case of a httpx.AsyncClient session_factory - :class:`aiopenapi3.request.AsyncRequestBase`
         """
-        if isinstance(operationId, str):
-            p = operationId.split(".")
-            req = self._operationindex
-            for i in p:
-                req = getattr(req, i)
-            assert isinstance(req, aiopenapi3.request.RequestBase)
-        else:
-            path, method = operationId
-            op = getattr(self._root.paths[path], method)
-            req = self._createRequest(self, method, path, op)
-        return req
+        try:
+            if isinstance(operationId, str):
+                p = operationId.split(".")
+                req = self._operationindex
+                for i in p:
+                    req = getattr(req, i)
+                assert isinstance(req, aiopenapi3.request.RequestBase)
+            else:
+                path, method = operationId
+                op = getattr(self._root.paths[path], method)
+                req = self._createRequest(self, method, path, op)
+            return req
+        except Exception as e:
+            raise aiopenapi3.errors.RequestError(None, None, None, None) from e
 
     def resolve_jr(self, root: RootBase, obj, value: Reference):
         """
