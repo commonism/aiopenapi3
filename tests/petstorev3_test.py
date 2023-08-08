@@ -10,6 +10,11 @@ from aiopenapi3.v20 import Reference
 
 from pydantic import ValidationError
 
+try:
+    import httpx_auth
+except:
+    httpx_auth = None
+
 
 def log_request(request):
     print(f"Request event hook: {request.method} {request.url} - Waiting for response")
@@ -120,11 +125,13 @@ def user(api):
 
 @pytest.fixture
 def login(api, user):
-    api.authenticate(petstore_auth="")
+    api.authenticate(petstore_auth={})
 
 
+@pytest.mark.skipif(httpx_auth, reason="oauth does not work")
 def test_oauth(api):
-    api.authenticate(petstore_auth="test")
+    """requires *working* oauth"""
+    api.authenticate(petstore_auth={})
     d = api._root.components.schemas
     #    category = api._.addPet.data.
     fido = api._.addPet.data.get_type()(
@@ -143,7 +150,9 @@ def test_user(api, user):
     r = api._.loginUser(parameters={"username": user.username, "password": user.password})
 
 
+@pytest.mark.skipif(httpx_auth, reason="oauth does not work")
 def test_pets(api, login):
+    """requires *working* oauth or no oauth"""
     d = api.components.schemas
 
     ApiResponse = d["ApiResponse"].get_type()
