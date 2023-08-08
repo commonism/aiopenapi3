@@ -123,12 +123,25 @@ async def test_model(event_loop, server, client):
     assert crea == orig
 
 
-def randomPet(client, name=None):
+def randomPet(client, name=None, cat=False):
     if name:
-        Pet = client.components.schemas["Pet"].get_type()
-        Dog = typing.get_args(typing.get_args(Pet.model_fields["root"].annotation)[0])[1]
-        dog = Dog.model_construct(name=name, age=datetime.timedelta(seconds=random.randint(1, 2**32)), tags=[])
-        return client._.createPet.data.get_type().model_construct(pet=Pet(dog))
+        Pet = client.components.schemas["Pet-Input"].get_type()
+        if not cat:
+            Dog = typing.get_args(typing.get_args(Pet.model_fields["root"].annotation)[0])[1]
+            dog = Dog(
+                name=name,
+                age=datetime.timedelta(seconds=random.randint(1, 2**32)),
+                tags=[],
+            )
+            pet = Pet(dog)
+        else:
+            Cat = typing.get_args(typing.get_args(Pet.model_fields["root"].annotation)[0])[0]
+            WhiteCat = typing.get_args(typing.get_args(Cat.model_fields["root"].annotation)[0])[1]
+            wc = WhiteCat(pet_type="cat", color="white", name="whitey", white_name="white")
+            cat = Cat(wc)
+            pet = Pet(cat)
+
+        return client._.createPet.data.get_type().model_construct(pet=pet)
     else:
         return {
             "pet": client.components.schemas["WhiteCat"]
@@ -148,9 +161,14 @@ async def test_Request(event_loop, server, client):
 @pytest.mark.asyncio
 async def test_createPet(event_loop, server, client):
     data = {
-        "pet": client.components.schemas["WhiteCat"]
+        "pet": client.components.schemas["WhiteCat-Input"]
         .model(
-            {"name": str(uuid.uuid4()), "white_name": str(uuid.uuid4()), "tags": [], "identifier": str(uuid.uuid4())}
+            {
+                "name": str(uuid.uuid4()),
+                "white_name": str(uuid.uuid4()),
+                "tags": [],
+                "identifier": str(uuid.uuid4()),
+            }
         )
         .model_dump()
     }
@@ -158,7 +176,7 @@ async def test_createPet(event_loop, server, client):
 
     print(json.dumps(data["pet"], indent=4))
     r = await client._.createPet(data=data)
-    # assert type(r.__root__.__root__).model_json_schema() == client.components.schemas["WhiteCat"].get_type().model_json_schema()
+    assert isinstance(r, client.components.schemas["Pet-Input"].get_type())
 
     r = await client._.createPet(data=randomPet(client, name=r.root.root.name))
     Error = client.components.schemas["Error"].get_type()
@@ -181,7 +199,10 @@ async def test_listPet(event_loop, server, client):
 async def test_getPet(event_loop, server, client):
     pet = await client._.createPet(data=randomPet(client, str(uuid.uuid4())))
     r = await client._.getPet(parameters={"petId": pet.root.identifier})
-    assert type(r.root).model_json_schema() == type(pet.root).model_json_schema()
+
+    #   mismatch due to serialization vs validation models for in/out
+    #   https://github.com/tiangolo/fastapi/pull/10011
+    #    assert type(r.root).model_json_schema() == type(pet.root).model_json_schema()
 
     r = await client._.getPet(parameters={"petId": "-1"})
     assert type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
@@ -202,12 +223,14 @@ async def test_deletePet(event_loop, server, client):
 
 @pytest.mark.asyncio
 async def test_patchPet(event_loop, server, client):
-    Pet = client.components.schemas["Pet"].get_type()
+    Pet = client.components.schemas["Pet-Input"].get_type()
     Dog = typing.get_args(typing.get_args(Pet.model_fields["root"].annotation)[0])[1]
     pets = [
         Pet(
             Dog.model_construct(
-                name=str(uuid.uuid4()), age=datetime.timedelta(seconds=random.randint(1, 2**32)), tags=[]
+                name=str(uuid.uuid4()),
+                age=datetime.timedelta(seconds=random.randint(1, 2**32)),
+                tags=[],
             )
         )
         for i in range(2)
