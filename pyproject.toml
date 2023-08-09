@@ -63,7 +63,12 @@ requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["aiopenapi3"]
+packages = [
+    "aiopenapi3",
+    "aiopenapi3.v20",
+    "aiopenapi3.v30",
+    "aiopenapi3.v31"
+]
 
 [tool.setuptools.dynamic]
 version = {attr = "aiopenapi3.version.__version__"}
