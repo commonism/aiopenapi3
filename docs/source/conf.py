@@ -14,7 +14,6 @@ from pathlib import Path
 project = "aiopenapi3"
 copyright = "2022, Markus Kötter"
 author = "Markus Kötter"
-release = "0.3.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -32,10 +31,12 @@ extensions = [
 # Make sure the target is unique
 autosectionlabel_prefix_document = True
 
+import aiopenapi3.version
+
+release = aiopenapi3.version.__version__
+
 linkcode_commit = os.environ.get("READTHEDOCS_VERSION", "next")
 if linkcode_commit == "stable":
-    import aiopenapi3.version
-
     linkcode_commit = f"v{aiopenapi3.version.__version__}"
 elif linkcode_commit == "latest":
     linkcode_commit = "master"
@@ -52,8 +53,13 @@ def linkcode_resolve(domain, info):
 
     mod = importlib.import_module(info["module"])
     if "." in info["fullname"]:
-        objname, attrname = info["fullname"].split(".")
-        obj = getattr(mod, objname)
+        *objname, attrname = info["fullname"].split(".")
+        obj = mod
+        try:
+            for i in objname:
+                obj = getattr(obj, i)
+        except AttributeError:
+            return None
         try:
             # object is a method of a class
             obj = getattr(obj, attrname)
@@ -71,11 +77,14 @@ def linkcode_resolve(domain, info):
         return None
 
     # Path("…/aiopenapi3/__init__.py").parent.parent == "…"
-    libdir = Path(mod.__file__).parent.parent
-    file = Path(file).relative_to(libdir)
+    libdir = Path(file)
+    while libdir.name not in ("/", "aiopenapi3"):
+        libdir = libdir.parent
+    libdir = libdir.parent
+    assert libdir.name == "site-packages"
+    linkcode_file = Path(file).relative_to(libdir)
     start, end = lines[1], lines[1] + len(lines[0]) - 1
-
-    return f"{linkcode_url}/{file}#L{start}-L{end}"
+    return f"{linkcode_url}/{linkcode_file}#L{start}-L{end}"
 
 
 templates_path = ["_templates"]
