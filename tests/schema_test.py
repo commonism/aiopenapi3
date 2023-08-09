@@ -258,20 +258,20 @@ def test_schema_properties_default(with_schema_properties_default):
     assert a.code == 1
 
 
-def test_schema_yaml_tags_invalid(openapi_version, with_schema_yaml_tags_invalid):
+def test_schema_yaml12(openapi_version, with_schema_yaml12):
     from aiopenapi3.plugin import Document
 
     class OnDocument(Document):
         def parsed(self, ctx):
             ctx.document["openapi"] = str(openapi_version)
 
-    from aiopenapi3.loader import YAMLCompatibilityLoader
+    from aiopenapi3.loader import YAML12Loader
     from aiopenapi3.loader import FileSystemLoader
 
     OpenAPI.load_file(
         "/test.yaml",
-        with_schema_yaml_tags_invalid,
-        loader=FileSystemLoader(Path("tests/fixtures"), yload=YAMLCompatibilityLoader),
+        with_schema_yaml12,
+        loader=FileSystemLoader(Path("tests/fixtures"), yload=YAML12Loader),
         plugins=[OnDocument()],
     )
 

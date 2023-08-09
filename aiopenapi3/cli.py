@@ -30,65 +30,22 @@ else:
 
 from .openapi import OpenAPI
 
-from .loader import ChainLoader, RedirectLoader, WebLoader, YAMLCompatibilityLoader, remove_implicit_resolver
+from .loader import ChainLoader, RedirectLoader, WebLoader
 import aiopenapi3.loader
-
-
-class DefaultLoader(yaml.SafeLoader):
-    @classmethod
-    def remove_implicit_resolver(cls, tag_to_remove):
-        remove_implicit_resolver(cls, tag_to_remove)
 
 
 log = None
 
 
 def loader_prepare(args, session_factory):
-    ylc = DefaultLoader
-
-    if args.yaml_compatibility:
-        ylc = YAMLCompatibilityLoader
-
-    for t in args.yaml_disable_tag:
-        log(f"removing {t}")
-        ylc.remove_implicit_resolver(t)
-
-    if args.yaml_list_tags:
-        tags = set()
-        for v in ylc.yaml_implicit_resolvers.values():
-            tags |= set([i[0] for i in v])
-        log("tags:")
-        log("\t" + "\n\t".join(sorted(tags)) + "\n")
-
     path = yarl.URL(args.input)
     if path.scheme in ["http", "https"]:
-        loader = WebLoader(baseurl=path.with_path("/").with_query({}), yload=ylc, session_factory=session_factory)
+        loader = WebLoader(baseurl=path.with_path("/").with_query({}), session_factory=session_factory)
     else:
         locations = args.locations or [Path(args.input).parent]
-        loader = ChainLoader(*[RedirectLoader(Path(l).expanduser()) for l in locations], yload=ylc)
+        loader = ChainLoader(*[RedirectLoader(Path(l).expanduser()) for l in locations])
 
-    return loader, ylc
-
-
-def loader_args(cmd):
-    cmd.add_argument(
-        "-Y",
-        "--yaml-compatibility",
-        action="store_true",
-        default=False,
-        help="disables type coercion for yaml types such as datetime, bool …",
-    )
-    cmd.add_argument(
-        "-D",
-        "--yaml-disable-tag",
-        nargs="?",
-        type=str,
-        action="append",
-        default=[],
-        help="disable this tag from the YAML loader",
-    )
-    cmd.add_argument("-l", "--yaml-list-tags", action="store_true", default=False, help="list tags")
-    return cmd
+    return loader
 
 
 def plugins_load(baseurl, plugins: List[str]) -> List[aiopenapi3.plugin.Plugin]:
@@ -200,11 +157,10 @@ def main(argv=None):
     cmd.add_argument("input")
     cmd.add_argument("output")
     cmd.add_argument("-f", "--format", choices=["yaml", "json"], default=None)
-    cmd = loader_args(cmd)
 
     def cmd_convert(args):
         output = Path(args.output)
-        loader, ylc = loader_prepare(args, session_factory)
+        loader = loader_prepare(args, session_factory)
         input_ = yarl.URL(args.input)
         data = loader.get(aiopenapi3.plugin.Plugins([]), input_)
 
@@ -228,10 +184,9 @@ def main(argv=None):
     cmd.add_argument("-p", "--parameters")
     cmd.add_argument("-d", "--data")
     cmd.add_argument("-f", "--format")
-    loader_args(cmd)
 
     def cmd_call(args):
-        loader, _ = loader_prepare(args, session_factory)
+        loader = loader_prepare(args, session_factory)
 
         def prepare_arg(value):
             if value:
@@ -298,11 +253,10 @@ def main(argv=None):
     cmd.set_defaults(func=cmd_call)
 
     cmd = sub.add_parser("validate")
-    cmd = loader_args(cmd)
     cmd.add_argument("input")
 
     def cmd_validate(args):
-        loader, ylc = loader_prepare(args, session_factory)
+        loader = loader_prepare(args, session_factory)
 
         try:
             begin = datetime.datetime.now()

@@ -198,57 +198,8 @@ Loader
 ======
 
 The :class:`aiopenapi3.loader.Loader` is used to access the description document, providing a custom loader allows adjustments to the loading process of description documents.
-A common adjustment is using a customized YAML loader to disable decoding of certain tags/values.
+It is possible to redirect access to description documents to a local copy to safe some round trip times using a combination different :ref:`api:Loaders`
 
-.. code:: python
-
-    yaml.safe_load(str(datetime.datetime.now().date()))
-    # datetime.date(2022, 1, 12)
-
-    yaml.safe_load("name: on")
-    # {'name': True}
-
-    yaml.safe_load('12_24: "test"')
-    # {1224: 'test'}
-
-In case the yaml not well formed, there are options to disable certain tags:
-
-.. code::
-
-    python -m aiopenapi3 -D tag:yaml.org,2002:timestamp -l -v linode.yaml
-    removing tag:yaml.org,2002:timestamp
-    tags:
-        tag:yaml.org,2002:bool
-        tag:yaml.org,2002:float
-        tag:yaml.org,2002:int
-        tag:yaml.org,2002:merge
-        tag:yaml.org,2002:null
-        tag:yaml.org,2002:value
-        tag:yaml.org,2002:yaml
-
-    OK
-
-Those can be turned of using the yload yaml.Loader argument to the Loader.
-
-Using the YAMLCompatibilityLoader all but these get disabled:
-
-.. code::
-
-    python -m aiopenapi3 -C -l -v linode.yaml
-    tags:
-        tag:yaml.org,2002:float
-        tag:yaml.org,2002:merge
-        tag:yaml.org,2002:null
-        tag:yaml.org,2002:yaml
-
-
-.. code:: python
-
-    from aiopenapi3 import OpenAPI, FileSystemLoader
-    import aiopenapi3.loader
-
-    OpenAPI.load_sync("https://try.gitea.io/swagger.v1.json",
-        loader=FileSystemLoader(pathlib.Path(dir), yload = aiopenapi3.loader.YAMLCompatibilityLoader))
 
 
 Serialization

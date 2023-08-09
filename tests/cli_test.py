@@ -12,16 +12,11 @@ import pydantic
 
 
 def test_validate_cli():
-    with pytest.raises(TypeError):
-        main(shlex.split("validate tests/fixtures/schema-yaml-tags-invalid.yaml"))
-
-    main(shlex.split("-v validate -Y -l tests/fixtures/schema-yaml-tags-invalid.yaml"))
-
-    main(shlex.split("-v validate -D tag:yaml.org,2002:timestamp -l tests/fixtures/schema-yaml-tags-invalid.yaml"))
+    main(shlex.split("-v validate tests/fixtures/schema-yaml12-tags.yaml"))
 
 
 def test_convert_cli():
-    main(shlex.split("-v convert --format json -Y -l tests/fixtures/schema-yaml-tags-invalid.yaml /dev/null"))
+    main(shlex.split("-v convert --format json tests/fixtures/schema-yaml12-tags.yaml /dev/null"))
 
 
 def test_profile():
