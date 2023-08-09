@@ -29,13 +29,14 @@ While aiopenapi3 supports some of the more exotic features of the Swagger/OpenAP
 
 * multi file description documents
 * recursive schemas
+* additionalProperties mixed with properties
 * `additionalProperties <https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#model-with-mapdictionary-properties>`_
 * `Discriminator/Polymorphism <https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#models-with-polymorphism-support>`_
 * :doc:`plugin interface </plugin>` to mangle description documents and messages
 * :ref:`api:Parameter Encoding`
 * :ref:`advanced:Forms`
 
-some aspects of the specifications can not be supported.
+some aspects of the specifications are implemented loose
 
 * `Schema Composition <http://json-schema.org/understanding-json-schema/reference/combining.html>`_
 
@@ -43,7 +44,15 @@ some aspects of the specifications can not be supported.
   * anyOf - implemented as oneOf
   * allOf - merging Schemas is limited wrt. to merge conflicts
 
-* additionalProperties mixed with properties
+and other aspects of the specification are not implemented at all
+
+* `Conditional Subschemas <http://json-schema.org/understanding-json-schema/reference/conditionals.html>`_
+
+  * dependentRequired
+  * dependentSchemas
+  * If-Then-Else
+  * Implication
+
 * non-unique parameter names in an operations headers/path/query
 
 .. toctree::

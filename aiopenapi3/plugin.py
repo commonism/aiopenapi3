@@ -30,29 +30,37 @@ class Plugin(abc.ABC):
 class Init(Plugin):
     @dataclasses.dataclass
     class Context:
-        initialized: "OpenAPI" = None
+        initialized: "aiopenapi3.OpenAPI" = None
+        """available in :func:`~aiopenapi3.plugin.Init.initialized`"""
         schemas: Dict[str, "Schema"] = None
+        """available in :func:`~aiopenapi3.plugin.Init.schemas`"""
         paths: Dict[str, "PathItemBase"] = None
+        """available in :func:`~aiopenapi3.plugin.Init.paths`"""
 
     def schemas(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
+        """modify the Schema before creating Models"""
         pass
 
     def paths(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
+        """modify the paths/PathItems before initializing the Operations"""
         pass
 
     def initialized(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
+        """it is initialized"""
         pass
 
 
 class Document(Plugin):
-    @dataclasses.dataclass
-    class Context:
-        url: yarl.URL
-        document: Dict[str, Any]
-
     """
     loaded(text) -> parsed(dict)
     """
+
+    @dataclasses.dataclass
+    class Context:
+        url: yarl.URL
+        """available in :func:`~aiopenapi3.plugin.Document.loaded` :func:`~aiopenapi3.plugin.Document.parsed`"""
+        document: Dict[str, Any]
+        """available in :func:`~aiopenapi3.plugin.Document.loaded` :func:`~aiopenapi3.plugin.Document.parsed`"""
 
     def loaded(self, ctx: "Document.Context") -> "Document.Context":  # pragma: no cover
         """modify the text before parsing"""
@@ -64,24 +72,34 @@ class Document(Plugin):
 
 
 class Message(Plugin):
-    @dataclasses.dataclass
-    class Context:
-        operationId: str
-        marshalled: Optional[Dict[str, Any]] = None
-        sending: Optional[str] = None
-        received: Optional[bytes] = None
-        headers: "httpx.Headers" = None
-        status_code: Optional[str] = None
-        content_type: Optional[str] = None
-        parsed: Optional[Dict[str, Any]] = None
-        unmarshalled: Optional[BaseModel] = None
-        expected_type: Optional[typing.Type] = None
-
     """
     sending: marshalled(dict)-> sending(str)
 
     receiving: received -> parsed -> unmarshalled
     """
+
+    @dataclasses.dataclass
+    class Context:
+        operationId: str
+        """available :func:`~aiopenapi3.plugin.Message.marshalled` :func:`~aiopenapi3.plugin.Message.sending` :func:`~aiopenapi3.plugin.Message.received` :func:`~aiopenapi3.plugin.Message.parsed` :func:`~aiopenapi3.plugin.Message.unmarshalled`"""
+        marshalled: Optional[Dict[str, Any]] = None
+        """available :func:`~aiopenapi3.plugin.Message.marshalled` """
+        sending: Optional[str] = None
+        """available :func:`~aiopenapi3.plugin.Message.sending` """
+        received: Optional[bytes] = None
+        """available :func:`~aiopenapi3.plugin.Message.received` """
+        headers: "httpx.Headers" = None
+        """available :func:`~aiopenapi3.plugin.Message.sending` :func:`~aiopenapi3.plugin.Message.received` """
+        status_code: Optional[str] = None
+        """available :func:`~aiopenapi3.plugin.Message.received` """
+        content_type: Optional[str] = None
+        """available :func:`~aiopenapi3.plugin.Message.received` """
+        parsed: Optional[Dict[str, Any]] = None
+        """available :func:`~aiopenapi3.plugin.Message.parsed` """
+        expected_type: Optional[typing.Type] = None
+        """available :func:`~aiopenapi3.plugin.Message.parsed` """
+        unmarshalled: Optional[BaseModel] = None
+        """available :func:`~aiopenapi3.plugin.Message.unmarshalled` """
 
     def marshalled(self, ctx: "Message.Context") -> "Message.Context":  # pragma: no cover
         """
@@ -93,9 +111,6 @@ class Message(Plugin):
         """
         modify the text before sending
         """
-        pass
-
-    def _prepared(self, ctx: "Message.Context") -> "Message.Context":  # pragma: no cover
         pass
 
     def received(self, ctx: "Message.Context") -> "Message.Context":  # pragma: no cover

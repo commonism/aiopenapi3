@@ -95,6 +95,20 @@ For messages sent, the Plugin callback order is:
 For messages received:
     received -> parsed -> unmarshalled
 
+
+This example signs a message body by providing a HMAC512 signature in the http headers:
+
+.. code:: python
+
+    class XHookSignature(aiopenapi3.plugin.Message):
+        def sending(self, ctx: "Message.Context") -> "Message.Context":
+            ctx.headers["X-Hook-Signature"] = sign(ctx.sending)
+            return ctx
+
+    api = await aiopenapi3.OpenAPI.load_async(url, plugins=[XHookSignature()])
+
+
+
 This treatment is about a `bug #22048 <https://github.com/go-gitea/gitea/issues/22048>`_ in the
 `repoGetPullRequestCommits <https://try.gitea.io/api/swagger#/repository/repoGetPullRequestCommits>`_ operation.
 The returned parameter `X-Total` is not set, `X-Total-Count` is set instead. To mitigate we provide a message plugin
@@ -114,43 +128,6 @@ which copies the value to `X-Total` in the :meth:`aiopenapi3.plugin.Message.rece
             return ctx
 
     api = OpenAPI.load_sync("https://try.gitea.io/swagger.v1.json", plugins=[repoGetPullRequestCommitsMessage()])
-    api.authenticate(AuthorizationHeaderToken=f"token {TOKEN}")
-
-    now = datetime.datetime.now()
-    user = api._.userGetCurrent()
-    repo = "".join(random.choice(string.ascii_lowercase) for i in range(6))
-
-    DEFAULTS = {"repo":repo, "owner":user.login}
-
-    body = api._.createCurrentUserRepo.data.get_type().construct(name=repo, private=True, default_branch="main")
-    repo = api._.createCurrentUserRepo(data=body)
-
-    body = api._.repoCreateFile.data.get_type().construct(content=codecs.encode(b"# README", "base64"))
-    f = api._.repoCreateFile(parameters={**DEFAULTS, "filepath":"README.md"}, data=body)
-
-    branch = f"next-{now.timestamp():.0f}"
-    body = api._.repoCreateBranch.data.get_type().construct(new_branch_name=branch, old_branch_name="main")
-    data = api._.repoCreateBranch(parameters=DEFAULTS, data=body)
-
-    body = api._.repoCreatePullRequest.data.get_type().construct(base=repo.default_branch, head=branch, title=f"WIP: doing {now.timestamp():.0f}")
-    pr = api._.repoCreatePullRequest(parameters=DEFAULTS, data=body)
-
-    #
-    filepath = "README.md"
-    content = f"# README {now.timestamp():.0f}"
-    content = codecs.encode(content.encode(), "base64")
-
-    g = api._.repoGetContents(parameters={**DEFAULTS, "filepath": filepath, "ref": branch})
-    body = api._.repoUpdateFile.data.get_type().from_obj(
-        dict(content=content, message=f"update {filepath}", sha=f.content.sha, branch=branch))
-    api._.repoUpdateFile(parameters={**DEFAULTS, "filepath": filepath}, data=body)
-
-    headers, commits = api._.repoGetPullRequestCommits(parameters={**DEFAULTS, "index":pr.number}, return_headers=True)
-
-    assert ["X-Total"] in headers
-
-    api._.repoDelete(parameters=DEFAULTS)
-
 
 
 Other examples for Message plugins:
