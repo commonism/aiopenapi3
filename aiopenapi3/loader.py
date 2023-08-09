@@ -5,6 +5,7 @@ import logging
 import yaml
 import httpx
 import yarl
+import re
 
 import sys
 
@@ -15,52 +16,83 @@ else:
 
 from .plugin import Plugins
 
-"""
-https://stackoverflow.com/questions/34667108/ignore-dates-and-times-while-parsing-yaml
-"""
-
 log = logging.getLogger("aiopenapi3.loader")
 
 
-def remove_implicit_resolver(cls, tag_to_remove):
+class YAML12Loader(yaml.SafeLoader):
     """
-    Remove implicit resolvers for a particular tag
+    A YAML 1.2 (2009) parser is still a problem in python (in 2023)
 
-    Takes care not to modify resolvers in super classes.
+    OpenAPI uses YAML 1.2
+    pyyaml is limited to 1.1
 
-    We want to load datetimes as strings, not dates, because we
-    go on to serialise as json which doesn't have the advanced types
-    of yaml, and leads to incompatibilities down the track.
+    try creating a yaml 1.2 parser
+    remove all tags from the SafeLoader
+    add the YAML 1.2 core tags
     """
-    if not "yaml_implicit_resolvers" in cls.__dict__:
-        cls.yaml_implicit_resolvers = cls.yaml_implicit_resolvers.copy()
 
-    for first_letter, mappings in cls.yaml_implicit_resolvers.items():
-        cls.yaml_implicit_resolvers[first_letter] = [(tag, regexp) for tag, regexp in mappings if tag != tag_to_remove]
+    _core_resolvers = [
+        ["bool", re.compile(r"""^(?:|true|True|TRUE|false|False|FALSE)$""", re.X), list("tTfF")],
+        [
+            "int",
+            re.compile(
+                r"""^(?:
+                                  |0o[0-7]+
+                                  |[-+]?(?:[0-9]+)
+                                  |0x[0-9a-fA-F]+
+                                  )$""",
+                re.X,
+            ),
+            list("-+0123456789"),
+        ],
+        [
+            "float",
+            re.compile(
+                r"""^(?:[-+]?(?:\.[0-9]+|[0-9]+(\.[0-9]*)?)(?:[eE][-+]?[0-9]+)?
+                                  |[-+]?\.(?:inf|Inf|INF)
+                                  |\.(?:nan|NaN|NAN))$""",
+                re.X,
+            ),
+            list("-+0123456789."),
+        ],
+        ["null", re.compile(r"""^(?:~||null|Null|NULL)$""", re.X), ["~", "n", "N", ""]],
+    ]
+    """
+    core tags from
+    https://github.com/yaml/pyyaml/pull/700/files
+    """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        tags = set(
+            sum(list(map(lambda x: list(map(lambda y: y[0], x)), YAML12Loader.yaml_implicit_resolvers.values())), [])
+        )
+        for tag in tags:
+            YAML12Loader.remove_implicit_resolver(tag)
+        for tag, regex, initial in YAML12Loader._core_resolvers:
+            tag = f"tag:yaml.org,2002:{tag}"
+            YAML12Loader.add_implicit_resolver(tag, regex, initial)
 
-class YAMLCompatibilityLoader(yaml.SafeLoader):
     @classmethod
     def remove_implicit_resolver(cls, tag_to_remove):
-        remove_implicit_resolver(cls, tag_to_remove)
+        """
+        https://stackoverflow.com/questions/34667108/ignore-dates-and-times-while-parsing-yaml
 
+        Remove implicit resolvers for a particular tag
 
-YAMLCompatibilityLoader.remove_implicit_resolver("tag:yaml.org,2002:timestamp")
+        Takes care not to modify resolvers in super classes.
 
-"""
-example: =
-"""
-YAMLCompatibilityLoader.remove_implicit_resolver("tag:yaml.org,2002:value")
+        We want to load datetimes as strings, not dates, because we
+        go on to serialise as json which doesn't have the advanced types
+        of yaml, and leads to incompatibilities down the track.
+        """
+        if not "yaml_implicit_resolvers" in cls.__dict__:
+            cls.yaml_implicit_resolvers = cls.yaml_implicit_resolvers.copy()
 
-"""
-18_24: test
-"""
-YAMLCompatibilityLoader.remove_implicit_resolver("tag:yaml.org,2002:int")
-
-"""
-name: on
-"""
-YAMLCompatibilityLoader.remove_implicit_resolver("tag:yaml.org,2002:bool")
+        for first_letter, mappings in cls.yaml_implicit_resolvers.items():
+            cls.yaml_implicit_resolvers[first_letter] = [
+                (tag, regexp) for tag, regexp in mappings if tag != tag_to_remove
+            ]
 
 
 class Loader(abc.ABC):
@@ -72,7 +104,7 @@ class Loader(abc.ABC):
      * parse
     """
 
-    def __init__(self, yload: yaml.Loader = yaml.SafeLoader):
+    def __init__(self, yload: yaml.Loader = YAML12Loader):
         self.yload = yload
 
     @abc.abstractmethod
@@ -168,7 +200,7 @@ class WebLoader(Loader):
     Loader downloads data via http/s using the supplied session_factory
     """
 
-    def __init__(self, baseurl: yarl.URL, session_factory=httpx.Client, yload: yaml.Loader = yaml.SafeLoader):
+    def __init__(self, baseurl: yarl.URL, session_factory=httpx.Client, yload: yaml.Loader = YAML12Loader):
         super().__init__(yload)
         assert isinstance(baseurl, yarl.URL)
         self.baseurl: yarl.URL = baseurl
@@ -193,7 +225,7 @@ class FileSystemLoader(Loader):
     Loader to use the local filesystem
     """
 
-    def __init__(self, base: Path, yload: yaml.Loader = yaml.SafeLoader):
+    def __init__(self, base: Path, yload: yaml.Loader = YAML12Loader):
         """
         :param base: basedir - lookups are relative to this
         :param yload:
@@ -233,7 +265,7 @@ class ChainLoader(Loader):
     Loader to chain different Loaders: succeed or raise trying
     """
 
-    def __init__(self, *loaders, yload: yaml.Loader = yaml.SafeLoader):
+    def __init__(self, *loaders, yload: yaml.Loader = YAML12Loader):
         """
 
         :param loaders: loaders to use

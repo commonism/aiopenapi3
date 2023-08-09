@@ -92,9 +92,9 @@ def _get_parsed_yaml(filename, version=None):
         with open("tests/fixtures/" + filename) as f:
             raw = f.read()
         import yaml
-        from aiopenapi3.loader import YAMLCompatibilityLoader
+        from aiopenapi3.loader import YAML12Loader
 
-        parsed = yaml.load(raw, Loader=yaml.SafeLoader)
+        parsed = yaml.load(raw, Loader=YAML12Loader)
 
         LOADED_FILES[filename] = parsed
 
@@ -260,8 +260,8 @@ def with_schema_properties_default(openapi_version):
 
 
 @pytest.fixture
-def with_schema_yaml_tags_invalid(openapi_version):
-    return "schema-yaml-tags-invalid.yaml"
+def with_schema_yaml12(openapi_version):
+    return "schema-yaml12-tags.yaml"
 
 
 @pytest.fixture

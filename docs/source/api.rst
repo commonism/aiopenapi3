@@ -111,7 +111,7 @@ Loader
 The loader is used to access description documents.
 :class:`aiopenapi3.loader.Loader` is the base class, providing flexibility to load description documents.
 
-.. inheritance-diagram:: aiopenapi3.loader.FileSystemLoader aiopenapi3.loader.WebLoader aiopenapi3.loader.ChainLoader aiopenapi3.loader.RedirectLoader
+.. inheritance-diagram:: aiopenapi3.loader.FileSystemLoader aiopenapi3.loader.WebLoader aiopenapi3.loader.ChainLoader aiopenapi3.loader.RedirectLoader aiopenapi3.loader.ChainLoader
    :top-classes: aiopenapi3.loader.Loader
    :parts: -2
 
@@ -155,10 +155,22 @@ Loaders
 .. autoclass:: ChainLoader
 
 The ChainLoader is useful when using multiple locations with description documents.
+As an example, try to lookup the referenced description documents locally or from the web.
 
 .. code:: python
 
-    ChainLoader(RedirectLoader("description_documents/dell"), RedirectLoader("description_documents/supermicro"))
+        description_documents = Path("/data/description_documents")
+
+        loader = ChainLoader(
+                    RedirectLoader(description_documents / "dell"),
+                    WebLoader(yarl.URL("https://redfish.dmtf.org/schemas/v1/")),
+                    WebLoader(yarl.URL("http://redfish.dmtf.org/schemas/swordfish/v1/")),
+        )
+
+        api = OpenAPI.load_file(
+            target, yarl.URL("openapi.yaml"), loader=loader
+        )
+
 
 .. autoclass:: RedirectLoader
 
@@ -169,19 +181,6 @@ of the document, and loaded relative to the basedir of the RedirectLoader.
 
     RedirectLoader("description_documents/dell")
 
-
-YAML type coercion
-------------------
-Changing a Loaders YAML Loader may be required to parse description documents with improper tags,
-e.g. values getting decoded as dates in a text.
-The :class:`aiopenapi3.loader.YAMLCompatibilityLoader` provided removes decoding of
-
-* timestamp
-* value
-* int
-* book
-
-and can be passed to a :class:`aiopenapi3.loader.Loader` as yload argument.
 
 Exceptions
 ==========
