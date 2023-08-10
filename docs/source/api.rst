@@ -12,16 +12,23 @@ General
 Requests
 ========
 
-Requests encapsulate the required information to call an operation, they compile the actual HTTP request sent, including authentication information, headers, parameters and the body.
+.. inheritance-diagram:: aiopenapi3.v20.glue.Request aiopenapi3.v30.glue.Request aiopenapi3.v20.glue.AsyncRequest aiopenapi3.v30.glue.AsyncRequest
+    :top-classes: aiopenapi3.request.RequestBase
+    :parts: -1
+
+Requests encapsulate the required information to call an operation.
+They
+    - compile the actual HTTP request sent, including authentication information, headers, parameters and the body.
+    - send it
+    - receive the result
+    - process it
+    - and return the model of the data
 
 .. currentmodule:: aiopenapi3.request
 .. autoclass:: RequestBase
     :members: data, parameters, request, __call__
 
-
-.. inheritance-diagram:: aiopenapi3.v20.glue.Request aiopenapi3.v30.glue.Request aiopenapi3.v20.glue.AsyncRequest aiopenapi3.v30.glue.AsyncRequest
-    :top-classes: aiopenapi3.request.RequestBase
-    :parts: -1
+The different major versions of the OpenAPI protocol require their own Request/AsyncRequest.
 
 .. autoclass:: aiopenapi3.v20.glue.Request
 
@@ -40,18 +47,58 @@ Parameters are part of the operation specification and can be in
 * path e.g. `/users/{name}`
 * query e.g. `/users?limit=50`
 * header
+* cookie
 
-.. inheritance-diagram:: aiopenapi3.v20.parameter.Parameter aiopenapi3.v30.parameter.Parameter
-    :top-classes: aiopenapi3.base.ParameterBase, aiopenapi3.base.ObjectExtended
+Used to compile a :class:`aiopenapi3.request.RequestBase`, not meant to be dealt with besides debugging.
+
+.. inheritance-diagram:: aiopenapi3.v20.parameter.Parameter aiopenapi3.v30.parameter.Parameter aiopenapi3.v31.parameter.Parameter aiopenapi3.v30.parameter.Header aiopenapi3.v31.parameter.Header
+    :top-classes: aiopenapi3.v20.parameter._ParameterCodec, aiopenapi3.v30.parameter._ParameterCodec, aiopenapi3.base.ParameterBase, aiopenapi3.base.ObjectExtended
+    :private-bases:
     :parts: -1
+
+Parameter
+---------
+.. autoclass:: aiopenapi3.base.ParameterBase
+    :noindex:
 
 .. autoclass:: aiopenapi3.v20.parameter.Parameter
     :members:
+    :undoc-members:
+    :exclude-members: model_fields, model_config, SEPERATOR_VALUES, validate_ObjectExtended_extensions
+    :inherited-members: BaseModel
     :noindex:
 
 .. autoclass:: aiopenapi3.v30.parameter.Parameter
     :members:
+    :undoc-members:
+    :exclude-members: model_fields, model_config, validate_Parameter, validate_ObjectExtended_extensions
+    :inherited-members: BaseModel
     :noindex:
+
+.. autoclass:: aiopenapi3.v31.parameter.Parameter
+    :members:
+    :undoc-members:
+    :exclude-members: model_fields, model_config, validate_Parameter, validate_ObjectExtended_extensions
+    :inherited-members: BaseModel
+    :noindex:
+
+Header
+------
+
+.. autoclass:: aiopenapi3.v30.parameter.Header
+    :members:
+    :undoc-members:
+    :exclude-members: model_fields, model_config, validate_Parameter, validate_ObjectExtended_extensions
+    :inherited-members: BaseModel
+    :noindex:
+
+.. autoclass:: aiopenapi3.v31.parameter.Header
+    :members:
+    :undoc-members:
+    :exclude-members: model_fields, model_config, validate_Parameter, validate_ObjectExtended_extensions
+    :inherited-members: BaseModel
+    :noindex:
+
 
 Parameter Encoding
 ------------------
@@ -62,11 +109,17 @@ Additionally Swagger 2.0 has a different encoding strategy to OpenAPI 3.x.
 
 .. autoclass:: aiopenapi3.v20.parameter._ParameterCodec
     :members:
+    :exclude-members: SEPERATOR_VALUES
+    :undoc-members:
+    :private-members: _encode, _decode
     :noindex:
 
 .. autoclass:: aiopenapi3.v30.parameter._ParameterCodec
     :members:
-
+    :exclude-members: SEPERATOR_VALUES
+    :undoc-members:
+    :private-members: _encode, _decode
+    :noindex:
 
 Plugin Interface
 ================
@@ -78,9 +131,10 @@ Init plugins are used to signal the setup is done.
 
 .. currentmodule:: aiopenapi3.plugin
 .. autoclass:: aiopenapi3.plugin::Init.Context
-    :members:
+    :members: schemas, paths, initialized
 
 .. autoclass:: Init
+    :members: schemas, paths, initialized
 
 Document Plugins
 ----------------
@@ -88,7 +142,7 @@ Document Plugins
 Document plugins are used to mangle description documents.
 
 .. autoclass:: aiopenapi3.plugin::Document.Context
-    :members:
+    :members: url, document
 
 .. autoclass:: Document
     :members: loaded, parsed
@@ -100,10 +154,10 @@ Message Plugins
 Message plugins are used to mangle message.
 
 .. autoclass:: aiopenapi3.plugin::Message.Context
-    :members:
+    :members: operationId, marshalled, sending, received, headers, status_code, content_type, parsed, expected_type, unmarshalled
 
 .. autoclass:: Message
-    :members: marshalled, parsed, received, sending, unmarshalled
+    :members: marshalled, sending, received, parsed, unmarshalled
 
 Loader
 ======
@@ -184,6 +238,10 @@ of the document, and loaded relative to the basedir of the RedirectLoader.
 
 Exceptions
 ==========
+
+.. inheritance-diagram:: aiopenapi3.errors.SpecError aiopenapi3.errors.ReferenceResolutionError aiopenapi3.errors.OperationParameterValidationError aiopenapi3.errors.ParameterFormatError aiopenapi3.errors.HTTPError aiopenapi3.errors.RequestError aiopenapi3.errors.ResponseError aiopenapi3.errors.ContentTypeError aiopenapi3.errors.HTTPStatusError aiopenapi3.errors.ResponseDecodingError aiopenapi3.errors.ResponseSchemaError
+    :top-classes: aiopenapi3.errors.ErrorBase
+    :parts: -1
 
 Description Document Validation
 -------------------------------
