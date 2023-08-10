@@ -76,13 +76,18 @@ def linkcode_resolve(domain, info):
         # e.g. object is a typing.Union
         return None
 
-    # Path("…/aiopenapi3/__init__.py").parent.parent == "…"
-    libdir = Path(file)
-    while libdir.name not in ("/", "aiopenapi3"):
-        libdir = libdir.parent
-    libdir = libdir.parent
-    assert libdir.name == "site-packages"
-    linkcode_file = Path(file).relative_to(libdir)
+    import site
+
+    f = Path(file)
+    for s in site.getsitepackages():
+        if f.is_relative_to(s):
+            linkcode_file = f.relative_to(s)
+            break
+    else:
+        return None
+    if linkcode_file.parts[0] != "aiopenapi3":
+        return None
+    linkcode_file = str(linkcode_file)
     start, end = lines[1], lines[1] + len(lines[0]) - 1
     return f"{linkcode_url}/{linkcode_file}#L{start}-L{end}"
 
