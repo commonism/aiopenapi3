@@ -40,6 +40,17 @@ class RequestParameter:
 
 
 class RequestBase:
+    """
+    A Request compiles all required information to call an Operation
+
+    Created by :meth:`aiopenapi3.OpenAPI.createRequest`.
+
+    Run a Request via
+
+        - :meth:`~aiopenapi3.request.RequestBase.__call__`
+        - :meth:`~aiopenapi3.request.RequestBase.request`
+    """
+
     def __init__(self, api: "OpenAPI", method: str, path: str, operation: "Operation"):
         self.api = api
         self.root = api._root
@@ -69,7 +80,7 @@ class RequestBase:
 
         :param data: The request body to send.
         :type data: any, should match content/type
-        :param parameters: The parameters used to create the path
+        :param parameters: The path/header/query/cookie parameters required for the operation
         :type parameters: dict{str: str}
         :return: headers, data, response
         """
@@ -96,7 +107,7 @@ class RequestBase:
     @abc.abstractmethod
     def parameters(self) -> List["ParameterBase"]:
         """
-        :return: list of parameters
+        :return: list of :class:`aiopenapi3.base.ParameterBase` which can be used to inspect the required/optional parameters of the requested Operation
         """
         pass
 

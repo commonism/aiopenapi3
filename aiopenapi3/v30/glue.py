@@ -32,26 +32,16 @@ from .formdata import parameters_from_multipart, parameters_from_urlencoded, enc
 
 
 class Request(RequestBase):
-    """
-    This class is returned by instances of the OpenAPI class when members
-    formatted like call_operationId are accessed, and a valid Operation is
-    found, and allows calling the operation directly from the OpenAPI object
-    with the configured values included.  This class is not intended to be used
-    directly.
-    """
-
     @property
     def security(self):
         return self.api._security
 
     @property
     def data(self) -> SchemaBase:
-        """the body Schema"""
         return self.operation.requestBody.content["application/json"].schema_
 
     @property
     def parameters(self) -> List[ParameterBase]:
-        """the parameters"""
         return self.operation.parameters + self.root.paths[self.path].parameters
 
     def args(self, content_type: str = "application/json"):
