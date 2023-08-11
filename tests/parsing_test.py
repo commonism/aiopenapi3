@@ -15,7 +15,7 @@ import pytest
 
 from pydantic import ValidationError
 from aiopenapi3 import OpenAPI, SpecError, ReferenceResolutionError, FileSystemLoader
-from aiopenapi3.errors import OperationParameterValidationError
+from aiopenapi3.errors import OperationParameterValidationError, OperationIdDuplicationError
 
 URLBASE = "/"
 
@@ -56,7 +56,7 @@ def test_parsing_paths_operationid_duplicate(with_parsing_paths_operationid_dupl
     """
     Tests that duplicate operation Ids are an error
     """
-    with pytest.raises(SpecError, match="Duplicate operationId dupe"):
+    with pytest.raises(OperationIdDuplicationError, match="dupe"):
         spec = OpenAPI(URLBASE, with_parsing_paths_operationid_duplicate)
 
 
