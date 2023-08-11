@@ -1,3 +1,4 @@
+from typing import List, Tuple
 import dataclasses
 
 
@@ -47,7 +48,17 @@ class OperationParameterValidationError(SpecError):
     message: str
 
 
-class ParameterFormatError(ErrorBase):
+@dataclasses.dataclass
+class OperationIdDuplicationError(SpecError):
+    """
+    The OperationId is not unique
+    """
+
+    operationid: str
+    paths: List[Tuple[str, str, object]]
+
+
+class ParameterFormatError(SpecError):
     """
     The specified parameter encoding is invalid for the parameter family
     """

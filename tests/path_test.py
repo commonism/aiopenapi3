@@ -10,7 +10,7 @@ import httpx
 import yarl
 
 from aiopenapi3 import OpenAPI
-from aiopenapi3.errors import OperationParameterValidationError
+from aiopenapi3.errors import OperationParameterValidationError, OperationIdDuplicationError
 
 URLBASE = "/"
 
@@ -397,7 +397,7 @@ def test_paths_tags(httpx_mock, with_paths_tags):
 
     from aiopenapi3.errors import SpecError
 
-    with pytest.raises(SpecError, match=f"Duplicate operationId list"):
+    with pytest.raises(OperationIdDuplicationError, match="list"):
         OpenAPI(URLBASE, with_paths_tags, session_factory=httpx.Client, use_operation_tags=False)
 
     spec = copy.deepcopy(with_paths_tags)

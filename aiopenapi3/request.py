@@ -22,7 +22,7 @@ except:  # <= Python 3.10
 
 from .base import HTTP_METHODS
 from .version import __version__
-from .errors import SpecError, RequestError
+from .errors import RequestError, OperationIdDuplicationError
 
 
 class RequestParameter:
@@ -175,7 +175,6 @@ class OperationIndex:
 
         self._operations: Dict[str, "Operation"] = dict()
         self._tags: Dict[str, "OperationTag"] = collections.defaultdict(lambda: OperationIndex.OperationTag(self))
-
         for path, pi in self._root.paths.items():
             op: "Operation"
             if pi.ref:
@@ -185,15 +184,16 @@ class OperationIndex:
                 if op.operationId is None:
                     continue
                 operationId = op.operationId.replace(" ", "_")
+                item = (method, path, op)
                 if use_operation_tags and op.tags:
                     for tag in op.tags:
-                        if operationId in self._tags[tag]._operations:
-                            raise SpecError(f"Duplicate operationId {operationId}")
-                        self._tags[tag]._operations[operationId] = (method, path, op)
+                        if (other := self._tags[tag]._operations.get(operationId, None)) is not None:
+                            raise OperationIdDuplicationError(operationId, [item, other])
+                        self._tags[tag]._operations[operationId] = item
                 else:
-                    if operationId in self._operations:
-                        raise SpecError(f"Duplicate operationId {operationId}")
-                    self._operations[operationId] = (method, path, op)
+                    if (other := self._operations.get(operationId, None)) is not None:
+                        raise OperationIdDuplicationError(operationId, [item, other])
+                    self._operations[operationId] = item
         # convert to dict as pickle does not like local functions
         self._tags = dict(self._tags)
         self._use_operation_tags = use_operation_tags
@@ -205,7 +205,7 @@ class OperationIndex:
             (method, path, op) = self._operations[item]
             return self._api._createRequest(self._api, method, path, op)
         else:
-            raise SpecError(f"element {item} not found in tags or operations")
+            raise KeyError(f"operationId {item} not found in tags or operations")
 
     def __iter__(self):
         return self.Iter(self._root, self._use_operation_tags)
