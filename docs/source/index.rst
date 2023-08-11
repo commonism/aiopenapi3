@@ -13,11 +13,16 @@
 
 |aiopenapi3| is a client library to interface RESTful services using OpenAPI_/Swagger description documents,
 built upon pydantic_ for data validation/coercion and httpx_ for transport.
-It's located on `github <https://github.com/commonism/aiopenapi3>`_.
+Located on `github <https://github.com/commonism/aiopenapi3>`_.
 
-**********************
-Features & Limitations
-**********************
+
+.. rubric:: No code generation
+
+Suits the code-first pattern for REST services used by major frameworks
+(`FastAPI <https://github.com/tiangolo/fastapi>`_, `Django REST framework <https://www.django-rest-framework.org/>`_) as well as
+design first APIs.
+
+.. rubric:: Features & Limitations
 
 While aiopenapi3 supports some of the more exotic features of the Swagger/OpenAPI specification, e.g.:
 
@@ -35,6 +40,7 @@ While aiopenapi3 supports some of the more exotic features of the Swagger/OpenAP
 * :doc:`plugin interface </plugin>` to mangle description documents and messages
 * :ref:`api:Parameter Encoding`
 * :ref:`advanced:Forms`
+
 
 some aspects of the specifications are implemented loose
 
@@ -54,25 +60,3 @@ and other aspects of the specification are not implemented at all
   * Implication
 
 * non-unique parameter names in an operations headers/path/query
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   install
-   use
-   advanced
-   plugin
-   api
-
-.. toctree::
-   :hidden:
-
-
-.. comment out
-   Indices and tables
-   ==================
-
-   * :ref:`genindex`
-   * :ref:`modindex`
-   * :ref:`search`

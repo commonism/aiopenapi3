@@ -10,7 +10,17 @@ interface which allows mangling the description document and the messages sent/r
 Init
 ====
 
-Init plugins are run after the initialization of the OpenAPI object.
+:class:`~aiopenapi3.plugin.Init` plugins are run at certain stages during the initialization of the OpenAPI object.
+Available callbacks:
+
+    * :meth:`~aiopenapi3.plugin.Init.schemas`
+    * :meth:`~aiopenapi3.plugin.Init.paths`
+    * :meth:`~aiopenapi3.plugin.Init.initialized`
+
+
+Examples
+--------
+
 The following examples modifies specific pydantic models to allow unknown properties.
 
 .. code:: python
@@ -42,26 +52,17 @@ The following examples modifies specific pydantic models to allow unknown proper
 Document
 ========
 
+:class:`~aiopenapi3.plugin.Document` plugins allow modification of the description document.
+Available callbacks:
+
+    * :meth:`~aiopenapi3.plugin.Document.loaded`
+    * :meth:`~aiopenapi3.plugin.Document.parsed`
+
+
+Examples
+--------
+
 As an example, due to a `bug #21997 <https://github.com/go-gitea/gitea/issues/21997>`_ the response repoGetArchive operation of gitea does not match the content type of the description document:
-
-.. code:: python
-
-    from aiopenapi3 import OpenAPI
-    import codecs
-
-    api = OpenAPI.load_sync("https://try.gitea.io/swagger.v1.json")
-    api.authenticate(AuthorizationHeaderToken=f"token {TOKEN}")
-
-    user = api._.userGetCurrent()
-    repo = api._.createCurrentUserRepo(data={"name":"rtd"})
-
-    body = api._.repoCreateFile.data.get_type().parse_obj({'name':'README.md', "contents":codecs.encode(b"# everything starts somewhere", "base64")})
-    commit = api._.repoCreateFile(parameters={"owner":user.login, "repo":"rtd", "filepath":"README.md"}, data=body)
-
-    api._.repoGetArchive(parameters={"owner":user.login, "repo":"rtd", "archive":"main.tar.gz"})
-    # Traceback (most recent call last):
-    # aiopenapi3.errors.ContentTypeError: (… 'Unexpected Content-Type application/octet-stream returned for operation repoGetArchive (expected application/json)' …
-
 
 Using a Document plugin to modify the parsed description document to state the content type "application/octet-stream" for the repoGetArchive operation.
 
@@ -79,22 +80,29 @@ Using a Document plugin to modify the parsed description document to state the c
             return ctx
 
     api = OpenAPI.load_sync("https://try.gitea.io/swagger.v1.json", plugins=[ContentType()])
-    api.authenticate(AuthorizationHeaderToken=f"token {TOKEN}")
-    user = api._.userGetCurrent()
-    data = api._.repoGetArchive(parameters={"owner":user.login, "repo":"rtd", "archive":"main.tar.gz"})
 
-    tarfile.open(mode="r:gz", fileobj=io.BytesIO(data)).getmembers()
-    # [<TarInfo 'rtd' at 0x7fe92cdd0580>, <TarInfo 'rtd/README.md' at 0x7fe92cdd01c0>]
 
 Message
 =======
 
-For messages sent, the Plugin callback order is:
-    marshalled -> sending
+:class:`~aiopenapi3.plugin.Message` plugins allow modification of the messages sent/received.
 
-For messages received:
-    received -> parsed -> unmarshalled
+For messages sent, the available callbacks are:
 
+    * :meth:`~aiopenapi3.plugin.Message.marshalled`
+    * :meth:`~aiopenapi3.plugin.Message.sending`
+
+Avaiable callbacks for messages received:
+
+    * :meth:`~aiopenapi3.plugin.Message.received`
+    * :meth:`~aiopenapi3.plugin.Message.parsed`
+    * :meth:`~aiopenapi3.plugin.Message.unmarshalled`
+
+Examples
+--------
+
+Signing the Body
+^^^^^^^^^^^^^^^^
 
 This example signs a message body by providing a HMAC512 signature in the http headers:
 
@@ -108,6 +116,11 @@ This example signs a message body by providing a HMAC512 signature in the http h
     api = await aiopenapi3.OpenAPI.load_async(url, plugins=[XHookSignature()])
 
 
+Correct an invalid Responses
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Aliasing a property
+"""""""""""""""""""
 
 This treatment is about a `bug #22048 <https://github.com/go-gitea/gitea/issues/22048>`_ in the
 `repoGetPullRequestCommits <https://try.gitea.io/api/swagger#/repository/repoGetPullRequestCommits>`_ operation.
@@ -130,7 +143,9 @@ which copies the value to `X-Total` in the :meth:`aiopenapi3.plugin.Message.rece
     api = OpenAPI.load_sync("https://try.gitea.io/swagger.v1.json", plugins=[repoGetPullRequestCommitsMessage()])
 
 
-Other examples for Message plugins:
+
+Correcting Spelling for an enum
+"""""""""""""""""""""""""""""""
 
 … the `ConnectorType` is an enum value the services does not honor:
 
@@ -141,6 +156,10 @@ Other examples for Message plugins:
             if "ConnectorType" in ctx.expected_type.get_type().__fields__ and ctx.parsed.get("ConnectorType", None) == 'DB9 Male.':
                 ctx.parsed["ConnectorType"] = "DB9 Male"
             return ctx
+
+
+Adding missing properties
+"""""""""""""""""""""""""
 
 … the service is missing required Fields:
 
@@ -156,6 +175,9 @@ Other examples for Message plugins:
             for k in m:
                 ctx.parsed[k] = ""
 
+
+Correcting an invalid datetime value
+""""""""""""""""""""""""""""""""""""
 
 … the service uses invalid datetime values (month & day == 0):
 

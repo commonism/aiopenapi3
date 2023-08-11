@@ -28,8 +28,11 @@ extensions = [
     "sphinx.ext.inheritance_diagram",
 ]
 
+root_doc = "toc"
+
 # Make sure the target is unique
 autosectionlabel_prefix_document = True
+
 
 import aiopenapi3.version
 
@@ -101,6 +104,9 @@ exclude_patterns = []
 
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
+html_js_files = [
+    "my_custom.js",
+]
 
 sections = """
 https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html#sections
