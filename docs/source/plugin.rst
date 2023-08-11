@@ -21,6 +21,9 @@ Available callbacks:
 Examples
 --------
 
+initialized
+^^^^^^^^^^^
+
 The following examples modifies specific pydantic models to allow unknown properties.
 
 .. code:: python
@@ -48,6 +51,49 @@ The following examples modifies specific pydantic models to allow unknown proper
                         pydantic.Extra.allow)
                     )
             return ctx
+
+reducing initialization processing time
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Large -multi megabyte- APIs have a significant processing time.
+
+Reducing this processing time during development is possible by limiting the number of objects initialized.
+
+The schemas callback limits initialization to the schemas returned and their dependencies.
+The paths callback removes all PathItems.
+
+.. code:: python
+
+    """
+    to speed up things, we use some aiopenapi3 plugins to limit the loading process to the schemas required
+    removing all paths
+    """
+    from aiopenapi3.plugin import Init, Document
+
+    class SchemaSelector(Init):
+        """
+        remove the schemas we do not need models for
+        """
+
+        def __init__(self, *schemas):
+            super().__init__()
+            self._schemas = schemas
+
+        def schemas(self, ctx: "Init.Context") -> "Init.Context":
+            ctx.schemas = {k: ctx.schemas[k] for k in (set(self._schemas) & set(ctx.schemas.keys()))}
+            return ctx
+
+    class RemovePaths(Document):
+        def parsed(self, ctx: "Document.Context") -> "Document.Context":
+            """
+            emtpy the paths - not needed
+            """
+            ctx.document["paths"] = {}
+            return ctx
+
+    selector = SchemaSelector(*(list(names) + [f"{name}Request" for name in names]))
+    api = OpenAPI.load_file(..., plugins=[selector, RemovePaths()])
+
 
 Document
 ========

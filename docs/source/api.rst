@@ -124,10 +124,16 @@ Additionally Swagger 2.0 has a different encoding strategy to OpenAPI 3.x.
 Plugin Interface
 ================
 
+.. inheritance-diagram:: aiopenapi3.plugin.Init aiopenapi3.plugin.Document aiopenapi3.plugin.Message
+   :top-classes: aiopenapi3.plugin.Plugin
+   :parts: -2
+
 Init Plugins
 ------------
 
-Init plugins are used to signal the setup is done.
+Init plugins are used during initialization, they can be used to modify PathItems or Schemas before generating the OperationIndex/Models.
+
+:ref:`Examples <plugin:Init>`
 
 .. currentmodule:: aiopenapi3.plugin
 .. autoclass:: aiopenapi3.plugin::Init.Context
@@ -141,6 +147,8 @@ Document Plugins
 
 Document plugins are used to mangle description documents.
 
+:ref:`Examples <plugin:Document>`
+
 .. autoclass:: aiopenapi3.plugin::Document.Context
     :members: url, document
 
@@ -153,6 +161,8 @@ Message Plugins
 
 Message plugins are used to mangle message.
 
+:ref:`Examples <plugin:Message>`
+
 .. autoclass:: aiopenapi3.plugin::Message.Context
     :members: operationId, marshalled, sending, received, headers, status_code, content_type, parsed, expected_type, unmarshalled
 
@@ -163,6 +173,7 @@ Loader
 ======
 
 The loader is used to access description documents.
+
 :class:`aiopenapi3.loader.Loader` is the base class, providing flexibility to load description documents.
 
 .. inheritance-diagram:: aiopenapi3.loader.FileSystemLoader aiopenapi3.loader.WebLoader aiopenapi3.loader.ChainLoader aiopenapi3.loader.RedirectLoader aiopenapi3.loader.ChainLoader
@@ -239,19 +250,14 @@ of the document, and loaded relative to the basedir of the RedirectLoader.
 Exceptions
 ==========
 
-.. inheritance-diagram:: aiopenapi3.errors.SpecError \
-            aiopenapi3.errors.ReferenceResolutionError \
-            aiopenapi3.errors.OperationParameterValidationError \
-            aiopenapi3.errors.ParameterFormatError \
-            aiopenapi3.errors.HTTPError \
-            aiopenapi3.errors.RequestError \
-            aiopenapi3.errors.ResponseError \
-            aiopenapi3.errors.ContentTypeError \
-            aiopenapi3.errors.HTTPStatusError \
-            aiopenapi3.errors.ResponseDecodingError \
-            aiopenapi3.errors.ResponseSchemaError
+There is different types of Exceptions used depending on the subsystem/failure.
+
+.. inheritance-diagram:: aiopenapi3.errors.SpecError aiopenapi3.errors.ReferenceResolutionError aiopenapi3.errors.OperationParameterValidationError aiopenapi3.errors.ParameterFormatError aiopenapi3.errors.HTTPError aiopenapi3.errors.RequestError aiopenapi3.errors.ResponseError aiopenapi3.errors.ContentTypeError aiopenapi3.errors.HTTPStatusError aiopenapi3.errors.ResponseDecodingError aiopenapi3.errors.ResponseSchemaError
     :top-classes: aiopenapi3.errors.BaseError
     :parts: -1
+
+
+
 
 Description Document Validation
 -------------------------------
@@ -268,6 +274,12 @@ Description Document Validation
 .. autoclass:: ParameterFormatError
     :members:
     :undoc-members:
+
+.. autoclass:: OperationParameterValidationError
+    :members:
+    :undoc-members:
+
+
 
 
 Message
