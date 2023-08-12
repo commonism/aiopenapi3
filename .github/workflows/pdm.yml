@@ -3,6 +3,7 @@ name: PDM update dependencies
 on:
   schedule:
     - cron: "9 4 * * 5"
+  workflow_dispatch: {}
 
 jobs:
   pdm-update-dependencies:
