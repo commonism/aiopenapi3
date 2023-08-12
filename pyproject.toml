@@ -113,3 +113,13 @@ tests = [
     "wtforms",
     "asgiref",
 ]
+
+[tool.pdm]
+plugins = [
+    "pdm-autoexport"
+]
+
+[[tool.pdm.autoexport]]
+filename = "requirements.txt"
+groups = ["default"]
+without-hashes = "true"
