@@ -85,7 +85,7 @@ class RequestBase:
         :return: headers, data, response
         """
         self._prepare(data, parameters)
-        with closing(self.api._session_factory(**self._factory_args())) as session:
+        with closing(self.api._session_factory(cert=self.req.cert, **self._factory_args())) as session:
             req = self._build_req(session)
             try:
                 result = session.send(req)
@@ -121,7 +121,7 @@ class AsyncRequestBase(RequestBase):
 
     async def request(self, data=None, parameters=None) -> Tuple[Dict[str, Any], Any, httpx.Response]:
         self._prepare(data, parameters)
-        async with aclosing(self.api._session_factory(**self._factory_args())) as session:
+        async with aclosing(self.api._session_factory(cert=self.req.cert, **self._factory_args())) as session:
             req = self._build_req(session)
             try:
                 result = await session.send(req)

@@ -34,9 +34,14 @@ Given the following section of a description document:
           type: apiKey
           in: header
           name: x-password
+        tls:
+          type: mutualTLS
+
+Authentication Conditions
+-------------------------
 
 single identifier
------------------
+^^^^^^^^^^^^^^^^^
 
 .. code:: yaml
 
@@ -49,7 +54,8 @@ single identifier
     api.authenticate( basicAuth=(user,password) )
 
 "or" - having a choice
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
+
 Having a choice allows authentication using one valid identifier
 
 .. code:: yaml
@@ -66,7 +72,7 @@ Having a choice allows authentication using one valid identifier
 
 
 "and" - combining identifiers
------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code:: yaml
 
@@ -82,11 +88,40 @@ Having a choice allows authentication using one valid identifier
     api.authenticate( password="thepassword" )
 
 reset authentication identifiers
---------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code:: python
 
     api.authenticate( None )
+
+
+Authentication Methods
+======================
+
+apiKey
+---------
+In case you fail to authenticate using apiKey, it may be required to prefix the apiKey with a keyword which is not documented within the description document.
+
+e.g.:
+
+.. code:: python
+
+    api.authenticate(tokenAuth=f"Token {key}")
+
+mutualTLS
+---------
+MutualTLS authentication requires
+    * certificate file
+    * key file
+to authenticate to the remote server.
+
+.. code:: python
+
+    api.authenticate(tls=("cert.pem","key.pem"))
+
+
+when using mutualTLS with self-signed certificates, it is required to add the self-signed CA to the SSLContext of the httpx session by providing a :ref:`Session Factory <advanced:Session Factory>`.
+
 
 Forms
 =====
@@ -162,6 +197,19 @@ Or adding a SOCKS5 proxy via httpx_socks:
     def session_factory(*args, **kwargs) -> httpx.AsyncClient:
         kwargs["transport"] = httpx_socks.AsyncProxyTransport.from_url("socks5://127.0.0.1:8080", verify=False)
         return httpx.AsyncClient(*args, verify=False, timeout=60.0, **kwargs)
+
+
+Or using a self-signed CA with certificate validation and possibly mutualTLS authentication:
+
+.. code:: python
+
+    def self_signed(*args, **kwargs) -> httpx.AsyncClient:
+        ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile="/etc/ssl/my-ca.pem")
+        if (cert:=kwargs.get("cert", None)) is not None:
+            """required for mutualTLS / client certificate authentication"""
+            ctx.load_cert_chain(certfile=cert[0], keyfile=cert[1])
+        return httpx.AsyncClient(*args, verify=ctx, **kwargs)
+
 
 Logging
 =======
