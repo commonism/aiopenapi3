@@ -72,7 +72,8 @@ class OpenAPI:
         :param use_operation_tags: honor tags
         """
 
-        resp = session_factory().get(url)
+        with session_factory() as client:
+            resp = client.get(url)
         return cls._load_response(url, resp, session_factory, loader, plugins, use_operation_tags)
 
     @classmethod

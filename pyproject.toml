@@ -105,13 +105,14 @@ tests = [
     "pytest-cov",
     "fastapi @ git+https://github.com/tiangolo/fastapi.git",
     "fastapi-versioning",
-    "hypercorn",
     "uvloop",
     "flask",
     "flask_bootstrap",
     "flask_wtf",
     "wtforms",
     "asgiref",
+    "trustme",
+    "nonecorn",
 ]
 
 [tool.pdm]
