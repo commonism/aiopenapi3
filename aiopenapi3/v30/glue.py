@@ -1,6 +1,7 @@
-from typing import List, Union, cast
+from typing import List, Union, cast, Tuple
 import json
 import urllib.parse
+from pathlib import Path
 
 import httpx
 
@@ -102,11 +103,11 @@ class Request(RequestBase):
             else:
                 raise ValueError(f"Authentication {ss.type}/{ss.scheme_} is not supported.")
 
-        value = cast(str, value)
-
         if ss.type == "mutualTLS":
-            # TLS Client certificates (mutualTLS)
-            self.req.cert = value
+            value = cast(tuple, value)
+            self._prepare_secscheme_mutualtls(scheme, value)
+
+        value = cast(str, value)
 
         if ss.type == "apiKey":
             if ss.in_ == "query":
@@ -119,6 +120,16 @@ class Request(RequestBase):
 
             if ss.in_ == "cookie":
                 self.req.cookies = {ss.name: value}
+
+    def _prepare_secscheme_mutualtls(self, scheme, value: Tuple[Path, Path]):
+        if not isinstance(value, (list, tuple)) or len(value) != 2:
+            raise TypeError(
+                f"client cert parameter for SecurityScheme {scheme} mutualTLS is a Tuple[Path, Path] but {type(value)}"
+            )
+        value: Tuple[Path, Path] = tuple(map(lambda x: x if isinstance(x, Path) else Path(x), value))
+        if missing := sorted(filter(lambda x: not (x.exists() and x.is_file()), value)):
+            raise FileNotFoundError(missing)
+        self.req.cert = value
 
     def _prepare_secschemes_extra(self, scheme: str, value: Union[str, List[str]]):
         ss = self.root.components.securitySchemes[scheme]
@@ -176,11 +187,11 @@ class Request(RequestBase):
             else:
                 raise ValueError(f"Authentication method {ss.type}/{ss.scheme_} is not supported by httpx-auth")
 
-        value = cast(str, value)
-
         if ss.type == "mutualTLS":
-            # TLS Client certificates (mutualTLS)
-            self.req.cert = value
+            value = cast(tuple, value)
+            self._prepare_secscheme_mutualtls(scheme, value)
+
+        value = cast(str, value)
 
         if ss.type == "apiKey":
             if auth := HTTPX_AUTH_METHODS.get((ss.in_ + ss.type).lower(), None):
