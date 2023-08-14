@@ -216,3 +216,14 @@ async def test_sync(event_loop, server, certs):
     client.authenticate(tls=((c := certs["org"]["certs"]["client"])["certfile"], c["keyfile"]))
     l = await asyncio.to_thread(client._.required_tls_authentication)
     assert l is not None
+
+
+@pytest.mark.asyncio
+async def test_certificate_invalid(client):
+    client.authenticate(tls=("/tmp",))
+    with pytest.raises(TypeError, match=r"client cert parameter for SecurityScheme tls mutualTLS"):
+        await client._.required_tls_authentication()
+
+    client.authenticate(tls=("/does/not/exist", "/tmp"))
+    with pytest.raises(FileNotFoundError):
+        await client._.required_tls_authentication()
