@@ -51,7 +51,7 @@ def randomPet(name=None):
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
 async def test_createPet(event_loop, server, client):
     h, r = await asyncio.to_thread(client._.createPet, **randomPet())
-    assert type(r).model_json_schema() == client.components.schemas["Pet-Input"].get_type().model_json_schema()
+    assert type(r).model_json_schema() == client.components.schemas["PetInput"].get_type().model_json_schema()
     assert h["X-Limit-Remain"] == 5
 
     r = await asyncio.to_thread(client._.createPet, data={"pet": {"name": r.name}})
