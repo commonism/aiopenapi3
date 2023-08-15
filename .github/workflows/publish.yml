@@ -5,23 +5,16 @@ name: Publish
 on:
   workflow_dispatch: {}
 
-env:
-  TAG: "the tag to publish"
-
-
 jobs:
   pypi-publish-test:
-    name: upload release to PyPI
+    name: upload release to test.PyPI
     runs-on: ubuntu-latest
     permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: $TAG
       - uses: pdm-project/setup-pdm@v3
-
       - name: Publish package distributions to test.PyPI
         run: pdm publish --repository testpypi
 
@@ -33,10 +26,6 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: $TAG
-
       - uses: pdm-project/setup-pdm@v3
-
       - name: Publish package distributions to PyPI
         run: pdm publish
