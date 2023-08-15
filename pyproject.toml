@@ -44,7 +44,7 @@ classifiers = [
 dynamic = ['version']
 
 [project.urls]
-Documentation = "aiopenapi3.readthedocs.io/"
+Documentation = "https://aiopenapi3.readthedocs.io/"
 Repository = "https://github.com/commonism/aiopenapi3"
 
 [project.optional-dependencies]
