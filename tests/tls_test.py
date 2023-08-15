@@ -220,10 +220,18 @@ async def test_sync(event_loop, server, certs):
 
 @pytest.mark.asyncio
 async def test_certificate_invalid(client):
-    client.authenticate(tls=("/tmp",))
-    with pytest.raises(TypeError, match=r"client cert parameter for SecurityScheme tls mutualTLS"):
-        await client._.required_tls_authentication()
+    with pytest.raises(ValueError, match=r"Invalid parameter for SecurityScheme tls mutualTLS") as e:
+        client.authenticate(tls="/tmp")
+    assert isinstance(e.value.__context__, TypeError) and e.value.__context__.args == (str,)
 
-    client.authenticate(tls=("/does/not/exist", "/tmp"))
-    with pytest.raises(FileNotFoundError):
-        await client._.required_tls_authentication()
+    with pytest.raises(ValueError, match=r"Invalid parameter for SecurityScheme tls mutualTLS") as e:
+        client.authenticate(tls=("/tmp",))
+    assert isinstance(e.value.__context__, ValueError) and e.value.__context__.args == (
+        "Invalid number of tuple parameters 1 - 2 required",
+    )
+
+    with pytest.raises(ValueError, match=r"Invalid parameter for SecurityScheme tls mutualTLS") as e:
+        client.authenticate(tls=(p := ("/does/not/exist", "/tmp")))
+    assert isinstance(e.value.__context__, FileNotFoundError) and e.value.__context__.args[0] == sorted(
+        map(lambda x: Path(x), p)
+    )

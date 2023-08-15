@@ -1,7 +1,6 @@
-from typing import List, Union, cast, Tuple
+from typing import List, Union, cast
 import json
 import urllib.parse
-from pathlib import Path
 
 import httpx
 
@@ -104,8 +103,7 @@ class Request(RequestBase):
                 raise ValueError(f"Authentication {ss.type}/{ss.scheme_} is not supported.")
 
         if ss.type == "mutualTLS":
-            value = cast(tuple, value)
-            self._prepare_secscheme_mutualtls(scheme, value)
+            self.req.cert = value
 
         value = cast(str, value)
 
@@ -120,16 +118,6 @@ class Request(RequestBase):
 
             if ss.in_ == "cookie":
                 self.req.cookies = {ss.name: value}
-
-    def _prepare_secscheme_mutualtls(self, scheme, value: Tuple[Path, Path]):
-        if not isinstance(value, (list, tuple)) or len(value) != 2:
-            raise TypeError(
-                f"client cert parameter for SecurityScheme {scheme} mutualTLS is a Tuple[Path, Path] but {type(value)}"
-            )
-        value: Tuple[Path, Path] = tuple(map(lambda x: x if isinstance(x, Path) else Path(x), value))
-        if missing := sorted(filter(lambda x: not (x.exists() and x.is_file()), value)):
-            raise FileNotFoundError(missing)
-        self.req.cert = value
 
     def _prepare_secschemes_extra(self, scheme: str, value: Union[str, List[str]]):
         ss = self.root.components.securitySchemes[scheme].root
@@ -188,8 +176,7 @@ class Request(RequestBase):
                 raise ValueError(f"Authentication method {ss.type}/{ss.scheme_} is not supported by httpx-auth")
 
         if ss.type == "mutualTLS":
-            value = cast(tuple, value)
-            self._prepare_secscheme_mutualtls(scheme, value)
+            self.req.cert = value
 
         value = cast(str, value)
 

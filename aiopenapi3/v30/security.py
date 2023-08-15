@@ -42,6 +42,9 @@ class _SecuritySchemes:
         type: Literal["apiKey", "http", "oauth2", "openIdConnect"]
         description: Optional[str] = Field(default=None)
 
+        def validate_authentication_value(self, value):
+            pass
+
     class apiKey(_SecurityScheme):
         type: Literal["apiKey"]
         in_: str = Field(alias="in")

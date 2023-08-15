@@ -17,6 +17,9 @@ class _SecuritySchemes:
         type: Literal["basic", "apiKey", "oauth2"]
         description: Optional[str] = Field(default=None)
 
+        def validate_authentication_value(self, value):
+            pass
+
     class basic(_SecurityScheme):
         type: Literal["basic"]
 

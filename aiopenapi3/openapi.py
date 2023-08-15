@@ -527,12 +527,21 @@ class OpenAPI:
 
         schemes = frozenset(kwargs.keys())
         if isinstance(self._root, v20.Root):
-            v = schemes - frozenset(self._root.securityDefinitions)
+            v = schemes - frozenset(SecuritySchemes := self._root.securityDefinitions)
         elif isinstance(self._root, (v30.Root, v31.Root)):
-            v = schemes - frozenset(self._root.components.securitySchemes)
+            v = schemes - frozenset(SecuritySchemes := self._root.components.securitySchemes)
 
         if v:
             raise ValueError("{} does not accept security schemes {}".format(self.info.title, sorted(v)))
+
+        for security_scheme, value in kwargs.items():
+            if value is None:
+                continue
+            ss = SecuritySchemes[security_scheme].root
+            try:
+                ss.validate_authentication_value(value)
+            except Exception as e:
+                raise ValueError(f"Invalid parameter for SecurityScheme {security_scheme} {ss.type}") from e
 
         for security_scheme, value in kwargs.items():
             if value is None:
