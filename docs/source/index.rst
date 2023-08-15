@@ -40,7 +40,7 @@ While aiopenapi3 supports some of the more exotic features of the Swagger/OpenAP
 * :doc:`plugin interface </plugin>` to mangle description documents and messages
 * :ref:`api:Parameter Encoding`
 * :ref:`advanced:Forms`
-
+* :ref:`advanced:mutualTLS` authentication
 
 some aspects of the specifications are implemented loose
 

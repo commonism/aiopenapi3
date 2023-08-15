@@ -254,7 +254,7 @@ There is different types of Exceptions used depending on the subsystem/failure.
 
 .. inheritance-diagram:: aiopenapi3.errors.SpecError aiopenapi3.errors.ReferenceResolutionError aiopenapi3.errors.OperationParameterValidationError aiopenapi3.errors.ParameterFormatError aiopenapi3.errors.HTTPError aiopenapi3.errors.RequestError aiopenapi3.errors.ResponseError aiopenapi3.errors.ContentTypeError aiopenapi3.errors.HTTPStatusError aiopenapi3.errors.ResponseDecodingError aiopenapi3.errors.ResponseSchemaError
     :top-classes: aiopenapi3.errors.BaseError
-    :parts: -1
+    :parts: -2
 
 
 
