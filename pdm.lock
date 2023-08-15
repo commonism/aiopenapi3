@@ -6,7 +6,7 @@ groups = ["default", "tests", "auth", "socks"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:eee9ee27ec29edb4605226a75cfa9d714f3123ca29ee19ca1888e28175509444"
+content_hash = "sha256:0a9ceb4cdeda2b049b3fe1b384c1d0a43508e6ac836c6f43801d2edb10859b0c"
 
 [[package]]
 name = "annotated-types"
@@ -364,13 +364,15 @@ files = [
 name = "fastapi"
 version = "0.101.1"
 requires_python = ">=3.7"
-git = "https://github.com/tiangolo/fastapi.git"
-revision = "63e7edb2951b36b494176e2f6a22819fcd3feb17"
 summary = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
 dependencies = [
     "pydantic!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0,>=1.7.4",
     "starlette<0.28.0,>=0.27.0",
     "typing-extensions>=4.5.0",
+]
+files = [
+    {file = "fastapi-0.101.1-py3-none-any.whl", hash = "sha256:aef5f8676eb1b8389952e1fe734abe20f04b71f6936afcc53b320ba79b686a4b"},
+    {file = "fastapi-0.101.1.tar.gz", hash = "sha256:7b32000d14ca9992f7461117b81e4ef9ff0c07936af641b4fe40e67d5f9d63cb"},
 ]
 
 [[package]]
@@ -816,7 +818,7 @@ name = "pydantic"
 version = "2.1.1"
 requires_python = ">=3.7"
 git = "https://github.com/pydantic/pydantic.git"
-revision = "2009d29ed5b7d488ed66e87dcb6d5809f50422da"
+revision = "bcd9c8981919bbd8f902a97880876efbe996c12d"
 summary = "Data validation using Python type hints"
 dependencies = [
     "annotated-types>=0.4.0",
