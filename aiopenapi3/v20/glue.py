@@ -86,7 +86,7 @@ class Request(RequestBase):
             return self._prepare_secschemes_default(scheme, value)
 
     def _prepare_secschemes_default(self, scheme: str, value: Union[str, List[str]]):
-        ss = self.root.securityDefinitions[scheme]
+        ss = self.root.securityDefinitions[scheme].root
 
         if ss.type == "basic":
             value = cast(List[str], value)
@@ -103,7 +103,7 @@ class Request(RequestBase):
                 self.req.headers[ss.name] = value
 
     def _prepare_secschemes_extra(self, scheme: str, value: Union[str, List[str]]):
-        ss = self.root.securityDefinitions[scheme]
+        ss = self.root.securityDefinitions[scheme].root
 
         if ss.type == "basic":
             value = cast(List[str], value)
