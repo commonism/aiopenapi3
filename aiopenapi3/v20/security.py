@@ -1,34 +1,57 @@
-from typing import Optional, Dict, List
+import sys
 
-from pydantic import Field, RootModel, model_validator
+if sys.version_info >= (3, 9):
+    from typing import List, Optional, Union, Dict, Annotated, Literal
+else:
+    from typing import List, Optional, Union, Dict
+    from typing_extensions import Annotated, Literal
+
+
+from pydantic import Field, RootModel
 
 from ..base import ObjectExtended
 
 
-class SecurityScheme(ObjectExtended):
+class _SecuritySchemes:
+    class _SecurityScheme(ObjectExtended):
+        type: Literal["basic", "apiKey", "oauth2"]
+        description: Optional[str] = Field(default=None)
+
+    class basic(_SecurityScheme):
+        type: Literal["basic"]
+
+    class apiKey(_SecurityScheme):
+        type: Literal["apiKey"]
+        in_: str = Field(alias="in")
+        name: str
+
+    class oauth2(_SecurityScheme):
+        type: Literal["oauth2"]
+        flow: Literal["implicit", "password", "application", "accessCode"]
+        authorizationUrl: str
+        tokenUrl: str
+        scopes: Dict[str, str]
+
+
+class SecurityScheme(
+    RootModel[
+        Annotated[
+            Union[
+                _SecuritySchemes.basic,
+                _SecuritySchemes.apiKey,
+                _SecuritySchemes.oauth2,
+            ],
+            Field(discriminator="type"),
+        ]
+    ]
+):
     """
     Allows the definition of a security scheme that can be used by the operations.
 
     https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#security-scheme-object
     """
 
-    type: str = Field(...)
-    description: Optional[str] = Field(default=None)
-    name: Optional[str] = Field(default=None)
-    in_: Optional[str] = Field(default=None, alias="in")
-
-    flow: Optional[str] = Field(default=None)
-    authorizationUrl: Optional[str] = Field(default=None)
-    tokenUrl: Optional[str] = Field(default=None)
-    refreshUrl: Optional[str] = Field(default=None)
-    scopes: Dict[str, str] = Field(default_factory=dict)
-
-    @model_validator(mode="before")
-    def validate_SecurityScheme(cls, values):
-        if values["type"] == "apiKey":
-            assert values["name"], "name is required for apiKey"
-            assert values["in"] in frozenset(["query", "header"]), "in must be query or header"
-        return values
+    pass
 
 
 class SecurityRequirement(RootModel):

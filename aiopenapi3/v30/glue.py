@@ -91,7 +91,7 @@ class Request(RequestBase):
             return self._prepare_secschemes_default(scheme, value)
 
     def _prepare_secschemes_default(self, scheme: str, value: Union[str, List[str]]):
-        ss = self.root.components.securitySchemes[scheme]
+        ss = self.root.components.securitySchemes[scheme].root
 
         if ss.type == "http":
             if ss.scheme_ == "basic":
@@ -132,7 +132,7 @@ class Request(RequestBase):
         self.req.cert = value
 
     def _prepare_secschemes_extra(self, scheme: str, value: Union[str, List[str]]):
-        ss = self.root.components.securitySchemes[scheme]
+        ss = self.root.components.securitySchemes[scheme].root
         auths = []
 
         if ss.type == "oauth2":

@@ -241,7 +241,7 @@ def test_schema_with_extensions(with_schema_extensions):
 
     assert api.components.schemas["X"].extensions["Schema"] == "Schema"
     assert api.components.schemas["Y"].properties["Z"].extensions["Add"] == "Add"
-    assert api.components.securitySchemes["user"].extensions["SecurityScheme"] == "SecurityScheme"
+    assert api.components.securitySchemes["user"].root.extensions["SecurityScheme"] == "SecurityScheme"
     assert api.components.parameters["X"].extensions["Parameter"] == "Parameter"
     assert api.paths.extensions["Paths"] == "Paths"
     assert api.paths["/x"].extensions["PathItem"] == "PathItem"
