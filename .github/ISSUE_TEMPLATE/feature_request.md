@@ -1,5 +1,5 @@
 name: Feature request
-about: Suggest a new feature for aiopenapi3
+description: Suggest a new feature for aiopenapi3
 labels: [feature]
 
 body:

@@ -1,7 +1,8 @@
 name: aiopenapi3 Bug report
-about: Report a bug or unexpected behavior in aiopenapi3
+description: Report a bug or unexpected behavior in aiopenapi3
 labels: [bug, unconfirmed]
 
+body:
   - type: markdown
     attributes:
       value:  Thank you for taking the time to report a problem.
