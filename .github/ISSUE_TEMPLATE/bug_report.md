@@ -1,38 +1,44 @@
----
-name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
+name: aiopenapi3 Bug report
+about: Report a bug or unexpected behavior in aiopenapi3
+labels: [bug, unconfirmed]
 
----
+  - type: markdown
+    attributes:
+      value:  Thank you for taking the time to report a problem.
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description of the problem
+      description: |
+        Provide the detail required to understand the problem.
+        Intention, Environment, Expectations, Failure
+    validations:
+      required: true
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+  - type: textarea
+    id: example
+    attributes:
+      label: Example - Description Document/Code
+      description: >
+        [MRE](https://stackoverflow.com/help/minimal-reproducible-example) demonstrating the bug.
+        Description Document (and Code).
+      placeholder: |
+        ...
+      render: yaml
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+  - type: textarea
+    id: version
+    attributes:
+      label: Python, Pydantic & OS Version
+      description: |
+        Which version of Python & Pydantic are you using, and which Operating System?
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+        Please run the following command and copy the output below:
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
-
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
-
-**Additional context**
-Add any other context about the problem here.
+        ```bash
+        python3 -c "import pydantic.version; print(pydantic.version.version_info()); import aiopenapi3; print(aiopenapi3.__version__)"
+        ```
+      render: Text
+    validations:
+      required: true
