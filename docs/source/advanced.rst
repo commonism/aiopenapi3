@@ -96,10 +96,10 @@ reset authentication identifiers
 
 
 Authentication Methods
-======================
+----------------------
 
 apiKey
----------
+^^^^^^
 In case you fail to authenticate using apiKey, it may be required to prefix the apiKey with a keyword which is not documented within the description document.
 
 e.g.:
@@ -109,7 +109,7 @@ e.g.:
     api.authenticate(tokenAuth=f"Token {key}")
 
 mutualTLS
----------
+^^^^^^^^^
 MutualTLS authentication requires
     * certificate file
     * key file
