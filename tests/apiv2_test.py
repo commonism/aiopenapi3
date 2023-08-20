@@ -125,7 +125,7 @@ async def test_model(event_loop, server, client):
 
 def randomPet(client, name=None, cat=False):
     if name:
-        Pet = client.components.schemas["PetInput"].get_type()
+        Pet = client.components.schemas["Pet-Input"].get_type()
         if not cat:
             Dog = typing.get_args(typing.get_args(Pet.model_fields["root"].annotation)[0])[1]
             dog = Dog(
@@ -144,7 +144,7 @@ def randomPet(client, name=None, cat=False):
         return client._.createPet.data.get_type().model_construct(pet=pet)
     else:
         return {
-            "pet": client.components.schemas["WhiteCat"]
+            "pet": client.components.schemas["WhiteCat-Input"]
             .model({"name": str(uuid.uuid4()), "white_name": str(uuid.uuid4())})
             .model_dump()
         }
@@ -161,7 +161,7 @@ async def test_Request(event_loop, server, client):
 @pytest.mark.asyncio
 async def test_createPet(event_loop, server, client):
     data = {
-        "pet": client.components.schemas["WhiteCatInput"]
+        "pet": client.components.schemas["WhiteCat-Input"]
         .model(
             {
                 "name": str(uuid.uuid4()),
@@ -176,7 +176,7 @@ async def test_createPet(event_loop, server, client):
 
     print(json.dumps(data["pet"], indent=4))
     r = await client._.createPet(data=data)
-    assert isinstance(r, client.components.schemas["PetInput"].get_type())
+    assert isinstance(r, client.components.schemas["Pet-Input"].get_type())
 
     r = await client._.createPet(data=randomPet(client, name=r.root.root.name))
     Error = client.components.schemas["Error"].get_type()
@@ -223,7 +223,7 @@ async def test_deletePet(event_loop, server, client):
 
 @pytest.mark.asyncio
 async def test_patchPet(event_loop, server, client):
-    Pet = client.components.schemas["PetInput"].get_type()
+    Pet = client.components.schemas["Pet-Input"].get_type()
     Dog = typing.get_args(typing.get_args(Pet.model_fields["root"].annotation)[0])[1]
     pets = [
         Pet(
