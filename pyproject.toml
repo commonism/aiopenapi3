@@ -107,12 +107,12 @@ tests = [
     "fastapi-versioning",
     "uvloop",
     "flask",
-    "flask_bootstrap",
     "flask_wtf",
     "wtforms",
     "asgiref",
     "trustme",
     "nonecorn",
+    "bootstrap-flask",
     "ijson",
 ]
 

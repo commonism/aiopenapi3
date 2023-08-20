@@ -7,7 +7,7 @@ import time
 import aiopenapi3
 
 from flask import Flask, render_template_string, redirect, url_for, Blueprint, abort
-from flask_bootstrap import Bootstrap
+from flask_bootstrap import Bootstrap4 as Bootstrap
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms.fields import (
     BooleanField,
