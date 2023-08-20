@@ -27,7 +27,7 @@ import pydantic
 import aiopenapi3.v30.media
 from ..base import SchemaBase, ParameterBase
 from ..request import RequestBase, AsyncRequestBase
-from ..errors import HTTPStatusError, ContentTypeError, ResponseDecodingError, ResponseSchemaError
+from ..errors import HTTPStatusError, ContentTypeError, ResponseDecodingError, ResponseSchemaError, HeadersMissingError
 from .formdata import parameters_from_multipart, parameters_from_urlencoded, encode_multipart_parameters
 
 
@@ -353,6 +353,10 @@ class Request(RequestBase):
                 )
             )
             available = frozenset(headers.keys())
+            available = frozenset(headers.keys())
+            if missing := (required.keys() - available):
+                missing = {k: required[k] for k in missing}
+                raise HeadersMissingError(self.operation, missing, result)
             for name, header in expected_response.headers.items():
                 data = headers.get(name, None)
                 if data:

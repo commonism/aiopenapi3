@@ -6,7 +6,7 @@ import pydantic
 
 from ..base import SchemaBase, ParameterBase
 from ..request import RequestBase, AsyncRequestBase
-from ..errors import HTTPStatusError, ContentTypeError, ResponseSchemaError, ResponseDecodingError
+from ..errors import HTTPStatusError, ContentTypeError, ResponseSchemaError, ResponseDecodingError, HeadersMissingError
 
 from .parameter import Parameter
 
@@ -238,15 +238,15 @@ class Request(RequestBase):
     def _process__headers(self, result, headers, expected_response):
         rheaders = dict()
         if expected_response.headers:
-            # FIXME
-            # there is no "required" field - but it is referenced.
-            # https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#header-object
-            # required = frozenset(map(lambda x: x[0].lower(), filter(lambda x: x[1].required is True, expected_response.headers.items())))
-            #
-            # required = frozenset()
-            # available = frozenset(result.headers.keys())
-            # if required - available:
-            #     raise ValueError(f"missing {sorted(required - available)}")
+            required = dict(map(lambda x: (x[0].lower(), x[1]), expected_response.headers.items()))
+            """
+            Swagger 2.0 does not have optional header - all defined headers are required
+            https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#header-object
+            """
+            available = frozenset(result.headers.keys())
+            if missing := (required.keys() - available):
+                missing = {k: required[k] for k in missing}
+                raise HeadersMissingError(self.operation, missing, result)
             for name, header in expected_response.headers.items():
                 data = headers.get(name, None)
                 if data:

@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 import dataclasses
 
 
@@ -132,3 +132,12 @@ class ResponseSchemaError(ResponseError):
     schema: object
     response: object
     exception: object
+
+
+@dataclasses.dataclass
+class HeadersMissingError(ResponseError):
+    """the response is missing required header/s"""
+
+    operation: object
+    missing: Dict[str, object]
+    response: object
