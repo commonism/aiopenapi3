@@ -1,4 +1,4 @@
-from typing import List, Union, cast
+from typing import List, Union, cast, Tuple, Dict
 import json
 
 import httpx
@@ -252,6 +252,12 @@ class Request(RequestBase):
                 if data:
                     rheaders[name] = header._schema.model(header._decode(data))
         return rheaders
+
+    def _process_stream(self, result: httpx.Response) -> "SchemaBase":
+        status_code = str(result.status_code)
+        expected_response = self._process__status_code(result, status_code)
+        headers = self._process__headers(result, result.headers, expected_response)
+        return headers, expected_response.schema_
 
     def _process_request(self, result: httpx.Response) -> Tuple[Dict[str, str], Union[pydantic.BaseModel, str]]:
         rheaders = dict()

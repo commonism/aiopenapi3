@@ -18,6 +18,7 @@ Requests
 
 Requests encapsulate the required information to call an operation.
 They
+
     - compile the actual HTTP request sent, including authentication information, headers, parameters and the body.
     - send it
     - receive the result
@@ -26,7 +27,12 @@ They
 
 .. currentmodule:: aiopenapi3.request
 .. autoclass:: RequestBase
-    :members: data, parameters, request, __call__
+    :members: data, parameters, request, stream, __call__
+
+.. currentmodule:: aiopenapi3.request
+.. autoclass:: AsyncRequestBase
+    :members: data, parameters, request, stream, __call__
+
 
 The different major versions of the OpenAPI protocol require their own Request/AsyncRequest.
 

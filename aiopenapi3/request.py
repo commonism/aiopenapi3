@@ -5,6 +5,7 @@ from contextlib import closing
 from typing import Dict, Tuple, Union, Any, Optional, List
 
 import httpx
+import pydantic
 import yarl
 
 from aiopenapi3.errors import ContentLengthExceededError
@@ -42,6 +43,8 @@ class RequestParameter:
 
 
 class RequestBase:
+    StreamResponse = collections.namedtuple("StreamResponse", field_names=["headers", "schema", "session", "result"])
+
     """
     A Request compiles all required information to call an Operation
 
@@ -93,6 +96,14 @@ class RequestBase:
         return result
 
     @abc.abstractmethod
+    def _process_stream(self, result: httpx.Response) -> Tuple[Dict[str, Any], "SchemaBase"]:
+        """
+        process response headers
+        lookup the schema for the stream
+        """
+        pass
+
+    @abc.abstractmethod
     def _process_request(self, result: httpx.Response) -> Tuple[Dict[str, str], Union[pydantic.BaseModel, str]]:
         """
         process response headers
@@ -127,6 +138,33 @@ class RequestBase:
 
         headers, data = self._process_request(result)
         return headers, data, result
+
+    def stream(
+        self,
+        data=Union[Dict[str, Any], pydantic.BaseModel],
+        parameters: Dict[str, Union[str, pydantic.BaseModel]] = None,
+    ) -> Tuple["SchemaBase", httpx.Client, httpx.Response]:
+        """
+        Sends an HTTP request as described by this Path - but do not process the result
+          * returns a tuple of Schema, httpx.Client, httpx.Response
+          * requires closing the Client when done processing the response
+          * requires manual processing of the data
+          * intended for use with of large results
+          * httpx response streaming via Response.iter_bytes()
+          * combine with ijson coroutines
+
+        :param data: The request body to send.
+        :type data: any, should match content/type
+        :param parameters: The path/header/query/cookie parameters required for the operation
+        :type parameters: dict{str: str}
+        :return: schema, session, response
+        """
+
+        self._prepare(data, parameters)
+        session = self.api._session_factory(**self._session_factory_default_args)
+        result = self._send(session, data, parameters)
+        headers, schema_ = self._process_stream(result)
+        return RequestBase.StreamResponse(headers, schema_, session, result)
 
     @property
     @abc.abstractmethod
@@ -174,6 +212,17 @@ class AsyncRequestBase(RequestBase):
 
         headers, data = self._process_request(result)
         return headers, data, result
+
+    async def stream(
+        self,
+        data=None,
+        parameters=None,
+    ) -> Tuple["aiopenapi3.base.SchemaBase", httpx.AsyncClient, httpx.Response]:
+        self._prepare(data, parameters)
+        session = self.api._session_factory(**self._session_factory_default_args)
+        result = await self._send(session, data, parameters)
+        headers, schema_ = self._process_stream(result)
+        return RequestBase.StreamResponse(headers, schema_, session, result)
 
 
 class OperationIndex:
