@@ -252,7 +252,7 @@ Exceptions
 
 There is different types of Exceptions used depending on the subsystem/failure.
 
-.. inheritance-diagram:: aiopenapi3.errors.SpecError aiopenapi3.errors.ReferenceResolutionError aiopenapi3.errors.OperationParameterValidationError aiopenapi3.errors.ParameterFormatError aiopenapi3.errors.HTTPError aiopenapi3.errors.RequestError aiopenapi3.errors.ResponseError aiopenapi3.errors.ContentTypeError aiopenapi3.errors.HTTPStatusError aiopenapi3.errors.ResponseDecodingError aiopenapi3.errors.ResponseSchemaError
+.. inheritance-diagram:: aiopenapi3.errors.SpecError aiopenapi3.errors.ReferenceResolutionError aiopenapi3.errors.OperationParameterValidationError aiopenapi3.errors.ParameterFormatError aiopenapi3.errors.HTTPError aiopenapi3.errors.RequestError aiopenapi3.errors.ResponseError aiopenapi3.errors.ContentTypeError aiopenapi3.errors.HTTPStatusError aiopenapi3.errors.ResponseDecodingError aiopenapi3.errors.ResponseSchemaError aiopenapi3.errors.ContentLengthExceededError
     :top-classes: aiopenapi3.errors.BaseError
     :parts: -2
 
@@ -305,15 +305,19 @@ A RequestError typically wraps an `error <https://www.python-httpx.org/exception
     :members:
     :undoc-members:
 
-ReponseErrors indicate the response does not match the expectation/definition in the description document.
-Most ReponseErrors can be mitigated around using :doc:`plugins </plugin>` to match the protocol to the description
+ResponseErrors indicate the response does not match the expectation/definition in the description document.
+Most ResponseErrors can be mitigated around using :doc:`plugins </plugin>` to match the protocol to the description
 document.
 
-.. inheritance-diagram:: aiopenapi3.errors.ContentTypeError aiopenapi3.errors.HTTPStatusError aiopenapi3.errors.ResponseDecodingError aiopenapi3.errors.ResponseSchemaError
+.. inheritance-diagram:: aiopenapi3.errors.ContentTypeError aiopenapi3.errors.ContentLengthExceededError  aiopenapi3.errors.HTTPStatusError aiopenapi3.errors.ResponseDecodingError aiopenapi3.errors.ResponseSchemaError aiopenapi3.errors.HeadersMissingError
    :top-classes: aiopenapi3.errors.ResponseError
    :parts: -2
 
 .. autoexception:: ContentTypeError
+    :members:
+    :undoc-members:
+
+.. autoexception:: ContentLengthExceededError
     :members:
     :undoc-members:
 

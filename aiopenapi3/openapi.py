@@ -201,36 +201,40 @@ class OpenAPI:
         :param plugins: list of plugins
         :param use_operation_tags: honor tags
         """
-
         self._base_url: yarl.URL = yarl.URL(url)
 
         self._session_factory: Callable[[], Union[httpx.Client, httpx.AsyncClient]] = session_factory
 
+        self.loader: Loader = loader
         """
         Loader - loading referenced documents
         """
-        self.loader: Loader = loader
 
+        self._createRequest: Callable[["OpenAPI", str, str, "Operation"], "RequestBase"] = None
         """
         creates the Async/Request for the protocol required
         """
-        self._createRequest: Callable[["OpenAPI", str, str, "Operation"], "RequestBase"] = None
 
+        self._max_response_content_length = 8 * (1024**2)
+        """
+        Maximum Content-Length in Responses - default to 8 MBytes
+        """
+
+        self._security: Dict[str, Tuple[str]] = dict()
         """
         authorization informations
         e.g. {"BasicAuth": ("user","secret")}
         """
-        self._security: Dict[str, Tuple[str]] = dict()
 
+        self._documents: Dict[yarl.URL, RootBase] = dict()
         """
         the related documents
         """
-        self._documents: Dict[yarl.URL, RootBase] = dict()
 
+        self._init_plugins(plugins)
         """
         the plugin interface allows taking care of defects in description documents and implementations
         """
-        self._init_plugins(plugins)
 
         log.init()
         self.log = logging.getLogger("aiopenapi3.OpenAPI")

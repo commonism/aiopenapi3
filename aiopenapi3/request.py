@@ -7,6 +7,8 @@ from typing import Dict, Tuple, Union, Any, Optional, List
 import httpx
 import yarl
 
+from aiopenapi3.errors import ContentLengthExceededError
+
 try:
     from contextlib import aclosing
 except:  # <= Python 3.10
@@ -116,6 +118,11 @@ class RequestBase:
         with closing(self.api._session_factory(**self._session_factory_default_args)) as session:
             result = self._send(session, data, parameters)
 
+            if (cl := int(result.headers.get("Content-Length", 0))) > (m := self.api._max_response_content_length):
+                raise ContentLengthExceededError(
+                    self.operation, cl, f"Content-Length ({cl}) exceeds maximum ({m})", result
+                )
+
             result.read()
 
         headers, data = self._process_request(result)
@@ -157,6 +164,11 @@ class AsyncRequestBase(RequestBase):
         self._prepare(data, parameters)
         async with aclosing(self.api._session_factory(**self._session_factory_default_args)) as session:
             result = await self._send(session, data, parameters)
+
+            if (cl := int(result.headers.get("Content-Length", 0))) > (m := self.api._max_response_content_length):
+                raise ContentLengthExceededError(
+                    self.operation, cl, f"Content-Length ({cl}) exceeds maximum ({m})", result
+                )
 
             await result.aread()
 
