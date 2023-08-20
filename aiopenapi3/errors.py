@@ -85,6 +85,16 @@ class ResponseError(HTTPError):
 
 
 @dataclasses.dataclass
+class ContentLengthExceededError(ResponseError):
+    """The Content-Length exceeds our Limits"""
+
+    operation: object
+    content_length: int
+    message: str
+    response: object
+
+
+@dataclasses.dataclass
 class ContentTypeError(ResponseError):
     """The content-type is unexpected"""
 
