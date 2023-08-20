@@ -130,16 +130,29 @@ Posting data to Forms using multipart/form-data or application/x-www-form-urlenc
 
 OpenAPI 3.x
 -----------
-Please refer to the `unit tests <https://github.com/commonism/aiopenapi3/blob/master/tests/forms_test.py>`_  how to
-  * `describe form fields <https://github.com/commonism/aiopenapi3/blob/master/tests/fixtures/paths-requestbody-formdata-wtforms.yaml>`_
-  * (multi) file upload
-  * controls/radio buttons
+
+Refer to the unit tests how to
+`describe form fields <https://github.com/commonism/aiopenapi3/blob/master/tests/fixtures/paths-requestbody-formdata-wtforms.yaml>`_
+in the description document and how to post data:
+
+  * :aioai3:ref:`tests.forms_test.test_String`
+  * :aioai3:ref:`tests.forms_test.test_DateTime`
+  * :aioai3:ref:`tests.forms_test.test_Numbers`
+  * :aioai3:ref:`tests.forms_test.test_File`
+  * :aioai3:ref:`tests.forms_test.test_Select`
+  * :aioai3:ref:`tests.forms_test.test_Control`
+  * :aioai3:ref:`tests.forms_test.test_Header`
+  * :aioai3:ref:`tests.forms_test.test_Graph`
 
 
 Swagger 2.0
 -----------
-The `description document <https://github.com/commonism/aiopenapi3/blob/master/tests/fixtures/paths-parameter-format-v20.yaml>`_ and
-`unit tests <https://github.com/commonism/aiopenapi3/blob/master/tests/pathv20_test.py#L149>`_.
+
+The
+`description document <https://github.com/commonism/aiopenapi3/blob/master/tests/fixtures/paths-parameter-format-v20.yaml>`_
+and
+:aioai3:ref:`the unit tests <tests.pathv20_test.test_paths_parameter_format_v20>`.
+
 
 
 Manual Requests
