@@ -180,3 +180,18 @@ def test_paths_parameter_format_v20(httpx_mock, with_paths_parameter_format_v20)
     assert result == "ok"
 
     return
+
+
+def test_paths_stream(httpx_mock, with_paths_parameter_format_v20):
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="ok")
+    api = OpenAPI(URLBASE, with_paths_parameter_format_v20, session_factory=httpx.Client)
+
+    parameters = {
+        "array": ["blue", "black", "brown"],
+        "string": "blue",
+    }
+    req = api.createRequest("path")
+    streamresponse = req.stream(parameters=parameters)
+    for i in streamresponse.result.iter_bytes():
+        continue
+    streamresponse.session.close()
