@@ -325,24 +325,7 @@ class Request(RequestBase):
         )
         return req
 
-    def _process(self, result):
-        rheaders = dict()
-        # spec enforces these are strings
-        status_code = str(result.status_code)
-        content_type = result.headers.get("Content-Type", None)
-
-        ctx = self.api.plugins.message.received(
-            operationId=self.operation.operationId,
-            received=result.content,
-            headers=result.headers,
-            status_code=status_code,
-            content_type=content_type,
-        )
-
-        status_code = ctx.status_code
-        content_type = ctx.content_type
-        headers = ctx.headers
-
+    def _process__status_code(self, result, status_code):
         # find the response model in spec we received
         expected_response = None
         if status_code in self.operation.responses:
@@ -351,7 +334,6 @@ class Request(RequestBase):
             expected_response = self.operation.responses["default"]
 
         if expected_response is None:
-            # TODO - custom exception class that has the response object in it
             options = ",".join(self.operation.responses.keys())
             raise HTTPStatusError(
                 self.operation,
@@ -359,23 +341,25 @@ class Request(RequestBase):
                 f"""Unexpected response {result.status_code} from {self.operation.operationId} (expected one of {options}), no default is defined""",
                 result,
             )
+        return expected_response
 
+    def _process__headers(self, result, headers, expected_response):
+        rheaders = dict()
         if expected_response.headers:
-            required = frozenset(
-                map(lambda x: x[0].lower(), filter(lambda x: x[1].required is True, expected_response.headers.items()))
+            required = dict(
+                map(
+                    lambda x: (x[0].lower(), x[1]),
+                    filter(lambda x: x[1].required is True, expected_response.headers.items()),
+                )
             )
             available = frozenset(headers.keys())
-            if required - available:
-                raise ValueError(f"missing Header {sorted(required - available)}")
             for name, header in expected_response.headers.items():
                 data = headers.get(name, None)
                 if data:
                     rheaders[name] = header.schema_.model(header._decode(data))
+        return rheaders
 
-        # status_code == 204 should match here
-        if len(expected_response.content) == 0:
-            return rheaders, None
-
+    def _process__content_type(self, result, expected_response, content_type):
         if content_type:
             content_type, _, encoding = content_type.partition(";")
             expected_media = expected_response.content.get(content_type, None)
@@ -399,6 +383,45 @@ class Request(RequestBase):
                          (expected one of {options})",
                 result,
             )
+        return content_type, expected_media
+
+    def _process_stream(self, result):
+        status_code = str(result.status_code)
+        content_type = result.headers.get("Content-Type", None)
+
+        expected_response = self._process__status_code(result, status_code)
+        content_type, expected_media = self._process__content_type(result, expected_response, content_type)
+
+        headers = self._process__headers(result, result.headers, expected_response)
+
+        return headers, expected_media.schema_
+
+    def _process_request(self, result):
+        rheaders = dict()
+        # spec enforces these are strings
+        status_code = str(result.status_code)
+        content_type = result.headers.get("Content-Type", None)
+
+        ctx = self.api.plugins.message.received(
+            operationId=self.operation.operationId,
+            received=result.content,
+            headers=result.headers,
+            status_code=status_code,
+            content_type=content_type,
+        )
+
+        status_code = ctx.status_code
+        content_type = ctx.content_type
+        headers = ctx.headers
+
+        expected_response = self._process__status_code(result, status_code)
+        rheaders = self._process__headers(result, headers, expected_response)
+
+        # status_code == 204 should match here
+        if len(expected_response.content) == 0:
+            return rheaders, None
+
+        content_type, expected_media = self._process__content_type(result, expected_response, content_type)
 
         if content_type.lower() == "application/json":
             data = ctx.received
