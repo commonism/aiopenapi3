@@ -217,7 +217,43 @@ class Request(RequestBase):
         )
         return req
 
-    def _process(self, result):
+    def _process__status_code(self, result: httpx.Response, status_code: str):
+        # find the response model in spec we received
+        expected_response = None
+        if status_code in self.operation.responses:
+            expected_response = self.operation.responses[status_code]
+        elif "default" in self.operation.responses:
+            expected_response = self.operation.responses["default"]
+
+        if expected_response is None:
+            options = ",".join(self.operation.responses.keys())
+            raise HTTPStatusError(
+                self.operation,
+                result.status_code,
+                f"""Unexpected response {result.status_code} from {self.operation.operationId} (expected one of {options}), no default is defined""",
+                result,
+            )
+        return expected_response
+
+    def _process__headers(self, result, headers, expected_response):
+        rheaders = dict()
+        if expected_response.headers:
+            # FIXME
+            # there is no "required" field - but it is referenced.
+            # https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#header-object
+            # required = frozenset(map(lambda x: x[0].lower(), filter(lambda x: x[1].required is True, expected_response.headers.items())))
+            #
+            # required = frozenset()
+            # available = frozenset(result.headers.keys())
+            # if required - available:
+            #     raise ValueError(f"missing {sorted(required - available)}")
+            for name, header in expected_response.headers.items():
+                data = headers.get(name, None)
+                if data:
+                    rheaders[name] = header._schema.model(header._decode(data))
+        return rheaders
+
+    def _process_request(self, result: httpx.Response) -> Tuple[Dict[str, str], Union[pydantic.BaseModel, str]]:
         rheaders = dict()
         # spec enforces these are strings
         status_code = str(result.status_code)
@@ -234,37 +270,9 @@ class Request(RequestBase):
         content_type = ctx.content_type
         headers = ctx.headers
 
-        # find the response model in spec we received
-        expected_response = None
-        if status_code in self.operation.responses:
-            expected_response = self.operation.responses[status_code]
-        elif "default" in self.operation.responses:
-            expected_response = self.operation.responses["default"]
+        expected_response = self._process__status_code(result, status_code)
 
-        if expected_response is None:
-            # TODO - custom exception class that has the response object in it
-            options = ",".join(self.operation.responses.keys())
-            raise HTTPStatusError(
-                self.operation,
-                result.status_code,
-                f"""Unexpected response {result.status_code} from {self.operation.operationId} (expected one of {options}), no default is defined""",
-                result,
-            )
-
-        if expected_response.headers:
-            # FIXME
-            # there is no "required" field - but it is referenced.
-            # https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#header-object
-            # required = frozenset(map(lambda x: x[0].lower(), filter(lambda x: x[1].required is True, expected_response.headers.items())))
-            #
-            # required = frozenset()
-            # available = frozenset(result.headers.keys())
-            # if required - available:
-            #     raise ValueError(f"missing {sorted(required - available)}")
-            for name, header in expected_response.headers.items():
-                data = headers.get(name, None)
-                if data:
-                    rheaders[name] = header._schema.model(header._decode(data))
+        rheaders = self._process__headers(result, headers, expected_response)
 
         if status_code == "204":
             return rheaders, None

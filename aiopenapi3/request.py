@@ -71,10 +71,38 @@ class RequestBase:
             return headers, data
         return data
 
-    def _factory_args(self):
-        return {"auth": self.req.auth, "headers": {"user-agent": f"aiopenapi3/{__version__}"}}
+    @property
+    def _session_factory_default_args(self) -> Dict[str, Any]:
+        """
+        this is the session factory default arguments,
+        the arguments passed to httpx.Async/Client()
 
-    def request(self, data=None, parameters=None) -> Tuple[Dict[str, Any], Any, httpx.Response]:
+        if you need to pass your own parameters to httpx.Async/Client use a session factory
+        and pass your pararmters to the constructor in addition to these default arguments
+        """
+        return {"cert": self.req.cert, "auth": self.req.auth, "headers": {"user-agent": f"aiopenapi3/{__version__}"}}
+
+    def _send(self, session, data, parameters):
+        req = self._build_req(session)
+        try:
+            result = session.send(req, stream=True)
+        except Exception as e:
+            raise RequestError(self.operation, req, data, parameters) from e
+        return result
+
+    @abc.abstractmethod
+    def _process_request(self, result: httpx.Response) -> Tuple[Dict[str, str], Union[pydantic.BaseModel, str]]:
+        """
+        process response headers
+        lookup Model
+        """
+        pass
+
+    def request(
+        self,
+        data=Union[Dict[str, Any], pydantic.BaseModel],
+        parameters: Dict[str, Union[str, pydantic.BaseModel]] = None,
+    ) -> Tuple[Dict[str, Any], Any, httpx.Response]:
         """
         Sends an HTTP request as described by this Path
 
@@ -85,14 +113,12 @@ class RequestBase:
         :return: headers, data, response
         """
         self._prepare(data, parameters)
-        with closing(self.api._session_factory(cert=self.req.cert, **self._factory_args())) as session:
-            req = self._build_req(session)
-            try:
-                result = session.send(req)
-            except Exception as e:
-                raise RequestError(self.operation, req, data, parameters) from e
-        headers, data = self._process(result)
+        with closing(self.api._session_factory(**self._session_factory_default_args)) as session:
+            result = self._send(session, data, parameters)
 
+            result.read()
+
+        headers, data = self._process_request(result)
         return headers, data, result
 
     @property
@@ -119,16 +145,22 @@ class AsyncRequestBase(RequestBase):
             return headers, data
         return data
 
+    async def _send(self, session: httpx.AsyncClient, data, parameters) -> httpx.Response:
+        req = self._build_req(session)
+        try:
+            result = await session.send(req, stream=True)
+        except Exception as e:
+            raise RequestError(self.operation, req, data, parameters) from e
+        return result
+
     async def request(self, data=None, parameters=None) -> Tuple[Dict[str, Any], Any, httpx.Response]:
         self._prepare(data, parameters)
-        async with aclosing(self.api._session_factory(cert=self.req.cert, **self._factory_args())) as session:
-            req = self._build_req(session)
-            try:
-                result = await session.send(req)
-            except Exception as e:
-                raise RequestError(self.operation, req, data, parameters) from e
+        async with aclosing(self.api._session_factory(**self._session_factory_default_args)) as session:
+            result = await self._send(session, data, parameters)
 
-        headers, data = self._process(result)
+            await result.aread()
+
+        headers, data = self._process_request(result)
         return headers, data, result
 
 
