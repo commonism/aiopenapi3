@@ -10,7 +10,7 @@ import httpx
 import yarl
 
 from aiopenapi3 import OpenAPI
-from aiopenapi3.errors import OperationParameterValidationError, OperationIdDuplicationError
+from aiopenapi3.errors import OperationParameterValidationError, OperationIdDuplicationError, HeadersMissingError
 
 URLBASE = "/"
 
@@ -361,9 +361,10 @@ def test_paths_response_header(httpx_mock, with_paths_response_header):
     o = h["X-optional"]
     assert isinstance(o, list) and len(o) == 3 and isinstance(o[0], str) and o[-1] == "3"
 
-    with pytest.raises(ValueError, match=r"missing Header \['x-required'\]"):
+    with pytest.raises(HeadersMissingError) as e:
         httpx_mock.add_response(headers={"Content-Type": "application/json", "X-optional": "1,2,3"}, content=b"[]")
         h, b = api._.get(return_headers=True)
+    assert list(e.value.missing.keys()) == ["x-required"]
 
     httpx_mock.add_response(headers={"Content-Type": "application/json", "X-object": "A,1,B,2,C,3"}, content=b"[]")
     h, b = api._.types(return_headers=True)
