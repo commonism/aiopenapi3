@@ -101,7 +101,7 @@ class RequestBase:
         process response headers
         lookup the schema for the stream
         """
-        pass
+        pass  # noqa
 
     @abc.abstractmethod
     def _process_request(self, result: httpx.Response) -> Tuple[Dict[str, str], Union[pydantic.BaseModel, str]]:
@@ -109,7 +109,7 @@ class RequestBase:
         process response headers
         lookup Model
         """
-        pass
+        pass  # noqa
 
     def request(
         self,
@@ -172,7 +172,7 @@ class RequestBase:
         """
         :return: the Schema for the body
         """
-        pass
+        pass  # noqa
 
     @property
     @abc.abstractmethod
@@ -180,7 +180,7 @@ class RequestBase:
         """
         :return: list of :class:`aiopenapi3.base.ParameterBase` which can be used to inspect the required/optional parameters of the requested Operation
         """
-        pass
+        pass  # noqa
 
 
 class AsyncRequestBase(RequestBase):
