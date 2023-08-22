@@ -82,6 +82,14 @@ class OnMessage(Message):
             if (c := i.get("category", None)) is None or not isinstance(c, dict):
                 i["category"] = dict(id=0, name="default")
 
+            if (c := i.get("tags", None)) is None or not isinstance(c, list):
+                i["tags"] = []
+            else:
+                for t in c:
+                    if not isinstance(t, dict) or not set(t.keys()) == frozenset(["id", "name"]):
+                        i["tags"] = []
+                        break
+
         Pet = self.api.resolve_jr(self.api._root, None, Reference(**{"$ref": "#/components/schemas/Pet"}))
 
         if ctx.operationId == "getPetById":
