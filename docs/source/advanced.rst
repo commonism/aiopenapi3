@@ -111,9 +111,12 @@ e.g.:
 mutualTLS
 ^^^^^^^^^
 MutualTLS authentication requires
+
     * certificate file
     * key file
-to authenticate to the remote server.
+    * (optional) password to keyfile
+
+to authenticate to the remote server, c.f. :ref:`httpx.Client.cert <https://www.python-httpx.org/api/#client>`_.
 
 .. code:: python
 
@@ -158,7 +161,7 @@ and
 Manual Requests
 ===============
 
-Creating a request manually allows accessing the httpx.Response as part of the :meth:`aiopenapi3.request.Request.request` return value.
+Creating a request manually allows accessing the httpx.Response as part of the :meth:`aiopenapi3.request.RequestBase.request` return value.
 
 .. code:: python
 
@@ -178,9 +181,65 @@ This can be used to provide certain header values (ETag), which are not paramete
     req.req.headers["If-Match"] = etag
     r = await req(parameters=parameters, data=kwargs)
 
+Request Streaming
+-----------------
+File uploads via "multipart/form-data" as mentioned in the httpx documentation
+(Multipart file `uploads <https://www.python-httpx.org/quickstart/#sending-multipart-file-uploads>`_ &
+`encoding <https://www.python-httpx.org/advanced/#multipart-file-encoding>`_)
+do not require the content of the request to be in memory but work with file-like-objects instead.
+
+httpx request streaming using file-like objects is limited to "multipart/form-data".
+It can not be used with "application/json" or "application/octet-stream".
+Additionally it does not support choice of encoding (such as base16, base64url or quoted-printable) as possible with OpenAPI v3.1 contentEncoding, which should not be a limitation.
+
+Use via `Manual Requests`_ using the :meth:`~aiopenapi3.request.RequestBase.request` API.
+
+.. code:: python
+
+    data = [
+        ("name",('form-data:name', file-like-object, content_type, headers))
+    ]
+
+A Request like
+
+.. code::
+
+    Content-Type: multipart/form-data; boundary=2a8ae6ad-f4ad-4d9a-a92c-6d217011fe0f
+    Content-Length: …
+
+    --2a8ae6ad-f4ad-4d9a-a92c-6d217011fe0f
+    Content-Disposition: form-data; name="datafile"; filename="r.gif"
+    Content-Type: image/gif
+
+    …
+
+would have to be created such as
+
+.. code:: python
+
+    data = [
+        ("datafile",('r.gif', Path('r.gif').open('rb'), "image/gif", {})
+    ]
+
+    req.request(data=data)
+
+Mixing file-like-objects and other form data fields is possible.
+
+.. code:: python
+
+    data = [
+        ("datafile",('r.gif', Path('r.gif').open('rb'), "image/gif", {}),
+        ("path", "media/images/r.gif"),
+    ]
+
+    req.request(data=data)
+
+
+See :aioai3:ref:`tests.stream_test.test_request`.
+
 
 Response Streaming
-==================
+------------------
 
 Responses exceeding the defined maximum content-length raise :class:`aiopenapi3.errors.ContentLengthExceededError` to prevent memory exhaustion.
 Though it is possible to increase the defined maximum content-length, it is preferable to use streaming for large responses, limiting the amount of memory required.
@@ -219,13 +278,13 @@ The main difference in the async use of the streaming is await & async for.
 
 
 Non-JSON Content
-----------------
+^^^^^^^^^^^^^^^^
 In case the content is not a model (application/octet-stream), the data can be read iteratively and written/processed.
 
 See :aioai3:ref:`tests.stream_test.test_stream_data`.
 
 JSON/Arrays of Models
----------------------
+^^^^^^^^^^^^^^^^^^^^^
 In case the large response is an array of models, iterative JSON parsing libraries can be used to process the data.
 
 See :aioai3:ref:`tests.stream_test.test_stream_array`.

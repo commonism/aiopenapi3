@@ -114,6 +114,7 @@ tests = [
     "nonecorn",
     "bootstrap-flask",
     "ijson",
+    "python-multipart>=0.0.6",
 ]
 
 [tool.pdm]

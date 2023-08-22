@@ -2,14 +2,20 @@ import asyncio
 import random
 import sys
 import string
-from typing import List
+
+if sys.version_info >= (3, 9):
+    from typing import List, Annotated
+else:
+    from typing import List
+    from typing_extensions import Annotated
+
 from pathlib import Path
 
 import uvloop
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 import pydantic
-from fastapi import FastAPI, Request, Response, Query
+from fastapi import FastAPI, Request, Response, Query, UploadFile, Body
 from fastapi.responses import PlainTextResponse
 
 import pytest
@@ -46,7 +52,6 @@ async def server(event_loop, config):
 @pytest_asyncio.fixture(scope="session")
 async def client(event_loop, server):
     api = await aiopenapi3.OpenAPI.load_async(f"http://{server.bind[0]}/openapi.json")
-
     return api
 
 
@@ -66,6 +71,22 @@ def files(request: Request, response: Response, number: int = Query(), size: int
         return [File(data=f.read(size)) for _ in range(number)]
 
 
+@app.post("/request-streaming", operation_id="request_streaming", response_model=int)
+def request_streaming(
+    request: Request, response: Response, files: List[UploadFile], path: Annotated[str, Body()]
+) -> int:
+    r = 0
+    for file in files:
+        if file.filename == "a.png":
+            assert file.headers["x-extra"] == "yes"
+
+        file.file.seek(0, 2)
+        offset = file.file.tell()
+        r += offset
+
+    return r + len(path)
+
+
 @pytest.mark.asyncio
 async def test_stream_data(event_loop, server, client):
     cl = client._max_response_content_length
@@ -79,6 +100,19 @@ async def test_stream_data(event_loop, server, client):
     await session.aclose()
     assert chunk > 0
     assert l == cl
+
+
+@pytest.mark.asyncio
+async def test_request(event_loop, server, client):
+    import io
+
+    data = [
+        ("files", ("a.png", io.BytesIO(b"data:a"), "image/png", {"x-extra": "yes"})),
+        ("files", ("b.png", io.BytesIO(b"data:b"))),
+        ("path", "media/images"),
+    ]
+    size = await client._.request_streaming(data=data)
+    assert size == 24
 
 
 @pytest.mark.asyncio
