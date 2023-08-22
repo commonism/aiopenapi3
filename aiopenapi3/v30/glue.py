@@ -283,14 +283,38 @@ class Request(RequestBase):
             https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#media-type-object
             """
             media: aiopenapi3.v30.media.MediaType = self.operation.requestBody.content[ct]
-            if not media.schema_ or not isinstance(data, media.schema_.get_type()):
-                """expect the data to be a model"""
-                raise TypeError((type(data), media.schema_.get_type()))
+            if media.schema_ and isinstance(data, media.schema_.get_type()):
+                """data is a model"""
+                params = parameters_from_multipart(data, media, rbq)
+                msg = encode_multipart_parameters(params)
+                self.req.content = msg.as_string()
+                self.req.headers["Content-Type"] = f'{msg.get_content_type()}; boundary="{msg.get_boundary()}"'
+            elif isinstance(data, list):
+                _files = list()
+                _data = dict()
+                for name, value in data:
+                    if isinstance(value, tuple):
+                        alias = fh = content_type = None
+                        headers = {}
+                        if len(value) == 4:
+                            (alias, fh, content_type, headers) = value
+                        elif len(value) == 3:
+                            (alias, fh, content_type) = value
+                        elif len(value) == 2:
+                            (alias, fh) = value
+                        elif len(value) == 1:
+                            (alias, fh) = value
 
-            params = parameters_from_multipart(data, media, rbq)
-            msg = encode_multipart_parameters(params)
-            self.req.content = msg.as_string()
-            self.req.headers["Content-Type"] = f'{msg.get_content_type()}; boundary="{msg.get_boundary()}"'
+                        if (e := media.encoding.get(name)) is not None:
+                            headers.update({name: rbq[name] for name in e.headers.keys() if name in rbq})
+                        _value = (alias, fh, content_type, headers)
+                        _files.append((name, _value))
+                    else:
+                        _data[name] = value
+                self.req.files = _files
+                self.req.data = _data
+            else:
+                raise TypeError((type(data), media.schema_.get_type()))
         elif (ct := "application/x-www-form-urlencoded") in self.operation.requestBody.content:
             self.req.headers["Content-Type"] = ct
             media: aiopenapi3.v30.media.MediaType = self.operation.requestBody.content[ct]

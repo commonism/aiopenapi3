@@ -6,7 +6,7 @@ groups = ["default", "tests", "auth", "socks"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:eb23847a8c913263c56675db9af54ead8c04edc2a6960b77a780fe0eacb9bafd"
+content_hash = "sha256:6518bfddfbeb055793886e702cc8541514ffb965a05193bbf61f189127b6c208"
 
 [[package]]
 name = "annotated-types"
@@ -1047,6 +1047,16 @@ dependencies = [
 files = [
     {file = "pytest_httpx-0.22.0-py3-none-any.whl", hash = "sha256:cefb7dcf66a4cb0601b0de05e576cca423b6081f3245e7912a4d84c58fa3eae8"},
     {file = "pytest_httpx-0.22.0.tar.gz", hash = "sha256:3a82797f3a9a14d51e8c6b7fa97524b68b847ee801109c062e696b4744f4431c"},
+]
+
+[[package]]
+name = "python-multipart"
+version = "0.0.6"
+requires_python = ">=3.7"
+summary = "A streaming multipart parser for Python"
+files = [
+    {file = "python_multipart-0.0.6-py3-none-any.whl", hash = "sha256:ee698bab5ef148b0a760751c261902cd096e57e10558e11aca17646b74ee1c18"},
+    {file = "python_multipart-0.0.6.tar.gz", hash = "sha256:e9925a80bb668529f1b67c7fdb0a5dacdd7cbfc6fb0bff3ea443fe22bdd62132"},
 ]
 
 [[package]]
