@@ -188,11 +188,17 @@ File uploads via "multipart/form-data" as mentioned in the httpx documentation
 `encoding <https://www.python-httpx.org/advanced/#multipart-file-encoding>`_)
 do not require the content of the request to be in memory but work with file-like-objects instead.
 
-httpx request streaming using file-like objects is limited to "multipart/form-data".
-It can not be used with "application/json" or "application/octet-stream".
+httpx request streaming using file-like objects is limited to "multipart/form-data" and "application/octet-stream".
 Additionally it does not support choice of encoding (such as base16, base64url or quoted-printable) as possible with OpenAPI v3.1 contentEncoding, which should not be a limitation.
+It can not be used with "application/json".
+
 
 Use via `Manual Requests`_ using the :meth:`~aiopenapi3.request.RequestBase.request` API.
+
+multipart/form-data
+^^^^^^^^^^^^^^^^^^^
+
+Pass the form fields as a list of tuples.
 
 .. code:: python
 
@@ -200,7 +206,6 @@ Use via `Manual Requests`_ using the :meth:`~aiopenapi3.request.RequestBase.requ
         ("name",('form-data:name', file-like-object, content_type, headers))
     ]
 
-A Request like
 
 .. code::
 
@@ -236,6 +241,18 @@ Mixing file-like-objects and other form data fields is possible.
 
 
 See :aioai3:ref:`tests.stream_test.test_request`.
+
+
+application/octet-stream
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Pass the data as file-like-object or tuple where the second entry is a file-like-object as with multipart/form-data.
+
+.. code:: python
+
+    data = Path("/data/file").open("rb")
+
+    data = ("name", Path("/data/file").open("rb"))
 
 
 Response Streaming

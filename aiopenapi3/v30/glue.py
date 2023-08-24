@@ -1,3 +1,4 @@
+import io
 from typing import List, Union, cast
 import json
 import urllib.parse
@@ -327,7 +328,14 @@ class Request(RequestBase):
             self.req.content = msg
         elif (ct := "application/octet-stream") in self.operation.requestBody.content:
             self.req.headers["Content-Type"] = ct
-            self.req.content = data[1].read()
+            value = data
+            if isinstance(data, tuple) and len(data) >= 2:
+                # (name, file-like-object, …)
+                value = data[1]
+            if isinstance(value, (io.IOBase, str, bytes)):
+                self.req.content = value
+            else:
+                raise TypeError(data)
         else:
             raise NotImplementedError(self.operation.requestBody.content)
 
