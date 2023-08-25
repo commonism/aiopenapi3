@@ -7,7 +7,7 @@ from .general import Reference
 from .parameter import Header, Parameter
 from .schemas import Schema
 from .security import SecurityRequirement
-from ..base import ObjectExtended, ObjectBase, PathsBase, OperationBase
+from ..base import ObjectExtended, PathsBase, OperationBase, PathItemBase
 
 
 class Response(ObjectExtended):
@@ -44,7 +44,7 @@ class Operation(ObjectExtended, OperationBase):
     security: Optional[List[SecurityRequirement]] = Field(default=None)
 
 
-class PathItem(ObjectExtended):
+class PathItem(ObjectExtended, PathItemBase):
     """
     A Path Item, as defined `here`_.
     Describes the operations available on a single path.

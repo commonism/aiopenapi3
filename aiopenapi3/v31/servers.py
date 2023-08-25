@@ -13,7 +13,7 @@ class ServerVariable(ObjectExtended):
     """
 
     enum: Optional[List[str]] = Field(default=None)
-    default: str = Field(...)
+    default: str | None = Field(...)
     description: Optional[str] = Field(default=None)
 
     @model_validator(mode="after")

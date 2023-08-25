@@ -1,5 +1,6 @@
+import typing
 import warnings
-from typing import Optional, Any, List, Dict, ForwardRef, Union
+from typing import Optional, Any, List, Dict, ForwardRef, Union, Tuple, cast, Type, TypeGuard, FrozenSet, Sequence
 
 import re
 import builtins
@@ -12,23 +13,24 @@ if sys.version_info >= (3, 9):
 else:
     from pathlib3x import Path
 
-from pydantic import BaseModel, Field, AnyUrl, model_validator, PrivateAttr
+from pydantic import BaseModel, Field, AnyUrl, model_validator, PrivateAttr, ConfigDict
 
 from .json import JSONPointer, JSONReference
 from .errors import ReferenceResolutionError, OperationParameterValidationError
 
-# from . import me
+if typing.TYPE_CHECKING:
+    from aiopenapi3 import OpenAPI
+    from ._types import SchemaType, JSON, PathItemType, ParameterType, ReferenceType, DiscriminatorType
 
 HTTP_METHODS = frozenset(["get", "delete", "head", "post", "put", "patch", "trace"])
 
 
 class ObjectBase(BaseModel):
     """
-    The base class for all schema objects.  Includes helpers for common schema-
-    related functions.
+    The base class for all schema objects.  Includes helpers for common schema-related functions.
     """
 
-    model_config = dict(arbitrary_types_allowed=False, extra="forbid")
+    model_config = ConfigDict(extra="forbid")
 
 
 class ObjectExtended(ObjectBase):
@@ -79,33 +81,38 @@ class PathsBase(ObjectBase):
         return self.paths.values()
 
 
+class PathItemBase:
+    #    parameters: Optional[List[Union["ParameterBase", "ReferenceBase"]]]
+    parameters: List[Any]
+
+
 class RootBase:
     @staticmethod
     def resolve(api: "OpenAPI", root: "RootBase", obj, _PathItem, _Reference):
         from . import v20, v30, v31
 
         def replaceSchemaReference(data):
-            def replace(value):
-                if not isinstance(value, SchemaBase):
-                    return value
-                r = getattr(value, "ref", None)
-                if not r:
-                    return value
-                return _Reference.model_construct(ref=r)
+            def replace(ivalue):
+                if not isinstance(ivalue, SchemaBase):
+                    return ivalue
+                ir = getattr(ivalue, "ref", None)
+                if not ir:
+                    return ivalue
+                return _Reference.model_construct(ref=ir)
 
             if isinstance(data, list):
-                for idx, item in enumerate(data):
-                    n = replace(item)
-                    if item != n:
+                for idx, _item in enumerate(data):
+                    n = replace(_item)
+                    if _item != n:
                         data[idx] = n
 
             elif isinstance(data, dict):
                 new = dict()
-                for k, v in data.items():
-                    n = replace(v)  # Swagger 2.0 Schema.ref resolver …
-                    if v != n:
-                        v = n
-                        new[k] = v
+                for _k, _v in data.items():
+                    n = replace(_v)  # Swagger 2.0 Schema.ref resolver …
+                    if _v != n:
+                        _v = n
+                        new[_k] = _v
                 if new:
                     data.update(new)
 
@@ -125,13 +132,13 @@ class RootBase:
                             setattr(obj, slot, value)
 
                 if isinstance(root, (v30.root.Root, v31.root.Root)):
-                    if isinstance(value, DiscriminatorBase):
+                    if isinstance(value, (v30.Discriminator, v31.Discriminator)):
                         """
                         Discriminated Unions - implementing undefined behavior
                         sub-schemas not having the discriminated property "const" or enum or mismatching the mapping
                         are a problem
                         pydantic requires these to be mapping Literal and unique
-                        creating a seperate Model for the sub-schema with the mapping Literal is possible
+                        creating a separate Model for the sub-schema with the mapping Literal is possible
                         but makes using them horrible
 
                         we warn about it and force feed the mapping Literal to make it work
@@ -153,7 +160,7 @@ class RootBase:
                                 from .model import Model
                                 from . import errors
 
-                                if not "object" in (t := sorted(Model.types(v._target))):
+                                if "object" not in (t := sorted(Model.types(v._target))):
                                     raise errors.SpecError(f"Discriminated Union on a schema with types {t}")
 
                                 if (p := v.properties.get(value.propertyName, None)) is None:
@@ -186,7 +193,7 @@ class RootBase:
                     """
                     ref fields embedded in objects -> replace the object with a Reference object
 
-                    PathItem Ref is ambigous
+                    PathItem Ref is ambiguous
                     https://github.com/OAI/OpenAPI-Specification/issues/2635
                     """
                     if isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root)):
@@ -284,7 +291,8 @@ class RootBase:
 
 
 class ReferenceBase:
-    pass
+    ref: str
+    _target: Union["SchemaType", "PathItemType"]
 
 
 class ParameterBase:
@@ -295,17 +303,21 @@ class DiscriminatorBase:
     pass
 
 
+#    propertyName: str
+#    mapping: Dict[str, str] = Field(default_factory=dict)
+
+
 class SchemaBase(BaseModel):
     """
     The Base for the Schema
     """
 
-    _model_type: "BaseModel" = PrivateAttr(default=None)
+    _model_type: Type["BaseModel"] = PrivateAttr(default=None)
     """
     use to store _the_ model
     """
 
-    _model_types: List["BaseModel"] = PrivateAttr(default_factory=list)
+    _model_types: List[Type["BaseModel"]] = PrivateAttr(default_factory=list)
     """
     sub-schemas add the properties of the parent to the model of the subschemas
 
@@ -332,6 +344,8 @@ class SchemaBase(BaseModel):
     The _identity attribute is set during OpenAPI.__init__ and used to create the class name in get_type()
     """
 
+    #    items: Optional[Union["SchemaType", List["SchemaType"]]]
+
     def __getstate__(self):
         """
         pickle can't do the _model_type - remove from pydantic's __getstate__
@@ -353,7 +367,7 @@ class SchemaBase(BaseModel):
             if name is None:
                 name = self.title
             if name:
-                n = re.sub(r"[^\w]", "_", name, flags=re.ASCII)
+                n = re.sub(r"\W", "_", name, flags=re.ASCII)
             else:
                 n = str(uuid.uuid4()).replace("-", "_")
 
@@ -374,28 +388,35 @@ class SchemaBase(BaseModel):
         return self._identity
 
     def set_type(
-        self, names: List[str] = None, discriminators: List[DiscriminatorBase] = None, extra: "SchemaBase" = None
-    ) -> BaseModel:
+        self,
+        names: List[str] | None = None,
+        discriminators: Sequence[DiscriminatorBase] | None = None,
+        extra: Optional["SchemaBase"] = None,
+    ) -> Type[BaseModel]:
         from .model import Model
 
         if extra is None:
-            self._model_type = Model.from_schema(self, names, discriminators)
+            self._model_type = Model.from_schema(
+                cast("SchemaType", self), names, cast(List["DiscriminatorType"], discriminators)
+            )
             return self._model_type
         else:
             identity = self._identity
             self._identity = f"{identity}.c{len(self._model_types)}"
-            r = Model.from_schema(self, names, discriminators, extra)
+            r = Model.from_schema(
+                cast("SchemaType", self), names, cast(List["DiscriminatorType"], discriminators), extra
+            )
             self._model_types.append(r)
             self._identity = identity
             return r
 
     def get_type(
         self,
-        names: List[str] = None,
-        discriminators: List[DiscriminatorBase] = None,
-        extra: "SchemaBase" = None,
+        names: List[str] | None = None,
+        discriminators: Sequence[DiscriminatorBase] | None = None,
+        extra: Optional["SchemaBase"] = None,
         fwdref: bool = False,
-    ) -> Union[BaseModel, ForwardRef]:
+    ) -> Union[Type[BaseModel], ForwardRef]:
         if fwdref:
             if "module" in ForwardRef.__init__.__code__.co_varnames:
                 # FIXME Python < 3.9 compat
@@ -409,7 +430,7 @@ class SchemaBase(BaseModel):
         else:
             return self.set_type(names, discriminators, extra)
 
-    def model(self, data: Dict):
+    def model(self, data: "JSON") -> Union[BaseModel, List[BaseModel]]:
         """
         Generates a model representing this schema from the given data.
 
@@ -419,21 +440,27 @@ class SchemaBase(BaseModel):
         :returns: A new :any:`Model` created in this Schema's type from the data.
         :rtype: self.get_type()
         """
+
         if self.type in ("string", "number", "boolean", "integer"):
             assert len(self.properties) == 0
-            t = Model.typeof(self)
+            t = Model.typeof(cast("SchemaType", self))
             # data from Headers will be of type str
             if not isinstance(data, t):
                 return t(data)
             return data
         elif self.type == "array":
-            return [self.items.model(i) for i in data]
+            items = cast("SchemaType", self.items)
+            return [items.model(i) for i in cast(List["JSON"], data)]
         else:
-            return self.get_type().model_validate(data)
+            type_ = cast("SchemaType", self.get_type())
+            return type_.model_validate(data)
 
 
 class OperationBase:
-    def _validate_path_parameters(self, pi: "PathItem", path_, loc):
+    # parameters: Optional[List[ParameterBase | ReferenceBase]]
+    parameters: List[Any]
+
+    def _validate_path_parameters(self, pi_: "PathItemBase", path_: str, loc: Tuple[Any, str]):
         """
         Ensures that all parameters for this path are valid
         """
@@ -441,8 +468,16 @@ class OperationBase:
         # FIXME { and } are allowed in parameter name, regex can't handle this e.g. {name}}
         path = frozenset(re.findall(r"{([a-zA-Z0-9\-\._~]+)}", path_))
 
-        op = frozenset(map(lambda x: x.name, filter(lambda c: c.in_ == "path", self.parameters)))
-        pi = frozenset(map(lambda x: x.name, filter(lambda c: c.in_ == "path", pi.parameters)))
+        def parameter_in_path(c: Union["ParameterType", "ReferenceType"]) -> TypeGuard["ParameterType"]:
+            if isinstance(c, ParameterBase):
+                return c.in_ == "path"
+            assert isinstance(c, ReferenceBase)
+            return parameter_in_path(c._target)
+
+        assert self.parameters is not None
+        assert pi_.parameters is not None
+        op: FrozenSet[str] = frozenset(map(lambda x: x.name, filter(parameter_in_path, self.parameters)))
+        pi: FrozenSet[str] = frozenset(map(lambda x: x.name, filter(parameter_in_path, pi_.parameters)))
 
         invalid = sorted(filter(lambda x: re.match(r"^([a-zA-Z0-9\-\._~]+)$", x) is None or len(x) == 0, op | pi))
         if invalid:

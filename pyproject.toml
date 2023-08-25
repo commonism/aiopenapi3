@@ -126,3 +126,7 @@ plugins = [
 filename = "requirements.txt"
 groups = ["default"]
 without-hashes = "true"
+
+
+[tool.mypy]
+allow_redefinition = true

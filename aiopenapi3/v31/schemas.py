@@ -1,6 +1,6 @@
 from typing import Union, List, Any, Optional, Dict
 
-from pydantic import Field, model_validator, PrivateAttr
+from pydantic import Field, model_validator, PrivateAttr, ConfigDict
 
 from ..base import ObjectExtended, SchemaBase, DiscriminatorBase
 from .general import Reference
@@ -24,7 +24,7 @@ class Schema(ObjectExtended, SchemaBase):
     .. _Schema Object: https://datatracker.ietf.org/doc/html/draft-bhutton-json-schema-validation-00#section-6
     """
 
-    model_config = dict(extra="allow")
+    model_config = ConfigDict(extra="allow")
 
     """
     JSON Schema: A Media Type for Describing JSON Documents
@@ -77,7 +77,6 @@ class Schema(ObjectExtended, SchemaBase):
     properties: Dict[str, "Schema"] = Field(default_factory=dict)
     patternProperties: Dict[str, "Schema"] = Field(default_factory=dict)
     additionalProperties: Optional[Union[bool, "Schema"]] = Field(default=None)
-    unevaluatedProperties: Optional["Schema"] = Field(default=None)
     propertyNames: Optional["Schema"] = Field(default=None)
 
     """

@@ -1,9 +1,10 @@
 import enum
+import typing
 from typing import Union, Optional, Dict, Any
 
 from pydantic import Field
 
-from ..base import ObjectExtended
+from ..base import ObjectExtended, ParameterBase as _ParameterBase
 
 from .example import Example
 from .general import Reference
@@ -11,15 +12,16 @@ from .schemas import Schema
 
 from ..v30.parameter import _ParameterCodec
 
+if typing.TYPE_CHECKING:
+    from .paths import MediaType
 
-class ParameterBase(ObjectExtended):
+
+class ParameterBase(ObjectExtended, _ParameterBase):
     """
     A `Parameter Object`_ defines a single operation parameter.
 
     .. _Parameter Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#parameterObject
     """
-
-    model_config = dict(undefined_types_warning=False)
 
     description: Optional[str] = Field(default=None)
     required: Optional[bool] = Field(default=None)
@@ -53,8 +55,6 @@ class Header(ParameterBase, _ParameterCodec):
 
     .. _HeaderObject: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#headerObject
     """
-
-    model_config = dict(undefined_types_warning=False)
 
     def _codec(self):
         return "simple", False
