@@ -53,19 +53,19 @@ class _SecuritySchemes:
 
     class http(_SecurityScheme):
         type: Literal["http"]
-        scheme_: constr(to_lower=True) = Field(default=None, alias="scheme")
+        scheme_: constr(to_lower=True) = Field(default=None, alias="scheme")  # type: ignore[valid-type]
         bearerFormat: Optional[str] = Field(default=None)
 
     class mutualTLS(_SecurityScheme):
         type: Literal["mutualTLS"]
 
-        def validate_authentication_value(self, value):
+        def validate_authentication_value(self, value) -> None:
             if not isinstance(value, (list, tuple)):
                 raise TypeError(type(value))
             if len(value) != 2:
                 raise ValueError(f"Invalid number of tuple parameters {len(value)} - 2 required")
-            value: Tuple[Path, Path] = tuple(map(lambda x: x if isinstance(x, Path) else Path(x), value))
-            if missing := sorted(filter(lambda x: not (x.exists() and x.is_file()), value)):
+            files: Tuple[Path, Path] = (Path(value[0]), Path(value[1]))
+            if missing := sorted(filter(lambda x: not (x.exists() and x.is_file()), files)):
                 raise FileNotFoundError(missing)
 
     class oauth2(_SecurityScheme):

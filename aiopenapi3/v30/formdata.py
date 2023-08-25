@@ -1,9 +1,16 @@
 import base64
 import quopri
-from typing import List, Tuple, Dict, Union
+from typing import List, Tuple, Dict, Union, TYPE_CHECKING
 from email.mime import multipart, nonmultipart
 from email.message import _unquotevalue, Message
 import collections
+
+from .parameter import encode_parameter
+
+
+if TYPE_CHECKING:
+    from pydantic import BaseModel
+    from .._types import MediaTypeType, SchemaType
 
 
 class MIMEFormdata(nonmultipart.MIMENonMultipart):
@@ -20,9 +27,6 @@ class MIMEMultipart(multipart.MIMEMultipart):
 
     def _write_headers(self, generator):
         pass
-
-
-from .parameter import encode_parameter
 
 
 def parameters_from_multipart(data, media, rbq):
@@ -42,7 +46,7 @@ def parameters_from_multipart(data, media, rbq):
             elif p.type == "object":
                 ct = "application/json"
 
-        if (e := media.encoding.get(k, None)) != None:
+        if (e := media.encoding.get(k, None)) is not None:
             ct = e.contentType or ct
             style = e.style or "form"
             explode = e.explode if e.explode is not None else (True if style == "form" else False)
@@ -69,12 +73,15 @@ def parameters_from_multipart(data, media, rbq):
     return params
 
 
-def parameters_from_urlencoded(data: "BaseModel", media: "Media"):
+def parameters_from_urlencoded(data: "BaseModel", media: "MediaTypeType"):
     params = collections.defaultdict(lambda: list())
+    k: str
     for k in data.model_fields_set:
         v = getattr(data, k)
 
+        assert media.encoding is not None
         if (e := media.encoding.get(k, None)) != None:
+            assert e
             explode = e.explode
             allowReserved = e.allowReserved
             style = e.style
@@ -83,6 +90,7 @@ def parameters_from_urlencoded(data: "BaseModel", media: "Media"):
             allowReserved = False
             style = "form"
 
+        assert media.schema_ is not None and media.schema_.properties is not None
         m = media.schema_.properties[k]
         if isinstance(v, list):
             for i in v:
@@ -94,7 +102,7 @@ def parameters_from_urlencoded(data: "BaseModel", media: "Media"):
     return params
 
 
-def encode_content(data, codec):
+def encode_content(data: bytes, codec: str) -> bytes:
     """
     … supports all encodings defined in [RFC4648], including “base64” and “base64url”, as well as “quoted-printable” from [RFC2045].
     :param data:
@@ -110,14 +118,16 @@ def encode_content(data, codec):
             r = base64.b64encode(data)
         elif codec == "base64url":
             r = base64.urlsafe_b64encode(data).rstrip(b"=")
-        return r.decode()
+        return r
     elif codec == "quoted-printable":
         return quopri.encodestring(data)
     else:
         raise ValueError(f"unsupported codec {codec}")
 
 
-def encode_multipart_parameters(fields: List[Tuple[str, str, Union[str, bytes], Dict[str, str], "Schema"]]):
+def encode_multipart_parameters(
+    fields: List[Tuple[str, str, Union[str, bytes], Dict[str, str], "SchemaType"]]
+) -> MIMEMultipart:
     """
     As shown in
     https://julien.danjou.info/handling-multipart-form-data-python/
@@ -132,9 +142,9 @@ def encode_multipart_parameters(fields: List[Tuple[str, str, Union[str, bytes], 
 
         if type in ["image", "audio", "application"]:
             if isinstance(value, bytes):
-                v = value
+                v: bytes = value
             else:
-                v = value.encode()
+                v: bytes = value.encode()
 
             codec = "base64"
 
@@ -146,7 +156,7 @@ def encode_multipart_parameters(fields: List[Tuple[str, str, Union[str, bytes], 
             else:
                 """OpenAPI 3.0"""
 
-            data = encode_content(v, codec)
+            data: bytes = encode_content(v, codec)
 
             """
             email.message_from_… uses content-transfer-encoding
@@ -154,16 +164,17 @@ def encode_multipart_parameters(fields: List[Tuple[str, str, Union[str, bytes], 
             headers["Content-Transfer-Encoding"] = codec
 
         elif type in ["text", "rfc822"]:
-            data = value
+            data: Union[str, bytes] = value
         else:
             type, subtype = "text", "plain"
-            data = value
+            data: Union[str, bytes] = value
 
         env = MIMEFormdata(field, type, subtype)
 
         for header, value in headers.items():
             env.add_header(header, value)
 
+        v: str
         for k, v in params:
             env.set_param(k, v, "Content-Type")
 
@@ -183,5 +194,5 @@ def decode_content_type(value: str) -> Tuple[str, str, List[Tuple[str, str]]]:
     m.add_header("content-type", value)
     ct, *params = m.get_params()
 
-    type, _, subtype = ct[0].partition("/")
-    return type, subtype, params
+    type_, _, subtype = ct[0].partition("/")
+    return type_, subtype, params

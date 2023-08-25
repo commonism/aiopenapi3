@@ -1,6 +1,7 @@
 import abc
 import json
 import logging
+import typing
 
 import yaml
 import httpx
@@ -15,6 +16,9 @@ else:
     from pathlib3x import Path
 
 from .plugin import Plugins
+
+if typing.TYPE_CHECKING:
+    from ._types import YAMLLoaderType, JSON
 
 log = logging.getLogger("aiopenapi3.loader")
 
@@ -104,11 +108,11 @@ class Loader(abc.ABC):
      * parse
     """
 
-    def __init__(self, yload: yaml.Loader = YAML12Loader):
+    def __init__(self, yload: "YAMLLoaderType" = YAML12Loader):
         self.yload = yload
 
     @abc.abstractmethod
-    def load(self, plugins: Plugins, url: yarl.URL, codec: str = None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec: str | None = None):
         """
         load and decode description document
 
@@ -120,7 +124,7 @@ class Loader(abc.ABC):
         raise NotImplementedError("load")
 
     @classmethod
-    def decode(cls, data: bytes, codec: str):
+    def decode(cls, data: bytes, codec: str | None) -> str:
         """
         decode bytes to ascii or utf-8
 
@@ -132,15 +136,16 @@ class Loader(abc.ABC):
             codecs = [codec]
         else:
             codecs = ["ascii", "utf-8"]
+        r = None
         for c in codecs:
             try:
-                data = data.decode(c)
+                r = data.decode(c)
                 break
             except UnicodeError:
                 continue
         else:
             raise ValueError("encoding")
-        return data
+        return r
 
     def parse(self, plugins: Plugins, url: yarl.URL, data: str):
         """
@@ -191,7 +196,7 @@ class NullLoader(Loader):
     Loader does not load anything
     """
 
-    def load(self, plugins: Plugins, url: yarl.URL, codec: str = None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec: str | None = None):
         raise NotImplementedError("load")
 
 
@@ -200,13 +205,13 @@ class WebLoader(Loader):
     Loader downloads data via http/s using the supplied session_factory
     """
 
-    def __init__(self, baseurl: yarl.URL, session_factory=httpx.Client, yload: yaml.Loader = YAML12Loader):
+    def __init__(self, baseurl: yarl.URL, session_factory=httpx.Client, yload: "YAMLLoaderType" = YAML12Loader):
         super().__init__(yload)
         assert isinstance(baseurl, yarl.URL)
         self.baseurl: yarl.URL = baseurl
         self.session_factory = session_factory
 
-    def load(self, plugins: Plugins, url: yarl.URL, codec: str = None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec: str | None = None) -> "JSON":
         url = self.baseurl.join(url)
         with self.session_factory() as session:
             data = session.get(str(url))
@@ -225,7 +230,7 @@ class FileSystemLoader(Loader):
     Loader to use the local filesystem
     """
 
-    def __init__(self, base: Path, yload: yaml.Loader = YAML12Loader):
+    def __init__(self, base: Path, yload: "YAMLLoaderType" = YAML12Loader):
         """
         :param base: basedir - lookups are relative to this
         :param yload:
@@ -234,15 +239,16 @@ class FileSystemLoader(Loader):
         assert isinstance(base, Path)
         self.base = base
 
-    def load(self, plugins: Plugins, url: yarl.URL, codec: str = None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec: str | None = None):
         assert isinstance(url, yarl.URL)
         assert plugins
         file = Path(url.path)
         path = self.base / file
         assert path.is_relative_to(self.base), f"{path} is not relative to {self.base}"
+        data: bytes
         with path.open("rb") as f:
             data = f.read()
-        data = self.decode(data, codec)
+        data: str = self.decode(data, codec)
         data = plugins.document.loaded(url=url, document=data).document
         return data
 
@@ -256,7 +262,7 @@ class RedirectLoader(FileSystemLoader):
     everything but the "name" is stripped of the url
     """
 
-    def load(self, plugins: "Plugins", url: yarl.URL, codec: str = None):
+    def load(self, plugins: "Plugins", url: yarl.URL, codec: str | None = None):
         return super().load(plugins, yarl.URL(url.name), codec)
 
 
@@ -265,7 +271,7 @@ class ChainLoader(Loader):
     Loader to chain different Loaders: succeed or raise trying
     """
 
-    def __init__(self, *loaders, yload: yaml.Loader = YAML12Loader):
+    def __init__(self, *loaders, yload: "YAMLLoaderType" = YAML12Loader):
         """
 
         :param loaders: loaders to use
@@ -274,7 +280,7 @@ class ChainLoader(Loader):
         Loader.__init__(self, yload)
         self.loaders = loaders
 
-    def load(self, plugins: "Plugins", url: yarl.URL, codec: str = None):
+    def load(self, plugins: "Plugins", url: yarl.URL, codec: str | None = None):
         log.debug(f"load {url}")
         errors = []
         for i in self.loaders:
@@ -282,8 +288,8 @@ class ChainLoader(Loader):
                 r = i.load(plugins, url, codec)
                 log.debug(f"using {i}")
                 return r
-            except Exception as e:
-                errors.append((i, str(e)))
+            except Exception as exc:
+                errors.append((i, str(exc)))
         for l, e in errors:
             log.debug(f"{l} {e}")
         raise FileNotFoundError(url)

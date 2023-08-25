@@ -1,53 +1,79 @@
-from typing import List, Union, cast, Tuple, Dict
+import typing
+from typing import List, Union, cast, Tuple, Dict, Optional, TypeGuard, Sequence
 import json
 
 import httpx
 import pydantic
 
-from ..base import SchemaBase, ParameterBase
+from ..base import SchemaBase, ParameterBase, ReferenceBase
 from ..request import RequestBase, AsyncRequestBase
 from ..errors import HTTPStatusError, ContentTypeError, ResponseSchemaError, ResponseDecodingError, HeadersMissingError
 
 from .parameter import Parameter
+from .root import Root
 
 try:
     import httpx_auth
-except:
+except ImportError:
     httpx_auth = None
+
+if typing.TYPE_CHECKING:
+    from .._types import ParameterType, ReferenceType, RequestParameters, RequestData
+    from .schemas import Schema
+    from .general import Reference
+    from .paths import Response as v20ResponseType
+
+
+def in_body(x: Union["Parameter", "Reference"]) -> TypeGuard["Parameter"]:
+    if isinstance(x, Parameter):
+        return x.in_ == "body"
+    return in_body(x._target)
+
+
+def in_not_body(x: Union["Parameter", "Reference"]) -> TypeGuard["Parameter"]:
+    if isinstance(x, Parameter):
+        return x.in_ != "body"
+    return in_not_body(x._target)
 
 
 class Request(RequestBase):
+    root: Root
+
     @property
     def security(self):
         return self.api._security
 
     @property
-    def _data_parameter(self) -> Parameter:
-        for i in filter(lambda x: x.in_ == "body", self.operation.parameters):
+    def _data_parameter(self) -> "Parameter":
+        for i in filter(in_body, self.operation.parameters):
             return i
         raise ValueError("body")
 
     @property
-    def data(self) -> SchemaBase:
+    def data(self) -> Optional["Schema"]:
         try:
             return self._data_parameter.schema_
         except ValueError:
             return None
 
     @property
-    def parameters(self) -> List[ParameterBase]:
-        return list(
-            filter(lambda x: x.in_ != "body", self.operation.parameters + self.root.paths[self.path].parameters)
-        )
+    def parameters(self) -> List["Parameter"]:
+        return list(filter(in_not_body, self.operation.parameters + self.root.paths[self.path].parameters))
 
     def args(self, content_type: str = "application/json"):
         op = self.operation
         parameters = op.parameters + self.root.paths[self.path].parameters
-        schema = op.requestBody.content[content_type].schema_
+        if op.requestBody and op.requestBody.content and (media := op.requestBody.content[content_type]):
+            schema = media.schema_
+        else:
+            schema = None
         return {"parameters": parameters, "data": schema}
 
-    def return_value(self, http_status: int = 200, content_type: str = "application/json") -> SchemaBase:
-        return self.operation.responses[str(http_status)].schema_
+    def return_value(self, http_status: int = 200, content_type: str = "application/json") -> Optional["Schema"]:
+        try:
+            return self.operation.responses[str(http_status)].schema_
+        except KeyError:
+            return None
 
     def _prepare_security(self):
         security = self.operation.security or self.api._root.security
@@ -79,13 +105,14 @@ class Request(RequestBase):
                 f"No security requirement satisfied (accepts {options} given {{{' and '.join(sorted(self.security.keys()))}}})"
             )
 
-    def _prepare_secschemes(self, scheme: str, value: Union[str, List[str]]):
+    def _prepare_secschemes(self, scheme: str, value: Union[str, Sequence[str]]) -> None:
         if httpx_auth is not None:
-            return self._prepare_secschemes_extra(scheme, value)
+            self._prepare_secschemes_extra(scheme, value)
         else:
-            return self._prepare_secschemes_default(scheme, value)
+            self._prepare_secschemes_default(scheme, value)
 
-    def _prepare_secschemes_default(self, scheme: str, value: Union[str, List[str]]):
+    def _prepare_secschemes_default(self, scheme: str, value: Union[str, Sequence[str]]) -> None:
+        assert scheme in self.root.securityDefinitions and self.root.securityDefinitions[scheme] is not None
         ss = self.root.securityDefinitions[scheme].root
 
         if ss.type == "basic":
@@ -102,7 +129,8 @@ class Request(RequestBase):
                 # apiKey in query header data
                 self.req.headers[ss.name] = value
 
-    def _prepare_secschemes_extra(self, scheme: str, value: Union[str, List[str]]):
+    def _prepare_secschemes_extra(self, scheme: str, value: Union[str, Sequence[str]]) -> None:
+        assert scheme in self.root.securityDefinitions and self.root.securityDefinitions[scheme] is not None
         ss = self.root.securityDefinitions[scheme].root
 
         if ss.type == "basic":
@@ -119,7 +147,7 @@ class Request(RequestBase):
                 # apiKey in query header data
                 self.req.auth = httpx_auth.HeaderApiKey(value, ss.name)
 
-    def _prepare_parameters(self, provided):
+    def _prepare_parameters(self, provided: Optional["RequestParameters"]):
         provided = provided or dict()
         possible = {_.name: _ for _ in self.operation.parameters + self.root.paths[self.path].parameters}
 
@@ -171,7 +199,7 @@ class Request(RequestBase):
 
         self.req.url = self.req.url.format(**path_parameters)
 
-    def _prepare_body(self, data):
+    def _prepare_body(self, data: Optional["RequestData"]):
         try:
             required = self._data_parameter.required
         except ValueError:
@@ -199,25 +227,12 @@ class Request(RequestBase):
         else:
             raise NotImplementedError(f"unsupported mime types {consumes}")
 
-    def _prepare(self, data, parameters):
+    def _prepare(self, data: Optional["RequestData"], parameters: Optional["RequestParameters"]):
         self._prepare_security()
         self._prepare_parameters(parameters)
         self._prepare_body(data)
 
-    def _build_req(self, session):
-        req = session.build_request(
-            self.method,
-            str(self.api.url / self.req.url[1:]),
-            headers=self.req.headers,
-            cookies=self.req.cookies,
-            params=self.req.params,
-            content=self.req.content,
-            data=self.req.data,
-            files=self.req.files,
-        )
-        return req
-
-    def _process__status_code(self, result: httpx.Response, status_code: str):
+    def _process__status_code(self, result: httpx.Response, status_code: str) -> "v20ResponseType":
         # find the response model in spec we received
         expected_response = None
         if status_code in self.operation.responses:
@@ -235,7 +250,9 @@ class Request(RequestBase):
             )
         return expected_response
 
-    def _process__headers(self, result, headers, expected_response):
+    def _process__headers(
+        self, result: httpx.Response, headers: Dict[str, str], expected_response: "v20ResponseType"
+    ) -> Dict[str, str]:
         rheaders = dict()
         if expected_response.headers:
             required = dict(map(lambda x: (x[0].lower(), x[1]), expected_response.headers.items()))
@@ -253,13 +270,13 @@ class Request(RequestBase):
                     rheaders[name] = header._schema.model(header._decode(data))
         return rheaders
 
-    def _process_stream(self, result: httpx.Response) -> "SchemaBase":
+    def _process_stream(self, result: httpx.Response) -> Tuple[Dict[str, str], Optional["Schema"]]:
         status_code = str(result.status_code)
         expected_response = self._process__status_code(result, status_code)
         headers = self._process__headers(result, result.headers, expected_response)
         return headers, expected_response.schema_
 
-    def _process_request(self, result: httpx.Response) -> Tuple[Dict[str, str], Union[pydantic.BaseModel, str]]:
+    def _process_request(self, result: httpx.Response) -> Tuple[Dict[str, str], pydantic.BaseModel | str | None]:
         rheaders = dict()
         # spec enforces these are strings
         status_code = str(result.status_code)
@@ -297,7 +314,7 @@ class Request(RequestBase):
             ).parsed
 
             if expected_response.schema_ is None:
-                raise ResponseSchemaError(self.operation, expected_response, expected_response.schema_, result, None)
+                raise ResponseSchemaError(self.operation, expected_response, None, result, None)
 
             try:
                 data = expected_response.schema_.model(data)
@@ -308,7 +325,7 @@ class Request(RequestBase):
                 operationId=self.operation.operationId, unmarshalled=data
             ).unmarshalled
             return rheaders, data
-        elif content_type in self.operation.produces:
+        elif self.operation.produces and content_type in self.operation.produces:
             return rheaders, result.content
         else:
             raise ContentTypeError(
@@ -320,7 +337,7 @@ class Request(RequestBase):
 
 
 class AsyncRequest(Request, AsyncRequestBase):
-    def _prepare_secschemes(self, scheme: str, value: Union[str, List[str]]):
+    def _prepare_secschemes(self, scheme: str, value: Union[str, Sequence[str]]):
         """
         httpx_auth does not support async yet
         https://github.com/Colin-b/httpx_auth/pull/48

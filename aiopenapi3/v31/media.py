@@ -17,8 +17,6 @@ class Encoding(ObjectExtended):
     .. _Encoding: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#encodingObject
     """
 
-    model_config = dict(undefined_types_warning=False)
-
     contentType: Optional[str] = Field(default=None)
     headers: Dict[str, Union[Header, Reference]] = Field(default_factory=dict)
     style: Optional[str] = Field(default=None)
@@ -34,7 +32,6 @@ class MediaType(ObjectExtended):
     .. _MediaType: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#media-type-object
     """
 
-    model_config = dict(undefined_types_warning=False)
     schema_: Optional[Schema] = Field(default=None, alias="schema")
     example: Optional[Any] = Field(default=None)  # 'any' type
     examples: Dict[str, Union[Example, Reference]] = Field(default_factory=dict)

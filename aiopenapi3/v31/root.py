@@ -22,8 +22,6 @@ class Root(ObjectExtended, RootBase):
     .. _the spec: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#openapi-object
     """
 
-    model_config = dict(undefined_types_warning=False)
-
     openapi: str = Field(...)
     info: Info = Field(...)
     jsonSchemaDialect: Optional[str] = Field(default=None)  # FIXME should be URI

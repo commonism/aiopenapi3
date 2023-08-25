@@ -1,3 +1,4 @@
+from typing import Tuple, Union
 import urllib.parse
 
 from yarl import URL
@@ -11,7 +12,7 @@ class JSONPointer:
     """
 
     @staticmethod
-    def decode(part):
+    def decode(part: str) -> str:
         """
 
         https://swagger.io/docs/specification/using-ref/
@@ -24,7 +25,7 @@ class JSONPointer:
 
 class JSONReference:
     @staticmethod
-    def split(url):
+    def split(url: Union[str, URL]) -> Tuple[str, str]:
         """
         split the url into path and fragment
         """

@@ -23,8 +23,6 @@ class Root(ObjectExtended, RootBase):
     .. _the spec: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#openapi-object
     """
 
-    model_config = dict(undefined_types_warning=False)
-
     openapi: str = Field(...)
     info: Info = Field(...)
     servers: List[Server] = Field(default_factory=list)
