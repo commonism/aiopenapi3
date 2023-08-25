@@ -12,6 +12,7 @@ import cProfile
 import tracemalloc
 import linecache
 import logging
+from typing import Callable
 
 import jmespath
 import yaml
@@ -34,7 +35,7 @@ from .loader import ChainLoader, RedirectLoader, WebLoader
 import aiopenapi3.loader
 
 
-log = None
+log: Callable[[...], None] | None = None
 
 
 def loader_prepare(args, session_factory):
@@ -51,18 +52,19 @@ def loader_prepare(args, session_factory):
 def plugins_load(baseurl, plugins: List[str]) -> List[aiopenapi3.plugin.Plugin]:
     """
     load Plugins from python files
-    :param args:
-    :return:
     """
     r = []
     for p in plugins:
         file, _, cls = p.partition(":")
-        cls = cls.split(",")
+        clsp = cls.split(",")
 
-        spec = importlib.util.spec_from_file_location("extra", file)
-        module = importlib.util.module_from_spec(spec)
+        if (spec := importlib.util.spec_from_file_location("extra", file)) is None:
+            raise ValueError("importlib")
+        if (module := importlib.util.module_from_spec(spec)) is None:
+            raise ValueError("importlib")
+        assert spec and module
         spec.loader.exec_module(module)
-        for c in cls:
+        for c in clsp:
             plugin = getattr(module, c)
             varnames = plugin.__init__.__code__.co_varnames
             if len(varnames) == 1:
@@ -127,6 +129,8 @@ def schema_display_stats(api, duration):
     print(f"… {len(operations)} #operations (with operationId)")
 
     def schemaof(x):
+        import aiopenapi3.v20
+
         if isinstance(api._root, aiopenapi3.v20.Root):
             return x.definitions
         else:
@@ -158,7 +162,7 @@ def main(argv=None):
     cmd.add_argument("output")
     cmd.add_argument("-f", "--format", choices=["yaml", "json"], default=None)
 
-    def cmd_convert(args):
+    def cmd_convert(args: argparse.Namespace) -> None:
         output = Path(args.output)
         loader = loader_prepare(args, session_factory)
         input_ = yarl.URL(args.input)
@@ -185,7 +189,7 @@ def main(argv=None):
     cmd.add_argument("-d", "--data")
     cmd.add_argument("-f", "--format")
 
-    def cmd_call(args):
+    def cmd_call(args: argparse.Namespace) -> None:
         loader = loader_prepare(args, session_factory)
 
         def prepare_arg(value):
@@ -209,8 +213,8 @@ def main(argv=None):
             expr = None
 
         if args.cache:
+            cache = Path(args.cache)
             try:
-                cache = Path(args.cache)
                 api = OpenAPI.cache_load(cache, plugins, session_factory)
             except FileNotFoundError:
                 api = OpenAPI.load_file(
@@ -228,6 +232,9 @@ def main(argv=None):
         if auth:
             api.authenticate(**auth)
 
+        import aiopenapi3.request
+
+        req: aiopenapi3.request.RequestBase
         if args.method:
             req = api.createRequest((args.operationId, args.method))
         else:
@@ -246,6 +253,7 @@ def main(argv=None):
 
         obj = response.json()
         if args.format:
+            assert expr
             obj = expr.search(obj)
 
         print(json.dumps(obj, indent=2, sort_keys=True))
@@ -255,7 +263,7 @@ def main(argv=None):
     cmd = sub.add_parser("validate")
     cmd.add_argument("input")
 
-    def cmd_validate(args):
+    def cmd_validate(args: argparse.Namespace) -> None:
         loader = loader_prepare(args, session_factory)
 
         try:

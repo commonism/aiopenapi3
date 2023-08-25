@@ -1,16 +1,17 @@
 import sys
 import logging.config
 import os
+from typing import List, Dict, Any
 
 if sys.version_info >= (3, 9):
     from pathlib import Path
 else:
     from pathlib3x import Path
 
-handlers = None
+handlers: List[str] | None = None
 
 
-def init(force=False):
+def init(force: bool = False) -> None:
     global handlers
 
     if handlers is not None:
@@ -33,7 +34,7 @@ def init(force=False):
     """export AIOPENAPI3_LOGGING_HANDLERS=debug to get /tmp/aiopenapi3-debug.log"""
     handlers.extend(filter(lambda x: len(x), os.environ.get("AIOPENAPI3_LOGGING_HANDLERS", "").split(",")))
 
-    config = {
+    config: Dict[str, Any] = {
         "version": 1,
         "formatters": {
             "notimestamp": {

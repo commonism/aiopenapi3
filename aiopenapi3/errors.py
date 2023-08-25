@@ -1,5 +1,21 @@
-from typing import List, Tuple, Dict
+import typing
+from typing import List, Tuple, Dict, Optional
 import dataclasses
+
+import httpx
+
+
+if typing.TYPE_CHECKING:
+    from ._types import (
+        OperationType,
+        SchemaType,
+        RequestType,
+        RequestData,
+        RequestParameters,
+        HeaderType,
+        ExpectedType,
+        OperationType,
+    )
 
 
 class ErrorBase(Exception):
@@ -72,10 +88,10 @@ class HTTPError(ErrorBase):
 
 @dataclasses.dataclass
 class RequestError(HTTPError):
-    operation: object
-    request: object
-    data: object
-    parameters: object
+    operation: Optional["OperationType"]
+    request: Optional["RequestType"]
+    data: Optional["RequestData"]
+    parameters: Optional["RequestParameters"]
 
 
 class ResponseError(HTTPError):
@@ -88,56 +104,56 @@ class ResponseError(HTTPError):
 class ContentLengthExceededError(ResponseError):
     """The Content-Length exceeds our Limits"""
 
-    operation: object
+    operation: "OperationType"
     content_length: int
     message: str
-    response: object
+    response: httpx.Response
 
 
 @dataclasses.dataclass
 class ContentTypeError(ResponseError):
     """The content-type is unexpected"""
 
-    operation: object
+    operation: "OperationType"
     content_type: str
     message: str
-    response: object
+    response: httpx.Response
 
 
 @dataclasses.dataclass
 class HTTPStatusError(ResponseError):
     """The HTTP Status is unexpected"""
 
-    operation: object
+    operation: "OperationType"
     http_status: int
     message: str
-    response: object
+    response: httpx.Response
 
 
 @dataclasses.dataclass
 class ResponseDecodingError(ResponseError):
     """the json decoder failed"""
 
-    operation: object
-    data: object
-    response: object
+    operation: "OperationType"
+    data: str
+    response: httpx.Response
 
 
 @dataclasses.dataclass
 class ResponseSchemaError(ResponseError):
     """the response data does not match the schema"""
 
-    operation: object
-    expectation: object
-    schema: object
-    response: object
-    exception: object
+    operation: "OperationType"
+    expectation: "ExpectedType"
+    schema: Optional["SchemaType"]
+    response: httpx.Response
+    exception: Optional[Exception]
 
 
 @dataclasses.dataclass
 class HeadersMissingError(ResponseError):
     """the response is missing required header/s"""
 
-    operation: object
-    missing: Dict[str, object]
-    response: object
+    operation: "OperationType"
+    missing: Dict[str, "HeaderType"]
+    response: httpx.Response

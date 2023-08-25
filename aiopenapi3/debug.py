@@ -1,10 +1,10 @@
-import aiopenapi3.plugin
+from aiopenapi3.plugin import Document
 import yaml
 from pathlib import Path
 import json
 
 
-class DescriptionDocumentDumper(aiopenapi3.plugin.Document):
+class DescriptionDocumentDumper(Document):
     def __init__(self, path):
         super().__init__()
         self.path = Path(path)

@@ -1,9 +1,14 @@
-from typing import Optional
+import typing
+from typing import Optional, Union, Any
 
-from pydantic import Field, AnyUrl, PrivateAttr
+from pydantic import Field, AnyUrl, PrivateAttr, ConfigDict
 
 
 from ..base import ObjectExtended, ObjectBase, ReferenceBase
+
+if typing.TYPE_CHECKING:
+    from .schemas import Schema
+    from .paths import Parameter, PathItem
 
 
 class ExternalDocumentation(ObjectExtended):
@@ -29,14 +34,14 @@ class Reference(ObjectBase, ReferenceBase):
     summary: Optional[str] = Field(default=None)
     description: Optional[str] = Field(default=None)
 
-    _target: object = PrivateAttr()
+    _target: Union["Schema", "Parameter", "Reference", "PathItem"] = PrivateAttr()
 
-    model_config = dict(
+    model_config = ConfigDict(
         # """This object cannot be extended with additional properties and any properties added SHALL be ignored."""
         extra="ignore"
     )
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> Any:
         if item != "_target":
             return getattr(self._target, item)
         else:

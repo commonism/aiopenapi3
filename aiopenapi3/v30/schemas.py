@@ -1,6 +1,6 @@
 from typing import Union, List, Any, Optional, Dict
 
-from pydantic import Field, model_validator, PrivateAttr
+from pydantic import Field, model_validator, PrivateAttr, ConfigDict
 
 from ..base import ObjectExtended, SchemaBase, DiscriminatorBase
 from .general import Reference
@@ -61,9 +61,10 @@ class Schema(ObjectExtended, SchemaBase):
     example: Optional[Any] = Field(default=None)
     deprecated: Optional[bool] = Field(default=None)
 
-    model_config = dict(extra="forbid")
+    model_config = ConfigDict(extra="forbid")
 
     @model_validator(mode="after")
+    @classmethod
     def validate_Schema_number_type(cls, s: "Schema"):
         if s.type == "integer":
             for i in ["minimum", "maximum"]:

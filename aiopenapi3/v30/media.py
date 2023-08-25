@@ -1,3 +1,4 @@
+import typing
 from typing import Union, Optional, Dict, Any
 
 from pydantic import Field
@@ -8,6 +9,9 @@ from .example import Example
 from .general import Reference
 from .schemas import Schema
 
+if typing.TYPE_CHECKING:
+    from .paths import Header
+
 
 class Encoding(ObjectExtended):
     """
@@ -15,8 +19,6 @@ class Encoding(ObjectExtended):
 
     .. _Encoding: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#encoding-object
     """
-
-    model_config = dict(undefined_types_warning=False)
 
     contentType: Optional[str] = Field(default=None)
     headers: Dict[str, Union["Header", Reference]] = Field(default_factory=dict)
@@ -32,8 +34,6 @@ class MediaType(ObjectExtended):
 
     .. _MediaType: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#media-type-object
     """
-
-    model_config = dict(undefined_types_warning=False)
 
     schema_: Optional[Union[Schema, Reference]] = Field(default=None, alias="schema")
     example: Optional[Any] = Field(default=None)  # 'any' type
