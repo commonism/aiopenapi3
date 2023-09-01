@@ -27,14 +27,14 @@ class Root(ObjectExtended, RootBase):
     openapi: str = Field(...)
     info: Info = Field(...)
     jsonSchemaDialect: Optional[str] = Field(default=None)  # FIXME should be URI
-    servers: Optional[List[Server]] = Field(default=None)
+    servers: Optional[List[Server]] = Field(default_factory=list)
     #    paths: Dict[str, PathItem] = Field(default_factory=dict)
     paths: Paths = Field(default_factory=dict)
-    webhooks: Optional[Dict[str, Union[PathItem, Reference]]] = Field(default_factory=dict)
-    components: Optional[Components] = Field(default=None)
-    security: Optional[List[SecurityRequirement]] = Field(default=None)
-    tags: Optional[List[Tag]] = Field(default_factory=list)
-    externalDocs: Optional[Dict[Any, Any]] = Field(default_factory=dict)
+    webhooks: Dict[str, Union[PathItem, Reference]] = Field(default_factory=dict)
+    components: Optional[Components] = Field(default_factory=Components)
+    security: Optional[List[SecurityRequirement]] = Field(default_factory=list)
+    tags: List[Tag] = Field(default_factory=list)
+    externalDocs: Dict[Any, Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def validate_Root(cls, r: "Root"):

@@ -19,7 +19,7 @@ class Encoding(ObjectExtended):
     model_config = dict(undefined_types_warning=False)
 
     contentType: Optional[str] = Field(default=None)
-    headers: Optional[Dict[str, Union["Header", Reference]]] = Field(default_factory=dict)
+    headers: Dict[str, Union["Header", Reference]] = Field(default_factory=dict)
     style: Optional[str] = Field(default=None)
     explode: Optional[bool] = Field(default=None)
     allowReserved: Optional[bool] = Field(default=None)
@@ -37,5 +37,5 @@ class MediaType(ObjectExtended):
 
     schema_: Optional[Union[Schema, Reference]] = Field(default=None, alias="schema")
     example: Optional[Any] = Field(default=None)  # 'any' type
-    examples: Optional[Dict[str, Union[Example, Reference]]] = Field(default_factory=dict)
-    encoding: Optional[Dict[str, Encoding]] = Field(default_factory=dict)
+    examples: Dict[str, Union[Example, Reference]] = Field(default_factory=dict)
+    encoding: Dict[str, Encoding] = Field(default_factory=dict)

@@ -62,9 +62,9 @@ class Response(ObjectExtended):
     model_config = dict(undefined_types_warning=False)
 
     description: str = Field(...)
-    headers: Optional[Dict[str, Union[Header, Reference]]] = Field(default_factory=dict)
-    content: Optional[Dict[str, MediaType]] = Field(default_factory=dict)
-    links: Optional[Dict[str, Union[Link, Reference]]] = Field(default_factory=dict)
+    headers: Dict[str, Union[Header, Reference]] = Field(default_factory=dict)
+    content: Dict[str, MediaType] = Field(default_factory=dict)
+    links: Dict[str, Union[Link, Reference]] = Field(default_factory=dict)
 
 
 class Operation(ObjectExtended, OperationBase):
@@ -81,12 +81,12 @@ class Operation(ObjectExtended, OperationBase):
     description: Optional[str] = Field(default=None)
     externalDocs: Optional[ExternalDocumentation] = Field(default=None)
     operationId: Optional[str] = Field(default=None)
-    parameters: Optional[List[Union[Parameter, Reference]]] = Field(default_factory=list)
+    parameters: List[Union[Parameter, Reference]] = Field(default_factory=list)
     requestBody: Optional[Union[RequestBody, Reference]] = Field(default=None)
     responses: Dict[str, Union[Response, Reference]] = Field(...)
-    callbacks: Optional[Dict[str, Union["Callback", Reference]]] = Field(default_factory=dict)
+    callbacks: Dict[str, Union["Callback", Reference]] = Field(default_factory=dict)
     deprecated: Optional[bool] = Field(default=None)
-    security: Optional[List[SecurityRequirement]] = Field(default_factory=list)
+    security: List[SecurityRequirement] = Field(default_factory=list)
     servers: Optional[List[Server]] = Field(default=None)
 
 
@@ -112,7 +112,7 @@ class PathItem(ObjectExtended):
     patch: Optional[Operation] = Field(default=None)
     trace: Optional[Operation] = Field(default=None)
     servers: Optional[List[Server]] = Field(default=None)
-    parameters: Optional[List[Union[Parameter, Reference]]] = Field(default_factory=list)
+    parameters: List[Union[Parameter, Reference]] = Field(default_factory=list)
 
 
 class Paths(PathsBase):
