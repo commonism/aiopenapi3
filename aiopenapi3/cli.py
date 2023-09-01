@@ -12,7 +12,6 @@ import cProfile
 import tracemalloc
 import linecache
 import logging
-from typing import Callable
 
 import jmespath
 import yaml
@@ -34,8 +33,11 @@ from .openapi import OpenAPI
 from .loader import ChainLoader, RedirectLoader, WebLoader
 import aiopenapi3.loader
 
+from .log import init
 
-log: Callable[[...], None] | None = None
+init()
+
+# log: Callable[..., None] | None = None
 
 
 def loader_prepare(args, session_factory):
@@ -62,7 +64,7 @@ def plugins_load(baseurl, plugins: List[str]) -> List[aiopenapi3.plugin.Plugin]:
             raise ValueError("importlib")
         if (module := importlib.util.module_from_spec(spec)) is None:
             raise ValueError("importlib")
-        assert spec and module
+        assert spec and spec.loader and module
         spec.loader.exec_module(module)
         for c in clsp:
             plugin = getattr(module, c)

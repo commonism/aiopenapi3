@@ -10,6 +10,7 @@ import yarl
 
 from aiopenapi3.errors import ContentLengthExceededError
 
+
 try:
     from contextlib import aclosing
 except:  # <= Python 3.10
@@ -48,7 +49,7 @@ if typing.TYPE_CHECKING:
 
 
 class RequestParameter:
-    def __init__(self, url: yarl.URL | str):
+    def __init__(self, url: Union[yarl.URL, str]):
         self.url: str = str(url)
         self.auth: Optional["AuthTypes"] = None
         self.cookies: Dict[str, str] = {}
