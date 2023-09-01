@@ -5,20 +5,13 @@ import dataclasses
 import logging
 import re
 import sys
-from typing import Any, Set, Type, cast, TypeGuard, TypeVar
+from typing import Any, Set, Type, cast, TypeVar
 import typing
 
-import pydantic
-
-if sys.version_info >= (3, 9):
-    pass
+if sys.version_info >= (3, 10):
+    from typing import TypeGuard
 else:
-    from pathlib3x import Path
-
-
-from .base import ReferenceBase, SchemaBase
-from . import me
-from .pydanticv2 import field_class_to_schema
+    from typing_extensions import TypeGuard
 
 if sys.version_info >= (3, 9):
     from typing import List, Optional, Union, Tuple, Dict, Annotated, Literal
@@ -27,6 +20,11 @@ else:
     from typing_extensions import Annotated, Literal
 
 from pydantic import BaseModel, Field, RootModel, ConfigDict
+import pydantic
+
+from .base import ReferenceBase, SchemaBase
+from . import me
+from .pydanticv2 import field_class_to_schema
 
 if typing.TYPE_CHECKING:
     from .base import DiscriminatorBase

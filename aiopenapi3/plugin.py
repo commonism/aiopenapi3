@@ -2,6 +2,13 @@ import dataclasses
 import typing
 from typing import TYPE_CHECKING, List, Any, Dict, Optional, Type
 import abc
+import sys
+
+if sys.version_info >= (3, 10):
+    from typing import TypeGuard
+else:
+    from typing_extensions import TypeGuard
+
 
 from pydantic import BaseModel
 
@@ -194,7 +201,7 @@ class Plugins:
         if (domain := self._domains.get(name)) is None:
             raise ValueError(name)  # noqa
 
-        def domain_type_f(p: Plugin) -> typing.TypeGuard[Plugin]:
+        def domain_type_f(p: Plugin) -> TypeGuard[Plugin]:
             return isinstance(p, domain)
 
         p: List[Plugin] = list(filter(domain_type_f, plugins))
