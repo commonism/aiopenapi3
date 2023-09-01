@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import collections
 import dataclasses
 import logging
@@ -114,9 +112,9 @@ class Model:  # (BaseModel):
     def from_schema(
         cls,
         schema: "SchemaType",
-        schemanames: List[str] | None = None,
-        discriminators: List["DiscriminatorType"] | None = None,
-        extra: "SchemaType" | None = None,
+        schemanames: Optional[List[str]] = None,
+        discriminators: Optional[List["DiscriminatorType"]] = None,
+        extra: Optional["SchemaType"] = None,
     ) -> Type[BaseModel]:
         if schemanames is None:
             schemanames = []
@@ -322,7 +320,7 @@ class Model:  # (BaseModel):
 
     @staticmethod
     def typeof(
-        schema: Optional[Union["SchemaType", "ReferenceType"]], _type: str | None = None, fwdref: bool = False
+        schema: Optional[Union["SchemaType", "ReferenceType"]], _type: Optional[str] = None, fwdref: bool = False
     ) -> Type:
         if schema is None:
             return BaseModel
@@ -517,7 +515,7 @@ class Model:  # (BaseModel):
         return isinstance(schema.type, str) and schema.type == type_ or Model.or_type(schema, type_, l=None)
 
     @staticmethod
-    def or_type(schema: "SchemaType", type_: str, l: int | None = 2) -> bool:
+    def or_type(schema: "SchemaType", type_: str, l: Optional[int] = 2) -> bool:
         return isinstance((t := schema.type), list) and (l is None or len(t) == l) and type_ in t
 
     @staticmethod

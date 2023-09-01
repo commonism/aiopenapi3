@@ -2,7 +2,7 @@ import abc
 import json
 import logging
 import typing
-
+from typing import Optional
 import yaml
 import httpx
 import yarl
@@ -112,7 +112,7 @@ class Loader(abc.ABC):
         self.yload = yload
 
     @abc.abstractmethod
-    def load(self, plugins: Plugins, url: yarl.URL, codec: str | None = None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec: Optional[str] = None):
         """
         load and decode description document
 
@@ -124,7 +124,7 @@ class Loader(abc.ABC):
         raise NotImplementedError("load")
 
     @classmethod
-    def decode(cls, data: bytes, codec: str | None) -> str:
+    def decode(cls, data: bytes, codec: Optional[str]) -> str:
         """
         decode bytes to ascii or utf-8
 
@@ -196,7 +196,7 @@ class NullLoader(Loader):
     Loader does not load anything
     """
 
-    def load(self, plugins: Plugins, url: yarl.URL, codec: str | None = None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec: Optional[str] = None):
         raise NotImplementedError("load")
 
 
@@ -211,7 +211,7 @@ class WebLoader(Loader):
         self.baseurl: yarl.URL = baseurl
         self.session_factory = session_factory
 
-    def load(self, plugins: Plugins, url: yarl.URL, codec: str | None = None) -> "JSON":
+    def load(self, plugins: Plugins, url: yarl.URL, codec: Optional[str] = None) -> "JSON":
         url = self.baseurl.join(url)
         with self.session_factory() as session:
             data = session.get(str(url))
@@ -239,7 +239,7 @@ class FileSystemLoader(Loader):
         assert isinstance(base, Path)
         self.base = base
 
-    def load(self, plugins: Plugins, url: yarl.URL, codec: str | None = None):
+    def load(self, plugins: Plugins, url: yarl.URL, codec: Optional[str] = None):
         assert isinstance(url, yarl.URL)
         assert plugins
         file = Path(url.path)
@@ -262,7 +262,7 @@ class RedirectLoader(FileSystemLoader):
     everything but the "name" is stripped of the url
     """
 
-    def load(self, plugins: "Plugins", url: yarl.URL, codec: str | None = None):
+    def load(self, plugins: "Plugins", url: yarl.URL, codec: Optional[str] = None):
         return super().load(plugins, yarl.URL(url.name), codec)
 
 
@@ -280,7 +280,7 @@ class ChainLoader(Loader):
         Loader.__init__(self, yload)
         self.loaders = loaders
 
-    def load(self, plugins: "Plugins", url: yarl.URL, codec: str | None = None):
+    def load(self, plugins: "Plugins", url: yarl.URL, codec: Optional[str] = None):
         log.debug(f"load {url}")
         errors = []
         for i in self.loaders:

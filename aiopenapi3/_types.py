@@ -1,15 +1,6 @@
 from . import v20, v30, v31
 
-from typing import (
-    TYPE_CHECKING,
-    Dict,
-    List,
-    Sequence,
-    Tuple,
-    Union,
-    TypeAlias,
-    Type,
-)
+from typing import TYPE_CHECKING, Dict, List, Sequence, Tuple, Union, TypeAlias, Type, Optional
 
 import yaml
 
@@ -23,7 +14,7 @@ from pydantic import BaseModel
 RequestFileParameter = Tuple[str, FileTypes]
 RequestFilesParameter = Sequence[RequestFileParameter]
 
-JSON: TypeAlias = dict[str, "JSON"] | list["JSON"] | str | int | float | bool | None
+JSON: TypeAlias = Optional[Union[dict[str, "JSON"], list["JSON"], str, int, float, bool]]
 """
 Define a JSON type
 https://github.com/python/typing/issues/182#issuecomment-1320974824
