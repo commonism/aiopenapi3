@@ -1,6 +1,6 @@
 import typing
 import warnings
-from typing import Optional, Any, List, Dict, ForwardRef, Union, Tuple, cast, Type, TypeGuard, FrozenSet, Sequence
+from typing import Optional, Any, List, Dict, ForwardRef, Union, Tuple, cast, Type, FrozenSet, Sequence
 
 import re
 import builtins
@@ -12,6 +12,11 @@ if sys.version_info >= (3, 9):
     from pathlib import Path
 else:
     from pathlib3x import Path
+
+if sys.version_info >= (3, 10):
+    from typing import TypeGuard
+else:
+    from typing_extensions import TypeGuard
 
 from pydantic import BaseModel, Field, AnyUrl, model_validator, PrivateAttr, ConfigDict
 
