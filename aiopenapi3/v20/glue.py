@@ -1,6 +1,13 @@
 import typing
-from typing import List, Union, cast, Tuple, Dict, Optional, TypeGuard, Sequence
+from typing import List, Union, cast, Tuple, Dict, Optional, Sequence
 import json
+import sys
+
+if sys.version_info >= (3, 10):
+    from typing import TypeGuard
+else:
+    from typing_extensions import TypeGuard
+
 
 import httpx
 import pydantic

@@ -1,17 +1,24 @@
 import sys
 import typing
 
-if sys.version_info >= (3, 9):
-    import pathlib
-else:
-    import pathlib3x as pathlib
-
-from typing import List, Dict, Set, Callable, Tuple, Any, Union, cast, Optional, TypeGuard, Type, ForwardRef
+from typing import List, Dict, Set, Callable, Tuple, Any, Union, cast, Optional, Type, ForwardRef
 import collections
 import inspect
 import logging
 import copy
 import pickle
+
+if sys.version_info >= (3, 9):
+    import pathlib
+else:
+    import pathlib3x as pathlib
+
+
+if sys.version_info >= (3, 10):
+    from typing import TypeGuard
+else:
+    from typing_extensions import TypeGuard
+
 
 import httpx
 import yarl
