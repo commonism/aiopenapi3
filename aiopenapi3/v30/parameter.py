@@ -248,9 +248,9 @@ class ParameterBase(ObjectExtended, ParameterBase_):
     allowReserved: Optional[bool] = Field(default=None)
     schema_: Optional[Union[Schema, Reference]] = Field(default=None, alias="schema")
     example: Optional[Any] = Field(default=None)
-    examples: Optional[Dict[str, Union["Example", Reference]]] = Field(default_factory=dict)
+    examples: Dict[str, Union["Example", Reference]] = Field(default_factory=dict)
 
-    content: Optional[Dict[str, "MediaType"]] = Field(default_factory=dict)
+    content: Dict[str, "MediaType"] = Field(default_factory=dict)
 
 
 class _In(str, enum.Enum):

@@ -33,13 +33,13 @@ class Schema(ObjectExtended, SchemaBase):
     uniqueItems: Optional[bool] = Field(default=None)
     maxProperties: Optional[int] = Field(default=None)
     minProperties: Optional[int] = Field(default=None)
-    required: Optional[List[str]] = Field(default_factory=list)
+    required: List[str] = Field(default_factory=list)
     enum: Optional[List[Any]] = Field(default=None)
     type: Optional[str] = Field(default=None)
 
     items: Optional[Union[List[Union["Schema", Reference]], Union["Schema", Reference]]] = Field(default=None)
-    allOf: Optional[List[Union["Schema", Reference]]] = Field(default_factory=list)
-    properties: Optional[Dict[str, Union["Schema", Reference]]] = Field(default_factory=dict)
+    allOf: List[Union["Schema", Reference]] = Field(default_factory=list)
+    properties: Dict[str, Union["Schema", Reference]] = Field(default_factory=dict)
     additionalProperties: Optional[Union[bool, "Schema", Reference]] = Field(default=None)
 
     discriminator: Optional[str] = Field(default=None)  # 'Discriminator'
