@@ -463,7 +463,7 @@ class Request(RequestBase):
         return rheaders
 
     def _process__content_type(
-        self, result: httpx.Response, expected_response: "v3xResponseType", content_type: str | None
+        self, result: httpx.Response, expected_response: "v3xResponseType", content_type: Optional[str]
     ) -> Tuple[str, "v3xMediaTypeType"]:
         if content_type:
             content_type, _, encoding = content_type.partition(";")
@@ -501,7 +501,9 @@ class Request(RequestBase):
 
         return headers, expected_media.schema_
 
-    def _process_request(self, result: httpx.Response) -> Tuple[Dict[str, str], pydantic.BaseModel | str | None]:
+    def _process_request(
+        self, result: httpx.Response
+    ) -> Tuple[Dict[str, str], Optional[Union[pydantic.BaseModel, str]]]:
         rheaders = dict()
         # spec enforces these are strings
         status_code = str(result.status_code)

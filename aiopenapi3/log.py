@@ -1,14 +1,14 @@
 import sys
 import logging.config
 import os
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 if sys.version_info >= (3, 9):
     from pathlib import Path
 else:
     from pathlib3x import Path
 
-handlers: List[str] | None = None
+handlers: Optional[List[str]] = None
 
 
 def init(force: bool = False) -> None:

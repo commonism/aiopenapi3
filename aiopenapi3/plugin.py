@@ -49,9 +49,9 @@ class Init(Plugin):
     class Context:
         initialized: Optional["OpenAPI"] = None
         """available in :func:`~aiopenapi3.plugin.Init.initialized`"""
-        schemas: Dict[str, "SchemaBase"] | None = None
+        schemas: Optional[Dict[str, "SchemaBase"]] = None
         """available in :func:`~aiopenapi3.plugin.Init.schemas`"""
-        paths: Dict[str, "PathItemBase"] | None = None
+        paths: Optional[Dict[str, "PathItemBase"]] = None
         """available in :func:`~aiopenapi3.plugin.Init.paths`"""
 
     def schemas(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
@@ -197,7 +197,7 @@ class Plugins:
         self._message = self._get_domain("message", plugins)
 
     def _get_domain(self, name: str, plugins: List[Plugin]) -> "Domain":
-        domain: Type[Plugin] | None
+        domain: Optional[Type[Plugin]]
         if (domain := self._domains.get(name)) is None:
             raise ValueError(name)  # noqa
 

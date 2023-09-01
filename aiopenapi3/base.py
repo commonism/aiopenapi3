@@ -394,8 +394,8 @@ class SchemaBase(BaseModel):
 
     def set_type(
         self,
-        names: List[str] | None = None,
-        discriminators: Sequence[DiscriminatorBase] | None = None,
+        names: Optional[List[str]] = None,
+        discriminators: Optional[Sequence[DiscriminatorBase]] = None,
         extra: Optional["SchemaBase"] = None,
     ) -> Type[BaseModel]:
         from .model import Model
@@ -417,8 +417,8 @@ class SchemaBase(BaseModel):
 
     def get_type(
         self,
-        names: List[str] | None = None,
-        discriminators: Sequence[DiscriminatorBase] | None = None,
+        names: Optional[List[str]] = None,
+        discriminators: Optional[Sequence[DiscriminatorBase]] = None,
         extra: Optional["SchemaBase"] = None,
         fwdref: bool = False,
     ) -> Union[Type[BaseModel], ForwardRef]:
@@ -462,7 +462,7 @@ class SchemaBase(BaseModel):
 
 
 class OperationBase:
-    # parameters: Optional[List[ParameterBase | ReferenceBase]]
+    # parameters: Optional[List[Union[ParameterBase, ReferenceBase]]]
     parameters: List[Any]
 
     def _validate_path_parameters(self, pi_: "PathItemBase", path_: str, loc: Tuple[Any, str]):

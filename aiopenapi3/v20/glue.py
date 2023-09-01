@@ -283,7 +283,9 @@ class Request(RequestBase):
         headers = self._process__headers(result, result.headers, expected_response)
         return headers, expected_response.schema_
 
-    def _process_request(self, result: httpx.Response) -> Tuple[Dict[str, str], pydantic.BaseModel | str | None]:
+    def _process_request(
+        self, result: httpx.Response
+    ) -> Tuple[Dict[str, str], Optional[Union[pydantic.BaseModel, str]]]:
         rheaders = dict()
         # spec enforces these are strings
         status_code = str(result.status_code)

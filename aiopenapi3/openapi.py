@@ -87,8 +87,8 @@ class OpenAPI:
         cls,
         url,
         session_factory: Callable[..., httpx.Client] = httpx.Client,
-        loader: Loader | None = None,
-        plugins: List[Plugin] | None = None,
+        loader: Optional[Loader] = None,
+        plugins: Optional[List[Plugin]] = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
@@ -110,8 +110,8 @@ class OpenAPI:
         cls,
         url: str,
         session_factory: Callable[..., httpx.AsyncClient] = httpx.AsyncClient,
-        loader: Loader | None = None,
-        plugins: List[Plugin] | None = None,
+        loader: Optional[Loader] = None,
+        plugins: Optional[List[Plugin]] = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
@@ -139,8 +139,8 @@ class OpenAPI:
         url: str,
         path: Union[str, pathlib.Path, yarl.URL],
         session_factory: Callable[..., Union[httpx.AsyncClient, httpx.Client]] = httpx.AsyncClient,
-        loader: Loader | None = None,
-        plugins: List[Plugin] | None = None,
+        loader: Optional[Loader] = None,
+        plugins: Optional[List[Plugin]] = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
@@ -166,8 +166,8 @@ class OpenAPI:
         url: str,
         data: str,
         session_factory: Callable[..., Union[httpx.AsyncClient, httpx.Client]] = httpx.AsyncClient,
-        loader: Loader | None = None,
-        plugins: List[Plugin] | None = None,
+        loader: Optional[Loader] = None,
+        plugins: Optional[List[Plugin]] = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
@@ -213,8 +213,8 @@ class OpenAPI:
         url: str,
         document: "JSON",
         session_factory: Callable[..., Union[httpx.Client, httpx.AsyncClient]] = httpx.AsyncClient,
-        loader: Loader | None = None,
-        plugins: List[Plugin] | None = None,
+        loader: Optional[Loader] = None,
+        plugins: Optional[List[Plugin]] = None,
         use_operation_tags: bool = True,
     ) -> None:
         """
@@ -233,7 +233,7 @@ class OpenAPI:
 
         self._session_factory: Callable[..., Union[httpx.Client, httpx.AsyncClient]] = session_factory
 
-        self.loader: Loader | None = loader
+        self.loader: Optional[Loader] = loader
         """
         Loader - loading referenced documents
         """
@@ -722,7 +722,7 @@ class OpenAPI:
         api.loader = self.loader
         return api
 
-    def clone(self, baseurl: yarl.URL | None = None) -> "OpenAPI":
+    def clone(self, baseurl: Optional[yarl.URL] = None) -> "OpenAPI":
         """
         shallwo copy the api object
         optional set a base url
@@ -735,7 +735,7 @@ class OpenAPI:
         return api
 
     @staticmethod
-    def cache_load(path: pathlib.Path, plugins: List[Plugin] | None = None, session_factory=None) -> "OpenAPI":
+    def cache_load(path: pathlib.Path, plugins: Optional[List[Plugin]] = None, session_factory=None) -> "OpenAPI":
         """
         read a pickle api object from path and init the schema types
 

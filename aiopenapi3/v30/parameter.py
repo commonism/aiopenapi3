@@ -275,9 +275,9 @@ class Parameter(ParameterBase, _ParameterCodec):
 def encode_parameter(
     name: str,
     value: object,
-    style: str | None,
-    explode: bool | None,
-    allowReserved: bool | None,
+    style: Optional[str],
+    explode: Optional[bool],
+    allowReserved: Optional[bool],
     in_: str,
     schema_: Schema,
 ) -> Union[str, bytes]:

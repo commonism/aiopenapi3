@@ -13,7 +13,7 @@ class ServerVariable(ObjectExtended):
     """
 
     enum: Optional[List[str]] = Field(default=None)
-    default: str | None = Field(...)
+    default: Optional[str] = Field(...)
     description: Optional[str] = Field(default=None)
 
 
