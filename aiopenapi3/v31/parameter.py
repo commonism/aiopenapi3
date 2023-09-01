@@ -31,7 +31,7 @@ class ParameterBase(ObjectExtended):
     allowReserved: Optional[bool] = Field(default=None)
     schema_: Optional[Schema] = Field(default=None, alias="schema")
     example: Optional[Any] = Field(default=None)
-    examples: Optional[Dict[str, Union["Example", Reference]]] = Field(default_factory=dict)
+    examples: Dict[str, Union["Example", Reference]] = Field(default_factory=dict)
 
     content: Optional[Dict[str, "MediaType"]] = None
 

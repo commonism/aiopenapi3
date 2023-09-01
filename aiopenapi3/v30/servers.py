@@ -26,4 +26,4 @@ class Server(ObjectExtended):
 
     url: str = Field(...)
     description: Optional[str] = Field(default=None)
-    variables: Optional[Dict[str, ServerVariable]] = Field(default_factory=dict)
+    variables: Dict[str, ServerVariable] = Field(default_factory=dict)
