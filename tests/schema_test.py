@@ -346,6 +346,15 @@ def test_schema_discriminated_union_warnings(with_schema_discriminated_union_war
             api = OpenAPI("/", s)
 
 
+def test_schema_discriminated_union_merge(with_schema_discriminated_union_merge, openapi_version):
+    from aiopenapi3.errors import DiscriminatorWarning
+
+    with pytest.warns(
+        DiscriminatorWarning, match=r"Discriminated Union member \S+ without const/enum key property \S+"
+    ):
+        api = OpenAPI("/", with_schema_discriminated_union_merge)
+
+
 def test_schema_discriminated_union_deep(with_schema_discriminated_union_deep):
     api = OpenAPI("/", with_schema_discriminated_union_deep)
     Dog = api.components.schemas["Dog"].get_type()
