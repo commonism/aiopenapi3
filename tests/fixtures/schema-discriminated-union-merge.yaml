@@ -1,0 +1,36 @@
+openapi: "3.1.0"
+info:
+  version: 1.0.0
+  title: enum test
+
+components:
+  schemas:
+    CustomContextVariable:
+      additionalProperties: false
+      discriminator:
+        mapping:
+          user: '#/components/schemas/UserContextVariable'
+        propertyName: type
+      oneOf:
+      - $ref: '#/components/schemas/UserContextVariable'
+      properties:
+        type:
+          description: Type of custom context variable.
+          type: string
+      required:
+      - type
+      type: object
+    UserContextVariable:
+      description: A [user](https://developer.atlassian.com/cloud/jira/platform/jira-expressions-type-reference#user)
+        specified as an Atlassian account ID.
+      properties:
+        accountId:
+          description: The account ID of the user.
+          type: string
+        type:
+          description: Type of custom context variable.
+          type: string
+      required:
+      - accountId
+      - type
+      type: object

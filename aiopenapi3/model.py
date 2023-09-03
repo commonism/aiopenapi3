@@ -155,6 +155,12 @@ class Model:  # (BaseModel):
             else:
                 classinfo.root = _t
         elif type == "object":
+            # this is a anyOf/oneOf - the parent may have properties which will collide with __root__
+            # so - add the parent properties to this model
+            if extra:
+                Model.annotationsof(extra, discriminators, schemanames, classinfo)
+                Model.fieldof(extra, classinfo)
+
             if hasattr(schema, "anyOf") and schema.anyOf:
                 assert all(schema.anyOf)
                 t = tuple(
@@ -229,11 +235,6 @@ class Model:  # (BaseModel):
                         Model.annotationsof(i, discriminators, schemanames, classinfo, fwdref=True)
                         Model.fieldof(i, classinfo)
 
-            # this is a anyOf/oneOf - the parent may have properties which will collide with __root__
-            # so - add the parent properties to this model
-            if extra:
-                Model.annotationsof(extra, discriminators, schemanames, classinfo)
-                Model.fieldof(extra, classinfo)
         elif type == "array":
             classinfo.root = Model.typeof(schema, _type="array")
 

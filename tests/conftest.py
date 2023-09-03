@@ -308,6 +308,11 @@ def with_schema_discriminated_union_warning(openapi_version):
 
 
 @pytest.fixture
+def with_schema_discriminated_union_merge(openapi_version):
+    yield _get_parsed_yaml("schema-discriminated-union-merge.yaml", openapi_version)
+
+
+@pytest.fixture
 def with_schema_discriminated_union_discriminator_name(openapi_version):
     yield _get_parsed_yaml("schema-discriminated-union-discriminator-name.yaml", openapi_version)
 
