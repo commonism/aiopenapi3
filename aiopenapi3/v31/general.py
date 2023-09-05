@@ -34,7 +34,7 @@ class Reference(ObjectBase, ReferenceBase):
     summary: Optional[str] = Field(default=None)
     description: Optional[str] = Field(default=None)
 
-    _target: Union["Schema", "Parameter", "Reference", "PathItem"] = PrivateAttr()
+    _target: Union["Schema", "Parameter", "Reference", "PathItem"] = PrivateAttr(default=None)
 
     model_config = ConfigDict(
         # """This object cannot be extended with additional properties and any properties added SHALL be ignored."""
