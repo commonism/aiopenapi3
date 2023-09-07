@@ -2,7 +2,6 @@ import sys
 import typing
 
 from typing import List, Dict, Set, Callable, Tuple, Any, Union, cast, Optional, Type, ForwardRef
-import collections
 import inspect
 import logging
 import copy
