@@ -9,5 +9,5 @@ tests/data/
 tests/my_*.py
 docs/build/
 .pdm-python
-/*.egg-info
-/*.ipynb
+*.egg-info
+*.ipynb
