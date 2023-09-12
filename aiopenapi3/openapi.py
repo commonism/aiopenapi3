@@ -2,7 +2,6 @@ import sys
 import typing
 
 from typing import List, Dict, Set, Callable, Tuple, Any, Union, cast, Optional, Type, ForwardRef
-import collections
 import inspect
 import logging
 import copy
@@ -59,6 +58,7 @@ def is_schema(v: Tuple[str, "SchemaType"]) -> TypeGuard["SchemaType"]:
 
 
 class OpenAPI:
+    log = logging.getLogger("aiopenapi3.OpenAPI")
     #    _root: Union[v20.Root, v30.Root, v31.Root] | None
     _root: "RootType"
 
@@ -276,8 +276,8 @@ class OpenAPI:
 
         self._init_session_factory(session_factory)
         self._init_references()
-        self._init_operationindex(use_operation_tags)
-        self._init_schema_types()
+        only_required = self._init_operationindex(use_operation_tags)
+        self._init_schema_types(only_required)
 
         self.plugins.init.initialized(initialized=self._root)
 
@@ -331,8 +331,9 @@ class OpenAPI:
     #        for i in self._documents.values():
     #            i._resolve_references(self)
 
-    def _init_operationindex(self, use_operation_tags: bool):
-        self._root.paths = self.plugins.init.paths(initialized=self._root, paths=self.paths).paths
+    def _init_operationindex(self, use_operation_tags: bool) -> bool:
+        if (p := self.plugins.init.paths(initialized=self._root, paths=self.paths).paths) is not None:
+            self._root.paths = p
 
         if isinstance(self._root, v20.Root):
             if self.paths:
@@ -395,6 +396,7 @@ class OpenAPI:
             raise ValueError(self._root)
 
         self._operationindex = OperationIndex(self, use_operation_tags)
+        return p is None
 
     @staticmethod
     def _get_combined_attributes(schema):
@@ -435,7 +437,7 @@ class OpenAPI:
             processed.update(next_set)
         return processed
 
-    def _init_schema_types_collect(self) -> Dict[str, "SchemaType"]:
+    def _init_schema_types_collect(self, only_required: bool) -> Dict[str, "SchemaType"]:
         byname: Dict[str, "SchemaType"] = dict()
 
         def is_schema(v: Tuple[str, "SchemaType"]) -> bool:
@@ -444,10 +446,11 @@ class OpenAPI:
         if isinstance(self._root, v20.Root):
             documents = cast(List[v20.Root], self._documents.values())
             # Schema
-            for byid in map(lambda x: x.definitions, documents):
-                assert byid is not None and isinstance(byid, dict)
-                for name, schema in filter(is_schema, byid.items()):
-                    byname[schema._get_identity(name=name)] = schema
+            if only_required is False:
+                for byid in map(lambda x: x.definitions, documents):
+                    assert byid is not None and isinstance(byid, dict)
+                    for name, schema in filter(is_schema, byid.items()):
+                        byname[schema._get_identity(name=name)] = schema
             # Request
 
             # Response
@@ -462,10 +465,11 @@ class OpenAPI:
             documents = cast(Union[List[v30.Root], List[v31.Root]], self._documents.values())
             components = [x.components for x in filter(has_components, documents)]
             assert components is not None
-            for byid in map(lambda x: x.schemas, components):
-                assert byid is not None and isinstance(byid, dict)
-                for name, schema in filter(is_schema, byid.items()):
-                    byname[schema._get_identity(name=name)] = schema
+            if only_required is False:
+                for byid in map(lambda x: x.schemas, components):
+                    assert byid is not None and isinstance(byid, dict)
+                    for name, schema in filter(is_schema, byid.items()):
+                        byname[schema._get_identity(name=name)] = schema
 
             # Request
             for path, obj in (self.paths or dict()).items():
@@ -493,23 +497,26 @@ class OpenAPI:
                             raise TypeError(f"{type(response)} at {path}")
 
             # Response
-            for responses in map(lambda x: x.responses, components):
-                assert responses is not None
-                for rname, response in responses.items():
-                    for content_type, media_type in response.content.items():
-                        if media_type.schema_ is None:
-                            continue
-                        byname[media_type.schema_._get_identity("R")] = media_type.schema_
+            if only_required is False:
+                for responses in map(lambda x: x.responses, components):
+                    assert responses is not None
+                    for rname, response in responses.items():
+                        for content_type, media_type in response.content.items():
+                            if media_type.schema_ is None:
+                                continue
+                            byname[media_type.schema_._get_identity("R")] = media_type.schema_
 
         byname = self.plugins.init.schemas(initialized=self._root, schemas=byname).schemas
         return byname
 
-    def _init_schema_types(self) -> None:
-        byname: Dict[str, "SchemaType"] = self._init_schema_types_collect()
+    def _init_schema_types(self, only_required: bool) -> None:
+        byname: Dict[str, "SchemaType"] = self._init_schema_types_collect(only_required)
         byid: Dict[int, "SchemaType"] = {id(i): i for i in byname.values()}
         data: Set[int] = set(byid.keys())
         todo: Set[int] = self._iterate_schemas(byid, data, set())
         types: Dict[str, Union[ForwardRef, Type[BaseModel], Type[int], Type[str], Type[float], Type[bool]]] = dict()
+
+        print(f"{len(todo | data)} {only_required=}")
         for i in todo | data:
             b = byid[i]
             name = b._get_identity("X")
@@ -517,6 +524,7 @@ class OpenAPI:
             for idx, j in enumerate(b._model_types):
                 types[f"{name}.c{idx}"] = j
 
+        print(f"{len(types)}")
         for name, schema in types.items():
             if not (inspect.isclass(schema) and issubclass(schema, BaseModel)):
                 # primitive types: str, int …
@@ -723,7 +731,7 @@ class OpenAPI:
 
         api._init_plugins(plugins)
 
-        api._init_schema_types()
+        api._init_schema_types(only_required=False)
 
         if session_factory is not None:
             api._session_factory = session_factory

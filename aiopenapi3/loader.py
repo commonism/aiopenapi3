@@ -1,5 +1,4 @@
 import abc
-import json
 import logging
 import typing
 from typing import Optional
@@ -9,6 +8,18 @@ import yarl
 import re
 
 import sys
+import importlib
+
+# prefer a fast json library here as we may parse large documents
+for i in ["orjson", "simdjson", "ujson", "json"]:
+    try:
+        json = importlib.__import__(i)
+    except ImportError:
+        continue
+    else:
+        break
+
+assert json is not None
 
 if sys.version_info >= (3, 9):
     from pathlib import Path
