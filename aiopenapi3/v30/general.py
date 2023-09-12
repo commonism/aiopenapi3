@@ -33,7 +33,7 @@ class Reference(ObjectBase, ReferenceBase):
 
     ref: str = Field(alias="$ref")
 
-    _target: Union["Schema", "Parameter", "Reference"] = PrivateAttr()
+    _target: Union["Schema", "Parameter", "Reference"] = PrivateAttr(default=None)
 
     model_config = ConfigDict(
         extra="ignore",  # """This object cannot be extended with additional properties and any properties added SHALL be ignored."""
