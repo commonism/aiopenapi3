@@ -396,7 +396,6 @@ class OpenAPI:
         self._operationindex = OperationIndex(self, use_operation_tags)
 
     @staticmethod
-
     def _get_combined_attributes(schema):
         """Combine attributes from the schema."""
         return (
