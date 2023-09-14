@@ -84,8 +84,9 @@ class Request(RequestBase):
         return {"parameters": parameters, "data": schema}
 
     def return_value(self, http_status: int = 200, content_type: str = "application/json") -> Optional["SchemaType"]:
-        if (a := self.operation.responses.get(str(http_status), None)) is not None:
-            if (b := a.content.get(content_type, None)) is not None:
+        status_key = str(http_status)
+        if a := self.operation.responses.get(status_key) or self.operation.responses.get(status_key[0] + "XX"):
+            if b := a.content.get(content_type):
                 return b.schema_
         return None
 
@@ -424,19 +425,18 @@ class Request(RequestBase):
         self._prepare_body(data, rbq)
 
     def _process__status_code(self, result: httpx.Response, status_code: str) -> "v3xResponseType":
-        # find the response model in spec we received
-        expected_response = None
-        if status_code in self.operation.responses:
-            expected_response = self.operation.responses[status_code]
-        elif "default" in self.operation.responses:
-            expected_response = self.operation.responses["default"]
-
+        expected_response = (
+            self.operation.responses.get(status_code)
+            or self.operation.responses.get(status_code[0] + "XX")
+            or self.operation.responses.get("default")
+        )
         if expected_response is None:
             options = ",".join(self.operation.responses.keys())
             raise HTTPStatusError(
                 self.operation,
                 result.status_code,
-                f"""Unexpected response {result.status_code} from {self.operation.operationId} (expected one of {options}), no default is defined""",
+                f"Unexpected response {result.status_code} from {self.operation.operationId} "
+                f"(expected one of {options}), no default is defined",
                 result,
             )
         return expected_response
