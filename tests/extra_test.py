@@ -1,4 +1,9 @@
-from pathlib import Path
+import sys
+
+if sys.version_info >= (3, 9):
+    from pathlib import Path
+else:
+    from pathlib3x import Path
 
 import httpx
 import pytest
@@ -50,10 +55,10 @@ def test_reduced_small():
     return
 
 
-def test_reduced(with_schema_reduced, httpx_mock):
+def test_reduced(with_extra_reduced, httpx_mock):
     api = OpenAPI.load_file(
         "http://127.0.0.1/api.yaml",
-        with_schema_reduced,
+        with_extra_reduced,
         session_factory=httpx.Client,
         plugins=[],
         loader=FileSystemLoader(Path("tests/fixtures")),
@@ -67,7 +72,7 @@ def test_reduced(with_schema_reduced, httpx_mock):
 
     api = OpenAPI.load_file(
         "http://127.0.0.1/api.yaml",
-        with_schema_reduced,
+        with_extra_reduced,
         session_factory=httpx.Client,
         plugins=[Reduced({"/A/{Path}": None})],
         loader=FileSystemLoader(Path("tests/fixtures")),
@@ -95,7 +100,7 @@ def test_reduced(with_schema_reduced, httpx_mock):
 
     api = OpenAPI.load_file(
         "http://127.0.0.1/api.yaml",
-        with_schema_reduced,
+        with_extra_reduced,
         session_factory=httpx.Client,
         plugins=[Reduced({"/B": None})],
         loader=FileSystemLoader(Path("tests/fixtures")),

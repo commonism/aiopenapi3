@@ -363,8 +363,8 @@ def with_schema_recursion(openapi_version):
 
 
 @pytest.fixture
-def with_schema_reduced():
-    yield "schema-reduced.yaml"
+def with_extra_reduced():
+    yield "extra-reduced.yaml"
 
 
 @pytest.fixture
