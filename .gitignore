@@ -2,7 +2,6 @@ openapi.yaml
 openapi.json
 *.swp
 *.pyc
-openapi3.egg-info/*
 build/*
 dist/*
 .idea
@@ -10,3 +9,5 @@ tests/data/
 tests/my_*.py
 docs/build/
 .pdm-python
+/*.egg-info
+/*.ipynb
