@@ -76,6 +76,8 @@ def test_reduced(with_schema_reduced, httpx_mock):
     assert "/A/{Path}" in api.paths.paths
     assert "A" in api.components.parameters
     assert "A" in api.components.schemas
+    assert "A0" in api.components.schemas
+    assert "A1" in api.components.schemas
     assert "A" in api.components.responses
     assert "A" in api.components.requestBodies
 
