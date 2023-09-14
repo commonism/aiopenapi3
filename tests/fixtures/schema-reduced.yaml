@@ -1,0 +1,80 @@
+openapi: "3.0.2"
+info:
+  x-Info: Info
+  version: 1.0.0
+  title: with emptieness
+
+servers:
+  - url: TBA
+
+x-root: root
+
+components:
+  schemas:
+    A:
+      type: object
+      additionalProperties: False
+      description: Additional information provided through arbitrary metadata.
+      properties:
+        a:
+          type: string
+
+
+  parameters:
+    A:
+      name: Path
+      in: path
+      required: true
+      schema:
+        type: string
+
+  requestBodies:
+    A:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/A"
+
+
+  responses:
+    A:
+      description: "ok"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              a:
+                type: integer
+      headers:
+        X-A:
+          required: true
+          schema:
+            type: string
+
+
+security: []
+
+
+paths:
+  /A/{Path}:
+    parameters:
+      - $ref: '#/components/parameters/A'
+    post:
+      operationId: A
+      requestBody:
+        $ref: "#/components/requestBodies/A"
+
+      responses:
+        "200":
+          $ref: "#/components/responses/A"
+
+  /B:
+    get:
+      responses:
+        "200":
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                type: string
