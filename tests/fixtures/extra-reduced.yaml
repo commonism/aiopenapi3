@@ -2,12 +2,10 @@ openapi: "3.0.2"
 info:
   x-Info: Info
   version: 1.0.0
-  title: with emptieness
+  title: reduction dependency tracking
 
 servers:
   - url: TBA
-
-x-root: root
 
 components:
   schemas:
