@@ -474,7 +474,15 @@ class OpenAPI:
             # Request
             for path, obj in (self.paths or dict()).items():
                 for m in obj.model_fields_set & HTTP_METHODS:
-                    op = getattr(obj, m)
+                    op: Operation = getattr(obj, m)
+
+                    for parameter in op.parameters + obj.parameters:
+                        if isinstance(parameter.schema_, ReferenceBase):
+                            schema = parameter.schema_._target
+                        else:
+                            schema = parameter.schema_
+                        name = schema._get_identity("I2", f"{path}.{m}.{parameter.name}")
+                        byname[name] = schema
 
                     if op.requestBody:
                         for content_type, request in op.requestBody.content.items():
