@@ -24,7 +24,7 @@ class MSGraphReduced(Reduced):
 
 
 @pytest.mark.skip_env("GITHUB_ACTIONS")
-def test_reduced():
+def test_reduced_msgraph():
     from aiopenapi3.extra import Reduced
 
     api = OpenAPI.load_file(
@@ -48,3 +48,56 @@ def test_reduced_small():
         plugins=[PetStoreReduced()],
     )
     return
+
+
+def test_reduced(with_schema_reduced, httpx_mock):
+    api = OpenAPI.load_file(
+        "http://127.0.0.1/api.yaml",
+        with_schema_reduced,
+        session_factory=httpx.Client,
+        plugins=[],
+        loader=FileSystemLoader(Path("tests/fixtures")),
+    )
+
+    assert "/A/{Path}" in api.paths.paths
+    assert "A" in api.components.parameters
+    assert "A" in api.components.schemas
+    assert "A" in api.components.responses
+    assert "A" in api.components.requestBodies
+
+    api = OpenAPI.load_file(
+        "http://127.0.0.1/api.yaml",
+        with_schema_reduced,
+        session_factory=httpx.Client,
+        plugins=[Reduced({"/A/{Path}": None})],
+        loader=FileSystemLoader(Path("tests/fixtures")),
+    )
+
+    assert "/A/{Path}" in api.paths.paths
+    assert "A" in api.components.parameters
+    assert "A" in api.components.schemas
+    assert "A" in api.components.responses
+    assert "A" in api.components.requestBodies
+
+    httpx_mock.add_response(headers={"Content-Type": "application/json", "X-A": "A"}, json=dict(a=1))
+
+    from aiopenapi3.request import RequestBase
+
+    req: RequestBase = api._.A
+    data = req.data.get_type().model_construct(a="a")
+    headers, payload = req(data=data, parameters=dict(Path="a"), return_headers=True)
+    assert payload.a == 1
+    assert headers["X-A"] == "A"
+
+    api = OpenAPI.load_file(
+        "http://127.0.0.1/api.yaml",
+        with_schema_reduced,
+        session_factory=httpx.Client,
+        plugins=[Reduced({"/B": None})],
+        loader=FileSystemLoader(Path("tests/fixtures")),
+    )
+    assert "/A/{Path}" not in api.paths.paths
+    assert "A" not in api.components.parameters
+    assert "A" not in api.components.schemas
+    assert "A" not in api.components.responses
+    assert "A" not in api.components.requestBodies

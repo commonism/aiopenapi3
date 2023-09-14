@@ -35,12 +35,25 @@ class Reduced(Document, Init):
         return ctx
 
     def initialized(self, ctx: "Init.Context") -> "Init.Context":
+        for name, parameter in list(ctx.initialized.components.parameters.items()):
+            if parameter.schema_._model_type is None:
+                del ctx.initialized.components.parameters[name]
+                break
+
         for name, schema in list(ctx.initialized.components.schemas.items()):
             if schema._model_type is None:
                 del ctx.initialized.components.schemas[name]
-        # fixme ctx.initialized.components.responses
+                break
+
         for name, response in list(ctx.initialized.components.responses.items()):
             for k, v in response.content.items():
                 if v.schema_._model_type is None:
                     del ctx.initialized.components.responses[name]
+                    break
+
+        for name, requestBody in list(ctx.initialized.components.requestBodies.items()):
+            for k, v in requestBody.content.items():
+                if v.schema_._model_type is None:
+                    del ctx.initialized.components.requestBodies[name]
+                    break
         return ctx

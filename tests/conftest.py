@@ -363,6 +363,11 @@ def with_schema_recursion(openapi_version):
 
 
 @pytest.fixture
+def with_schema_reduced():
+    yield "schema-reduced.yaml"
+
+
+@pytest.fixture
 def with_schema_self_recursion(openapi_version):
     yield _get_parsed_yaml("schema-self-recursion.yaml", openapi_version)
 
