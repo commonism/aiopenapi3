@@ -401,8 +401,15 @@ class OpenAPI:
     @staticmethod
     def _get_combined_attributes(schema):
         """Combine attributes from the schema."""
+        from .base import DiscriminatorBase
+
         return (
             getattr(schema, "oneOf", [])  # Swagger compat
+            + (
+                list(getattr(schema, "discriminator").mapping.values())
+                if isinstance(getattr(schema, "discriminator", {}), DiscriminatorBase)
+                else []
+            )
             + getattr(schema, "anyOf", [])  # Swagger compat
             + schema.allOf
             + list(schema.properties.values())

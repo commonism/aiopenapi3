@@ -28,6 +28,14 @@ components:
       properties:
         a1:
           type: string
+
+    AA:
+      type: object
+      discriminator:
+        propertyName: type
+        mapping:
+          "a": "#/components/schemas/A"
+
   parameters:
     A:
       name: Path
@@ -41,7 +49,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/A"
+            $ref: "#/components/schemas/AA"
 
 
   responses:
