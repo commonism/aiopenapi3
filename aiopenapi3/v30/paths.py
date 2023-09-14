@@ -2,7 +2,7 @@ from typing import Union, List, Optional, Dict, Any
 
 from pydantic import Field, model_validator, RootModel
 
-from ..base import ObjectExtended, PathsBase, OperationBase
+from ..base import ObjectExtended, PathsBase, OperationBase, PathItemBase
 from .general import ExternalDocumentation
 from .general import Reference
 from .media import MediaType
@@ -30,8 +30,6 @@ class Link(ObjectExtended):
     .. _Link Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#link-object
     """
 
-    model_config = dict(undefined_types_warning=False)
-
     operationRef: Optional[str] = Field(default=None)
     operationId: Optional[str] = Field(default=None)
     parameters: Optional[Dict[str, Union[str, Any, "RuntimeExpression"]]] = Field(default=None)
@@ -41,7 +39,7 @@ class Link(ObjectExtended):
 
     @model_validator(mode="after")
     @classmethod
-    def validate_Link_operation(cls, l: '__types["Link"]'):
+    def validate_Link_operation(cls, l: '__types["Link"]'):  # type: ignore[name-defined]
         assert not (
             l.operationId != None and l.operationRef != None
         ), "operationId and operationRef are mutually exclusive, only one of them is allowed"
@@ -59,12 +57,10 @@ class Response(ObjectExtended):
     .. _Response Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#responses-object
     """
 
-    model_config = dict(undefined_types_warning=False)
-
     description: str = Field(...)
-    headers: Optional[Dict[str, Union[Header, Reference]]] = Field(default_factory=dict)
-    content: Optional[Dict[str, MediaType]] = Field(default_factory=dict)
-    links: Optional[Dict[str, Union[Link, Reference]]] = Field(default_factory=dict)
+    headers: Dict[str, Union[Header, Reference]] = Field(default_factory=dict)
+    content: Dict[str, MediaType] = Field(default_factory=dict)
+    links: Dict[str, Union[Link, Reference]] = Field(default_factory=dict)
 
 
 class Operation(ObjectExtended, OperationBase):
@@ -74,31 +70,27 @@ class Operation(ObjectExtended, OperationBase):
     .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#operation-object
     """
 
-    model_config = dict(undefined_types_warning=False)
-
     tags: Optional[List[str]] = Field(default=None)
     summary: Optional[str] = Field(default=None)
     description: Optional[str] = Field(default=None)
     externalDocs: Optional[ExternalDocumentation] = Field(default=None)
     operationId: Optional[str] = Field(default=None)
-    parameters: Optional[List[Union[Parameter, Reference]]] = Field(default_factory=list)
+    parameters: List[Union[Parameter, Reference]] = Field(default_factory=list)
     requestBody: Optional[Union[RequestBody, Reference]] = Field(default=None)
     responses: Dict[str, Union[Response, Reference]] = Field(...)
-    callbacks: Optional[Dict[str, Union["Callback", Reference]]] = Field(default_factory=dict)
+    callbacks: Dict[str, Union["Callback", Reference]] = Field(default_factory=dict)
     deprecated: Optional[bool] = Field(default=None)
-    security: Optional[List[SecurityRequirement]] = Field(default_factory=list)
+    security: List[SecurityRequirement] = Field(default_factory=list)
     servers: Optional[List[Server]] = Field(default=None)
 
 
-class PathItem(ObjectExtended):
+class PathItem(ObjectExtended, PathItemBase):
     """
     A Path Item, as defined `here`_.
     Describes the operations available on a single path.
 
     .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#paths-object
     """
-
-    model_config = dict(undefined_types_warning=False)
 
     ref: Optional[str] = Field(default=None, alias="$ref")
     summary: Optional[str] = Field(default=None)
@@ -112,7 +104,7 @@ class PathItem(ObjectExtended):
     patch: Optional[Operation] = Field(default=None)
     trace: Optional[Operation] = Field(default=None)
     servers: Optional[List[Server]] = Field(default=None)
-    parameters: Optional[List[Union[Parameter, Reference]]] = Field(default_factory=list)
+    parameters: List[Union[Parameter, Reference]] = Field(default_factory=list)
 
 
 class Paths(PathsBase):
@@ -139,8 +131,6 @@ class Callback(RootModel):
 
     This object MAY be extended with Specification Extensions.
     """
-
-    model_config = dict(undefined_types_warning=False)
 
     root: Dict[str, PathItem]
 

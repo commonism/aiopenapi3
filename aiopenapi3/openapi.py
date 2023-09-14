@@ -1,17 +1,24 @@
-import copy
 import sys
+import typing
+
+from typing import List, Dict, Set, Callable, Tuple, Any, Union, cast, Optional, Type, ForwardRef
+import collections
+import inspect
+import logging
+import copy
+import pickle
 
 if sys.version_info >= (3, 9):
     import pathlib
 else:
     import pathlib3x as pathlib
 
-from typing import List, Dict, Set, Union, Callable, Tuple, Any
-import collections
-import inspect
-import logging
-import copy
-import pickle
+
+if sys.version_info >= (3, 10):
+    from typing import TypeGuard
+else:
+    from typing_extensions import TypeGuard
+
 
 import httpx
 import yarl
@@ -28,11 +35,33 @@ from .request import OperationIndex, HTTP_METHODS
 from .errors import ReferenceResolutionError
 from .loader import Loader, NullLoader
 from .plugin import Plugin, Plugins
-from .base import RootBase, ReferenceBase, SchemaBase
+from .base import RootBase, ReferenceBase, SchemaBase, OperationBase
+from .request import RequestBase
 from .v30.paths import Operation
+
+if typing.TYPE_CHECKING:
+    from ._types import RootType, JSON, PathItemType, SchemaType, OperationType, ReferenceType, RequestType
+
+
+def has_components(y: Optional["RootType"]) -> TypeGuard[Union[v30.Root, v31.Root]]:
+    #    return all([typing.cast("RootType", y), typing.cast("RootType", y).components])
+    #    return isinstance(y, (v30.Root, v31.Root))
+    #    return all([y, y.components])
+    if y is None:
+        return False
+    if y.components is None:
+        return False
+    return True
+
+
+def is_schema(v: Tuple[str, "SchemaType"]) -> TypeGuard["SchemaType"]:
+    return isinstance(v[1], (v20.Schema, v30.Schema, v31.Schema))
 
 
 class OpenAPI:
+    #    _root: Union[v20.Root, v30.Root, v31.Root] | None
+    _root: "RootType"
+
     @property
     def paths(self):
         return self._root.paths
@@ -57,9 +86,9 @@ class OpenAPI:
     def load_sync(
         cls,
         url,
-        session_factory: Callable[[], httpx.Client] = httpx.Client,
-        loader=None,
-        plugins: List[Plugin] = None,
+        session_factory: Callable[..., httpx.Client] = httpx.Client,
+        loader: Optional[Loader] = None,
+        plugins: Optional[List[Plugin]] = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
@@ -80,9 +109,9 @@ class OpenAPI:
     async def load_async(
         cls,
         url: str,
-        session_factory: Callable[[], httpx.AsyncClient] = httpx.AsyncClient,
-        loader: Loader = None,
-        plugins: List[Plugin] = None,
+        session_factory: Callable[..., httpx.AsyncClient] = httpx.AsyncClient,
+        loader: Optional[Loader] = None,
+        plugins: Optional[List[Plugin]] = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
@@ -109,9 +138,9 @@ class OpenAPI:
         cls,
         url: str,
         path: Union[str, pathlib.Path, yarl.URL],
-        session_factory: Callable[[], Union[httpx.AsyncClient, httpx.Client]] = httpx.AsyncClient,
-        loader: Loader = None,
-        plugins: List[Plugin] = None,
+        session_factory: Callable[..., Union[httpx.AsyncClient, httpx.Client]] = httpx.AsyncClient,
+        loader: Optional[Loader] = None,
+        plugins: Optional[List[Plugin]] = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
@@ -136,9 +165,9 @@ class OpenAPI:
         cls,
         url: str,
         data: str,
-        session_factory: Callable[[], Union[httpx.AsyncClient, httpx.Client]] = httpx.AsyncClient,
-        loader=None,
-        plugins: List[Plugin] = None,
+        session_factory: Callable[..., Union[httpx.AsyncClient, httpx.Client]] = httpx.AsyncClient,
+        loader: Optional[Loader] = None,
+        plugins: Optional[List[Plugin]] = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
@@ -155,10 +184,11 @@ class OpenAPI:
         data = loader.parse(Plugins(plugins or []), yarl.URL(url), data)
         return cls(url, data, session_factory, loader, plugins, use_operation_tags)
 
-    def _parse_obj(self, document: Dict[str, Any]) -> RootBase:
-        v = document.get("openapi", None)
-        if v:
-            v = list(map(int, v.split(".")))
+    @classmethod
+    def _parse_obj(cls, document: "JSON") -> "RootType":
+        document = cast(Dict[str, Any], document)
+        if (version := document.get("openapi", None)) is not None:
+            v = list(map(int, version.split(".")))
             if v[0] == 3:
                 if v[1] == 0:
                     return v30.Root.model_validate(document)
@@ -167,28 +197,26 @@ class OpenAPI:
                 else:
                     raise ValueError(f"openapi version 3.{v[1]} not supported")
             else:
-                raise ValueError(f"openapi major version {v[0]} not supported")
-            return
+                raise ValueError(f"openapi major version {version} not supported")
 
-        v = document.get("swagger", None)
-        if v:
-            v = list(map(int, v.split(".")))
+        if (version := document.get("swagger", None)) is not None:
+            v = list(map(int, version.split(".")))
             if v[0] == 2 and v[1] == 0:
                 return v20.Root.model_validate(document)
             else:
-                raise ValueError(f"swagger version {'.'.join(v)} not supported")
+                raise ValueError(f"swagger version {version} not supported")
         else:
             raise ValueError("missing openapi/swagger field")
 
     def __init__(
         self,
         url: str,
-        document: Dict[str, Any],
-        session_factory: Callable[[], Union[httpx.Client, httpx.AsyncClient]] = httpx.AsyncClient,
-        loader: Loader = None,
-        plugins: List[Plugin] = None,
+        document: "JSON",
+        session_factory: Callable[..., Union[httpx.Client, httpx.AsyncClient]] = httpx.AsyncClient,
+        loader: Optional[Loader] = None,
+        plugins: Optional[List[Plugin]] = None,
         use_operation_tags: bool = True,
-    ) -> "OpenAPI":
+    ) -> None:
         """
         Creates a new OpenAPI document from a loaded spec file.  This is
         overridden here because we need to specify the path in the parent
@@ -203,14 +231,14 @@ class OpenAPI:
         """
         self._base_url: yarl.URL = yarl.URL(url)
 
-        self._session_factory: Callable[[], Union[httpx.Client, httpx.AsyncClient]] = session_factory
+        self._session_factory: Callable[..., Union[httpx.Client, httpx.AsyncClient]] = session_factory
 
-        self.loader: Loader = loader
+        self.loader: Optional[Loader] = loader
         """
         Loader - loading referenced documents
         """
 
-        self._createRequest: Callable[["OpenAPI", str, str, "Operation"], "RequestBase"] = None
+        self._createRequest: Callable[["OpenAPI", str, str, "OperationType"], "RequestBase"]
         """
         creates the Async/Request for the protocol required
         """
@@ -226,7 +254,7 @@ class OpenAPI:
         e.g. {"BasicAuth": ("user","secret")}
         """
 
-        self._documents: Dict[yarl.URL, RootBase] = dict()
+        self._documents: Dict[yarl.URL, "RootType"] = dict()
         """
         the related documents
         """
@@ -308,10 +336,11 @@ class OpenAPI:
 
         if isinstance(self._root, v20.Root):
             if self.paths:
+                obj: "PathItemType"
                 for path, obj in self.paths.items():
                     for m in obj.model_fields_set & HTTP_METHODS:
-                        op = getattr(obj, m)
-                        op._validate_path_parameters(obj, path, (m, op.operationId))
+                        op: "Operation" = getattr(obj, m)
+                        op._validate_path_parameters(obj, path, (m, cast(str, op.operationId)))
                         if op.operationId is None:
                             continue
                         for r, response in op.responses.items():
@@ -319,6 +348,7 @@ class OpenAPI:
                                 continue
                             if response.headers:
                                 for h in response.headers.values():
+                                    h = cast(v20.Header, h)
                                     items = v20.Schema(type=h.items.type) if h.items else None
                                     h._schema = v20.Schema(type=h.type, items=items)
 
@@ -327,39 +357,47 @@ class OpenAPI:
 
         elif isinstance(self._root, (v30.Root, v31.Root)):
             allschemas = [
-                x.components.schemas for x in filter(lambda y: all([y, y.components]), self._documents.values())
+                x.components.schemas for x in filter(has_components, self._documents.values()) if x.components.schemas
             ]
+
             for schemas in allschemas:
-                for name, schema in filter(lambda v: isinstance(v[1], SchemaBase), schemas.items()):
+                name: str
+                schema: "SchemaType"
+                for name, schema in filter(is_schema, schemas.items()):
                     schema._get_identity(name=name, prefix="OP")
 
             if self.paths:
                 for path, obj in self.paths.items():
                     if obj.ref:
-                        obj = obj.ref._target
+                        obj = cast("PathItemType", cast(ReferenceBase, obj.ref)._target)
                     for m in obj.model_fields_set & HTTP_METHODS:
                         op = getattr(obj, m)
-                        op._validate_path_parameters(obj, path, (m, op.operationId))
+                        op._validate_path_parameters(obj, path, (m, typing.cast(str, op.operationId)))
                         if op.operationId is None:
                             continue
                         for r, response in op.responses.items():
                             if isinstance(response, Reference):
                                 continue
+                            assert response.content is not None
                             for c, content in response.content.items():
                                 if content.schema_ is None:
                                     continue
                                 if isinstance(content.schema_, (v30.Schema, v31.Schema)):
                                     content.schema_._get_identity("OP", f"{path}.{m}.{r}.{c}")
             else:
-                self._root.paths = dict()
-
+                if isinstance(self._root, v30.Root):
+                    self._root.paths = v30.Paths(paths={}, extensions={})
+                elif isinstance(self._root, v31.Root):
+                    self._root.paths = v31.Paths(paths={}, extensions={})
+                else:
+                    raise ValueError(self._root)
         else:
             raise ValueError(self._root)
 
         self._operationindex = OperationIndex(self, use_operation_tags)
 
     @staticmethod
-    def _iterate_schemas(schemas: Dict[int, SchemaBase], next: Set[int], processed: Set[int]):
+    def _iterate_schemas(schemas: Dict[int, "SchemaType"], next: Set[int], processed: Set[int]):
         """
         recursively collect all schemas related to the starting set
         """
@@ -368,65 +406,88 @@ class OpenAPI:
 
         processed.update(next)
 
-        new = collections.ChainMap(
-            *[
-                dict(
-                    filter(
-                        lambda z: z[0] not in processed,
-                        map(
-                            lambda y: (id(y._target), y._target) if isinstance(y, ReferenceBase) else (id(y), y),
-                            filter(
-                                lambda x: isinstance(x, (ReferenceBase, SchemaBase)),
-                                getattr(schemas[i], "oneOf", [])  # Swagger compat
-                                + getattr(schemas[i], "anyOf", [])  # Swagger compat
-                                + schemas[i].allOf
-                                + list(schemas[i].properties.values())
-                                + (
-                                    [schemas[i].items]
-                                    if schemas[i].type == "array"
-                                    and schemas[i].items
-                                    and not isinstance(schemas[i], list)
-                                    else []
-                                )
-                                + (
-                                    schemas[i].items
-                                    if schemas[i].type == "array" and schemas[i].items and isinstance(schemas[i], list)
-                                    else []
-                                ),
+        def not_in_processed(z: Tuple[int, SchemaBase]) -> TypeGuard[Tuple[int, "SchemaType"]]:
+            return z[0] not in processed
+
+        def is_instance_schema_ref(
+            x: Union["SchemaType", "ReferenceType"]
+        ) -> TypeGuard[Union["SchemaType", "ReferenceType"]]:
+            return isinstance(x, (ReferenceBase, SchemaBase))
+
+        new: Dict[int, "SchemaType"] = cast(
+            Dict[int, "SchemaType"],
+            collections.ChainMap(
+                *[
+                    dict(
+                        filter(
+                            not_in_processed,
+                            map(
+                                lambda y: (id(y._target), y._target) if isinstance(y, ReferenceBase) else (id(y), y),
+                                filter(
+                                    is_instance_schema_ref,
+                                    getattr(schemas[i], "oneOf", [])  # Swagger compat
+                                    + getattr(schemas[i], "anyOf", [])  # Swagger compat
+                                    + schemas[i].allOf
+                                    + list(schemas[i].properties.values())
+                                    + (
+                                        [schemas[i].items]
+                                        if schemas[i].type == "array"
+                                        and schemas[i].items
+                                        and not isinstance(schemas[i].items, list)
+                                        else []
+                                    )
+                                    + (
+                                        schemas[i].items
+                                        if schemas[i].type == "array"
+                                        and schemas[i].items
+                                        and isinstance(schemas[i].items, list)
+                                        else []
+                                    ),
+                                ),  # type: ignore[operator]
                             ),
-                        ),
-                    )
-                )
-                for i in next
-            ]
+                        )
+                    )  # type: ignore[arg-type]
+                    for i in next
+                ]
+            ),
         )
 
-        sets = new.keys()
+        sets = set(new.keys())
         schemas.update(new)
         processed.update(sets)
 
         return OpenAPI._iterate_schemas(schemas, sets, processed)
 
-    def _init_schema_types_collect(self):
-        byname: Dict[str, SchemaBase] = dict()
+    def _init_schema_types_collect(self) -> Dict[str, "SchemaType"]:
+        byname: Dict[str, "SchemaType"] = dict()
+
+        def is_schema(v: Tuple[str, "SchemaType"]) -> bool:
+            return isinstance(v[1], (v20.Schema, v30.Schema, v31.Schema))
 
         if isinstance(self._root, v20.Root):
+            documents = cast(List[v20.Root], self._documents.values())
             # Schema
-            for byid in map(lambda x: x.definitions, self._documents.values()):
-                for name, schema in filter(lambda v: isinstance(v[1], SchemaBase), byid.items()):
+            for byid in map(lambda x: x.definitions, documents):
+                assert byid is not None and isinstance(byid, dict)
+                for name, schema in filter(is_schema, byid.items()):
                     byname[schema._get_identity(name=name)] = schema
             # Request
 
             # Response
-            for byid in map(lambda x: x.responses, self._documents.values()):
-                for name, response in filter(lambda v: isinstance(v[1].schema_, SchemaBase), byid.items()):
+            for byid in map(lambda x: x.responses, documents):
+                assert byid is not None and isinstance(byid, dict)
+                for name, response in filter(is_schema, byid.items()):
+                    assert response.schema_
                     byname[response.schema_._get_identity(name=name)] = response.schema_
 
         elif isinstance(self._root, (v30.Root, v31.Root)):
             # Schema
-            components = [x.components for x in filter(lambda y: all([y, y.components]), self._documents.values())]
+            documents = cast(Union[List[v30.Root], List[v31.Root]], self._documents.values())
+            components = [x.components for x in filter(has_components, documents)]
+            assert components is not None
             for byid in map(lambda x: x.schemas, components):
-                for name, schema in filter(lambda v: isinstance(v[1], SchemaBase), byid.items()):
+                assert byid is not None and isinstance(byid, dict)
+                for name, schema in filter(is_schema, byid.items()):
                     byname[schema._get_identity(name=name)] = schema
 
             # Request
@@ -444,6 +505,7 @@ class OpenAPI:
                         if isinstance(response, ReferenceBase):
                             response = response._target
                         if isinstance(response, (v30.paths.Response, v31.paths.Response)):
+                            assert response.content is not None
                             for c, content in response.content.items():
                                 if content.schema_ is None:
                                     continue
@@ -455,6 +517,7 @@ class OpenAPI:
 
             # Response
             for responses in map(lambda x: x.responses, components):
+                assert responses is not None
                 for rname, response in responses.items():
                     for content_type, media_type in response.content.items():
                         if media_type.schema_ is None:
@@ -464,19 +527,18 @@ class OpenAPI:
         byname = self.plugins.init.schemas(initialized=self._root, schemas=byname).schemas
         return byname
 
-    def _init_schema_types(self):
-        byname: Dict[str, SchemaBase] = self._init_schema_types_collect()
-        byid: Dict[int, SchemaBase] = {id(i): i for i in byname.values()}
+    def _init_schema_types(self) -> None:
+        byname: Dict[str, "SchemaType"] = self._init_schema_types_collect()
+        byid: Dict[int, "SchemaType"] = {id(i): i for i in byname.values()}
         data: Set[int] = set(byid.keys())
         todo: Set[int] = self._iterate_schemas(byid, data, set())
-
-        types: Dict[int, "BaseModel"] = dict()
+        types: Dict[str, Union[ForwardRef, Type[BaseModel], Type[int], Type[str], Type[float], Type[bool]]] = dict()
         for i in todo | data:
             b = byid[i]
             name = b._get_identity("X")
             types[name] = b.get_type()
-            for idx, i in enumerate(b._model_types):
-                types[f"{name}.c{idx}"] = i
+            for idx, j in enumerate(b._model_types):
+                types[f"{name}.c{idx}"] = j
 
         for name, schema in types.items():
             if not (inspect.isclass(schema) and issubclass(schema, BaseModel)):
@@ -530,10 +592,13 @@ class OpenAPI:
             self._security = dict()
 
         schemes = frozenset(kwargs.keys())
+
         if isinstance(self._root, v20.Root):
             v = schemes - frozenset(SecuritySchemes := self._root.securityDefinitions)
         elif isinstance(self._root, (v30.Root, v31.Root)):
             v = schemes - frozenset(SecuritySchemes := self._root.components.securitySchemes)
+        else:
+            raise TypeError(self._root)  # noqa
 
         if v:
             raise ValueError("{} does not accept security schemes {}".format(self.info.title, sorted(v)))
@@ -555,6 +620,7 @@ class OpenAPI:
 
     def _load(self, url: yarl.URL):
         self.log.debug(f"Downloading Description Document {url} using {self.loader} …")
+        assert self.loader
         data = self.loader.get(self.plugins, url)
         return self._parse_obj(data)
 
@@ -566,7 +632,7 @@ class OpenAPI:
         """
         return self._operationindex
 
-    def createRequest(self, operationId: Union[str, Tuple[str, str]]) -> aiopenapi3.request.RequestBase:
+    def createRequest(self, operationId: Union[str, Tuple[str, str]]) -> "RequestType":
         """
         create a Request
 
@@ -578,23 +644,28 @@ class OpenAPI:
         :return: the returned Request is either :class:`aiopenapi3.request.RequestBase` or -
             in case of a httpx.AsyncClient session_factory - :class:`aiopenapi3.request.AsyncRequestBase`
         """
+        operation: Optional["OperationType"] = None
+        request: Optional["RequestType"] = None
         try:
             if isinstance(operationId, str):
-                p = operationId.split(".")
-                req = self._operationindex
-                for i in p:
-                    req = getattr(req, i)
-                assert isinstance(req, aiopenapi3.request.RequestBase)
+                *tags, opn = operationId.split(".")
+                opi: OperationIndex = self._operationindex
+                for i in tags:
+                    opi = getattr(opi, i)
+                _, _, operation = opi._operations[opn]
+                request = getattr(opi, opn)
+                assert isinstance(request, aiopenapi3.request.RequestBase)
             else:
                 path, method = operationId
                 pathitem = self._root.paths[path]
                 if pathitem.ref:
                     pathitem = pathitem.ref._target
-                op = getattr(pathitem, method)
-                req = self._createRequest(self, method, path, op)
-            return req
+                operation = getattr(pathitem, method)
+                assert operation is not None
+                request = self._createRequest(self, method, path, operation)
+            return request
         except Exception as e:
-            raise aiopenapi3.errors.RequestError(None, None, None, None) from e
+            raise aiopenapi3.errors.RequestError(operation, request, None, {}) from e
 
     def resolve_jr(self, root: RootBase, obj, value: Reference):
         """
@@ -605,9 +676,9 @@ class OpenAPI:
         :param value:
         :return:
         """
-        url, jp = JSONReference.split(value.ref)
-        if url != "":
-            url = yarl.URL(url)
+        urlstr, jp = JSONReference.split(value.ref)
+        if urlstr != "":
+            url: yarl.URL = yarl.URL(urlstr)
             if url not in self._documents:
                 self.log.debug(f"Resolving {value.ref} - Description Document {url} unknown …")
                 try:
@@ -651,7 +722,7 @@ class OpenAPI:
         api.loader = self.loader
         return api
 
-    def clone(self, baseurl: yarl.URL = None) -> "OpenAPI":
+    def clone(self, baseurl: Optional[yarl.URL] = None) -> "OpenAPI":
         """
         shallwo copy the api object
         optional set a base url
@@ -664,7 +735,7 @@ class OpenAPI:
         return api
 
     @staticmethod
-    def cache_load(path: pathlib.Path, plugins: List[Plugin] = None, session_factory=None) -> "OpenAPI":
+    def cache_load(path: pathlib.Path, plugins: Optional[List[Plugin]] = None, session_factory=None) -> "OpenAPI":
         """
         read a pickle api object from path and init the schema types
 
@@ -693,7 +764,7 @@ class OpenAPI:
         """
 
         restore = (self.loader, self.plugins, self._session_factory)
-        self.loader = self._session_factory = self.plugins = None
+        self.loader = self._session_factory = self.plugins = None  # type: ignore[assignment]
         with path.open("wb") as f:
             pickle.dump(self, f)
         self.loader, self.plugins, self._session_factory = restore

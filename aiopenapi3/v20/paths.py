@@ -7,7 +7,7 @@ from .general import Reference
 from .parameter import Header, Parameter
 from .schemas import Schema
 from .security import SecurityRequirement
-from ..base import ObjectExtended, ObjectBase, PathsBase, OperationBase
+from ..base import ObjectExtended, PathsBase, OperationBase, PathItemBase
 
 
 class Response(ObjectExtended):
@@ -19,7 +19,7 @@ class Response(ObjectExtended):
 
     description: str = Field(...)
     schema_: Optional[Schema] = Field(default=None, alias="schema")
-    headers: Optional[Dict[str, Header]] = Field(default_factory=dict)
+    headers: Dict[str, Header] = Field(default_factory=dict)
     examples: Optional[Dict[str, Any]] = Field(default=None)
 
 
@@ -35,16 +35,16 @@ class Operation(ObjectExtended, OperationBase):
     description: Optional[str] = Field(default=None)
     externalDocs: Optional[ExternalDocumentation] = Field(default=None)
     operationId: Optional[str] = Field(default=None)
-    consumes: Optional[List[str]] = Field(default_factory=list)
-    produces: Optional[List[str]] = Field(default_factory=list)
-    parameters: Optional[List[Union[Parameter, Reference]]] = Field(default_factory=list)
+    consumes: List[str] = Field(default_factory=list)
+    produces: List[str] = Field(default_factory=list)
+    parameters: List[Union[Parameter, Reference]] = Field(default_factory=list)
     responses: Dict[str, Union[Reference, Response]] = Field(default_factory=dict)
-    schemes: Optional[List[str]] = Field(default_factory=list)
+    schemes: List[str] = Field(default_factory=list)
     deprecated: Optional[bool] = Field(default=None)
     security: Optional[List[SecurityRequirement]] = Field(default=None)
 
 
-class PathItem(ObjectExtended):
+class PathItem(ObjectExtended, PathItemBase):
     """
     A Path Item, as defined `here`_.
     Describes the operations available on a single path.
@@ -60,7 +60,7 @@ class PathItem(ObjectExtended):
     options: Optional[Operation] = Field(default=None)
     head: Optional[Operation] = Field(default=None)
     patch: Optional[Operation] = Field(default=None)
-    parameters: Optional[List[Union[Parameter, Reference]]] = Field(default_factory=list)
+    parameters: List[Union[Parameter, Reference]] = Field(default_factory=list)
 
 
 class Paths(PathsBase):

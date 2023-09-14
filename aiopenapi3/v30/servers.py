@@ -13,7 +13,7 @@ class ServerVariable(ObjectExtended):
     """
 
     enum: Optional[List[str]] = Field(default=None)
-    default: str = Field(...)
+    default: Optional[str] = Field(...)
     description: Optional[str] = Field(default=None)
 
 
@@ -26,4 +26,4 @@ class Server(ObjectExtended):
 
     url: str = Field(...)
     description: Optional[str] = Field(default=None)
-    variables: Optional[Dict[str, ServerVariable]] = Field(default_factory=dict)
+    variables: Dict[str, ServerVariable] = Field(default_factory=dict)

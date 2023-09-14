@@ -1,9 +1,14 @@
-from typing import Optional
+import typing
+from typing import Optional, Any, Union
 
-from pydantic import Field
+from pydantic import Field, ConfigDict, PrivateAttr
 
 
 from ..base import ObjectExtended, ObjectBase, ReferenceBase
+
+if typing.TYPE_CHECKING:
+    from .schemas import Schema
+    from .parameter import Parameter
 
 
 class ExternalDocumentation(ObjectExtended):
@@ -27,11 +32,11 @@ class Reference(ObjectBase, ReferenceBase):
 
     ref: str = Field(alias="$ref")
 
-    _target: object = None
+    _target: Union["Schema", "Parameter", "Reference"] = PrivateAttr(default=None)
 
-    model_config = dict(extra="ignore")
+    model_config = ConfigDict(extra="ignore")
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> Any:
         if item != "_target":
             return getattr(self._target, item)
         else:

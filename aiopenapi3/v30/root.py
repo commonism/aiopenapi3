@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Dict
+from typing import Any, List, Dict
 
 
 from pydantic import Field, validator
@@ -23,16 +23,14 @@ class Root(ObjectExtended, RootBase):
     .. _the spec: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#openapi-object
     """
 
-    model_config = dict(undefined_types_warning=False)
-
     openapi: str = Field(...)
     info: Info = Field(...)
-    servers: Optional[List[Server]] = Field(default_factory=list)
+    servers: List[Server] = Field(default_factory=list)
     paths: Paths = Field(default_factory=dict)
-    components: Optional[Components] = Field(default_factory=Components)
-    security: Optional[List[SecurityRequirement]] = Field(default_factory=list)
-    tags: Optional[List[Tag]] = Field(default_factory=list)
-    externalDocs: Optional[Dict[Any, Any]] = Field(default_factory=dict)
+    components: Components = Field(default_factory=Components)
+    security: List[SecurityRequirement] = Field(default_factory=list)
+    tags: List[Tag] = Field(default_factory=list)
+    externalDocs: Dict[Any, Any] = Field(default_factory=dict)
 
     def _resolve_references(self, api):
         RootBase.resolve(api, self, self, PathItem, Reference)

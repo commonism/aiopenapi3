@@ -1,11 +1,24 @@
 import dataclasses
 import typing
-from typing import List, Any, Dict, Optional, Type
+from typing import TYPE_CHECKING, List, Any, Dict, Optional, Type
 import abc
+import sys
+
+if sys.version_info >= (3, 10):
+    from typing import TypeGuard
+else:
+    from typing_extensions import TypeGuard
+
 
 from pydantic import BaseModel
 
 import yarl
+
+if TYPE_CHECKING:
+    from aiopenapi3 import OpenAPI
+
+    import httpx
+    from .base import PathItemBase, SchemaBase
 
 """
 the plugin interface replicates the suds way of  dealing with broken data/schema information
@@ -13,8 +26,12 @@ the plugin interface replicates the suds way of  dealing with broken data/schema
 
 
 class Plugin(abc.ABC):
-    def __init__(self):
-        self._api: "OpenAPI" = None
+    @dataclasses.dataclass
+    class Context:
+        ...
+
+    def __init__(self) -> None:
+        self._api: Optional["OpenAPI"] = None
 
     @property
     def api(self):
@@ -30,24 +47,24 @@ class Plugin(abc.ABC):
 class Init(Plugin):
     @dataclasses.dataclass
     class Context:
-        initialized: "aiopenapi3.OpenAPI" = None
+        initialized: Optional["OpenAPI"] = None
         """available in :func:`~aiopenapi3.plugin.Init.initialized`"""
-        schemas: Dict[str, "Schema"] = None
+        schemas: Optional[Dict[str, "SchemaBase"]] = None
         """available in :func:`~aiopenapi3.plugin.Init.schemas`"""
-        paths: Dict[str, "PathItemBase"] = None
+        paths: Optional[Dict[str, "PathItemBase"]] = None
         """available in :func:`~aiopenapi3.plugin.Init.paths`"""
 
     def schemas(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
         """modify the Schema before creating Models"""
-        pass
+        return ctx  # noqa
 
     def paths(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
         """modify the paths/PathItems before initializing the Operations"""
-        pass
+        return ctx  # noqa
 
     def initialized(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
         """it is initialized"""
-        pass
+        return ctx  # noqa
 
 
 class Document(Plugin):
@@ -64,11 +81,11 @@ class Document(Plugin):
 
     def loaded(self, ctx: "Document.Context") -> "Document.Context":  # pragma: no cover
         """modify the text before parsing"""
-        pass
+        return ctx  # noqa
 
     def parsed(self, ctx: "Document.Context") -> "Document.Context":  # pragma: no cover
         """modify the parsed dict before …"""
-        pass
+        return ctx  # noqa
 
 
 class Message(Plugin):
@@ -81,7 +98,9 @@ class Message(Plugin):
     @dataclasses.dataclass
     class Context:
         operationId: str
-        """available :func:`~aiopenapi3.plugin.Message.marshalled` :func:`~aiopenapi3.plugin.Message.sending` :func:`~aiopenapi3.plugin.Message.received` :func:`~aiopenapi3.plugin.Message.parsed` :func:`~aiopenapi3.plugin.Message.unmarshalled`"""
+        """available :func:`~aiopenapi3.plugin.Message.marshalled` :func:`~aiopenapi3.plugin.Message.sending`
+        :func:`~aiopenapi3.plugin.Message.received` :func:`~aiopenapi3.plugin.Message.parsed`
+        :func:`~aiopenapi3.plugin.Message.unmarshalled`"""
         marshalled: Optional[Dict[str, Any]] = None
         """available :func:`~aiopenapi3.plugin.Message.marshalled` """
         sending: Optional[str] = None
@@ -105,31 +124,31 @@ class Message(Plugin):
         """
         modify the dict before sending
         """
-        pass
+        return ctx  # noqa
 
     def sending(self, ctx: "Message.Context") -> "Message.Context":  # pragma: no cover
         """
         modify the text before sending
         """
-        pass
+        return ctx  # noqa
 
     def received(self, ctx: "Message.Context") -> "Message.Context":  # pragma: no cover
         """
         modify the received text
         """
-        pass
+        return ctx  # noqa
 
     def parsed(self, ctx: "Message.Context") -> "Message.Context":  # pragma: no cover
         """
         modify the parsed dict structure
         """
-        pass
+        return ctx  # noqa
 
     def unmarshalled(self, ctx: "Message.Context") -> "Message.Context":  # pragma: no cover
         """
         modify the object
         """
-        pass
+        return ctx  # noqa
 
 
 class Domain:
@@ -138,7 +157,7 @@ class Domain:
         self.plugins = plugins
 
     def __getstate__(self):
-        return (self.ctx, self.plugins)
+        return self.ctx, self.plugins
 
     def __setstate__(self, state):
         self.ctx, self.plugins = state
@@ -177,9 +196,15 @@ class Plugins:
         self._document = self._get_domain("document", plugins)
         self._message = self._get_domain("message", plugins)
 
-    def _get_domain(self, name, plugins) -> "Domain":
-        domain = self._domains.get(name)
-        p: List[Plugin] = list(filter(lambda x: isinstance(x, domain), plugins))
+    def _get_domain(self, name: str, plugins: List[Plugin]) -> "Domain":
+        domain: Optional[Type[Plugin]]
+        if (domain := self._domains.get(name)) is None:
+            raise ValueError(name)  # noqa
+
+        def domain_type_f(p: Plugin) -> TypeGuard[Plugin]:
+            return isinstance(p, domain)
+
+        p: List[Plugin] = list(filter(domain_type_f, plugins))
         return Domain(domain.Context, p)
 
     @property

@@ -1,5 +1,5 @@
 import io
-from typing import List, Union, cast
+from typing import List, Union, cast, TYPE_CHECKING, Dict, Optional, cast, Any, Tuple, Sequence
 import json
 import urllib.parse
 
@@ -8,12 +8,10 @@ import httpx
 try:
     import httpx_auth
     from httpx_auth.authentication import SupportMultiAuth
-except:
-    httpx_auth = None
-
-if httpx_auth is not None:
     import inspect
-
+except ImportError:
+    httpx_auth = None
+else:
     HTTPX_AUTH_METHODS = {
         name.lower(): getattr(httpx_auth, name)
         for name in httpx_auth.__all__
@@ -31,30 +29,67 @@ from ..request import RequestBase, AsyncRequestBase
 from ..errors import HTTPStatusError, ContentTypeError, ResponseDecodingError, ResponseSchemaError, HeadersMissingError
 from .formdata import parameters_from_multipart, parameters_from_urlencoded, encode_multipart_parameters
 
+from .root import Root as v30Root
+from ..v31.root import Root as v31Root
+
+if TYPE_CHECKING:
+    from .._types import (
+        SchemaType,
+        RequestParameters,
+        RequestData,
+        ParameterType,
+        RequestFilesParameter,
+        RequestFileParameter,
+    )
+
+    from .paths import Response as v30Response, MediaType as v30MediaType
+    from ..v31.paths import Response as v31Response, MediaType as v31MediaType
+
+    v3xResponseType = Union[v30Response, v31Response]
+    v3xMediaTypeType = Union[v30MediaType, v31MediaType]
+
 
 class Request(RequestBase):
+    root: Union[v30Root, v31Root]
+
     @property
     def security(self):
         return self.api._security
 
     @property
-    def data(self) -> SchemaBase:
-        return self.operation.requestBody.content["application/json"].schema_
+    def data(self) -> Optional["SchemaType"]:
+        if (
+            self.operation.requestBody is not None
+            and self.operation.requestBody.content is not None
+            and (ex := self.operation.requestBody.content.get("application/json", None)) is not None
+        ):
+            return ex.schema_
+        return None
 
     @property
-    def parameters(self) -> List[ParameterBase]:
+    def parameters(self) -> List["ParameterType"]:
         return self.operation.parameters + self.root.paths[self.path].parameters
 
-    def args(self, content_type: str = "application/json"):
+    def args(self, content_type: str = "application/json") -> Dict[str, Any]:
         op = self.operation
         parameters = op.parameters + self.root.paths[self.path].parameters
-        schema = op.requestBody.content[content_type].schema_
+        if (
+            op.requestBody
+            and op.requestBody.content
+            and (media := op.requestBody.content.get(content_type, None)) is not None
+        ):
+            schema = media.schema_
+        else:
+            schema = None
         return {"parameters": parameters, "data": schema}
 
-    def return_value(self, http_status: int = 200, content_type: str = "application/json") -> SchemaBase:
-        return self.operation.responses[str(http_status)].content[content_type].schema_
+    def return_value(self, http_status: int = 200, content_type: str = "application/json") -> Optional["SchemaType"]:
+        if (a := self.operation.responses.get(str(http_status), None)) is not None:
+            if (b := a.content.get(content_type, None)) is not None:
+                return b.schema_
+        return None
 
-    def _prepare_security(self):
+    def _prepare_security(self) -> None:
         security = self.operation.security or self.api._root.security
 
         if not security:
@@ -84,16 +119,30 @@ class Request(RequestBase):
                 f"No security requirement satisfied (accepts {options} given {{{' and '.join(sorted(self.security.keys()))}}}"
             )
 
-    def _prepare_secschemes(self, scheme: str, value: Union[str, List[str]]):
+    def _prepare_secschemes(self, scheme: str, value: Union[str, Sequence[str]]) -> None:
+        assert (
+            self.root.components
+            and self.root.components.securitySchemes
+            and scheme in self.root.components.securitySchemes
+            and self.root.components.securitySchemes[scheme].root
+        )
         if httpx_auth is not None:
-            return self._prepare_secschemes_extra(scheme, value)
+            self._prepare_secschemes_extra(scheme, value)
         else:
-            return self._prepare_secschemes_default(scheme, value)
+            self._prepare_secschemes_default(scheme, value)
 
-    def _prepare_secschemes_default(self, scheme: str, value: Union[str, List[str]]):
+    def _prepare_secschemes_default(self, scheme: str, value: Union[str, Sequence[str]]) -> None:
+        assert (
+            self.root.components
+            and self.root.components.securitySchemes
+            and scheme in self.root.components.securitySchemes
+            and self.root.components.securitySchemes[scheme].root
+        )
         ss = self.root.components.securitySchemes[scheme].root
+        from .. import v30, v31
 
         if ss.type == "http":
+            assert isinstance(ss, (v30.security._SecuritySchemes.http, v31.security._SecuritySchemes.http))
             if ss.scheme_ == "basic":
                 self.req.auth = httpx.BasicAuth(*value)
             elif ss.scheme_ == "digest":
@@ -109,6 +158,7 @@ class Request(RequestBase):
         value = cast(str, value)
 
         if ss.type == "apiKey":
+            assert isinstance(ss, (v30.security._SecuritySchemes.apiKey, v31.security._SecuritySchemes.apiKey))
             if ss.in_ == "query":
                 # apiKey in query parameter
                 self.req.params[ss.name] = value
@@ -120,11 +170,20 @@ class Request(RequestBase):
             if ss.in_ == "cookie":
                 self.req.cookies = {ss.name: value}
 
-    def _prepare_secschemes_extra(self, scheme: str, value: Union[str, List[str]]):
+    def _prepare_secschemes_extra(self, scheme: str, value: Union[str, Sequence[str]]) -> None:
+        assert (
+            self.root.components
+            and self.root.components.securitySchemes
+            and scheme in self.root.components.securitySchemes
+            and self.root.components.securitySchemes[scheme].root
+        )
         ss = self.root.components.securitySchemes[scheme].root
         auths = []
 
+        from .. import v30, v31
+
         if ss.type == "oauth2":
+            assert isinstance(ss, (v30.security._SecuritySchemes.oauth2, v31.security._SecuritySchemes.oauth2))
             # NOTE: refresh_url is not currently supported by httpx_auth
             # REF: https://github.com/Colin-b/httpx_auth/issues/17
             if flow := ss.flows.implicit:
@@ -166,6 +225,7 @@ class Request(RequestBase):
                 )
 
         if ss.type == "http":
+            assert isinstance(ss, (v30.security._SecuritySchemes.http, v31.security._SecuritySchemes.http))
             if auth := HTTPX_AUTH_METHODS.get(ss.scheme_, None):
                 if isinstance(value, tuple):
                     auths.append(auth(*value))
@@ -182,6 +242,7 @@ class Request(RequestBase):
         value = cast(str, value)
 
         if ss.type == "apiKey":
+            assert isinstance(ss, (v30.security._SecuritySchemes.apiKey, v31.security._SecuritySchemes.apiKey))
             if auth := HTTPX_AUTH_METHODS.get((ss.in_ + ss.type).lower(), None):
                 auths.append(auth(value, ss.name))
 
@@ -194,7 +255,7 @@ class Request(RequestBase):
             else:
                 self.req.auth = auth
 
-    def _prepare_parameters(self, provided):
+    def _prepare_parameters(self, provided: Optional["RequestParameters"]) -> Dict[str, str]:
         """
         assigns the parameters provided to the header/path/cookie …
 
@@ -206,11 +267,17 @@ class Request(RequestBase):
         provided = provided or dict()
         possible = {_.name: _ for _ in self.operation.parameters + self.root.paths[self.path].parameters}
 
+        from .. import v30, v31
+
+        assert isinstance(self.operation, (v30.Operation, v31.Operation))
+
         if self.operation.requestBody:
-            rbq = dict()  # requestBody Parameters
+            rbq: Dict[str, str] = dict()  # requestBody Parameters
             ct = "multipart/form-data"
             if ct in self.operation.requestBody.content:
+                assert self.operation.requestBody.content[ct].encoding is not None
                 for k, v in self.operation.requestBody.content[ct].encoding.items():
+                    assert v.headers is not None and isinstance(v.headers, dict)
                     rbq.update(v.headers)
                 possible.update(rbq)
 
@@ -236,7 +303,7 @@ class Request(RequestBase):
             values = spec._encode(name, value)
             assert isinstance(values, dict)
 
-            if isinstance(spec, (aiopenapi3.v30.parameter.Header, aiopenapi3.v31.parameter.Header)):
+            if isinstance(spec, (v30.parameter.Header, v31.parameter.Header)):
                 rbqh.update(values)
             elif spec.in_ == "header":
                 self.req.headers.update(values)
@@ -253,25 +320,29 @@ class Request(RequestBase):
         self.req.url = self.req.url.format(**path_parameters)
         return rbqh
 
-    def _prepare_body(self, data, rbq):
+    def _prepare_body(self, data_: Optional["RequestData"], rbq: Dict[str, str]) -> None:
+        from .. import v30, v31
+
+        assert isinstance(self.operation, (v30.Operation, v31.Operation))
+
         if not self.operation.requestBody:
             return
 
-        if data is None and self.operation.requestBody.required:
+        if data_ is None and self.operation.requestBody.required:
             raise ValueError("Request Body is required but none was provided.")
 
         if "application/json" in self.operation.requestBody.content:
-            if isinstance(data, (dict, list)):
-                pass
-            elif isinstance(data, pydantic.BaseModel):
-                data = data.model_dump(mode="json")
+            if isinstance(data_, (dict, list)):
+                data = data_
+            elif isinstance(data_, pydantic.BaseModel):
+                data = data_.model_dump(mode="json")
             else:
-                raise TypeError(data)
+                raise TypeError(data_)
             data = self.api.plugins.message.marshalled(
                 operationId=self.operation.operationId, marshalled=data
             ).marshalled
-            data = json.dumps(data)
-            data = data.encode()
+            data: str = json.dumps(data)
+            data: bytes = data.encode()  # type: ignore[union-attr]
             self.req.headers["Content-Type"] = "application/json"
             ctx = self.api.plugins.message.sending(
                 operationId=self.operation.operationId, sending=data, headers=self.req.headers
@@ -284,80 +355,75 @@ class Request(RequestBase):
             https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#media-type-object
             """
             media: aiopenapi3.v30.media.MediaType = self.operation.requestBody.content[ct]
-            if media.schema_ and isinstance(data, media.schema_.get_type()):
+            if media.schema_ and isinstance(data_, media.schema_.get_type()):
                 """data is a model"""
-                params = parameters_from_multipart(data, media, rbq)
+                params = parameters_from_multipart(data_, media, rbq)
                 msg = encode_multipart_parameters(params)
                 self.req.content = msg.as_string()
                 self.req.headers["Content-Type"] = f'{msg.get_content_type()}; boundary="{msg.get_boundary()}"'
-            elif isinstance(data, list):
-                _files = list()
-                _data = dict()
-                for name, value in data:
+            elif isinstance(data_, list):
+                rfiles = list()
+                rdata: Dict[str, str] = dict()
+                name: str
+                value: Tuple[str, Any]
+                for name, value in cast(Sequence[Tuple[str, Any]], data_):
                     if isinstance(value, tuple):
                         alias = fh = content_type = None
-                        headers = {}
+                        headers: Dict[str, str] = {}
                         if len(value) == 4:
-                            (alias, fh, content_type, headers) = value
+                            (alias, fh, content_type, headers) = cast(Tuple[str, Any, str, Dict[str, str]], value)
                         elif len(value) == 3:
-                            (alias, fh, content_type) = value
+                            (alias, fh, content_type) = cast(Tuple[str, Any, str], value)
                         elif len(value) == 2:
-                            (alias, fh) = value
+                            (alias, fh) = cast(Tuple[str, Any], value)
                         elif len(value) == 1:
-                            (alias, fh) = value
+                            fh = cast(Any, value)
 
+                        assert media.encoding is not None
                         if (e := media.encoding.get(name)) is not None:
+                            assert e.headers
                             headers.update({name: rbq[name] for name in e.headers.keys() if name in rbq})
                         _value = (alias, fh, content_type, headers)
-                        _files.append((name, _value))
+                        rfiles.append((name, _value))
+                    elif isinstance(value, str):
+                        rdata[name] = value
                     else:
-                        _data[name] = value
-                self.req.files = _files
-                self.req.data = _data
+                        raise TypeError(type(value))  # noqa
+                self.req.files = rfiles
+                self.req.data = rdata
             else:
-                raise TypeError((type(data), media.schema_.get_type()))
+                assert media.schema_
+                raise TypeError((type(data_), media.schema_.get_type()))
         elif (ct := "application/x-www-form-urlencoded") in self.operation.requestBody.content:
             self.req.headers["Content-Type"] = ct
             media: aiopenapi3.v30.media.MediaType = self.operation.requestBody.content[ct]
-            if not media.schema_ or not isinstance(data, media.schema_.get_type()):
+            assert media
+            if not media.schema_ or not isinstance(data_, media.schema_.get_type()):
                 """expect the data to be a model"""
-                raise TypeError((type(data), media.schema_.get_type()))
+                raise TypeError((type(data_), media.schema_))
 
-            params = parameters_from_urlencoded(data, media)
-            msg = urllib.parse.urlencode(params, doseq=True)
-            self.req.content = msg
+            params = parameters_from_urlencoded(data_, media)
+            content = urllib.parse.urlencode(params, doseq=True)
+            self.req.content = content
         elif (ct := "application/octet-stream") in self.operation.requestBody.content:
             self.req.headers["Content-Type"] = ct
-            value = data
-            if isinstance(data, tuple) and len(data) >= 2:
+            value: "RequestFileParameter"
+            if isinstance(data_, tuple) and len(data_) >= 2:
                 # (name, file-like-object, …)
-                value = data[1]
-            if isinstance(value, (io.IOBase, str, bytes)):
-                self.req.content = value
+                self.req.content = data_[1]
+            elif isinstance(data_, (io.IOBase, str, bytes)):
+                self.req.content = data_
             else:
-                raise TypeError(data)
+                raise TypeError(data_)
         else:
             raise NotImplementedError(self.operation.requestBody.content)
 
-    def _prepare(self, data, parameters):
+    def _prepare(self, data: Optional["RequestData"], parameters: Optional["RequestParameters"]) -> None:
         self._prepare_security()
         rbq = self._prepare_parameters(parameters)
         self._prepare_body(data, rbq)
 
-    def _build_req(self, session):
-        req = session.build_request(
-            self.method,
-            str(self.api.url / self.req.url[1:]),
-            headers=self.req.headers,
-            cookies=self.req.cookies,
-            params=self.req.params,
-            content=self.req.content,
-            data=self.req.data,
-            files=self.req.files,
-        )
-        return req
-
-    def _process__status_code(self, result, status_code):
+    def _process__status_code(self, result: httpx.Response, status_code: str) -> "v3xResponseType":
         # find the response model in spec we received
         expected_response = None
         if status_code in self.operation.responses:
@@ -375,7 +441,9 @@ class Request(RequestBase):
             )
         return expected_response
 
-    def _process__headers(self, result, headers, expected_response):
+    def _process__headers(
+        self, result: httpx.Response, headers: Dict[str, str], expected_response: "v3xResponseType"
+    ) -> Dict[str, str]:
         rheaders = dict()
         if expected_response.headers:
             required = dict(
@@ -384,7 +452,6 @@ class Request(RequestBase):
                     filter(lambda x: x[1].required is True, expected_response.headers.items()),
                 )
             )
-            available = frozenset(headers.keys())
             available = frozenset(headers.keys())
             if missing := (required.keys() - available):
                 missing = {k: required[k] for k in missing}
@@ -395,10 +462,12 @@ class Request(RequestBase):
                     rheaders[name] = header.schema_.model(header._decode(data))
         return rheaders
 
-    def _process__content_type(self, result, expected_response, content_type):
+    def _process__content_type(
+        self, result: httpx.Response, expected_response: "v3xResponseType", content_type: Optional[str]
+    ) -> Tuple[str, "v3xMediaTypeType"]:
         if content_type:
             content_type, _, encoding = content_type.partition(";")
-            expected_media = expected_response.content.get(content_type, None)
+            expected_media: "v3xMediaTyeType" = expected_response.content.get(content_type, None)
             if expected_media is None and "/" in content_type:
                 # accept media type ranges in the spec. the most specific matching
                 # type should always be chosen, but if we do not have a match here
@@ -421,7 +490,7 @@ class Request(RequestBase):
             )
         return content_type, expected_media
 
-    def _process_stream(self, result):
+    def _process_stream(self, result: httpx.Response) -> Tuple[Dict[str, str], Optional["SchemaType"]]:
         status_code = str(result.status_code)
         content_type = result.headers.get("Content-Type", None)
 
@@ -432,7 +501,9 @@ class Request(RequestBase):
 
         return headers, expected_media.schema_
 
-    def _process_request(self, result):
+    def _process_request(
+        self, result: httpx.Response
+    ) -> Tuple[Dict[str, str], Optional[Union[pydantic.BaseModel, str]]]:
         rheaders = dict()
         # spec enforces these are strings
         status_code = str(result.status_code)

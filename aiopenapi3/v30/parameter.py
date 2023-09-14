@@ -1,6 +1,7 @@
 import enum
 import datetime
 import decimal
+import typing
 import uuid
 from typing import Union, Optional, Dict, Any
 from collections.abc import MutableMapping
@@ -14,6 +15,9 @@ from ..errors import ParameterFormatError
 from .example import Example
 from .general import Reference
 from .schemas import Schema
+
+if typing.TYPE_CHECKING:
+    from .paths import MediaType
 
 
 class _ParameterCodec:
@@ -236,8 +240,6 @@ class ParameterBase(ObjectExtended, ParameterBase_):
     .. _Parameter Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#external-documentation-object
     """
 
-    model_config = dict(undefined_types_warning=False)
-
     description: Optional[str] = Field(default=None)
     required: Optional[bool] = Field(default=None)
     deprecated: Optional[bool] = Field(default=None)
@@ -248,9 +250,9 @@ class ParameterBase(ObjectExtended, ParameterBase_):
     allowReserved: Optional[bool] = Field(default=None)
     schema_: Optional[Union[Schema, Reference]] = Field(default=None, alias="schema")
     example: Optional[Any] = Field(default=None)
-    examples: Optional[Dict[str, Union["Example", Reference]]] = Field(default_factory=dict)
+    examples: Dict[str, Union["Example", Reference]] = Field(default_factory=dict)
 
-    content: Optional[Dict[str, "MediaType"]] = Field(default_factory=dict)
+    content: Dict[str, "MediaType"] = Field(default_factory=dict)
 
 
 class _In(str, enum.Enum):
@@ -271,7 +273,13 @@ class Parameter(ParameterBase, _ParameterCodec):
 
 
 def encode_parameter(
-    name: str, value: object, style: str, explode: bool, allowReserved: bool, in_: str, schema_: Schema
+    name: str,
+    value: object,
+    style: Optional[str],
+    explode: Optional[bool],
+    allowReserved: Optional[bool],
+    in_: str,
+    schema_: Schema,
 ) -> Union[str, bytes]:
     p = Parameter(name=name, style=style, explode=explode, allowReserved=allowReserved, **{"in": in_, "schema": None})
     p.schema_ = schema_

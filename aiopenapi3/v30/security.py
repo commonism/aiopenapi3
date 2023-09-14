@@ -52,7 +52,7 @@ class _SecuritySchemes:
 
     class http(_SecurityScheme):
         type: Literal["http"]
-        scheme_: constr(to_lower=True) = Field(default=None, alias="scheme")
+        scheme_: constr(to_lower=True) = Field(default=None, alias="scheme")  # type: ignore[valid-type]
         bearerFormat: Optional[str] = Field(default=None)
 
     class oauth2(_SecurityScheme):

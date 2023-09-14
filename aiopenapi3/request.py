@@ -1,14 +1,15 @@
 import abc
 import collections
-import io
+import typing
 from contextlib import closing
-from typing import Dict, Tuple, Union, Any, Optional, List
+from typing import Dict, Tuple, Any, List, NamedTuple, Optional, Iterator, Union, cast
 
 import httpx
 import pydantic
 import yarl
 
 from aiopenapi3.errors import ContentLengthExceededError
+
 
 try:
     from contextlib import aclosing
@@ -23,27 +24,55 @@ except:  # <= Python 3.10
             await thing.aclose()
 
 
-from .base import HTTP_METHODS
+from .base import HTTP_METHODS, ReferenceBase
 from .version import __version__
 from .errors import RequestError, OperationIdDuplicationError
 
 
+if typing.TYPE_CHECKING:
+    from ._types import (
+        RequestParameters,
+        RequestData,
+        RequestFiles,
+        RequestContent,
+        AuthTypes,
+        SchemaType,
+        ParameterType,
+        PathItemType,
+        OperationType,
+        JSON,
+        RootType,
+        ResponseDataType,
+        ResponseHeadersType,
+    )
+    from aiopenapi3 import OpenAPI
+
+
 class RequestParameter:
-    def __init__(self, url: yarl.URL):
+    def __init__(self, url: Union[yarl.URL, str]):
         self.url: str = str(url)
-        self.auth: Optional[Union["BasicAuth", "DigestAuth"]] = None
+        self.auth: Optional["AuthTypes"] = None
         self.cookies: Dict[str, str] = {}
         #        self.path = {}
         self.params: Dict[str, str] = {}
-        self.content = None
+        self.content: Optional["RequestContent"] = None
         self.headers: Dict[str, str] = {}
         self.data: Dict[str, str] = {}  # form-data
-        self.files: Dict[str, Tuple[str, io.BaseIO, str]] = {}  # form-data files
+        self.files: Optional["RequestFiles"] = {}  # form-data files
         self.cert: Any = None
 
 
 class RequestBase:
-    StreamResponse = collections.namedtuple("StreamResponse", field_names=["headers", "schema", "session", "result"])
+    class StreamResponse(NamedTuple):
+        headers: Dict[str, str]
+        schema: "SchemaType"
+        session: httpx.Client
+        result: httpx.Response
+
+    class Response(NamedTuple):
+        headers: Dict[str, str]
+        data: Any
+        result: httpx.Response
 
     """
     A Request compiles all required information to call an Operation
@@ -56,15 +85,15 @@ class RequestBase:
         - :meth:`~aiopenapi3.request.RequestBase.request`
     """
 
-    def __init__(self, api: "OpenAPI", method: str, path: str, operation: "Operation"):
-        self.api = api
-        self.root = api._root
-        self.method = method
-        self.path = path
-        self.operation = operation
+    def __init__(self, api: "OpenAPI", method: str, path: str, operation: "OperationType"):
+        self.api: "OpenAPI" = api
+        self.root = api._root  # pylint: disable=W0212
+        self.method: str = method
+        self.path: str = path
+        self.operation: "OperationType" = operation
         self.req: RequestParameter = RequestParameter(self.path)
 
-    def __call__(self, *args, return_headers: bool = False, **kwargs) -> Union[Any, Tuple[Dict[str, str], Any]]:
+    def __call__(self, *args, return_headers: bool = False, **kwargs) -> Union["JSON", Tuple[Dict[str, str], "JSON"]]:
         """
         :param args:
         :param return_headers:  if set return a tuple (header, body)
@@ -87,7 +116,9 @@ class RequestBase:
         """
         return {"cert": self.req.cert, "auth": self.req.auth, "headers": {"user-agent": f"aiopenapi3/{__version__}"}}
 
-    def _send(self, session, data, parameters):
+    def _send(
+        self, session: httpx.Client, data: Optional["RequestData"], parameters: Optional["RequestParameters"]
+    ) -> httpx.Response:
         req = self._build_req(session)
         try:
             result = session.send(req, stream=True)
@@ -96,26 +127,43 @@ class RequestBase:
         return result
 
     @abc.abstractmethod
-    def _process_stream(self, result: httpx.Response) -> Tuple[Dict[str, Any], "SchemaBase"]:
+    def _process_stream(self, result: httpx.Response) -> Tuple["ResponseHeadersType", Optional["SchemaType"]]:
         """
         process response headers
         lookup the schema for the stream
         """
-        pass  # noqa
+        ...
 
     @abc.abstractmethod
-    def _process_request(self, result: httpx.Response) -> Tuple[Dict[str, str], Union[pydantic.BaseModel, str]]:
+    def _process_request(self, result: httpx.Response) -> Tuple["ResponseHeadersType", "ResponseDataType"]:
         """
         process response headers
         lookup Model
         """
-        pass  # noqa
+        ...
+
+    @abc.abstractmethod
+    def _prepare(self, data: Optional["RequestData"], parameters: Optional["RequestParameters"]) -> None:
+        ...
+
+    def _build_req(self, session: Union[httpx.Client, httpx.AsyncClient]) -> httpx.Request:
+        req = session.build_request(
+            self.method,
+            str(self.api.url / self.req.url[1:]),
+            headers=self.req.headers,
+            cookies=self.req.cookies,
+            params=self.req.params,
+            content=self.req.content,
+            data=self.req.data,
+            files=self.req.files,
+        )
+        return req
 
     def request(
         self,
-        data=Union[Dict[str, Any], pydantic.BaseModel],
-        parameters: Dict[str, Union[str, pydantic.BaseModel]] = None,
-    ) -> Tuple[Dict[str, Any], Any, httpx.Response]:
+        data: Optional["RequestData"] = None,
+        parameters: Optional["RequestParameters"] = None,
+    ) -> "RequestBase.Response":
         """
         Sends an HTTP request as described by this Path
 
@@ -137,13 +185,13 @@ class RequestBase:
             result.read()
 
         headers, data = self._process_request(result)
-        return headers, data, result
+        return RequestBase.Response(headers, data, result)
 
     def stream(
         self,
-        data=Union[Dict[str, Any], pydantic.BaseModel],
-        parameters: Dict[str, Union[str, pydantic.BaseModel]] = None,
-    ) -> Tuple["SchemaBase", httpx.Client, httpx.Response]:
+        data: Optional["RequestData"] = None,
+        parameters: Optional["RequestParameters"] = None,
+    ) -> "RequestBase.StreamResponse":
         """
         Sends an HTTP request as described by this Path - but do not process the result
           * returns a tuple of Schema, httpx.Client, httpx.Response
@@ -168,37 +216,49 @@ class RequestBase:
 
     @property
     @abc.abstractmethod
-    def data(self) -> "SchemaBase":
+    def data(self) -> Optional["SchemaType"]:
         """
         :return: the Schema for the body
         """
-        pass  # noqa
+        ...
 
     @property
     @abc.abstractmethod
-    def parameters(self) -> List["ParameterBase"]:
+    def parameters(self) -> List["ParameterType"]:
         """
         :return: list of :class:`aiopenapi3.base.ParameterBase` which can be used to inspect the required/optional parameters of the requested Operation
         """
-        pass  # noqa
+        ...
 
 
 class AsyncRequestBase(RequestBase):
-    async def __call__(self, *args, return_headers: bool = False, **kwargs):
+    class StreamResponse(NamedTuple):
+        headers: Dict[str, str]
+        schema: "SchemaType"
+        session: httpx.AsyncClient
+        result: httpx.Response
+
+    async def __call__(  # type: ignore[override]
+        self, *args, return_headers: bool = False, **kwargs
+    ) -> Union["JSON", Tuple[Dict[str, str], "JSON"]]:
         headers, data, result = await self.request(*args, **kwargs)
         if return_headers:
             return headers, data
         return data
 
-    async def _send(self, session: httpx.AsyncClient, data, parameters) -> httpx.Response:
+    async def _send(
+        self, session: httpx.AsyncClient, data: Optional["RequestData"], parameters: Optional["RequestParameters"]
+    ) -> httpx.Response:  # type: ignore[override]
         req = self._build_req(session)
         try:
             result = await session.send(req, stream=True)
         except Exception as e:
-            raise RequestError(self.operation, req, data, parameters) from e
+            raise RequestError(self.operation, req, data, parameters or dict()) from e
         return result
 
-    async def request(self, data=None, parameters=None) -> Tuple[Dict[str, Any], Any, httpx.Response]:
+    async def request(  # type: ignore[override]
+        self, data: Optional["RequestData"] = None, parameters: Optional["RequestParameters"] = None
+    ) -> "RequestBase.Response":
         self._prepare(data, parameters)
         async with aclosing(self.api._session_factory(**self._session_factory_default_args)) as session:
             result = await self._send(session, data, parameters)
@@ -211,39 +271,38 @@ class AsyncRequestBase(RequestBase):
             await result.aread()
 
         headers, data = self._process_request(result)
-        return headers, data, result
+        return RequestBase.Response(headers, data, result)
 
-    async def stream(
-        self,
-        data=None,
-        parameters=None,
-    ) -> Tuple["aiopenapi3.base.SchemaBase", httpx.AsyncClient, httpx.Response]:
+    async def stream(  # type: ignore[override]
+        self, data: Optional["RequestData"] = None, parameters: Optional["RequestParameters"] = None
+    ) -> "AsyncRequestBase.StreamResponse":
         self._prepare(data, parameters)
         session = self.api._session_factory(**self._session_factory_default_args)
         result = await self._send(session, data, parameters)
         headers, schema_ = self._process_stream(result)
-        return RequestBase.StreamResponse(headers, schema_, session, result)
+        return AsyncRequestBase.StreamResponse(headers, schema_, session, result)
 
 
 class OperationIndex:
     class OperationTag:
-        def __init__(self, oi):
+        def __init__(self, oi: "OperationIndex") -> None:
             self._oi = oi
-            self._operations: Dict[str, "Operation"] = dict()
+            self._operations: Dict[str, Tuple[str, str, "OperationType"]] = dict()
 
-        def __getattr__(self, item):
+        def __getattr__(self, item) -> RequestBase:
             (method, path, op) = self._operations[item]
             return self._oi._api._createRequest(self._oi._api, method, path, op)
 
     class Iter:
         def __init__(self, spec: "OpenAPI", use_operation_tags: bool):
             self.operations = []
-            self.r = 0
-            pi: "PathItem"
+            self.r: Iterator[int]
+            pi: "PathItemType"
             for path, pi in spec.paths.items():
-                op: "Operation"
+                op: "OperationType"
                 if pi.ref:
-                    pi = pi.ref._target
+                    #                    pi = pi.ref._target
+                    pi = cast("PathItemType", cast(ReferenceBase, pi.ref)._target)
 
                 for method in pi.model_fields_set & HTTP_METHODS:
                     op = getattr(pi, method)
@@ -264,12 +323,14 @@ class OperationIndex:
 
     def __init__(self, api: "OpenAPI", use_operation_tags: bool):
         self._api: "OpenAPI" = api
-        self._root: "RootBase" = api._root
+        self._root: "RootType" = api._root
 
-        self._operations: Dict[str, "Operation"] = dict()
-        self._tags: Dict[str, "OperationTag"] = collections.defaultdict(lambda: OperationIndex.OperationTag(self))
+        self._operations: Dict[str, Tuple[str, str, "OperationType"]] = dict()
+        self._tags: Dict[str, "OperationIndex.OperationTag"] = collections.defaultdict(
+            lambda: OperationIndex.OperationTag(self)
+        )
         for path, pi in self._root.paths.items():
-            op: "Operation"
+            op: "OperationType"
             if pi.ref:
                 pi = pi.ref._target
             for method in pi.model_fields_set & HTTP_METHODS:

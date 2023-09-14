@@ -11,7 +11,7 @@ dependencies = [
     "yarl==1.8.1",
     "httpx",
     "more-itertools",
-    'typing_extensions; python_version<"3.9"',
+    'typing_extensions; python_version<"3.10"',
     'pathlib3x; python_version<"3.9"',
     "jmespath",
 ]
@@ -126,3 +126,7 @@ plugins = [
 filename = "requirements.txt"
 groups = ["default"]
 without-hashes = "true"
+
+
+[tool.mypy]
+allow_redefinition = true

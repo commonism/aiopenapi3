@@ -1,6 +1,6 @@
 from typing import Union, List, Any, Optional, Dict
 
-from pydantic import Field, model_validator, PrivateAttr
+from pydantic import Field, model_validator, PrivateAttr, ConfigDict
 
 from ..base import ObjectExtended, SchemaBase, DiscriminatorBase
 from .general import Reference
@@ -14,7 +14,7 @@ class Discriminator(ObjectExtended, DiscriminatorBase):
     """
 
     propertyName: str = Field(...)
-    mapping: Optional[Dict[str, str]] = Field(default_factory=dict)
+    mapping: Dict[str, str] = Field(default_factory=dict)
 
 
 class Schema(ObjectExtended, SchemaBase):
@@ -24,7 +24,7 @@ class Schema(ObjectExtended, SchemaBase):
     .. _Schema Object: https://datatracker.ietf.org/doc/html/draft-bhutton-json-schema-validation-00#section-6
     """
 
-    model_config = dict(extra="allow")
+    model_config = ConfigDict(extra="allow")
 
     """
     JSON Schema: A Media Type for Describing JSON Documents
@@ -51,9 +51,9 @@ class Schema(ObjectExtended, SchemaBase):
     """
     10.2.1. Keywords for Applying Subschemas With Logic
     """
-    allOf: Optional[List["Schema"]] = Field(default_factory=list)
-    oneOf: Optional[List["Schema"]] = Field(default_factory=list)
-    anyOf: Optional[List["Schema"]] = Field(default_factory=list)
+    allOf: List["Schema"] = Field(default_factory=list)
+    oneOf: List["Schema"] = Field(default_factory=list)
+    anyOf: List["Schema"] = Field(default_factory=list)
     not_: Optional["Schema"] = Field(default=None, alias="not")
 
     """
@@ -62,7 +62,7 @@ class Schema(ObjectExtended, SchemaBase):
     if_: Optional["Schema"] = Field(default=None, alias="if")
     then_: Optional["Schema"] = Field(default=None, alias="then")
     else_: Optional["Schema"] = Field(default=None, alias="else")
-    dependentSchemas: Optional[Dict[str, "Schema"]] = Field(default_factory=dict)
+    dependentSchemas: Dict[str, "Schema"] = Field(default_factory=dict)
 
     """
     10.3.1. Keywords for Applying Subschemas to Arrays
@@ -74,10 +74,9 @@ class Schema(ObjectExtended, SchemaBase):
     """
     10.3.2. Keywords for Applying Subschemas to Objects
     """
-    properties: Optional[Dict[str, "Schema"]] = Field(default_factory=dict)
-    patternProperties: Optional[Dict[str, "Schema"]] = Field(default_factory=dict)
+    properties: Dict[str, "Schema"] = Field(default_factory=dict)
+    patternProperties: Dict[str, "Schema"] = Field(default_factory=dict)
     additionalProperties: Optional[Union[bool, "Schema"]] = Field(default=None)
-    unevaluatedProperties: Optional["Schema"] = Field(default=None)
     propertyNames: Optional["Schema"] = Field(default=None)
 
     """
@@ -129,7 +128,7 @@ class Schema(ObjectExtended, SchemaBase):
     """
     maxProperties: Optional[int] = Field(default=None)
     minProperties: Optional[int] = Field(default=None)
-    required: Optional[List[str]] = Field(default_factory=list)
+    required: List[str] = Field(default_factory=list)
     dependentRequired: Dict[str, str] = Field(default_factory=dict)  # FIXME
 
     """
