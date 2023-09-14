@@ -424,7 +424,7 @@ class Request(RequestBase):
         rbq = self._prepare_parameters(parameters)
         self._prepare_body(data, rbq)
 
-    def _process_status_code(self, result: httpx.Response, status_code: str) -> "v3xResponseType":
+    def _process__status_code(self, result: httpx.Response, status_code: str) -> "v3xResponseType":
         expected_response = (
             self.operation.responses.get(status_code)
             or self.operation.responses.get(status_code[0] + "XX")
