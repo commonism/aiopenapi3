@@ -38,6 +38,7 @@ class OnDocument(Document):
         ctx.document["paths"]["/pet"]["put"]["responses"]["200"] = OnDocument.PetResponse
 
         ctx.document["paths"]["/user"]["post"]["responses"]["200"] = OnDocument.ApiResponse
+        ctx.document["paths"]["/user/login"]["get"]["responses"]["200"] = OnDocument.ApiResponse
         ctx.document["paths"]["/pet/{petId}"]["get"]["responses"]["404"] = OnDocument.ApiResponse
 
         ctx.document["securityDefinitions"]["petstore_auth"]["tokenUrl"] = "/"

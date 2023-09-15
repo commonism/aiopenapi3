@@ -84,6 +84,8 @@ components:
   schemas:
     Login:
       type: string
+      enum:
+        - user
     LoginRequest:
       type: string
   securitySchemes:

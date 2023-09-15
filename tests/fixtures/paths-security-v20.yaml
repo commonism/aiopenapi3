@@ -46,6 +46,8 @@ paths:
           description: ''
           schema:
             type: string
+            enum:
+              - alternate
       security:
         - user: []
           token: []
@@ -59,6 +61,8 @@ paths:
           description: ''
           schema:
             type: string
+            enum:
+              - combined
       security:
         - user: []
           token: []
