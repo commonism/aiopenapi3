@@ -409,3 +409,29 @@ def test_paths_tags(httpx_mock, with_paths_tags):
     api._.listuser()
     r = frozenset(api._)
     assert frozenset(["listuser", "listitem"]) == r
+
+
+def test_paths_response_status_pattern_default(httpx_mock, with_paths_response_status_pattern_default):
+    api = OpenAPI("/", with_paths_response_status_pattern_default, session_factory=httpx.Client)
+
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=201, json="created")
+    r = api._.test()
+    assert r == "created"
+
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=200, json="good")
+    r = api._.test()
+    assert r == "good"
+
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=500, json="bad")
+    r = api._.test()
+    assert r == "bad"
+
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=100, json="unknown")
+    r = api._.test()
+    assert r == "unknown"
+
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=500, json="notbad")
+    from aiopenapi3.errors import ResponseSchemaError
+
+    with pytest.raises(ResponseSchemaError):
+        api._.test()

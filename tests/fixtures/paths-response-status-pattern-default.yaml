@@ -1,0 +1,47 @@
+openapi: 3.1.0
+info:
+  title: response status tests
+  version: 0.0.0
+servers:
+  - url: http://127.0.0.1/api
+
+security:
+  - {}
+
+paths:
+  /test:
+    get:
+      operationId: test
+      responses:
+        default:
+          description: unknown
+          content:
+            application/json:
+              schema:
+                type: string
+                const: unknown
+
+        "2XX":
+          description: good
+          content:
+            application/json:
+              schema:
+                type: string
+                const: good
+
+        "5XX":
+          description: bad
+          content:
+            application/json:
+              schema:
+                type: string
+                const: bad
+
+
+        "201":
+          description: "created"
+          content:
+            application/json:
+              schema:
+                type: string
+                const: created
