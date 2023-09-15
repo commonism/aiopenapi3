@@ -448,3 +448,8 @@ def with_paths_requestbody_formdata_encoding():
 @pytest.fixture(scope="session")
 def with_paths_requestbody_formdata_wtforms():
     yield _get_parsed_yaml("paths-requestbody-formdata-wtforms.yaml")
+
+
+@pytest.fixture(scope="session")
+def with_paths_response_status_pattern_default():
+    yield _get_parsed_yaml("paths-response-status-pattern-default.yaml")
