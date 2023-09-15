@@ -111,7 +111,7 @@ def test_operation_populated(openapi_version, petstore_expanded):
 
 def test_paths_security(httpx_mock, with_paths_security):
     api = OpenAPI(URLBASE, with_paths_security, session_factory=httpx.Client, use_operation_tags=False)
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="user")
 
     auth = str(uuid.uuid4())
 
@@ -175,7 +175,7 @@ def test_paths_security(httpx_mock, with_paths_security):
 
 def test_paths_security_combined(httpx_mock, with_paths_security):
     api = OpenAPI(URLBASE, with_paths_security, session_factory=httpx.Client, use_operation_tags=False)
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="user")
 
     auth = str(uuid.uuid4())
 
@@ -193,7 +193,7 @@ def test_paths_security_combined(httpx_mock, with_paths_security):
 
 
 def test_paths_parameters(httpx_mock, with_paths_parameters):
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="test")
     api = OpenAPI(URLBASE, with_paths_parameters, session_factory=httpx.Client)
 
     with pytest.raises(
@@ -230,7 +230,7 @@ def test_paths_parameter_missing(with_paths_parameter_missing):
 
 
 def test_paths_parameter_default(httpx_mock, with_paths_parameter_default):
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="default")
     api = OpenAPI(URLBASE, with_paths_parameter_default, session_factory=httpx.Client)
     api._.default()
     request = httpx_mock.get_requests()[-1]
@@ -240,7 +240,7 @@ def test_paths_parameter_default(httpx_mock, with_paths_parameter_default):
 
 
 def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="test")
     api = OpenAPI(URLBASE, with_paths_parameter_format, session_factory=httpx.Client)
 
     # using values from
@@ -350,7 +350,7 @@ def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
 
 def test_paths_response_header(httpx_mock, with_paths_response_header):
     httpx_mock.add_response(
-        headers={"Content-Type": "application/json", "X-required": "1", "X-optional": "1,2,3"}, content=b"[]"
+        headers={"Content-Type": "application/json", "X-required": "1", "X-optional": "1,2,3"}, json="get"
     )
 
     api = OpenAPI(URLBASE, with_paths_response_header, session_factory=httpx.Client)
@@ -362,11 +362,11 @@ def test_paths_response_header(httpx_mock, with_paths_response_header):
     assert isinstance(o, list) and len(o) == 3 and isinstance(o[0], str) and o[-1] == "3"
 
     with pytest.raises(HeadersMissingError) as e:
-        httpx_mock.add_response(headers={"Content-Type": "application/json", "X-optional": "1,2,3"}, content=b"[]")
+        httpx_mock.add_response(headers={"Content-Type": "application/json", "X-optional": "1,2,3"}, json="get")
         h, b = api._.get(return_headers=True)
     assert list(e.value.missing.keys()) == ["x-required"]
 
-    httpx_mock.add_response(headers={"Content-Type": "application/json", "X-object": "A,1,B,2,C,3"}, content=b"[]")
+    httpx_mock.add_response(headers={"Content-Type": "application/json", "X-object": "A,1,B,2,C,3"}, json="types")
     h, b = api._.types(return_headers=True)
     assert h["X-object"].A == 1
     assert h["X-object"].B == "2"
@@ -390,7 +390,7 @@ def test_paths_response_content_type_octet(httpx_mock, with_paths_response_conte
 def test_paths_tags(httpx_mock, with_paths_tags):
     import copy
 
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="list")
     api = OpenAPI(URLBASE, with_paths_tags, session_factory=httpx.Client, use_operation_tags=True)
     b = api._.users.list()
     r = frozenset(api._)

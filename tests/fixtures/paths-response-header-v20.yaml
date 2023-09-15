@@ -24,6 +24,8 @@ paths:
          description: OK
          schema:
            type: string
+           enum:
+             - get
          headers:
           X-required:
             type: string

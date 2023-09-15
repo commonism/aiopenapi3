@@ -446,19 +446,18 @@ class SchemaBase(BaseModel):
         :rtype: self.get_type()
         """
 
-        if self.type in ("string", "number", "boolean", "integer"):
+        if self.type == "boolean":
             assert len(self.properties) == 0
             t = Model.typeof(cast("SchemaType", self))
-            # data from Headers will be of type str
             if not isinstance(data, t):
                 return t(data)
             return data
-        elif self.type == "array":
-            items = cast("SchemaType", self.items)
-            return [items.model(i) for i in cast(List["JSON"], data)]
         else:
             type_ = cast("SchemaType", self.get_type())
-            return type_.model_validate(data)
+            r = type_.model_validate(data)
+            if self.type in ("string", "number", "integer", "array"):
+                return r.root
+            return r
 
 
 class OperationBase:

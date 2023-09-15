@@ -45,4 +45,6 @@ paths:
             application/json:
               schema:
                 type: string
+                enum:
+                  - default
           description: ''

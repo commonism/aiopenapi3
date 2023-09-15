@@ -44,6 +44,8 @@ components:
   schemas:
     Test:
       type: string
+      enum:
+        - test
   parameters:
     Path:
       name: Path

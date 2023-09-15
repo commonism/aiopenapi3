@@ -127,6 +127,8 @@ components:
   schemas:
     Test:
       type: string
+      enum:
+        - test
     RGB:
       type: object
       properties:

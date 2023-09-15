@@ -56,7 +56,7 @@ def test_paths_security_v20_securityparameters(httpx_mock, with_paths_security_v
 def test_paths_security_v20_combined_securityparameters(httpx_mock, with_paths_security_v20):
     api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
     user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.model_dump())
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="combined")
 
     api.authenticate(user="u")
     with pytest.raises(ValueError, match="No security requirement satisfied"):
@@ -73,7 +73,7 @@ def test_paths_security_v20_combined_securityparameters(httpx_mock, with_paths_s
 def test_paths_security_v20_alternate_securityparameters(httpx_mock, with_paths_security_v20):
     api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
     user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.model_dump())
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="alternate")
 
     api.authenticate(user="u")
     with pytest.raises(
@@ -125,7 +125,7 @@ def test_paths_security_v20_parameters(httpx_mock, with_paths_security_v20):
 
 def test_paths_response_header_v20(httpx_mock, with_paths_response_header_v20):
     httpx_mock.add_response(
-        headers={"Content-Type": "application/json", "X-required": "1", "X-optional": "1,2,3"}, content=b"[]"
+        headers={"Content-Type": "application/json", "X-required": "1", "X-optional": "1,2,3"}, json="get"
     )
     api = OpenAPI(URLBASE, with_paths_response_header_v20, session_factory=httpx.Client)
     h, b = api._.get(return_headers=True)

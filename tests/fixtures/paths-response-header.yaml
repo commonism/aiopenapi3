@@ -15,10 +15,12 @@ paths:
       responses:
         "200":
           description: "ok"
-          content:
+          content: &content
             application/json:
               schema:
                 type: string
+                enum:
+                  - get
           headers:
             X-required:
               required: true
@@ -39,6 +41,8 @@ paths:
             application/json:
               schema:
                 type: string
+                enum:
+                  - types
           headers:
             X-object:
               required: True
