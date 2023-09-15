@@ -471,7 +471,21 @@ class OpenAPI:
                 assert byid is not None and isinstance(byid, dict)
                 for name, schema in filter(is_schema, byid.items()):
                     byname[schema._get_identity(name=name)] = schema
-            # Request
+
+            # PathItems
+            for path, obj in (self.paths or dict()).items():
+                for m in obj.model_fields_set & HTTP_METHODS:
+                    op = getattr(obj, m)
+
+                    for r, response in op.responses.items():
+                        if isinstance(response, ReferenceBase):
+                            response = response._target
+                        if isinstance(response, (v20.paths.Response)):
+                            if isinstance(response.schema_, (v20.Schema, v31.Schema)):
+                                name = response.schema_._get_identity("PI", f"{path}.{m}.{r}")
+                                byname[name] = response.schema_
+                        else:
+                            raise TypeError(f"{type(response)} at {path}")
 
             # Response
             for byid in map(lambda x: x.responses, documents):
@@ -490,7 +504,7 @@ class OpenAPI:
                 for name, schema in filter(is_schema, byid.items()):
                     byname[schema._get_identity(name=name)] = schema
 
-            # Request
+            # PathItems
             for path, obj in (self.paths or dict()).items():
                 for m in obj.model_fields_set & HTTP_METHODS:
                     op = getattr(obj, m)
