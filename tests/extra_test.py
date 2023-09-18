@@ -1,4 +1,5 @@
 import sys
+import re
 
 if sys.version_info >= (3, 9):
     from pathlib import Path
@@ -10,28 +11,90 @@ import pytest
 
 from aiopenapi3 import OpenAPI
 from aiopenapi3.loader import FileSystemLoader
-from aiopenapi3.extra import Reduced
+from aiopenapi3.extra import Culled, LazyLoaded, Reduced
 
 
-class PetStoreReduced(Reduced):
+class PetStoreReduced(LazyLoaded):
     def __init__(self):
         super().__init__({"/user/{username}": None})
 
 
-class MSGraphReduced(Reduced):
+class MSGraph:
     def __init__(self):
         super().__init__(
-            {
-                "/me/sendMail": None,
-                "/me/mailFolders": None,
+            operations={
+                "/me/profile": None,
+                re.compile(r"/me/sendMail.*"): None,
             }
         )
+
+    def parsed(self, ctx):
+        # Drop massive unnecessary discriminator
+        del ctx.document["components"]["schemas"]["microsoft.graph.entity"]["discriminator"]
+
+        # Run standard reduction process
+        ctx = super().parsed(ctx)
+
+        # Fix invalids
+        for operation in ctx.document.get("paths", {}).values():
+            for details in operation.values():
+                # Check if parameters exist for this operation
+                if isinstance(details, dict):
+                    parameters = details.get("parameters", [])
+                    for parameter in parameters:
+                        description = parameter.get("description", "")
+                        # Check if description matches the desired format
+                        if description.strip() == "Usage: on='{on}'":
+                            parameter["name"] = "on"
+
+        # Drop requirement for @odata.type since it's not actually required
+        for schema in ctx.document["components"]["schemas"].values():
+            if "required" in schema:
+                schema["required"] = [i for i in schema["required"] if i != "@odata.type"]
+                if not schema["required"]:
+                    del schema["required"]
+            if isinstance(schema, dict):
+                for s in schema.get("allOf", []):
+                    if "required" in s:
+                        s["required"] = [i for i in s["required"] if i != "@odata.type"]
+                        if not s["required"]:
+                            del s["required"]
+
+        ctx.document.setdefault("security", []).append({"token": []})
+        ctx.document.setdefault("components", {}).setdefault("securitySchemes", {}).setdefault(
+            "token",
+            {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
+        )
+
+        # Rebuild Tags
+        ctx.document["tags"] = [
+            {"name": tag}
+            for tag in set(
+                tag
+                for operations in ctx.document.get("paths", {}).values()
+                for details in operations.values()
+                if isinstance(details, dict)
+                for tag in details.get("tags", [])
+            )
+        ]
+
+        return ctx
+
+
+class MSGraphCulled(MSGraph, Culled):
+    pass
+
+
+class MSGraphLazyLoaded(MSGraph, LazyLoaded):
+    pass
+
+
+class MSGraphReduced(MSGraph, Reduced):
+    pass
 
 
 @pytest.mark.skip_env("GITHUB_ACTIONS")
 def test_reduced_msgraph():
-    from aiopenapi3.extra import Reduced
-
     api = OpenAPI.load_file(
         "/api.json",
         "data/ms-graph-openapi.json",
@@ -43,8 +106,6 @@ def test_reduced_msgraph():
 
 @pytest.mark.skip_env("GITHUB_ACTIONS")
 def test_reduced_small():
-    from aiopenapi3.extra import Reduced
-
     api = OpenAPI.load_file(
         "/",
         "data/petstorev3-openapi.yaml",
@@ -74,7 +135,7 @@ def test_reduced(with_extra_reduced, httpx_mock):
         "http://127.0.0.1/api.yaml",
         with_extra_reduced,
         session_factory=httpx.Client,
-        plugins=[Reduced({"/A/{Path}": None})],
+        plugins=[LazyLoaded({"/A/{Path}": None})],
         loader=FileSystemLoader(Path("tests/fixtures")),
     )
 
@@ -102,7 +163,7 @@ def test_reduced(with_extra_reduced, httpx_mock):
         "http://127.0.0.1/api.yaml",
         with_extra_reduced,
         session_factory=httpx.Client,
-        plugins=[Reduced({"/B": None})],
+        plugins=[LazyLoaded({re.compile("/B"): None})],
         loader=FileSystemLoader(Path("tests/fixtures")),
     )
     assert "/A/{Path}" not in api.paths.paths
