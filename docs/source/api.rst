@@ -351,8 +351,8 @@ Cull & Reduce
 -------------
 
 Reduce & Cull are Plugins limiting the models built to the minimum required to match the requirements of the supplied Operations
-
 Code below will eleminate all schemas not required to serve the operations identified by the pattern/string match and http methods associated.
+
 .. code:: python
 
     api = OpenAPI.load_sync(
@@ -367,4 +367,5 @@ Code below will eleminate all schemas not required to serve the operations ident
 
 .. currentmodule:: aiopenapi3.extra
 .. autoclass:: Reduce
+    :members: __init__
 .. autoclass:: Cull
