@@ -12,6 +12,7 @@ Table of contents
    use
    advanced
    plugin
+   extra
    api
 
 .. toctree::

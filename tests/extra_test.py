@@ -11,10 +11,10 @@ import pytest
 
 from aiopenapi3 import OpenAPI
 from aiopenapi3.loader import FileSystemLoader
-from aiopenapi3.extra import Culled, LazyLoaded, Reduced
+from aiopenapi3.extra import Cull, Reduce
 
 
-class PetStoreReduced(LazyLoaded):
+class PetStoreReduced(Reduce):
     def __init__(self):
         super().__init__({"/user/{username}": None})
 
@@ -81,15 +81,11 @@ class MSGraph:
         return ctx
 
 
-class MSGraphCulled(MSGraph, Culled):
+class MSGraphCulled(MSGraph, Cull):
     pass
 
 
-class MSGraphLazyLoaded(MSGraph, LazyLoaded):
-    pass
-
-
-class MSGraphReduced(MSGraph, Reduced):
+class MSGraphReduced(MSGraph, Reduce):
     pass
 
 
@@ -116,7 +112,8 @@ def test_reduced_small():
     return
 
 
-def test_reduced(with_extra_reduced, httpx_mock):
+@pytest.mark.parametrize("compressor", [Reduce, Cull])
+def test_reduced(with_extra_reduced, httpx_mock, compressor):
     api = OpenAPI.load_file(
         "http://127.0.0.1/api.yaml",
         with_extra_reduced,
@@ -135,7 +132,7 @@ def test_reduced(with_extra_reduced, httpx_mock):
         "http://127.0.0.1/api.yaml",
         with_extra_reduced,
         session_factory=httpx.Client,
-        plugins=[LazyLoaded({"/A/{Path}": None})],
+        plugins=[compressor({"/A/{Path}": None})],
         loader=FileSystemLoader(Path("tests/fixtures")),
     )
 
@@ -163,7 +160,7 @@ def test_reduced(with_extra_reduced, httpx_mock):
         "http://127.0.0.1/api.yaml",
         with_extra_reduced,
         session_factory=httpx.Client,
-        plugins=[LazyLoaded({re.compile("/B"): None})],
+        plugins=[compressor({re.compile("/B"): None})],
         loader=FileSystemLoader(Path("tests/fixtures")),
     )
     assert "/A/{Path}" not in api.paths.paths
