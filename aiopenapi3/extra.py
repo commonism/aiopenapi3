@@ -7,9 +7,16 @@ from .plugin import Document, Init
 
 
 class Reduce(Document, Init):
-    log = logging.getLogger("aiopenapi3.extra.Reduced")
+    """
+    The Reduce plugin removes all not listed PathItems from the paths, limits initialization to models required and removes non required schemas
+    """
 
-    def __init__(self, operations: Dict[Union[str, Pattern], List[Union[str, Pattern]]]):
+    log = logging.getLogger("aiopenapi3.extra.Reduce")
+
+    def __init__(self, operations: Dict[Union[str, Pattern], List[Union[str, Pattern]]]) -> None:
+        """
+        :param operations: paths/methods to reduce to
+        """
         self.operations: List[Union[str, Pattern]] = operations
         super().__init__()
 
@@ -73,6 +80,8 @@ class Reduce(Document, Init):
 
 
 class Cull(Reduce):
+    """The Cull plugin removes everything not required as early as possible"""
+
     @staticmethod
     def _extract_references(data, root=None):
         """
