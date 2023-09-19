@@ -1,4 +1,5 @@
 .. include:: links.rst
+
 ***
 API
 ***
@@ -342,3 +343,28 @@ document.
 .. autoexception:: HeadersMissingError
     :members:
     :undoc-members:
+
+Extra
+=====
+
+Cull & Reduce
+-------------
+
+Reduce & Cull are Plugins limiting the models built to the minimum required to match the requirements of the supplied Operations
+
+Code below will eleminate all schemas not required to serve the operations identified by the pattern/string match and http methods associated.
+.. code:: python
+
+    api = OpenAPI.load_sync(
+        "http://127.0.0.1/api.yaml",
+        plugins=[
+            Cull({
+                re.compile(r"/this/.*"): None,
+                "/and/this":["get"]
+            })
+        ],
+    )
+
+.. currentmodule:: aiopenapi3.extra
+.. autoclass:: Reduce
+.. autoclass:: Cull

@@ -1,18 +1,19 @@
 from re import Pattern
-from typing import Dict, List, Union, Tuple
+from typing import Dict, List, Union
 import logging
 import re
 
 from .plugin import Document, Init
 
-class DocumentReduced(Document):
+
+class Reduce(Document, Init):
     log = logging.getLogger("aiopenapi3.extra.Reduced")
 
     def __init__(self, operations: Dict[Union[str, Pattern], List[Union[str, Pattern]]]):
-        self.operations = operations
+        self.operations: List[Union[str, Pattern]] = operations
         super().__init__()
-        
-    def _reduced_paths(self, ctx: "Document.Context") -> "Document.Context":
+
+    def _reduced_paths(self, ctx: "Document.Context") -> dict:
         return {
             key: {
                 operation_key: operation_value
@@ -35,7 +36,43 @@ class DocumentReduced(Document):
             }.items()
         }
 
-class Culled(DocumentReduced):
+    def parsed(self, ctx: "Document.Context") -> "Document.Context":
+        """Parse the given context."""
+        ctx.document["paths"] = self._reduced_paths(ctx)
+        return ctx
+
+    def paths(self, ctx: "Init.Context") -> "Init.Context":
+        """Clear the paths of the context."""
+        ctx.paths = None
+        return ctx
+
+    def initialized(self, ctx: "Init.Context") -> "Init.Context":
+        """Process the initialized context."""
+        for name, parameter in list(ctx.initialized.components.parameters.items()):
+            if parameter.schema_._model_type is None:
+                del ctx.initialized.components.parameters[name]
+                break
+
+        for name, schema in list(ctx.initialized.components.schemas.items()):
+            if schema._model_type is None:
+                del ctx.initialized.components.schemas[name]
+                break
+
+        for name, response in list(ctx.initialized.components.responses.items()):
+            for k, v in response.content.items():
+                if v.schema_._model_type is None:
+                    del ctx.initialized.components.responses[name]
+                    break
+
+        for name, requestBody in list(ctx.initialized.components.requestBodies.items()):
+            for k, v in requestBody.content.items():
+                if v.schema_._model_type is None:
+                    del ctx.initialized.components.requestBodies[name]
+                    break
+        return ctx
+
+
+class Cull(Reduce):
     @staticmethod
     def _extract_references(data, root=None):
         """
@@ -104,42 +141,3 @@ class Culled(DocumentReduced):
 
         ctx.document = document
         return ctx
-
-class LazyLoaded(DocumentReduced, Init):
-    def parsed(self, ctx: "Document.Context") -> "Document.Context":
-        """Parse the given context."""
-        ctx.document["paths"] = self._reduced_paths(ctx)
-        return ctx
-
-    def paths(self, ctx: "Init.Context") -> "Init.Context":
-        """Clear the paths of the context."""
-        ctx.paths = None
-        return ctx
-
-    def initialized(self, ctx: "Init.Context") -> "Init.Context":
-        """Process the initialized context."""
-        for name, parameter in list(ctx.initialized.components.parameters.items()):
-            if parameter.schema_._model_type is None:
-                del ctx.initialized.components.parameters[name]
-                break
-
-        for name, schema in list(ctx.initialized.components.schemas.items()):
-            if schema._model_type is None:
-                del ctx.initialized.components.schemas[name]
-                break
-
-        for name, response in list(ctx.initialized.components.responses.items()):
-            for k, v in response.content.items():
-                if v.schema_._model_type is None:
-                    del ctx.initialized.components.responses[name]
-                    break
-
-        for name, requestBody in list(ctx.initialized.components.requestBodies.items()):
-            for k, v in requestBody.content.items():
-                if v.schema_._model_type is None:
-                    del ctx.initialized.components.requestBodies[name]
-                    break
-        return ctx
-    
-class Reduced(Culled, LazyLoaded):
-    pass

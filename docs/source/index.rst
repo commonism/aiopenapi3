@@ -42,6 +42,7 @@ While aiopenapi3 supports some of the more exotic features of the Swagger/OpenAP
 * :ref:`advanced:Forms`
 * :ref:`advanced:mutualTLS` authentication
 * :ref:`Request <advanced:Request Streaming>` and :ref:`Response <advanced:Response Streaming>` streaming to reduce memory usage
+* Culling :ref:`extra:Large Description Documents`
 
 some aspects of the specifications are implemented loose
 
