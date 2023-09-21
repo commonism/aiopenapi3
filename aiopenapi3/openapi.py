@@ -552,7 +552,7 @@ class OpenAPI:
         todo: Set[int] = self._iterate_schemas(byid, data, set())
         types: Dict[str, Union[ForwardRef, Type[BaseModel], Type[int], Type[str], Type[float], Type[bool]]] = dict()
 
-        print(f"{len(todo | data)} {only_required=}")
+        # print(f"{len(todo | data)} {only_required=}")
         for i in todo | data:
             b = byid[i]
             name = b._get_identity("X")
@@ -560,7 +560,7 @@ class OpenAPI:
             for idx, j in enumerate(b._model_types):
                 types[f"{name}.c{idx}"] = j
 
-        print(f"{len(types)}")
+        # print(f"{len(types)}")
         for name, schema in types.items():
             if not (inspect.isclass(schema) and issubclass(schema, BaseModel)):
                 # primitive types: str, int …
