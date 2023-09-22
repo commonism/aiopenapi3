@@ -498,12 +498,19 @@ class OpenAPI:
                     op: Operation = getattr(obj, m)
 
                     for parameter in op.parameters + obj.parameters:
-                        if isinstance(parameter.schema_, ReferenceBase):
-                            schema = parameter.schema_._target
+                        if parameter.schema_:
+                            if isinstance(parameter.schema_, ReferenceBase):
+                                schema = parameter.schema_._target
+                            else:
+                                schema = parameter.schema_
+                            name = schema._get_identity("I2", f"{path}.{m}.{parameter.name}")
+                            byname[name] = schema
                         else:
-                            schema = parameter.schema_
-                        name = schema._get_identity("I2", f"{path}.{m}.{parameter.name}")
-                        byname[name] = schema
+                            for key, mediatype in parameter.content.items():
+                                schema = mediatype.schema_
+                                name = schema._get_identity("I2", f"{path}.{m}.{parameter.name}.{key}")
+                                byname[name] = schema
+                            raise NotImplementedError("https://github.com/commonism/aiopenapi3/issues/163")
 
                     if op.requestBody:
                         for content_type, request in op.requestBody.content.items():

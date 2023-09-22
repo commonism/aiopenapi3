@@ -227,6 +227,14 @@ def with_paths_parameter_format(openapi_version):
 
 
 @pytest.fixture
+def with_paths_parameter_format_complex(openapi_version):
+    """
+    parameters formatting
+    """
+    yield _get_parsed_yaml("paths-parameter-format-complex.yaml", openapi_version)
+
+
+@pytest.fixture
 def with_paths_parameter_format_v20():
     """
     parameters formatting
