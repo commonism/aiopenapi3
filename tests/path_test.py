@@ -440,3 +440,28 @@ def test_paths_response_status_pattern_default(httpx_mock, with_paths_response_s
 
     with pytest.raises(ResponseSchemaError):
         api._.test()
+
+
+def test_paths_request_calling(httpx_mock, with_paths_response_status_pattern_default):
+    api = OpenAPI("/", with_paths_response_status_pattern_default, session_factory=httpx.Client)
+
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=201, json="created")
+    r = api._.test()
+    assert r == "created"
+
+    req = api.createRequest("test")
+    operationId, path, method = req.operation.operationId, req.path, req.method
+    r = req()
+    assert r == "created"
+
+    req = api.createRequest((path, method))
+    r = req.request()
+    assert r.data == "created"
+
+    req = api._[operationId]
+    r = req()
+    assert r == "created"
+
+    req = api._[(path, method)]
+    r = req()
+    assert r == "created"
