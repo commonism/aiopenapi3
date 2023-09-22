@@ -348,6 +348,11 @@ def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
     return
 
 
+@pytest.mark.xfail(raises=NotImplementedError, reason="https://github.com/commonism/aiopenapi3/issues/163")
+def test_paths_parameter_format_complex(httpx_mock, with_paths_parameter_format_complex):
+    OpenAPI(URLBASE, with_paths_parameter_format_complex, session_factory=httpx.Client)
+
+
 def test_paths_response_header(httpx_mock, with_paths_response_header):
     httpx_mock.add_response(
         headers={"Content-Type": "application/json", "X-required": "1", "X-optional": "1,2,3"}, json="get"
