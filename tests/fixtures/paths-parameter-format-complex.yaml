@@ -1,0 +1,71 @@
+openapi: 3.0.3
+info:
+  title: ''
+  version: 0.0.0
+servers:
+  - url: http://127.0.0.1/api
+
+security:
+  - {}
+
+paths:
+  /form/query:
+    get:
+      operationId: FormQuery
+      parameters:
+        - $ref: "#/components/parameters/EmptyFormQuery"
+
+      responses: &resp
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Test'
+          headers:
+            head:
+              $ref: "#/components/headers/ArraySimpleHeader"
+          description: ''
+
+
+
+
+components:
+  schemas:
+    Test:
+      type: string
+      enum:
+        - test
+
+  headers:
+    ArraySimpleHeader:
+      schema:
+        type: array
+        items:
+          type: string
+      style: simple
+      explode: false
+
+  parameters:
+    EmptyFormQuery:
+      in: query
+      name: empty
+      required: true
+      content:
+        "application/json":
+          schema:
+            type: number
+          encoding:
+            "*":
+              style: form
+              explode: false
+              headers:
+                X-hrm:
+                  description: hrm header
+                  content:
+                    "*":
+                      schema:
+                        type: string
+                        format: date-time
+                      encoding:
+                        "application/x-www-form-urlencoded":
+                          style: form
