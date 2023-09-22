@@ -34,7 +34,7 @@ from .request import OperationIndex, HTTP_METHODS
 from .errors import ReferenceResolutionError
 from .loader import Loader, NullLoader
 from .plugin import Plugin, Plugins
-from .base import RootBase, ReferenceBase, SchemaBase, OperationBase
+from .base import RootBase, ReferenceBase, SchemaBase, OperationBase, DiscriminatorBase
 from .request import RequestBase
 from .v30.paths import Operation
 
@@ -401,8 +401,6 @@ class OpenAPI:
     @staticmethod
     def _get_combined_attributes(schema):
         """Combine attributes from the schema."""
-        from .base import DiscriminatorBase
-
         return (
             getattr(schema, "oneOf", [])  # Swagger compat
             + (
@@ -418,7 +416,7 @@ class OpenAPI:
         )
 
     @classmethod
-    def _process_schema_attributes(cls, schema, processed):
+    def _process_schema_attributes(cls, schema: "SchemaType", processed: Set[int]) -> Dict[int, "SchemaType"]:
         """Process attributes of a schema and filter out the processed ones."""
         combined_attributes = cls._get_combined_attributes(schema)
         return {
@@ -432,7 +430,7 @@ class OpenAPI:
         }
 
     @classmethod
-    def _iterate_schemas(cls, schemas: dict, next_set: set, processed: set):
+    def _iterate_schemas(cls, schemas: Dict[int, "SchemaType"], next_set: Set[int], processed: Set[int]) -> Set[int]:
         """Iteratively collect all schemas related to the starting set."""
         while next_set:
             processed.update(next_set)
