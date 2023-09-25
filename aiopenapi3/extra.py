@@ -21,27 +21,44 @@ class Reduce(Document, Init):
         super().__init__()
 
     def _reduced_paths(self, ctx: "Document.Context") -> dict:
-        return {
-            key: {
-                operation_key: operation_value
-                for pattern in operation_patterns
-                for operation_key, operation_value in ctx.document["paths"][key].items()
-                if isinstance(operation_value, str)
-                or (
-                    (isinstance(pattern, str) and pattern == operation_key)
-                    or (isinstance(pattern, re.Pattern) and re.match(pattern, operation_key))
-                )
+        reduced_paths = {}
+        for path_key, path_value in ctx.document["paths"].items():
+            # Extracting Non-Operation Objects
+            non_op_objects = {
+                key: val
+                for key, val in path_value.items()
+                if key in {"summary", "description", "servers", "parameters"}
             }
-            if operation_patterns
-            else ctx.document["paths"][key]
-            for key, operation_patterns in {
-                path_key: operation_patterns
-                for pattern, operation_patterns in self.operations.items()
-                for path_key in ctx.document["paths"].keys()
-                if (isinstance(pattern, str) and pattern == path_key)
-                or (isinstance(pattern, re.Pattern) and re.match(pattern, path_key))
-            }.items()
-        }
+
+            for operation_key, operation_value in path_value.items():
+                if operation_key in non_op_objects:  # Skip if the key is a Non-Operation Object
+                    continue
+
+                for pattern, operation_patterns in self.operations.items():
+                    # If pattern is None, look for operationId in operation_patterns
+                    if pattern is None and isinstance(operation_value, dict):
+                        operation_id = operation_value.get("operationId", "")
+                        if any(
+                            op_pattern == operation_id
+                            or (isinstance(op_pattern, Pattern) and re.match(op_pattern, operation_id))
+                            for op_pattern in operation_patterns
+                        ):
+                            reduced_paths.setdefault(path_key, {}).update(non_op_objects)
+                            reduced_paths[path_key][operation_key] = operation_value
+
+                    else:
+                        if (
+                            (isinstance(pattern, str) and pattern == path_key)
+                            or (isinstance(pattern, Pattern) and re.match(pattern, path_key))
+                        ) and any(
+                            op_pattern == operation_key
+                            or (isinstance(op_pattern, Pattern) and re.match(op_pattern, operation_key))
+                            for op_pattern in operation_patterns
+                        ):
+                            reduced_paths.setdefault(path_key, {}).update(non_op_objects)
+                            reduced_paths[path_key][operation_key] = operation_value
+
+        return reduced_paths
 
     def parsed(self, ctx: "Document.Context") -> "Document.Context":
         """Parse the given context."""
@@ -140,14 +157,13 @@ class Cull(Reduce):
         """
         # Exclude certain keys from the document
         document = {k: v for k, v in ctx.document.items() if k not in ["components", "paths", "tags"]}
-
+        # Restore security schemes
+        document["components"] = {"securitySchemes": ctx.document.get("components", {}).get("securitySchemes", {})}
         # Process paths in the document
         document["paths"] = self._reduced_paths(ctx)
-
         # Update references in the document
         while self._update_references(ctx.document, document):
             pass
-
         # Rebuild Tags
         tag_names = list(
             set(
