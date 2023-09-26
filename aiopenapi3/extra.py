@@ -34,9 +34,12 @@ class Reduce(Document, Init):
                 if operation_key in non_op_objects:  # Skip if the key is a Non-Operation Object
                     continue
 
+                if not isinstance(operation_value, dict):
+                    continue
+
                 for pattern, operation_patterns in self.operations.items():
                     # If pattern is None, look for operationId in operation_patterns
-                    if pattern is None and isinstance(operation_value, dict):
+                    if pattern is None and operation_patterns is not None:
                         operation_id = operation_value.get("operationId", "")
                         if any(
                             op_pattern == operation_id
@@ -53,7 +56,7 @@ class Reduce(Document, Init):
                         ) and any(
                             op_pattern == operation_key
                             or (isinstance(op_pattern, Pattern) and re.match(op_pattern, operation_key))
-                            for op_pattern in operation_patterns
+                            for op_pattern in operation_patterns or [operation_key]
                         ):
                             reduced_paths.setdefault(path_key, {}).update(non_op_objects)
                             reduced_paths[path_key][operation_key] = operation_value
