@@ -77,8 +77,7 @@ class MSGraph:
 
 
 class MSGraphCulled(MSGraph, Cull):
-    def paths(self, ctx: "Init.Context") -> "Init.Context":
-        return ctx
+    pass
 
 
 class MSGraphReduced(MSGraph, Reduce):
