@@ -1,5 +1,4 @@
-from re import Pattern
-from typing import Dict, List, Union
+from typing import List, Union, Optional, Tuple
 import logging
 import re
 
@@ -13,55 +12,50 @@ class Reduce(Document, Init):
 
     log = logging.getLogger("aiopenapi3.extra.Reduce")
 
-    def __init__(self, operations: Dict[Union[str, Pattern], List[Union[str, Pattern]]]) -> None:
-        """
-        :param operations: paths/methods to reduce to
-        """
-        self.operations: List[Union[str, Pattern]] = operations
+    def __init__(
+        self,
+        operations: List[
+            Union[Tuple[Union[re.Pattern, str], Optional[List[Union[re.Pattern, str]]]], Union[re.Pattern, str]]
+        ],
+    ) -> None:
+        self.operations = operations
         super().__init__()
 
     def _reduced_paths(self, ctx: "Document.Context") -> dict:
-        reduced_paths = {}
-        for path_key, path_value in ctx.document["paths"].items():
-            # Extracting Non-Operation Objects
-            non_op_objects = {
-                key: val
-                for key, val in path_value.items()
-                if key in {"summary", "description", "servers", "parameters"}
-            }
-
-            for operation_key, operation_value in path_value.items():
-                if operation_key in non_op_objects:  # Skip if the key is a Non-Operation Object
-                    continue
-
-                if not isinstance(operation_value, dict):
-                    continue
-
-                for pattern, operation_patterns in self.operations.items():
-                    # If pattern is None, look for operationId in operation_patterns
-                    if pattern is None and operation_patterns is not None:
-                        operation_id = operation_value.get("operationId", "")
-                        if any(
-                            op_pattern == operation_id
-                            or (isinstance(op_pattern, Pattern) and re.match(op_pattern, operation_id))
-                            for op_pattern in operation_patterns
+        reduced = {}
+        keep_keys = {"summary", "description", "servers", "parameters"}
+        for operation in self.operations:
+            if isinstance(operation, (str, re.Pattern)):
+                for path_key, path_value in ctx.document["paths"].items():
+                    for operation_key, operation_value in path_value.items():
+                        if "operationId" in operation_value and (
+                            (isinstance(operation, str) and operation == operation_value["operationId"])
+                            or (
+                                isinstance(operation, re.Pattern)
+                                and re.match(operation, operation_value["operationId"])
+                            )
                         ):
-                            reduced_paths.setdefault(path_key, {}).update(non_op_objects)
-                            reduced_paths[path_key][operation_key] = operation_value
-
-                    else:
-                        if (
-                            (isinstance(pattern, str) and pattern == path_key)
-                            or (isinstance(pattern, Pattern) and re.match(pattern, path_key))
-                        ) and any(
-                            op_pattern == operation_key
-                            or (isinstance(op_pattern, Pattern) and re.match(op_pattern, operation_key))
-                            for op_pattern in operation_patterns or [operation_key]
-                        ):
-                            reduced_paths.setdefault(path_key, {}).update(non_op_objects)
-                            reduced_paths[path_key][operation_key] = operation_value
-
-        return reduced_paths
+                            if path_key not in reduced:
+                                reduced[path_key] = {k: v for k, v in path_value.items() if k in keep_keys}
+                            reduced[path_key][operation_key] = operation_value
+            else:
+                pattern, operation_patterns = operation
+                for path_key in ctx.document["paths"].keys():
+                    if (isinstance(pattern, str) and pattern == path_key) or (
+                        isinstance(pattern, re.Pattern) and re.match(pattern, path_key)
+                    ):
+                        reduced[path_key] = {
+                            k: v
+                            for k, v in ctx.document["paths"][path_key].items()
+                            if k in keep_keys
+                            or not operation_patterns
+                            or any(
+                                (isinstance(op_pattern, str) and op_pattern == k)
+                                or (isinstance(op_pattern, re.Pattern) and re.match(op_pattern, k))
+                                for op_pattern in operation_patterns
+                            )
+                        }
+        return reduced
 
     def parsed(self, ctx: "Document.Context") -> "Document.Context":
         """Parse the given context."""
