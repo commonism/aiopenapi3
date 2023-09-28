@@ -11,7 +11,8 @@ import pytest
 
 from aiopenapi3 import OpenAPI
 from aiopenapi3.loader import FileSystemLoader
-from aiopenapi3.extra import Cull, Reduce
+from aiopenapi3.extra import Cull, Init, Reduce, Document
+from typing import Dict
 
 
 class PetStoreReduced(Reduce):
@@ -22,20 +23,37 @@ class PetStoreReduced(Reduce):
 class MSGraph:
     def __init__(self):
         super().__init__(
-            operations={
-                "/me/profile": None,
-                re.compile(r"/me/sendMail.*"): None,
-            }
+            operations=[
+                ("/me/profile", None),
+                (re.compile(r"/me/sendMail.*"), None),
+                "accessReviewDecisions.accessReviewDecision.ListAccessReviewDecision",
+                re.compile(r"drives.drive.items.driveItem.permissions.permission*"),
+            ]
         )
 
-    def parsed(self, ctx):
+    @staticmethod
+    def _remove_parameter(document, path, parameter_name):
+        if document["paths"].get(path, {}).get("parameters"):
+            document["paths"][path]["parameters"] = [
+                p for p in document["paths"][path]["parameters"] if p.get("name", "") != parameter_name
+            ]
+
+    @staticmethod
+    def _drop_required(schema: Dict, requirement: str) -> None:
+        if "required" in schema:
+            schema["required"] = [i for i in schema["required"] if i != requirement]
+            if not schema["required"]:
+                del schema["required"]
+
+    def parsed(self, ctx: "Document.Context") -> "Document.Context":
         # Drop massive unnecessary discriminator
         del ctx.document["components"]["schemas"]["microsoft.graph.entity"]["discriminator"]
-
         # Run standard reduction process
         ctx = super().parsed(ctx)
-
-        # Fix invalids
+        # Remove superfluous parameters
+        self._remove_parameter(ctx.document, "/applications(appId='{appId}')", "uniqueName")
+        self._remove_parameter(ctx.document, "/applications(uniqueName='{uniqueName}')", "appId")
+        # Fix parameter names
         for operation in ctx.document.get("paths", {}).values():
             for details in operation.values():
                 # Check if parameters exist for this operation
@@ -46,43 +64,21 @@ class MSGraph:
                         # Check if description matches the desired format
                         if description.strip() == "Usage: on='{on}'":
                             parameter["name"] = "on"
-
-        # Drop requirement for @odata.type since it's not actually required
-        for schema in ctx.document["components"]["schemas"].values():
-            if "required" in schema:
-                schema["required"] = [i for i in schema["required"] if i != "@odata.type"]
-                if not schema["required"]:
-                    del schema["required"]
+                        if "content" in parameter.keys():
+                            parameter["schema"] = parameter["content"].get("application/json", {}).get("schema", {})
+                            del parameter["content"]
+        # Drop requirement for @odata.type since it's not actually enforced
+        for schema in ctx.document.get("components", {}).get("schemas", {}).values():
             if isinstance(schema, dict):
+                self._drop_required(schema, "@odata.type")
                 for s in schema.get("allOf", []):
-                    if "required" in s:
-                        s["required"] = [i for i in s["required"] if i != "@odata.type"]
-                        if not s["required"]:
-                            del s["required"]
-
-        ctx.document.setdefault("security", []).append({"token": []})
-        ctx.document.setdefault("components", {}).setdefault("securitySchemes", {}).setdefault(
-            "token",
-            {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
-        )
-
-        # Rebuild Tags
-        ctx.document["tags"] = [
-            {"name": tag}
-            for tag in set(
-                tag
-                for operations in ctx.document.get("paths", {}).values()
-                for details in operations.values()
-                if isinstance(details, dict)
-                for tag in details.get("tags", [])
-            )
-        ]
-
+                    self._drop_required(s, "@odata.type")
         return ctx
 
 
 class MSGraphCulled(MSGraph, Cull):
-    pass
+    def paths(self, ctx: "Init.Context") -> "Init.Context":
+        return ctx
 
 
 class MSGraphReduced(MSGraph, Reduce):
