@@ -123,11 +123,12 @@ def test_reduced(with_extra_reduced, httpx_mock, compressor):
     assert "A" in api.components.responses
     assert "A" in api.components.requestBodies
 
+    # (str, methods)
     api = OpenAPI.load_file(
         "http://127.0.0.1/api.yaml",
         with_extra_reduced,
         session_factory=httpx.Client,
-        plugins=[compressor({"/A/{Path}": None})],
+        plugins=[compressor([("/A/{Path}", None)])],
         loader=FileSystemLoader(Path("tests/fixtures")),
     )
 
@@ -151,11 +152,12 @@ def test_reduced(with_extra_reduced, httpx_mock, compressor):
     assert payload.a == 1
     assert headers["X-A"] == "A"
 
+    # (re, methods)
     api = OpenAPI.load_file(
         "http://127.0.0.1/api.yaml",
         with_extra_reduced,
         session_factory=httpx.Client,
-        plugins=[compressor({re.compile("/B"): None})],
+        plugins=[compressor([(re.compile("/B"), None)])],
         loader=FileSystemLoader(Path("tests/fixtures")),
     )
     assert "/A/{Path}" not in api.paths.paths
@@ -163,3 +165,39 @@ def test_reduced(with_extra_reduced, httpx_mock, compressor):
     assert "A" not in api.components.schemas
     assert "A" not in api.components.responses
     assert "A" not in api.components.requestBodies
+
+    # operationId str
+    api = OpenAPI.load_file(
+        "http://127.0.0.1/api.yaml",
+        with_extra_reduced,
+        session_factory=httpx.Client,
+        plugins=[compressor(["A"])],
+        loader=FileSystemLoader(Path("tests/fixtures")),
+    )
+    assert "/A/{Path}" in api.paths.paths
+    assert "A" in api.components.parameters
+    assert "AA" in api.components.schemas
+    assert "A" in api.components.schemas
+
+    assert "A0" in api.components.schemas
+    assert "A1" in api.components.schemas
+    assert "A" in api.components.responses
+    assert "A" in api.components.requestBodies
+
+    # operationId re
+    api = OpenAPI.load_file(
+        "http://127.0.0.1/api.yaml",
+        with_extra_reduced,
+        session_factory=httpx.Client,
+        plugins=[compressor([re.compile(r"[A]{1}$")])],
+        loader=FileSystemLoader(Path("tests/fixtures")),
+    )
+    assert "/A/{Path}" in api.paths.paths
+    assert "A" in api.components.parameters
+    assert "AA" in api.components.schemas
+    assert "A" in api.components.schemas
+
+    assert "A0" in api.components.schemas
+    assert "A1" in api.components.schemas
+    assert "A" in api.components.responses
+    assert "A" in api.components.requestBodies
