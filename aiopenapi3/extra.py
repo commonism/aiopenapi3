@@ -18,6 +18,7 @@ class Reduce(Document, Init):
             Union[Tuple[Union[re.Pattern, str], Optional[List[Union[re.Pattern, str]]]], Union[re.Pattern, str]]
         ],
     ) -> None:
+        assert isinstance(operations, list), type(operations)
         self.operations = operations
         super().__init__()
 
@@ -38,7 +39,7 @@ class Reduce(Document, Init):
                             if path_key not in reduced:
                                 reduced[path_key] = {k: v for k, v in path_value.items() if k in keep_keys}
                             reduced[path_key][operation_key] = operation_value
-            else:
+            elif isinstance(operation, tuple) and len(operation) == 2:
                 pattern, operation_patterns = operation
                 for path_key in ctx.document["paths"].keys():
                     if (isinstance(pattern, str) and pattern == path_key) or (
@@ -55,6 +56,8 @@ class Reduce(Document, Init):
                                 for op_pattern in operation_patterns
                             )
                         }
+            else:
+                raise TypeError(operation)
         return reduced
 
     def parsed(self, ctx: "Document.Context") -> "Document.Context":

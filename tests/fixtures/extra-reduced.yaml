@@ -85,6 +85,7 @@ paths:
 
   /B:
     get:
+      operationId: B
       responses:
         "200":
           description: "ok"
