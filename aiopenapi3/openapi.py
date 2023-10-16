@@ -459,7 +459,7 @@ class OpenAPI:
                     for name, schema in filter(is_schema, byid.items()):
                         byname[schema._get_identity(name=name)] = schema
 
-            # PathItems
+                # PathItems
                 for path, obj in (self.paths or dict()).items():
                     for m in obj.model_fields_set & HTTP_METHODS:
                         op = getattr(obj, m)
