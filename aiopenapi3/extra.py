@@ -14,11 +14,11 @@ class Reduce(Document, Init):
 
     def __init__(
         self,
-        operations: List[
+        *operations: List[
             Union[Tuple[Union[re.Pattern, str], Optional[List[Union[re.Pattern, str]]]], Union[re.Pattern, str]]
         ],
     ) -> None:
-        assert isinstance(operations, list), type(operations)
+        assert isinstance(operations, (list, tuple)), type(operations)
         self.operations = operations
         super().__init__()
 
