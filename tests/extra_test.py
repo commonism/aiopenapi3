@@ -1,5 +1,6 @@
 import sys
 import re
+import typing
 
 if sys.version_info >= (3, 9):
     from pathlib import Path
@@ -11,24 +12,26 @@ import pytest
 
 from aiopenapi3 import OpenAPI
 from aiopenapi3.loader import FileSystemLoader
-from aiopenapi3.extra import Cull, Init, Reduce, Document
+
+from aiopenapi3.extra import Cull, Reduce
 from typing import Dict
+
+if typing.TYPE_CHECKING:
+    from aiopenapi3.plugin import Document
 
 
 class PetStoreReduced(Reduce):
     def __init__(self):
-        super().__init__({"/user/{username}": None})
+        super().__init__(("/user/{username}", None))
 
 
 class MSGraph:
     def __init__(self):
         super().__init__(
-            operations=[
-                ("/me/profile", None),
-                (re.compile(r"/me/sendMail.*"), None),
-                "accessReviewDecisions.accessReviewDecision.ListAccessReviewDecision",
-                re.compile(r"drives.drive.items.driveItem.permissions.permission*"),
-            ]
+            ("/me/profile", None),
+            (re.compile(r"/me/sendMail.*"), None),
+            "accessReviewDecisions.accessReviewDecision.ListAccessReviewDecision",
+            re.compile(r"drives.drive.items.driveItem.permissions.permission*"),
         )
 
     @staticmethod
@@ -128,7 +131,7 @@ def test_reduced(with_extra_reduced, httpx_mock, compressor):
         "http://127.0.0.1/api.yaml",
         with_extra_reduced,
         session_factory=httpx.Client,
-        plugins=[compressor([("/A/{Path}", None)])],
+        plugins=[compressor(("/A/{Path}", None))],
         loader=FileSystemLoader(Path("tests/fixtures")),
     )
 
@@ -157,7 +160,7 @@ def test_reduced(with_extra_reduced, httpx_mock, compressor):
         "http://127.0.0.1/api.yaml",
         with_extra_reduced,
         session_factory=httpx.Client,
-        plugins=[compressor([(re.compile("/B"), None)])],
+        plugins=[compressor((re.compile("/B"), None))],
         loader=FileSystemLoader(Path("tests/fixtures")),
     )
     assert "/A/{Path}" not in api.paths.paths
@@ -171,7 +174,7 @@ def test_reduced(with_extra_reduced, httpx_mock, compressor):
         "http://127.0.0.1/api.yaml",
         with_extra_reduced,
         session_factory=httpx.Client,
-        plugins=[compressor(["A"])],
+        plugins=[compressor("A")],
         loader=FileSystemLoader(Path("tests/fixtures")),
     )
     assert "/A/{Path}" in api.paths.paths
@@ -189,7 +192,7 @@ def test_reduced(with_extra_reduced, httpx_mock, compressor):
         "http://127.0.0.1/api.yaml",
         with_extra_reduced,
         session_factory=httpx.Client,
-        plugins=[compressor([re.compile(r"[A]{1}$")])],
+        plugins=[compressor(re.compile(r"[A]{1}$"))],
         loader=FileSystemLoader(Path("tests/fixtures")),
     )
     assert "/A/{Path}" in api.paths.paths
