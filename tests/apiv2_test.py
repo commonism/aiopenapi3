@@ -161,7 +161,7 @@ async def test_Request(event_loop, server, client):
 @pytest.mark.asyncio
 async def test_createPet(event_loop, server, client):
     data = {
-        "pet": client.components.schemas["WhiteCat-Input"]
+        "pet": client.components.schemas["WhiteCat"]
         .model(
             {
                 "name": str(uuid.uuid4()),
