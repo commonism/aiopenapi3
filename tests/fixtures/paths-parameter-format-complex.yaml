@@ -9,25 +9,19 @@ security:
   - {}
 
 paths:
-  /form/query:
+  /test:
     get:
-      operationId: FormQuery
+      operationId: get
       parameters:
-        - $ref: "#/components/parameters/EmptyFormQuery"
+        - $ref: "#/components/parameters/ContentDefinedParameter"
 
-      responses: &resp
+      responses:
         '200':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Test'
-          headers:
-            head:
-              $ref: "#/components/headers/ArraySimpleHeader"
           description: ''
-
-
-
 
 components:
   schemas:
@@ -36,36 +30,14 @@ components:
       enum:
         - test
 
-  headers:
-    ArraySimpleHeader:
-      schema:
-        type: array
-        items:
-          type: string
-      style: simple
-      explode: false
-
   parameters:
-    EmptyFormQuery:
+    ContentDefinedParameter:
       in: query
-      name: empty
+      name: value
       required: true
       content:
         "application/json":
           schema:
-            type: number
-          encoding:
-            "*":
-              style: form
-              explode: false
-              headers:
-                X-hrm:
-                  description: hrm header
-                  content:
-                    "*":
-                      schema:
-                        type: string
-                        format: date-time
-                      encoding:
-                        "application/x-www-form-urlencoded":
-                          style: form
+            type: integer
+            default: 5
+          example: 5

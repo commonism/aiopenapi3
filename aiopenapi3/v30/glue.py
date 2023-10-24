@@ -282,9 +282,19 @@ class Request(RequestBase):
                     rbq.update(v.headers)
                 possible.update(rbq)
 
-        parameters = {
-            i.name: i.schema_.default for i in filter(lambda x: x.schema_.default is not None, possible.values())
-        }
+        parameters = {}
+
+        """collect default values"""
+        for i in possible.values():
+            if i.schema_ is not None and i.schema_.default is not None:
+                parameters[i.name] = i.schema_.default
+            elif (
+                i.content is not None
+                and (m := i.content.get("application/json", None)) is not None
+                and m.schema_.default
+            ):
+                parameters[i.name] = m.schema_.default
+
         parameters.update(provided)
 
         available = frozenset(parameters.keys())

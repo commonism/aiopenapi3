@@ -57,4 +57,5 @@ class Header(ParameterBase, _ParameterCodec):
     """
 
     def _codec(self):
-        return "simple", False
+        schema = self.schema_ or self.content.get("application/json").schema_
+        return schema, "simple", False

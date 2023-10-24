@@ -504,11 +504,14 @@ class OpenAPI:
                             name = schema._get_identity("I2", f"{path}.{m}.{parameter.name}")
                             byname[name] = schema
                         else:
-                            for key, mediatype in parameter.content.items():
-                                schema = mediatype.schema_
+                            for key, mto in parameter.content.items():
+                                if isinstance(mto.schema_, ReferenceBase):
+                                    schema = mto.schema_._target
+                                else:
+                                    schema = mto.schema_
+                                assert schema is not None
                                 name = schema._get_identity("I2", f"{path}.{m}.{parameter.name}.{key}")
                                 byname[name] = schema
-                            raise NotImplementedError("https://github.com/commonism/aiopenapi3/issues/163")
 
                     if op.requestBody:
                         for content_type, request in op.requestBody.content.items():
