@@ -501,6 +501,7 @@ class OpenAPI:
                                 schema = parameter.schema_._target
                             else:
                                 schema = parameter.schema_
+                            assert schema is not None
                             name = schema._get_identity("I2", f"{path}.{m}.{parameter.name}")
                             byname[name] = schema
                         else:
@@ -514,22 +515,22 @@ class OpenAPI:
                                 byname[name] = schema
 
                     if op.requestBody:
-                        for content_type, request in op.requestBody.content.items():
-                            if request.schema_ is None:
+                        for mt, mto in op.requestBody.content.items():
+                            if mto.schema_ is None:
                                 continue
-                            byname[request.schema_._get_identity("B")] = request.schema_
+                            byname[mto.schema_._get_identity("B")] = mto.schema_
 
                     for r, response in op.responses.items():
                         if isinstance(response, ReferenceBase):
                             response = response._target
                         if isinstance(response, (v30.paths.Response, v31.paths.Response)):
                             assert response.content is not None
-                            for c, content in response.content.items():
-                                if content.schema_ is None:
+                            for mt, mto in response.content.items():
+                                if mto.schema_ is None:
                                     continue
-                                if isinstance(content.schema_, (v30.Schema, v31.Schema)):
-                                    name = content.schema_._get_identity("I2", f"{path}.{m}.{r}.{c}")
-                                    byname[name] = content.schema_
+                                if isinstance(mto.schema_, (v30.Schema, v31.Schema)):
+                                    name = mto.schema_._get_identity("I2", f"{path}.{m}.{r}.{mt}")
+                                    byname[name] = mto.schema_
                         else:
                             raise TypeError(f"{type(response)} at {path}")
 
@@ -538,10 +539,10 @@ class OpenAPI:
                 for responses in map(lambda x: x.responses, components):
                     assert responses is not None
                     for rname, response in responses.items():
-                        for content_type, media_type in response.content.items():
-                            if media_type.schema_ is None:
+                        for mt, mto in response.content.items():
+                            if mto.schema_ is None:
                                 continue
-                            byname[media_type.schema_._get_identity("R")] = media_type.schema_
+                            byname[mto.schema_._get_identity("R")] = mto.schema_
 
         byname = self.plugins.init.schemas(initialized=self._root, schemas=byname).schemas
         return byname
