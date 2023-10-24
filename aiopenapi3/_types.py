@@ -27,6 +27,7 @@ RequestParameters = Dict[str, RequestParameter]
 RootType = Union[v20.Root, v30.Root, v31.Root]
 ReferenceType = Union[v20.Reference, v30.Reference, v31.Reference]
 SchemaType = Union[v20.Schema, v30.Schema, v31.Schema]
+v3xSchemaType = Union[v30.Schema, v31.Schema]
 DiscriminatorType = Union[v30.Discriminator, v31.Discriminator]
 PathItemType = Union[v20.PathItem, v30.PathItem, v31.PathItem]
 OperationType = Union[v20.Operation, v30.Operation, v31.Operation]
@@ -46,6 +47,7 @@ PrimitiveTypes = Union[str, float, int, bool]
 __all__: List[str] = [
     "RootType",
     "SchemaType",
+    "v3xSchemaType",
     "DiscriminatorType",
     "PathItemType",
     "OperationType",
