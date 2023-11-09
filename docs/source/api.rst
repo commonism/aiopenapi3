@@ -358,10 +358,12 @@ Code below will eleminate all schemas not required to serve the operations ident
     api = OpenAPI.load_sync(
         "http://127.0.0.1/api.yaml",
         plugins=[
-            Cull({
-                re.compile(r"/this/.*"): None,
-                "/and/this":["get"]
-            })
+            Cull(
+                "getPetById",
+                re.compile(r".*Pet.*"),
+                ("/logout", ["get"]),
+                (re.compile(r"^/user.*"), ["post"]),
+            )
         ],
     )
 
