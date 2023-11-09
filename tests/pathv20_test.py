@@ -1,5 +1,6 @@
 import io
 import uuid
+import urllib
 
 import yarl
 import httpx
@@ -168,15 +169,28 @@ def test_paths_parameter_format_v20(httpx_mock, with_paths_parameter_format_v20)
     assert u.query["array"] == "blue\tblack\tbrown"
 
     params = {x.name: "" for x in api._.formdata.operation.parameters}
-    params["file0"] = ("file0", io.BytesIO(b"x"), "ct")
-    params["file1"] = ("file1", io.BytesIO(b"y"), "ct")
+    params["file0"] = ("file0name", io.BytesIO(b"x"), "ct")
+    params["file1"] = ("file1name", io.BytesIO(b"y"), "ct")
     result = api._.formdata(parameters=params)
     request = httpx_mock.get_requests()[-1]
+    assert (
+        (f := request.stream.fields[0]) is not None
+        and f.filename == "file0name"
+        and f.headers["Content-Type"] == "ct"
+        and f.file.read() == b"x"
+    )
+    assert (
+        (f := request.stream.fields[1]) is not None
+        and f.filename == "file1name"
+        and f.headers["Content-Type"] == "ct"
+        and f.file.read() == b"y"
+    )
     assert result == "ok"
 
     params = dict(A="a", B=5)
     result = api._.urlencoded(parameters=params)
     request = httpx_mock.get_requests()[-1]
+    assert (v := urllib.parse.parse_qs(request.content.decode())) is not None and v["A"] == ["a"] and v["B"] == ["5"]
     assert result == "ok"
 
     return
