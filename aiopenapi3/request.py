@@ -44,6 +44,7 @@ if typing.TYPE_CHECKING:
         RootType,
         ResponseDataType,
         ResponseHeadersType,
+        HTTPMethodType,
     )
     from aiopenapi3 import OpenAPI
 
@@ -65,7 +66,7 @@ class RequestParameter:
 class RequestBase:
     class StreamResponse(NamedTuple):
         headers: Dict[str, str]
-        schema: "SchemaType"
+        schema: Optional["SchemaType"]
         session: httpx.Client
         result: httpx.Response
 
@@ -85,10 +86,10 @@ class RequestBase:
         - :meth:`~aiopenapi3.request.RequestBase.request`
     """
 
-    def __init__(self, api: "OpenAPI", method: str, path: str, operation: "OperationType"):
+    def __init__(self, api: "OpenAPI", method: "HTTPMethodType", path: str, operation: "OperationType"):
         self.api: "OpenAPI" = api
         self.root = api._root  # pylint: disable=W0212
-        self.method: str = method
+        self.method: "HTTPMethodType" = method
         self.path: str = path
         self.operation: "OperationType" = operation
         self.req: RequestParameter = RequestParameter(self.path)
@@ -287,7 +288,7 @@ class OperationIndex:
     class OperationTag:
         def __init__(self, oi: "OperationIndex") -> None:
             self._oi = oi
-            self._operations: Dict[str, Tuple[str, str, "OperationType"]] = dict()
+            self._operations: Dict[str, Tuple["HTTPMethodType", str, "OperationType"]] = dict()
 
         def __getattr__(self, item) -> RequestBase:
             (method, path, op) = self._operations[item]
@@ -325,7 +326,7 @@ class OperationIndex:
         self._api: "OpenAPI" = api
         self._root: "RootType" = api._root
 
-        self._operations: Dict[str, Tuple[str, str, "OperationType"]] = dict()
+        self._operations: Dict[str, Tuple[str, "HTTPMethodType", "OperationType"]] = dict()
         self._tags: Dict[str, "OperationIndex.OperationTag"] = collections.defaultdict(
             lambda: OperationIndex.OperationTag(self)
         )
@@ -361,7 +362,7 @@ class OperationIndex:
         else:
             raise KeyError(f"operationId {item} not found in tags or operations")
 
-    def __getitem__(self, item: Union[str, Tuple[str, str]]):
+    def __getitem__(self, item: Union[str, Tuple[str, "HTTPMethodType"]]):
         """
         index operator interface
         access operations by operationId or (path, method)

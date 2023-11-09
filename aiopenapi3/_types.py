@@ -1,15 +1,17 @@
-from . import v20, v30, v31
-
-from typing import TYPE_CHECKING, Dict, List, Sequence, Tuple, Union, TypeAlias, Type, Optional
+import re
+from typing import TYPE_CHECKING, Dict, List, Sequence, Tuple, Union, TypeAlias, Type, Optional, Literal
 
 import yaml
+
+from httpx._types import RequestContent, FileTypes, RequestFiles, AuthTypes  # noqa
+from pydantic import BaseModel
+
+
+from . import v20, v30, v31
 
 if TYPE_CHECKING:
     pass
 
-
-from httpx._types import RequestContent, FileTypes, RequestFiles, AuthTypes  # noqa
-from pydantic import BaseModel
 
 RequestFileParameter = Tuple[str, FileTypes]
 RequestFilesParameter = Sequence[RequestFileParameter]
@@ -44,6 +46,9 @@ YAMLLoaderType = Union[Type[yaml.Loader], Type[yaml.CLoader], Type[yaml.SafeLoad
 
 PrimitiveTypes = Union[str, float, int, bool]
 
+HTTPMethodType = Literal["get", "put", "post", "delete", "options", "head", "patch", "trace"]
+HTTPMethodMatchType = Union[re.Pattern, HTTPMethodType]
+
 __all__: List[str] = [
     "RootType",
     "SchemaType",
@@ -72,4 +77,6 @@ __all__: List[str] = [
     "JSON",
     "RequestFilesParameter",
     "RequestFileParameter",
+    "HTTPMethodType",
+    "HTTPMethodMatchType",
 ]

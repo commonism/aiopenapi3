@@ -39,7 +39,16 @@ from .request import RequestBase
 from .v30.paths import Operation
 
 if typing.TYPE_CHECKING:
-    from ._types import RootType, JSON, PathItemType, SchemaType, OperationType, ReferenceType, RequestType
+    from ._types import (
+        RootType,
+        JSON,
+        PathItemType,
+        SchemaType,
+        OperationType,
+        ReferenceType,
+        RequestType,
+        HTTPMethodType,
+    )
 
 
 def has_components(y: Optional["RootType"]) -> TypeGuard[Union[v30.Root, v31.Root]]:
@@ -358,7 +367,9 @@ class OpenAPI:
 
         elif isinstance(self._root, (v30.Root, v31.Root)):
             allschemas = [
-                x.components.schemas for x in filter(has_components, self._documents.values()) if x.components.schemas
+                x.components.schemas
+                for x in filter(has_components, self._documents.values())
+                if x.components is not None and isinstance(x.components.schemas, SchemaBase)
             ]
 
             for schemas in allschemas:
@@ -460,7 +471,7 @@ class OpenAPI:
                 # PathItems
                 for path, obj in (self.paths or dict()).items():
                     for m in obj.model_fields_set & HTTP_METHODS:
-                        op = getattr(obj, m)
+                        op: Operation = getattr(obj, m)
 
                         for r, response in op.responses.items():
                             if isinstance(response, ReferenceBase):
@@ -482,7 +493,7 @@ class OpenAPI:
         elif isinstance(self._root, (v30.Root, v31.Root)):
             # Schema
             documents = cast(Union[List[v30.Root], List[v31.Root]], self._documents.values())
-            components = [x.components for x in filter(has_components, documents)]
+            components = [x.components for x in filter(has_components, documents) if x.components is not None]
             assert components is not None
             if only_required is False:
                 for byid in map(lambda x: x.schemas, components):
@@ -655,7 +666,7 @@ class OpenAPI:
         """
         return self._operationindex
 
-    def createRequest(self, operationId: Union[str, Tuple[str, str]]) -> "RequestType":
+    def createRequest(self, operationId: Union[str, Tuple[str, "HTTPMethodType"]]) -> "RequestType":
         """
         create a Request
 
@@ -686,6 +697,7 @@ class OpenAPI:
                 operation = getattr(pathitem, method)
                 assert operation is not None
                 request = self._createRequest(self, method, path, operation)
+            assert request is not None
             return request
         except Exception as e:
             raise aiopenapi3.errors.RequestError(operation, request, None, {}) from e

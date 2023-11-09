@@ -464,11 +464,12 @@ class Request(RequestBase):
             )
             available = frozenset(headers.keys())
             if missing := (required.keys() - available):
-                missing = {k: required[k] for k in missing}
-                raise HeadersMissingError(self.operation, missing, result)
+                missed = {k: required[k] for k in missing}
+                raise HeadersMissingError(self.operation, missed, result)
             for name, header in expected_response.headers.items():
                 data = headers.get(name, None)
                 if data:
+                    assert header.schema_ is not None
                     rheaders[name] = header.schema_.model(header._decode(data))
         return rheaders
 
@@ -477,7 +478,7 @@ class Request(RequestBase):
     ) -> Tuple[str, "v3xMediaTypeType"]:
         if content_type:
             content_type, _, encoding = content_type.partition(";")
-            expected_media: "v3xMediaTyeType" = expected_response.content.get(content_type, None)
+            expected_media: Optional["v3xMediaTypeType"] = expected_response.content.get(content_type, None)
             if expected_media is None and "/" in content_type:
                 # accept media type ranges in the spec. the most specific matching
                 # type should always be chosen, but if we do not have a match here
@@ -498,6 +499,7 @@ class Request(RequestBase):
                          (expected one of {options})",
                 result,
             )
+        assert content_type is not None
         return content_type, expected_media
 
     def _process_stream(self, result: httpx.Response) -> Tuple[Dict[str, str], Optional["SchemaType"]]:

@@ -115,7 +115,7 @@ class ContentTypeError(ResponseError):
     """The content-type is unexpected"""
 
     operation: "OperationType"
-    content_type: str
+    content_type: Optional[str]
     message: str
     response: httpx.Response
 
