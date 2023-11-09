@@ -36,7 +36,8 @@ class _ParameterCodec:
         elif self.in_ == "formData":
             if self.type == "file":
                 # https://www.python-httpx.org/quickstart/#sending-multipart-file-uploads
-                assert type(value) == tuple and len(value) == 3 and isinstance(value[1], io.IOBase)
+                # we expect (filename, data, content-type)
+                assert isinstance(value, tuple) and len(value) == 3 and isinstance(value[1], io.IOBase)
 
         return {name: value}
 

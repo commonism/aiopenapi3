@@ -136,7 +136,7 @@ def encode_multipart_parameters(
     :return:
     """
     m = MIMEMultipart()
-
+    data: Union[str, bytes]
     for field, ct, value, headers, schema in fields:
         type, subtype, params = decode_content_type(ct)
 
@@ -156,7 +156,7 @@ def encode_multipart_parameters(
             else:
                 """OpenAPI 3.0"""
 
-            data: bytes = encode_content(v, codec)
+            data = encode_content(v, codec)
 
             """
             email.message_from_… uses content-transfer-encoding
@@ -164,10 +164,10 @@ def encode_multipart_parameters(
             headers["Content-Transfer-Encoding"] = codec
 
         elif type in ["text", "rfc822"]:
-            data: Union[str, bytes] = value
+            data = value
         else:
             type, subtype = "text", "plain"
-            data: Union[str, bytes] = value
+            data = value
 
         env = MIMEFormdata(field, type, subtype)
 
