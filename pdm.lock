@@ -518,16 +518,16 @@ files = [
 
 [[package]]
 name = "httpx-socks"
-version = "0.7.8"
+version = "0.8.0"
 summary = "Proxy (HTTP, SOCKS) transports for httpx"
 dependencies = [
-    "httpcore<0.19.0,>=0.17.3",
+    "httpcore<2.0,>=0.17.3",
     "httpx<0.26.0,>=0.21.0",
     "python-socks>=2.0.0",
 ]
 files = [
-    {file = "httpx-socks-0.7.8.tar.gz", hash = "sha256:127381143a031af8ef1e747bb3118837c1284d6d99e6bdf289a4b3c96832f325"},
-    {file = "httpx_socks-0.7.8-py3-none-any.whl", hash = "sha256:bedf9143a87c6170cadef7547b6e5565a8a4f48c30c72d5406c7203e07952aaa"},
+    {file = "httpx-socks-0.8.0.tar.gz", hash = "sha256:1515c5f04785238d79c8a0854c3e04351db1afb9f56fe9186eb15e8bceba6f99"},
+    {file = "httpx_socks-0.8.0-py3-none-any.whl", hash = "sha256:24eb8f57579a53c3dfcab5a7f1b7dc95320fc35ced9b9914102de21f6e73e505"},
 ]
 
 [[package]]
