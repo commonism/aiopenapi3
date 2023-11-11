@@ -130,3 +130,8 @@ without-hashes = "true"
 
 [tool.mypy]
 allow_redefinition = true
+
+[tool.coverage.report]
+exclude_also = [
+    "if (typing\\.)?TYPE_CHECKING:"
+]
