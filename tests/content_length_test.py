@@ -29,7 +29,7 @@ def config(unused_tcp_port_factory):
 @pytest_asyncio.fixture(scope="session")
 async def server(event_loop, config):
     policy = asyncio.get_event_loop_policy()
-    uvloop.install()
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     try:
         sd = asyncio.Event()
         task = event_loop.create_task(serve(app, config, shutdown_trigger=sd.wait))
