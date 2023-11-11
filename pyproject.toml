@@ -135,3 +135,9 @@ allow_redefinition = true
 exclude_also = [
     "if (typing\\.)?TYPE_CHECKING:"
 ]
+
+[tool.coverage.run]
+omit = [
+    "aiopenapi3/_types.py",
+    "aiopenapi3/__main__.py",
+]
