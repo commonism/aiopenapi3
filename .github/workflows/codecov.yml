@@ -23,13 +23,15 @@ jobs:
     - name: Generate coverage report (default)
       run: |
         pdm run pytest --cov=aiopenapi3/ --cov-report=xml:./coverage/reports/coverage-default.xml tests/
+        pdm run pytest --cov=tests/      --cov-report=xml:./coverage/reports/coverage-default-tests.xml    tests/
     - name: install optional deps
       run: |
         pdm install -G auth,socks
     - name: Generate coverage report (options)
       run: |
         pdm run pytest --cov=aiopenapi3/ --cov-report=xml:./coverage/reports/coverage-optional.xml tests/
-    - name: Upload coverage to Codecov
+        pdm run pytest --cov=tests/      --cov-report=xml:./coverage/reports/coverage-optional-tests.xml    tests/
+    - name: Upload coverage to Codecov (core)
       uses: codecov/codecov-action@v3
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
@@ -37,7 +39,17 @@ jobs:
         files: coverage-default.xml,coverage-optional.xml
         env_vars: OS,PYTHON
         fail_ci_if_error: false
-        flags: unittests
+        flags: core
         name: codecov-aiopenapi3
-        path_to_write_report: ./coverage/codecov_report.txt
+        verbose: true
+    - name: Upload coverage to Codecov (tests)
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        directory: ./coverage/reports/
+        files: coverage-default-tests.xml,coverage-optional-tests.xml
+        env_vars: OS,PYTHON
+        fail_ci_if_error: false
+        flags: tests
+        name: codecov-aiopenapi3-tests
         verbose: true
