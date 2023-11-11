@@ -22,7 +22,7 @@ jobs:
         pdm install -d
     - name: Generate coverage report
       run: |
-        pdm run pytest --cov=./ --cov-report=xml tests/
+        pdm run pytest --cov=aiopenapi3/ --cov-report=xml:./coverage/reports/coverage-default.xml tests/
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
