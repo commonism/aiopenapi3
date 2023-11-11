@@ -8,7 +8,7 @@ dependencies = [
     "PyYaml",
     "pydantic",
     "email-validator",
-    "yarl==1.8.1",
+    "yarl",
     "httpx",
     "more-itertools",
     'typing_extensions; python_version<"3.10"',
