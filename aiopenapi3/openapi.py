@@ -602,8 +602,8 @@ class OpenAPI:
                 scheme = base.scheme
 
             if self._root.host:
-                host, _, port = self._root.host.partition(":")
-                port = None if port == "" else port
+                v = yarl.URL(f"{scheme}://{self._root.host}")
+                host, port = v.host, v.explicit_port
             else:
                 host, port = base.host, base.port
 

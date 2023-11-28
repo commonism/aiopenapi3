@@ -8,6 +8,7 @@ if sys.version_info >= (3, 9):
 else:
     from pathlib3x import Path
 
+import yarl
 import httpx
 import pytest
 from pydantic import ValidationError
@@ -459,3 +460,8 @@ def test_schema_pathitems(httpx_mock, with_schema_pathitems):
     r = api._.b()
 
     return
+
+
+def test_schema_baseurl_v20(with_schema_baseurl_v20):
+    api = OpenAPI("/", with_schema_baseurl_v20, session_factory=httpx.Client)
+    assert api.url == yarl.URL("https://api.example.com:81/v1")
