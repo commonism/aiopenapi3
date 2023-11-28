@@ -1,0 +1,14 @@
+swagger: "2.0"
+info:
+  title: baseurl with port
+  description: baseurl with port
+  version: 1.0.0
+host: api.example.com:81
+basePath: /v1
+schemes:
+  - https
+
+consumes: []
+produces: []
+paths: {}
+definitions: {}

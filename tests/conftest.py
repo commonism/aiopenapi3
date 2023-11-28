@@ -466,3 +466,18 @@ def with_paths_requestbody_formdata_wtforms():
 @pytest.fixture(scope="session")
 def with_paths_response_status_pattern_default():
     yield _get_parsed_yaml("paths-response-status-pattern-default.yaml")
+
+
+@pytest.fixture
+def with_schema_baseurl_v20():
+    yield _get_parsed_yaml("schema-baseurl-v20.yaml")
+
+
+@pytest.fixture
+def with_paths_servers():
+    yield _get_parsed_yaml("paths-operation-url.yaml")
+
+
+@pytest.fixture
+def with_paths_server_variables():
+    yield _get_parsed_yaml("paths-server-variables.yaml")
