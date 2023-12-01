@@ -1,0 +1,54 @@
+openapi: 3.0.0
+info:
+  title: operation url
+  version: 1.0.0
+servers:
+  - url: "https://{host}/"
+    variables:
+      host:
+        enum:
+          - default
+          - defined
+        default: default
+
+paths:
+  /servers:
+    get:
+      operationId: servers
+      responses:
+        '200':
+          description: .
+          content:
+            application/json:
+              schema:
+                type: string
+
+  /defined:
+    servers:
+      - url: /{version}/
+        variables:
+          version:
+            enum:
+              - v1
+              - v2
+            default: v1
+    head:
+      operationId: path
+      responses:
+        '204':
+          description: .
+          content: {}
+    get:
+      servers:
+        - url: https://operation/{path}
+          variables:
+            path:
+              default: v3
+      operationId: operation
+      responses:
+        '200':
+          description: .
+          content:
+            application/json:
+              schema:
+                type: string

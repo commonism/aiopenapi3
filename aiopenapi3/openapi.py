@@ -6,6 +6,7 @@ import inspect
 import logging
 import copy
 import pickle
+import random
 
 if sys.version_info >= (3, 9):
     import pathlib
@@ -247,7 +248,9 @@ class OpenAPI:
         Loader - loading referenced documents
         """
 
-        self._createRequest: Callable[["OpenAPI", str, str, "OperationType"], "RequestBase"]
+        self._createRequest: Callable[
+            ["OpenAPI", str, str, "OperationType", Optional[List["ServerType"]]], "RequestBase"
+        ]
         """
         creates the Async/Request for the protocol required
         """
@@ -267,6 +270,13 @@ class OpenAPI:
         """
         the related documents
         """
+
+        self._server_variables: Dict[str, str] = dict()
+        """
+        server variable mapping
+        """
+
+        self._server_select: Callable[[List["ServerType"]], "ServerType"] = random.choice
 
         self._init_plugins(plugins)
         """
@@ -588,7 +598,7 @@ class OpenAPI:
                 raise e
 
     @property
-    def url(self):
+    def url(self) -> yarl.URL:
         if isinstance(self._root, v20.Root):
             base = yarl.URL(self._base_url)
             scheme = host = port = path = None
@@ -612,7 +622,8 @@ class OpenAPI:
             r = yarl.URL.build(scheme=scheme, host=host, port=port, path=path)
             return r
         elif isinstance(self._root, (v30.Root, v31.Root)):
-            return self._base_url.join(yarl.URL(self._root.servers[0].url))
+            server: "ServerType" = self._server_select(self._root.servers)
+            return self._base_url.join(yarl.URL(server.createUrl(self._server_variables)))
 
     def authenticate(self, *args, **kwargs):
         """
@@ -686,7 +697,7 @@ class OpenAPI:
                 opi: OperationIndex = self._operationindex
                 for i in tags:
                     opi = getattr(opi, i)
-                _, _, operation = opi._operations[opn]
+                _, _, operation, _ = opi._operations[opn]
                 request = getattr(opi, opn)
                 assert isinstance(request, aiopenapi3.request.RequestBase)
             else:
@@ -694,9 +705,16 @@ class OpenAPI:
                 pathitem = self._root.paths[path]
                 if pathitem.ref:
                     pathitem = pathitem.ref._target
+
                 operation = getattr(pathitem, method)
+                if isinstance(self._root, v20.Root):
+                    servers = None
+                elif isinstance(self._root, (v30.Root, v31.Root)):
+                    servers = operation.servers or pathitem.servers or self.servers
+                else:
+                    raise TypeError(self._root)
                 assert operation is not None
-                request = self._createRequest(self, method, path, operation)
+                request = self._createRequest(self, method, path, operation, servers)
             assert request is not None
             return request
         except Exception as e:

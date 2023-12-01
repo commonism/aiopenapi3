@@ -27,6 +27,7 @@ RequestParameter = Union[str, BaseModel]
 RequestParameters = Dict[str, RequestParameter]
 
 RootType = Union[v20.Root, v30.Root, v31.Root]
+ServerType = Union[v30.Server, v31.Server]
 ReferenceType = Union[v20.Reference, v30.Reference, v31.Reference]
 SchemaType = Union[v20.Schema, v30.Schema, v31.Schema]
 v3xSchemaType = Union[v30.Schema, v31.Schema]
@@ -51,6 +52,7 @@ HTTPMethodMatchType = Union[re.Pattern, HTTPMethodType]
 
 __all__: List[str] = [
     "RootType",
+    "ServerType",
     "SchemaType",
     "v3xSchemaType",
     "DiscriminatorType",

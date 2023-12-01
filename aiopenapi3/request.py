@@ -1,5 +1,6 @@
 import abc
 import collections
+import random
 import typing
 from contextlib import closing
 from typing import Dict, Tuple, Any, List, NamedTuple, Optional, Iterator, Union, cast
@@ -42,6 +43,7 @@ if typing.TYPE_CHECKING:
         OperationType,
         JSON,
         RootType,
+        ServerType,
         ResponseDataType,
         ResponseHeadersType,
         HTTPMethodType,
@@ -86,13 +88,21 @@ class RequestBase:
         - :meth:`~aiopenapi3.request.RequestBase.request`
     """
 
-    def __init__(self, api: "OpenAPI", method: "HTTPMethodType", path: str, operation: "OperationType"):
+    def __init__(
+        self,
+        api: "OpenAPI",
+        method: "HTTPMethodType",
+        path: str,
+        operation: "OperationType",
+        servers: Optional[List["ServerType"]],
+    ):
         self.api: "OpenAPI" = api
         self.root = api._root  # pylint: disable=W0212
         self.method: "HTTPMethodType" = method
         self.path: str = path
         self.operation: "OperationType" = operation
         self.req: RequestParameter = RequestParameter(self.path)
+        self.servers: Optional[List["ServerType"]] = servers
 
     def __call__(self, *args, return_headers: bool = False, **kwargs) -> Union["JSON", Tuple[Dict[str, str], "JSON"]]:
         """
@@ -148,9 +158,15 @@ class RequestBase:
         ...
 
     def _build_req(self, session: Union[httpx.Client, httpx.AsyncClient]) -> httpx.Request:
+        url: yarl.URL = self.api.url
+
+        if self.servers:
+            server: "ServerType" = self.api._server_select(self.servers)
+            url = self.api._base_url.join(yarl.URL(server.createUrl(self.api._server_variables)))
+
         req = session.build_request(
             self.method,
-            str(self.api.url / self.req.url[1:]),
+            str(url / self.req.url[1:]),
             headers=self.req.headers,
             cookies=self.req.cookies,
             params=self.req.params,
@@ -288,11 +304,13 @@ class OperationIndex:
     class OperationTag:
         def __init__(self, oi: "OperationIndex") -> None:
             self._oi = oi
-            self._operations: Dict[str, Tuple["HTTPMethodType", str, "OperationType"]] = dict()
+            self._operations: Dict[
+                str, Tuple["HTTPMethodType", str, "OperationType", Optional[List["ServerType"]]]
+            ] = dict()
 
         def __getattr__(self, item) -> RequestBase:
-            (method, path, op) = self._operations[item]
-            return self._oi._api._createRequest(self._oi._api, method, path, op)
+            (method, path, op, servers) = self._operations[item]
+            return self._oi._api._createRequest(self._oi._api, method, path, op, servers)
 
     class Iter:
         def __init__(self, spec: "OpenAPI", use_operation_tags: bool):
@@ -326,12 +344,15 @@ class OperationIndex:
         self._api: "OpenAPI" = api
         self._root: "RootType" = api._root
 
-        self._operations: Dict[str, Tuple[str, "HTTPMethodType", "OperationType"]] = dict()
+        self._operations: Dict[
+            str, Tuple[str, "HTTPMethodType", "OperationType", Optional[List["ServerType"]]]
+        ] = dict()
         self._tags: Dict[str, "OperationIndex.OperationTag"] = collections.defaultdict(
             lambda: OperationIndex.OperationTag(self)
         )
         for path, pi in self._root.paths.items():
             op: "OperationType"
+            pi: "PathItemType"
             if pi.ref:
                 pi = pi.ref._target
             for method in pi.model_fields_set & HTTP_METHODS:
@@ -339,7 +360,12 @@ class OperationIndex:
                 if op.operationId is None:
                     continue
                 operationId = op.operationId.replace(" ", "_")
-                item = (method, path, op)
+                # v20 does not have server
+                if hasattr(op, "servers"):
+                    servers = op.servers or pi.servers or None
+                else:
+                    servers = None
+                item = (method, path, op, servers)
                 if use_operation_tags and op.tags:
                     for tag in op.tags:
                         if (other := self._tags[tag]._operations.get(operationId, None)) is not None:
@@ -357,8 +383,8 @@ class OperationIndex:
         if self._use_operation_tags and item in self._tags:
             return self._tags[item]
         elif item in self._operations:
-            (method, path, op) = self._operations[item]
-            return self._api._createRequest(self._api, method, path, op)
+            (method, path, op, servers) = self._operations[item]
+            return self._api._createRequest(self._api, method, path, op, servers)
         else:
             raise KeyError(f"operationId {item} not found in tags or operations")
 

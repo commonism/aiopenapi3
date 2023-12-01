@@ -475,7 +475,7 @@ def with_schema_baseurl_v20():
 
 @pytest.fixture
 def with_paths_servers():
-    yield _get_parsed_yaml("paths-operation-url.yaml")
+    yield _get_parsed_yaml("paths-servers.yaml")
 
 
 @pytest.fixture
