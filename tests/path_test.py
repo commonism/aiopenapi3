@@ -469,3 +469,45 @@ def test_paths_request_calling(httpx_mock, with_paths_response_status_pattern_de
     req = api._[(path, method)]
     r = req()
     assert r == "created"
+
+
+def test_paths_servers(httpx_mock, with_paths_servers):
+    api = OpenAPI("/", with_paths_servers, session_factory=httpx.Client)
+    assert api.url.host == "servers"
+
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=200, json="'ok'")
+    r = api._.servers()
+    request = httpx_mock.get_requests()[-1]
+    assert request.url.host == "servers"
+
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=204)
+    r = api._.path()
+    request = httpx_mock.get_requests()[-1]
+    assert request.url.host == "path"
+
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=200, json="'ok'")
+    r = api._.operation()
+    request = httpx_mock.get_requests()[-1]
+    assert request.url.host == "operation"
+
+    return
+
+
+def test_paths_server_variables(httpx_mock, with_paths_server_variables):
+    api = OpenAPI("http://example/openapi.yaml", with_paths_server_variables, session_factory=httpx.Client)
+    assert api.url.host == "default"
+
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=200, json="'ok'")
+    r = api._.servers()
+    request = httpx_mock.get_requests()[-1]
+    assert request.url.host == "default"
+
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=204)
+    r = api._.path()
+    request = httpx_mock.get_requests()[-1]
+    assert request.url.host == "example" and request.url.path == "/v1/defined"
+
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=200, json="'ok'")
+    r = api._.operation()
+    request = httpx_mock.get_requests()[-1]
+    assert request.url.host == "operation" and request.url.path == "/v3/defined"

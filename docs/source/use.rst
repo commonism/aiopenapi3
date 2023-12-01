@@ -20,25 +20,26 @@ Creating a client from a description document
 The `url` parameter describes the path of the description document.
 The url of a request is created by combining the
 
-* description documents url
-* the location from the description url
+#. description documents url
+#. the location from the description url
 
   * OpenAPI 3.x: servers[*].url
+
   * Swagger 2.0: basePath
 
-* path from the PathItem
+#. path from the PathItem
 
 e.g.:
 
-* `http://localhost/api/openapi.yaml`
-* `servers[0].url = '/api/v1'`
-* `'/users/login'`
+#. `http://localhost/api/openapi.yaml`
+#. `servers[0].url = '/api/v1'`
+#. `'/users/login'`
 
 will result in
 
 `http://localhost` `/api/v1` `/users/login`
 
-
+Refer to :ref:`advanced:ServerVariables` for advanced use of the url definition.
 
 For :meth:`aiopenapi3.OpenAPI.load_file` the url parameter does not specify the location of the description document, a
 url which can be used to construct the proper operations path is required nevertheless.
