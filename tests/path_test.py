@@ -502,6 +502,17 @@ def test_paths_server_variables(httpx_mock, with_paths_server_variables):
     request = httpx_mock.get_requests()[-1]
     assert request.url.host == "default"
 
+    api._server_variables = {"host": "defined"}
+    r = api._.servers()
+    request = httpx_mock.get_requests()[-1]
+    assert request.url.host == "defined"
+
+    api._server_variables = {"host": "defoned"}
+    with pytest.raises(ValueError, match="Server Variable host value defoned not allowed"):
+        api._.servers()
+
+    api._server_variables = dict()
+
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=204)
     r = api._.path()
     request = httpx_mock.get_requests()[-1]
