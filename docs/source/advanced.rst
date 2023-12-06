@@ -160,7 +160,7 @@ and
 ServerVariables
 ===============
 
-An example build upon the `Swagger example <https://swagger.io/docs/specification/api-host-and-base-path/>`_
+An example build upon the `Swagger example <https://swagger.io/docs/specification/api-host-and-base-path/>`_.
 
 .. code:: yaml
 
@@ -172,6 +172,16 @@ An example build upon the `Swagger example <https://swagger.io/docs/specificatio
               - sandbox
               - api
             default: sandbox
+
+
+Currently there is not public API except accessing OpenAPi._server_variables directly.
+
+
+.. code:: python
+
+    api._server_variables = {"host":"api"}
+    api._.createPet(pet)
+
 
 
 Manual Requests
