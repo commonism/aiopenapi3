@@ -2,6 +2,7 @@
 This file tests that paths are parsed and populated correctly
 """
 import base64
+import copy
 import uuid
 import pathlib
 
@@ -522,3 +523,10 @@ def test_paths_server_variables(httpx_mock, with_paths_server_variables):
     r = api._.operation()
     request = httpx_mock.get_requests()[-1]
     assert request.url.host == "operation" and request.url.path == "/v3/defined"
+
+
+def test_paths_server_variables_missing(with_paths_server_variables):
+    dd = copy.deepcopy(with_paths_server_variables)
+    dd["servers"][0]["url"] = "https://{missing}/test"
+    with pytest.raises(ValueError, match=r"Missing Server Variables \[\'missing\'\]"):
+        OpenAPI("http://example/openapi.yaml", dd, session_factory=httpx.Client)

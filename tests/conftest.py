@@ -56,7 +56,7 @@ class _Version:
         return getattr(getattr(aiopenapi3, f"v{self.major}{self.minor}"), "Schema")
 
 
-@pytest.fixture(scope="session", params=[_Version(3, 0, 3), _Version(3, 1, 0)])
+@pytest.fixture(scope="session", params=[_Version(3, 0, 3), _Version(3, 1, 0)], ids=("v30", "v31"))
 def openapi_version(request):
     return request.param
 
@@ -74,7 +74,9 @@ class _VersionS:
             return f'swagger: "{self.major}.{self.minor}"'
 
 
-@pytest.fixture(scope="session", params=[_VersionS(2, 0), _VersionS(3, 0, 3), _VersionS(3, 1, 0)])
+@pytest.fixture(
+    scope="session", params=[_VersionS(2, 0), _VersionS(3, 0, 3), _VersionS(3, 1, 0)], ids=("v20", "v30", "v31")
+)
 def api_version(request):
     return request.param
 
@@ -474,10 +476,10 @@ def with_schema_baseurl_v20():
 
 
 @pytest.fixture
-def with_paths_servers():
-    yield _get_parsed_yaml("paths-servers.yaml")
+def with_paths_servers(openapi_version):
+    yield _get_parsed_yaml("paths-servers.yaml", openapi_version)
 
 
 @pytest.fixture
-def with_paths_server_variables():
-    yield _get_parsed_yaml("paths-server-variables.yaml")
+def with_paths_server_variables(openapi_version):
+    yield _get_parsed_yaml("paths-server-variables.yaml", openapi_version)

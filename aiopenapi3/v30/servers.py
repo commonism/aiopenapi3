@@ -17,6 +17,13 @@ class ServerVariable(ObjectExtended):
     default: Optional[str] = Field(...)
     description: Optional[str] = Field(default=None)
 
+    @model_validator(mode="after")
+    def validate_ServerVariable(cls, s: "ServerVariable"):
+        assert isinstance(s.enum, (list, None.__class__))
+        # default value must be in enum
+        assert s.default in (s.enum or [s.default])
+        return s
+
 
 class Server(ObjectExtended):
     """
