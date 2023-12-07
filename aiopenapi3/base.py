@@ -286,6 +286,9 @@ class RootBase:
                 node = node[int(part)]
             elif isinstance(node, ObjectBase):
                 part = Model.nameof(part)
+                if isinstance(node, ReferenceBase) and node._target is None:
+                    """unresolved reference - requires resolving the reference first"""
+                    return node
                 if not hasattr(node, part):
                     raise ReferenceResolutionError(f"Invalid path {path[:idx]} in Reference")
                 node = getattr(node, part)
