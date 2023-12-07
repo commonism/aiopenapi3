@@ -35,6 +35,7 @@ if typing.TYPE_CHECKING:
         RequestData,
         RequestFiles,
         RequestContent,
+        RequestType,
         AuthTypes,
         SchemaType,
         ParameterType,
@@ -96,12 +97,39 @@ class RequestBase:
         servers: Optional[List["ServerType"]],
     ):
         self.api: "OpenAPI" = api
+        """
+        OpenAPI object
+        """
+
         self.root = api._root  # pylint: disable=W0212
+        """
+        API document root
+        """
+
         self.method: "HTTPMethodType" = method
+        """
+        HTTP method
+        """
+
         self.path: str = path
+        """
+        HTTP path
+        """
+
         self.operation: "OperationType" = operation
+        """
+        associated OpenAPI Operation
+        """
+
         self.req: RequestParameter = RequestParameter(self.path)
+        """
+        RequestParameter
+        """
+
         self.servers: Optional[List["ServerType"]] = servers
+        """
+        Servers to use for this request
+        """
 
     def __call__(self, *args, return_headers: bool = False, **kwargs) -> Union["JSON", Tuple[Dict[str, str], "JSON"]]:
         """
@@ -378,7 +406,13 @@ class OperationIndex:
         self._tags = dict(self._tags)
         self._use_operation_tags = use_operation_tags
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> "RequestType":
+        """
+        the sad smiley interface
+
+        :param item: the operationId
+        :return:
+        """
         if self._use_operation_tags and item in self._tags:
             return self._tags[item]
         elif item in self._operations:
@@ -387,14 +421,17 @@ class OperationIndex:
         else:
             raise KeyError(f"operationId {item} not found in tags or operations")
 
-    def __getitem__(self, item: Union[str, Tuple[str, "HTTPMethodType"]]):
+    def __getitem__(self, item: Union[str, Tuple[str, "HTTPMethodType"]]) -> "RequestType":
         """
         index operator interface
         access operations by operationId or (path, method)
+
+        :param item: operationId or tuple of path & method
+        :return:
         """
         return getattr(self, item) if isinstance(item, str) else self._api.createRequest(item)
 
-    def __iter__(self):
+    def __iter__(self) -> "OpenationIndex.Iter":
         return self.Iter(self._root, self._use_operation_tags)
 
     def __getstate__(self):
