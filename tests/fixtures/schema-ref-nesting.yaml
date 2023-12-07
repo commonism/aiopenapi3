@@ -1,0 +1,54 @@
+openapi: 3.0.0
+info:
+  title: OpenStreetMap circular refs
+  description: This is the editing API for OpenStreetMap.
+  version: '0.6'
+servers:
+  - url: '/'
+paths:
+  /api/0.6/map:
+    get:
+      summary: Retrieves map data by the given bounding box.
+      description: |
+        The operation returns:
+      operationId: getMapDataByBoundingBox
+      responses:
+        '200':
+          description: okay
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  elements:
+                    type: array
+                    items:
+                      oneOf:
+                        - $ref: '#/components/schemas/Node'
+components:
+  schemas:
+    Node:
+      allOf:
+        - $ref: '#/components/schemas/Way/allOf/0'
+    Way:
+      allOf:
+        - type: object
+          properties:
+            type:
+              type: string
+    Relation:
+      allOf:
+        - type: object
+          properties:
+            members:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    $ref: '#/paths/~1api~10.6~1map/get/responses/200/content/application~1json/schema/properties/elements/items/oneOf/0/allOf/0/properties/type'
+          required:
+            - members
+externalDocs:
+  description: Find more information on the OSM wiki
+  url: 'https://wiki.openstreetmap.org/'

@@ -465,3 +465,8 @@ def test_schema_pathitems(httpx_mock, with_schema_pathitems):
 def test_schema_baseurl_v20(with_schema_baseurl_v20):
     api = OpenAPI("/", with_schema_baseurl_v20, session_factory=httpx.Client)
     assert api.url == yarl.URL("https://api.example.com:81/v1")
+
+
+def test_schema_ref_nesting(with_schema_ref_nesting):
+    for i in range(10):
+        OpenAPI("/", with_schema_ref_nesting)

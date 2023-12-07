@@ -747,7 +747,18 @@ class OpenAPI:
             root = self._documents[url]
 
         try:
-            return root.resolve_jp(jp)
+            while True:
+                r = root.resolve_jp(jp)
+                if isinstance(r, ReferenceBase):
+                    """
+                    returned node is a unresolved reference
+                    resolve & retry
+                    """
+                    r._target = root.resolve_jp(r.ref)
+                    if isinstance(r._target, ReferenceBase) and r.ref == r._target.ref:
+                        return r
+                    continue
+                return r
         except ReferenceResolutionError as e:
             # add metadata to the error
             e.element = obj

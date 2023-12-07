@@ -488,3 +488,8 @@ def with_paths_server_variables(openapi_version):
 @pytest.fixture
 def with_paths_response_error():
     yield _get_parsed_yaml("paths-response-error.yaml")
+
+
+@pytest.fixture
+def with_schema_ref_nesting():
+    yield _get_parsed_yaml("schema-ref-nesting.yaml")
