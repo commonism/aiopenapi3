@@ -21,7 +21,7 @@ class ServerVariable(ObjectExtended):
     def validate_ServerVariable(cls, s: "ServerVariable"):
         assert isinstance(s.enum, (list, None.__class__))
         # default value must be in enum
-        assert s.default in (s.enum or [None])
+        assert s.default in (s.enum or [s.default])
         return s
 
 
