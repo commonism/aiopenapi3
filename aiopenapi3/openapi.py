@@ -754,8 +754,8 @@ class OpenAPI:
                     returned node is a unresolved reference
                     resolve & retry
                     """
-                    r._target = root.resolve_jp(r.ref)
-                    if isinstance(r._target, ReferenceBase) and r.ref == r._target.ref:
+                    v = root.resolve_jp(r.ref)
+                    if not isinstance(v, ReferenceBase) or v.ref == r.ref:
                         return r
                     continue
                 return r
