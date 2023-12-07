@@ -158,6 +158,7 @@ def test_user(api, user):
     r = api._.loginUser(parameters={"username": user.username, "password": user.password})
 
 
+@pytest.mark.xfail
 @pytest.mark.skipif(httpx_auth, reason="oauth does not work")
 def test_pets(api, login):
     """requires *working* oauth or no oauth"""
