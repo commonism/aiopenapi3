@@ -64,7 +64,36 @@ refer to :ref:`advanced:Authentication` for details.
 
 Creating a request
 ------------------
-The service `operations <https://try.gitea.io/api/swagger>`_ can be accessed via the sad smiley interface.
+While there is multiple ways to access a service `operations <https://try.gitea.io/api/swagger>`_, all return a Request which can be called.
+
+The sad smiley interface :meth:`aiopenapi3.request.OperationIndex.__getattr__`.
+
+.. code:: python
+
+    req = api._.getUser
+    m = req()
+    m.id == user.id
+    # True
+
+
+or, in case the PathItem does not have an operationId, it is possible to create a request via :meth:`aiopenapi3.request.OperationIndex.__getitem__`
+
+.. code:: python
+
+    req = api._[("/user", "get")]
+    m = req()
+    m.id == user.id
+    # True
+
+or :meth:`aiopenapi3.OpenAPI.createRequest`.
+
+.. code:: python
+
+    req = api.createRequest(("/user", "get"))
+    m = req()
+    m.id == user.id
+    # True
+
 
 A list of all operations with operationIds exported by the service is available via the Iter.
 
@@ -85,15 +114,9 @@ Creating a request to the service and inspecting the result:
     # "2022-12-07 16:50:07+00:00"
     type(user.created)
 
-In case the PathItem does not have an operationId, it is possible to create a request via
-:meth:`aiopenapi3.OpenAPI.createRequest`.
 
-.. code:: python
 
-    req = api.createRequest(("/user", "get"))
-    m = req()
-    m.id == user.id
-    # True
+For more information of mentioned return valuew of type :meth:`aiopenapi3.request.RequestBase` refer to :ref:`api:Requests`.
 
 Using Operation Tags
 --------------------
