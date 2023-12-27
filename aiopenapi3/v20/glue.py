@@ -224,11 +224,13 @@ class Request(RequestBase):
             else:
                 raise TypeError(data)
             data = self.api.plugins.message.marshalled(
-                operationId=self.operation.operationId, marshalled=data
+                request=self, operationId=self.operation.operationId, marshalled=data
             ).marshalled
             data = json.dumps(data)
             data = data.encode()
-            data = self.api.plugins.message.sending(operationId=self.operation.operationId, sending=data).sending
+            data = self.api.plugins.message.sending(
+                request=self, operationId=self.operation.operationId, sending=data
+            ).sending
             self.req.content = data
             self.req.headers["Content-Type"] = "application/json"
         else:
@@ -292,6 +294,7 @@ class Request(RequestBase):
         content_type = result.headers.get("Content-Type", None)
 
         ctx = self.api.plugins.message.received(
+            request=self,
             operationId=self.operation.operationId,
             received=result.content,
             headers=result.headers,
@@ -317,6 +320,7 @@ class Request(RequestBase):
                 raise ResponseDecodingError(self.operation, result, data)
 
             data = self.api.plugins.message.parsed(
+                request=self,
                 operationId=self.operation.operationId,
                 parsed=data,
                 expected_type=getattr(expected_response.schema_, "_target", expected_response.schema_),
@@ -331,7 +335,7 @@ class Request(RequestBase):
                 raise ResponseSchemaError(self.operation, expected_response, expected_response.schema_, result, e)
 
             data = self.api.plugins.message.unmarshalled(
-                operationId=self.operation.operationId, unmarshalled=data
+                request=self, operationId=self.operation.operationId, unmarshalled=data
             ).unmarshalled
             return rheaders, data
         elif self.operation.produces and content_type in self.operation.produces:
