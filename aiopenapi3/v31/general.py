@@ -42,13 +42,13 @@ class Reference(ObjectBase, ReferenceBase):
     )
 
     def __getattr__(self, item: str) -> Any:
-        if item != "_target":
+        if item != "_target" and not item.startswith("__pydantic_private__"):
             return getattr(self._target, item)
         else:
             return super().__getattr__(item)
 
     def __setattr__(self, item, value):
-        if item != "_target":
+        if item != "_target" and not item.startswith("__pydantic_private__"):
             setattr(self._target, item, value)
         else:
             super().__setattr__(item, value)
