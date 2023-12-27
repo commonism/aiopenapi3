@@ -91,7 +91,7 @@ class Request(RequestBase):
         return None
 
     def _prepare_security(self) -> None:
-        security = self.operation.security or self.api._root.security
+        security = self.operation.security if self.operation.security is not None else self.api._root.security
 
         if not security:
             return

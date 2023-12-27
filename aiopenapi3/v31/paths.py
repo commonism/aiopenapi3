@@ -79,7 +79,7 @@ class Operation(ObjectExtended, OperationBase):
     responses: Dict[str, Union[Response, Reference]] = Field(default_factory=dict)
     callbacks: Dict[str, Union["Callback", Reference]] = Field(default_factory=dict)
     deprecated: Optional[bool] = Field(default=None)
-    security: List[SecurityRequirement] = Field(default_factory=list)
+    security: Optional[List[SecurityRequirement]] = Field(default=None)
     servers: Optional[List[Server]] = Field(default=None)
 
 
