@@ -337,6 +337,11 @@ class Request(RequestBase):
         assert isinstance(self.operation, (v30.Operation, v31.Operation))
 
         if not self.operation.requestBody:
+            ctx = self.api.plugins.message.sending(
+                request=self, operationId=self.operation.operationId, sending=None, headers=self.req.headers
+            )
+            self.req.content = ctx.sending
+            self.req.headers = ctx.headers
             return
 
         if data_ is None and self.operation.requestBody.required:
@@ -350,13 +355,13 @@ class Request(RequestBase):
             else:
                 raise TypeError(data_)
             data = self.api.plugins.message.marshalled(
-                operationId=self.operation.operationId, marshalled=data
+                request=self, operationId=self.operation.operationId, marshalled=data
             ).marshalled
             data: str = json.dumps(data)
             data: bytes = data.encode()  # type: ignore[union-attr]
             self.req.headers["Content-Type"] = "application/json"
             ctx = self.api.plugins.message.sending(
-                operationId=self.operation.operationId, sending=data, headers=self.req.headers
+                request=self, operationId=self.operation.operationId, sending=data, headers=self.req.headers
             )
             self.req.content = ctx.sending
             self.req.headers = ctx.headers
@@ -522,6 +527,7 @@ class Request(RequestBase):
         content_type = result.headers.get("Content-Type", None)
 
         ctx = self.api.plugins.message.received(
+            request=self,
             operationId=self.operation.operationId,
             received=result.content,
             headers=result.headers,
@@ -549,6 +555,7 @@ class Request(RequestBase):
             except json.decoder.JSONDecodeError:
                 raise ResponseDecodingError(self.operation, result, data)
             data = self.api.plugins.message.parsed(
+                request=self,
                 operationId=self.operation.operationId,
                 parsed=data,
                 expected_type=getattr(expected_media.schema_, "_target", expected_media.schema_),
@@ -561,11 +568,9 @@ class Request(RequestBase):
                 data = expected_media.schema_.model(data)
             except pydantic.ValidationError as e:
                 raise ResponseSchemaError(self.operation, expected_media, expected_media.schema_, result, e)
-            except pydantic.errors.ConfigError as e1:
-                raise ResponseSchemaError(self.operation, expected_media, expected_media.schema_, result, e1)
 
             data = self.api.plugins.message.unmarshalled(
-                operationId=self.operation.operationId, unmarshalled=data
+                request=self, operationId=self.operation.operationId, unmarshalled=data
             ).unmarshalled
             return rheaders, data
         else:

@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from aiopenapi3 import OpenAPI
 
     import httpx
-    from .base import PathItemBase, SchemaBase
+    from .base import PathItemBase, SchemaBase, RequestBase
 
 """
 the plugin interface replicates the suds way of  dealing with broken data/schema information
@@ -103,6 +103,10 @@ class Message(Plugin):
 
     @dataclasses.dataclass
     class Context:
+        request: "RequestBase"
+        """available :func:`~aiopenapi3.plugin.Message.marshalled` :func:`~aiopenapi3.plugin.Message.sending`
+        :func:`~aiopenapi3.plugin.Message.received` :func:`~aiopenapi3.plugin.Message.parsed`
+        :func:`~aiopenapi3.plugin.Message.unmarshalled`"""
         operationId: str
         """available :func:`~aiopenapi3.plugin.Message.marshalled` :func:`~aiopenapi3.plugin.Message.sending`
         :func:`~aiopenapi3.plugin.Message.received` :func:`~aiopenapi3.plugin.Message.parsed`
