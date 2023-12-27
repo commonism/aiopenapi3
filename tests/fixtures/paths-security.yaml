@@ -6,7 +6,6 @@ servers:
   - url: http://127.0.0.1/api
 
 security:
-  - {}
   - cookieAuth: []
 
 paths:
@@ -78,6 +77,22 @@ paths:
       security:
       - user: []
         token: []
+
+
+  /api/v1/auth/null/:
+    get:
+      operationId: api_v1_auth_login_null
+      description: ''
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Login'
+          description: ''
+      security: []
 
 
 components:

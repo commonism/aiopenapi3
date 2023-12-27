@@ -169,9 +169,10 @@ def test_paths_security(httpx_mock, with_paths_security):
     request = httpx_mock.get_requests()[-1]
     assert request.headers["Authorization"] == "Bearer %s" % (auth,)
 
-    # null session
+    # null session - via empty Operation Security
     api.authenticate(None)
-    api._.api_v1_auth_login_info(data={}, parameters={})
+    r = api._.api_v1_auth_login_null()
+    request = httpx_mock.get_requests()[-1]
 
 
 def test_paths_security_combined(httpx_mock, with_paths_security):
