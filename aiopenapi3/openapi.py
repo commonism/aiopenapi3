@@ -549,9 +549,8 @@ class OpenAPI:
                             for mt, mto in response.content.items():
                                 if mto.schema_ is None:
                                     continue
-                                if isinstance(mto.schema_, (v30.Schema, v31.Schema)):
-                                    name = mto.schema_._get_identity("I2", f"{path}.{m}.{r}.{mt}")
-                                    byname[name] = mto.schema_
+                                name = mto.schema_._get_identity("I2", f"{path}.{m}.{r}.{mt}")
+                                byname[name] = mto.schema_
                         else:
                             raise TypeError(f"{type(response)} at {path}")
 
@@ -574,6 +573,14 @@ class OpenAPI:
         data: Set[int] = set(byid.keys())
         todo: Set[int] = self._iterate_schemas(byid, data, set())
         types: Dict[str, Union[ForwardRef, Type[BaseModel], Type[int], Type[str], Type[float], Type[bool]]] = dict()
+
+        """
+        Due to Plugins (e.g. Cull/Reduce) byname may be incomplete
+        """
+        resolved: List["SchemaType"] = list(
+            map(lambda x: byid[x]._target if isinstance(byid[x], ReferenceBase) else byid[x], todo | data)
+        )
+        self.plugins.init.resolved(initialized=self._root, resolved=resolved)
 
         # print(f"{len(todo | data)} {only_required=}")
         for i in todo | data:
@@ -707,13 +714,13 @@ class OpenAPI:
                     pathitem = pathitem.ref._target
 
                 operation = getattr(pathitem, method)
+                assert operation is not None
                 if isinstance(self._root, v20.Root):
                     servers = None
                 elif isinstance(self._root, (v30.Root, v31.Root)):
                     servers = operation.servers or pathitem.servers or self.servers
                 else:
                     raise TypeError(self._root)
-                assert operation is not None
                 request = self._createRequest(self, method, path, operation, servers)
             assert request is not None
             return request

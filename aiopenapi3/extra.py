@@ -33,6 +33,8 @@ class Reduce(Document, Init):
 
     def _reduced_paths(self, ctx: "Document.Context") -> dict:
         reduced = {}
+        if "paths" not in ctx.document:
+            return reduced
         keep_keys = {"summary", "description", "servers", "parameters"}
         for operation in self.operations:
             if isinstance(operation, (str, re.Pattern)):

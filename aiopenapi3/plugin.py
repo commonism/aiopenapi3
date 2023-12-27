@@ -51,11 +51,17 @@ class Init(Plugin):
         """available in :func:`~aiopenapi3.plugin.Init.initialized`"""
         schemas: Optional[Dict[str, "SchemaBase"]] = None
         """available in :func:`~aiopenapi3.plugin.Init.schemas`"""
+        resolved: Optional[List["SchemaBase"]] = None
+        """available in :func:`~aiopenapi3.plugin.Init.schemas`"""
         paths: Optional[Dict[str, "PathItemBase"]] = None
         """available in :func:`~aiopenapi3.plugin.Init.paths`"""
 
     def schemas(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
         """modify the Schema before creating Models"""
+        return ctx  # noqa
+
+    def resolved(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
+        """modify the resolved paths/PathItems before initializing the Operations"""
         return ctx  # noqa
 
     def paths(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
