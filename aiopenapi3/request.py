@@ -77,6 +77,10 @@ class RequestBase:
         data: Any
         result: httpx.Response
 
+    class Vars(NamedTuple):
+        parameters: Dict[str, str]
+        data: Any
+
     """
     A Request compiles all required information to call an Operation
 
@@ -114,6 +118,11 @@ class RequestBase:
         self.path: str = path
         """
         HTTP path
+        """
+
+        self.vars: Optional["RequestBase.Vars"] = None
+        """
+        Parameter & Data
         """
 
         self.operation: "OperationType" = operation
@@ -217,6 +226,7 @@ class RequestBase:
         :type parameters: dict{str: str}
         :return: headers, data, response
         """
+        self.vars = RequestBase.Vars(parameters, data)
         self._prepare(data, parameters)
         with closing(self.api._session_factory(**self._session_factory_default_args)) as session:
             result = self._send(session, data, parameters)
@@ -252,6 +262,7 @@ class RequestBase:
         :return: schema, session, response
         """
 
+        self.vars = RequestBase.Vars(parameters, data)
         self._prepare(data, parameters)
         session = self.api._session_factory(**self._session_factory_default_args)
         result = self._send(session, data, parameters)
@@ -303,6 +314,7 @@ class AsyncRequestBase(RequestBase):
     async def request(  # type: ignore[override]
         self, data: Optional["RequestData"] = None, parameters: Optional["RequestParameters"] = None
     ) -> "RequestBase.Response":
+        self.vars = RequestBase.Vars(parameters, data)
         self._prepare(data, parameters)
         async with aclosing(self.api._session_factory(**self._session_factory_default_args)) as session:
             result = await self._send(session, data, parameters)
@@ -320,6 +332,7 @@ class AsyncRequestBase(RequestBase):
     async def stream(  # type: ignore[override]
         self, data: Optional["RequestData"] = None, parameters: Optional["RequestParameters"] = None
     ) -> "AsyncRequestBase.StreamResponse":
+        self.vars = RequestBase.Vars(parameters, data)
         self._prepare(data, parameters)
         session = self.api._session_factory(**self._session_factory_default_args)
         result = await self._send(session, data, parameters)
