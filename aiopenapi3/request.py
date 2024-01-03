@@ -80,6 +80,10 @@ class RequestBase:
     class Vars(NamedTuple):
         parameters: Dict[str, str]
         data: Any
+        context: Any
+        """
+        call provided context data for use in :func:`aiopenapi3.plugin.Message`
+        """
 
     """
     A Request compiles all required information to call an Operation
@@ -140,14 +144,16 @@ class RequestBase:
         Servers to use for this request
         """
 
-    def __call__(self, *args, return_headers: bool = False, **kwargs) -> Union["JSON", Tuple[Dict[str, str], "JSON"]]:
+    def __call__(
+        self, *args, return_headers: bool = False, context=None, **kwargs
+    ) -> Union["JSON", Tuple[Dict[str, str], "JSON"]]:
         """
         :param args:
         :param return_headers:  if set return a tuple (header, body)
         :param kwargs:
         :return: body or (header, body)
         """
-        headers, data, result = self.request(*args, **kwargs)
+        headers, data, result = self.request(*args, context=context, **kwargs)
         if return_headers:
             return headers, data
         return data
@@ -216,6 +222,7 @@ class RequestBase:
         self,
         data: Optional["RequestData"] = None,
         parameters: Optional["RequestParameters"] = None,
+        context: Any = None,
     ) -> "RequestBase.Response":
         """
         Sends an HTTP request as described by this Path
@@ -224,9 +231,11 @@ class RequestBase:
         :type data: any, should match content/type
         :param parameters: The path/header/query/cookie parameters required for the operation
         :type parameters: dict{str: str}
+        :param context: The request context for use in aiopenapi3.plugin.Message
+        :type context: Any
         :return: headers, data, response
         """
-        self.vars = RequestBase.Vars(parameters, data)
+        self.vars = RequestBase.Vars(parameters, data, context)
         self._prepare(data, parameters)
         with closing(self.api._session_factory(**self._session_factory_default_args)) as session:
             result = self._send(session, data, parameters)
@@ -245,6 +254,7 @@ class RequestBase:
         self,
         data: Optional["RequestData"] = None,
         parameters: Optional["RequestParameters"] = None,
+        context: Any = None,
     ) -> "RequestBase.StreamResponse":
         """
         Sends an HTTP request as described by this Path - but do not process the result
@@ -262,7 +272,7 @@ class RequestBase:
         :return: schema, session, response
         """
 
-        self.vars = RequestBase.Vars(parameters, data)
+        self.vars = RequestBase.Vars(parameters, data, context)
         self._prepare(data, parameters)
         session = self.api._session_factory(**self._session_factory_default_args)
         result = self._send(session, data, parameters)
@@ -294,9 +304,9 @@ class AsyncRequestBase(RequestBase):
         result: httpx.Response
 
     async def __call__(  # type: ignore[override]
-        self, *args, return_headers: bool = False, **kwargs
+        self, *args, return_headers: bool = False, context: Any = None, **kwargs
     ) -> Union["JSON", Tuple[Dict[str, str], "JSON"]]:
-        headers, data, result = await self.request(*args, **kwargs)
+        headers, data, result = await self.request(*args, context=context, **kwargs)
         if return_headers:
             return headers, data
         return data
@@ -312,9 +322,12 @@ class AsyncRequestBase(RequestBase):
         return result
 
     async def request(  # type: ignore[override]
-        self, data: Optional["RequestData"] = None, parameters: Optional["RequestParameters"] = None
+        self,
+        data: Optional["RequestData"] = None,
+        parameters: Optional["RequestParameters"] = None,
+        context: Any = None,
     ) -> "RequestBase.Response":
-        self.vars = RequestBase.Vars(parameters, data)
+        self.vars = RequestBase.Vars(parameters, data, context)
         self._prepare(data, parameters)
         async with aclosing(self.api._session_factory(**self._session_factory_default_args)) as session:
             result = await self._send(session, data, parameters)
@@ -330,9 +343,12 @@ class AsyncRequestBase(RequestBase):
         return RequestBase.Response(headers, data, result)
 
     async def stream(  # type: ignore[override]
-        self, data: Optional["RequestData"] = None, parameters: Optional["RequestParameters"] = None
+        self,
+        data: Optional["RequestData"] = None,
+        parameters: Optional["RequestParameters"] = None,
+        context: Any = None,
     ) -> "AsyncRequestBase.StreamResponse":
-        self.vars = RequestBase.Vars(parameters, data)
+        self.vars = RequestBase.Vars(parameters, data, context)
         self._prepare(data, parameters)
         session = self.api._session_factory(**self._session_factory_default_args)
         result = await self._send(session, data, parameters)
