@@ -18,7 +18,7 @@ if sys.version_info >= (3, 10):
 else:
     from typing_extensions import TypeGuard
 
-from pydantic import BaseModel, Field, AnyUrl, model_validator, PrivateAttr, ConfigDict
+from pydantic import RootModel, BaseModel, TypeAdapter, Field, AnyUrl, model_validator, PrivateAttr, ConfigDict
 
 from .json import JSONPointer, JSONReference
 from .errors import ReferenceResolutionError, OperationParameterValidationError
@@ -424,7 +424,7 @@ class SchemaBase(BaseModel):
         discriminators: Optional[Sequence[DiscriminatorBase]] = None,
         extra: Optional["SchemaBase"] = None,
         fwdref: bool = False,
-    ) -> Union[Type[BaseModel], ForwardRef]:
+    ) -> Union[Type[BaseModel], Type[TypeAdapter], ForwardRef]:
         if fwdref:
             if "module" in ForwardRef.__init__.__code__.co_varnames:
                 # FIXME Python < 3.9 compat
@@ -449,18 +449,15 @@ class SchemaBase(BaseModel):
         :rtype: self.get_type()
         """
 
-        if self.type == "boolean":
-            assert len(self.properties) == 0
-            t = Model.typeof(cast("SchemaType", self))
-            if not isinstance(data, t):
-                return t(data)
-            return data
+        type_ = cast("SchemaType", self.get_type())
+        if isinstance(type_, TypeAdapter):
+            r = type_.validate_python(data)
         else:
-            type_ = cast("SchemaType", self.get_type())
             r = type_.model_validate(data)
-            if self.type in ("string", "number", "integer", "array"):
+        if self.type in ("string", "number", "integer", "array", "boolean"):
+            if isinstance(r, RootModel):
                 return r.root
-            return r
+        return r
 
 
 class OperationBase:

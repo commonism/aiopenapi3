@@ -17,7 +17,7 @@ else:
     from typing import List, Optional, Union, Tuple, Dict
     from typing_extensions import Annotated, Literal
 
-from pydantic import BaseModel, Field, RootModel, ConfigDict
+from pydantic import BaseModel, TypeAdapter, Field, RootModel, ConfigDict
 import pydantic
 
 from .base import ReferenceBase, SchemaBase
@@ -69,12 +69,15 @@ def class_from_schema(s, _type):
     return b
 
 
+import pydantic_core
+
+
 @dataclasses.dataclass
 class _ClassInfo:
     @dataclasses.dataclass
     class _PropertyInfo:
         annotation: Any = None
-        default: Any = None
+        default: Any = pydantic_core.PydanticUndefined
 
     root: Any = None
     config: Dict[str, Any] = dataclasses.field(default_factory=dict)
@@ -115,16 +118,18 @@ class Model:  # (BaseModel):
         schemanames: Optional[List[str]] = None,
         discriminators: Optional[List["DiscriminatorType"]] = None,
         extra: Optional["SchemaType"] = None,
-    ) -> Type[BaseModel]:
+    ) -> Union[Type[BaseModel], Type[TypeAdapter]]:
         if schemanames is None:
             schemanames = []
 
         if discriminators is None:
             discriminators = []
 
-        r: List[Type[BaseModel]] = list()
+        r: List[Union[Type[BaseModel], Type[TypeAdapter]]] = list()
 
         for _type in Model.types(schema):
+            if _type == "null":
+                continue
             r.append(Model.from_schema_type(schema, _type, schemanames, discriminators, extra))
 
         if len(r) > 1:
@@ -134,7 +139,13 @@ class Model:  # (BaseModel):
         elif len(r) == 1:
             m: Type[BaseModel] = cast(Type[BaseModel], r[0])
         else:  # == 0
-            raise ValueError(r)
+            assert schema.type == "null"
+            return TypeAdapter(None.__class__)
+
+        if not isinstance(m, TypeAdapter) and Model.is_nullable(schema):
+            n = TypeAdapter(Optional[m])
+            return cast(Type[TypeAdapter], n)
+
         return cast(Type[BaseModel], m)
 
     @classmethod
@@ -152,11 +163,8 @@ class Model:  # (BaseModel):
 
         classinfo = _ClassInfo()
 
-        # do not create models for primitive types
+        # create models for primitive types to be nullable
         if _type in ("string", "integer", "number", "boolean"):
-            if _type == "boolean":
-                return bool
-
             if typing.get_origin((_t := Model.typeof(schema, _type=_type))) != Literal:
                 classinfo.root = Annotated[_t, Model.fieldof_args(schema, None)]
             else:
@@ -325,7 +333,7 @@ class Model:  # (BaseModel):
         if schema is None:
             return BaseModel
         if isinstance(schema, SchemaBase):
-            nullable = False
+            nullable = Model.is_nullable(schema)
             schema = cast("SchemaType", schema)
             """
             Required, can be None: Optional[str]
@@ -520,7 +528,7 @@ class Model:  # (BaseModel):
 
     @staticmethod
     def is_nullable(schema: "SchemaType") -> bool:
-        return Model.or_type(schema, "null", l=None) or getattr(schema, "nullable", False)
+        return Model.or_type(schema, "null", l=None) or getattr(schema, "nullable", False) is True
 
     @staticmethod
     def is_type_any(schema: "SchemaType"):
@@ -537,14 +545,12 @@ class Model:  # (BaseModel):
             for name, f in schema.properties.items():
                 args: Dict[str, Any] = dict()
                 assert schema.required is not None
-                if name not in schema.required:
+                if (v := getattr(f, "default", None)) is not None:
+                    args["default"] = v
+                elif name not in schema.required:
                     args["default"] = None
+
                 name = Model.nameof(name, args=args)
-                if Model.is_nullable(f):
-                    args["default"] = None
-                for i in ["default"]:
-                    if (v := getattr(f, i, None)) is not None:
-                        args[i] = v
                 classinfo.properties[name].default = Model.fieldof_args(f, args)
         else:
             raise ValueError(schema.type)

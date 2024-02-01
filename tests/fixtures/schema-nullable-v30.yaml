@@ -1,0 +1,45 @@
+openapi: 3.0.3
+info:
+  title: ''
+  version: 0.0.0
+servers:
+  - url: http://127.0.0.1/api
+
+security:
+  - {}
+
+paths: {}
+
+components:
+  schemas:
+    object:
+      type: object
+      additionalProperties: false
+      properties:
+        attr:
+          $ref: '#/components/schemas/nullable'
+      nullable: true
+      required:
+      - attr
+
+    array:
+      type: array
+      items:
+        $ref: '#/components/schemas/nullable'
+      nullable: true
+
+    string:
+      type: string
+      nullable: true
+
+    integer:
+      type: integer
+      nullable: true
+
+    boolean:
+      type: boolean
+      nullable: true
+
+    nullable:
+      nullable: true
+      type: string
