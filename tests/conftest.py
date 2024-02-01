@@ -493,3 +493,8 @@ def with_paths_response_error():
 @pytest.fixture
 def with_schema_ref_nesting():
     yield _get_parsed_yaml("schema-ref-nesting.yaml")
+
+
+@pytest.fixture
+def with_schema_nullable(openapi_version):
+    yield _get_parsed_yaml(f"schema-nullable-v{openapi_version.major}{openapi_version.minor}.yaml")

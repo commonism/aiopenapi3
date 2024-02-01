@@ -423,11 +423,11 @@ def test_schema_enum(with_schema_enum):
     with pytest.raises(ValidationError):
         String(None)
 
-    Nullable = api.components.schemas["Nullable"].get_type()
-    Nullable("a")
-    Nullable(None)
+    Nullable = api.components.schemas["Nullable"]
+    Nullable.model("a")
+    Nullable.model(None)
     with pytest.raises(ValidationError):
-        Nullable("c")
+        Nullable.model("c")
 
     Mixed = api.components.schemas["Mixed"].get_type()
     Mixed(1)
@@ -470,3 +470,32 @@ def test_schema_baseurl_v20(with_schema_baseurl_v20):
 def test_schema_ref_nesting(with_schema_ref_nesting):
     for i in range(10):
         OpenAPI("/", with_schema_ref_nesting)
+
+
+@pytest.mark.parametrize(
+    "schema, input, output, okay",
+    [
+        ("object", None, None, True),
+        ("object", {"attr": "a"}, {"attr": "a"}, True),
+        ("object", {"attr": None}, {"attr": None}, True),
+        ("object", {}, {}, False),
+        ("integer", None, None, True),
+        ("integer", 1, 1, True),
+        ("boolean", None, None, True),
+        ("boolean", True, True, True),
+        ("string", None, None, True),
+        ("string", "a", "a", True),
+        ("array", None, None, True),
+        ("array", [], [], True),
+    ],
+)
+def test_schema_nullable(with_schema_nullable, schema, input, output, okay):
+    api = OpenAPI("/", with_schema_nullable)  # , plugins=[NullableRefs()])
+
+    m = api.components.schemas[schema]
+    t = m.get_type()
+    if okay:
+        m.model(input)
+    else:
+        with pytest.raises(ValidationError):
+            m.model(input)
