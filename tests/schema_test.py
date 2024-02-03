@@ -488,10 +488,19 @@ def test_schema_ref_nesting(with_schema_ref_nesting):
         ("array", None, None, True),
         ("array", [], [], True),
         ("array", [None], [None], True),
+        ("union", 1, 1, True),
+        ("union", "a", "a", True),
+        ("union", None, None, True),
+        ("multi", 1, 1, True),
+        ("multi", "a", "a", True),
+        ("multi", None, None, True),
     ],
 )
 def test_schema_nullable(with_schema_nullable, schema, input, output, okay):
     api = OpenAPI("/", with_schema_nullable)  # , plugins=[NullableRefs()])
+
+    if schema == "multi" and not api.openapi.startswith("3.1"):
+        pytest.skip("version")
 
     m = api.components.schemas[schema]
     t = m.get_type()
