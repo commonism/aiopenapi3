@@ -323,7 +323,7 @@ class Model:  # (BaseModel):
         return ConfigDict(
             extra=extra_,
             arbitrary_types_allowed=arbitrary_types_allowed_,
-            defer_build=True,
+            # defer_build=True,
             # validate_assignment=True
         )
 
