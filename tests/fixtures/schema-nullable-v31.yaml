@@ -26,6 +26,11 @@ components:
       items:
         $ref: '#/components/schemas/nullable'
 
+    union:
+      type: [object, "null"]
+      oneOf:
+        - $ref: '#/components/schemas/string'
+        - $ref: '#/components/schemas/integer'
 
     string:
       type: [string, "null"]
@@ -38,3 +43,6 @@ components:
 
     nullable:
       type: [string, "null"]
+
+    multi:
+      type: [integer, string, "null"]

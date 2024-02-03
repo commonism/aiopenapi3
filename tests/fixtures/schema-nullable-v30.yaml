@@ -28,6 +28,13 @@ components:
         $ref: '#/components/schemas/nullable'
       nullable: true
 
+    union:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/string'
+        - $ref: '#/components/schemas/integer'
+      nullable: true
+
     string:
       type: string
       nullable: true
