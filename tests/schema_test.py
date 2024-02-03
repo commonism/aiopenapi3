@@ -487,6 +487,7 @@ def test_schema_ref_nesting(with_schema_ref_nesting):
         ("string", "a", "a", True),
         ("array", None, None, True),
         ("array", [], [], True),
+        ("array", [None], [None], True),
     ],
 )
 def test_schema_nullable(with_schema_nullable, schema, input, output, okay):
