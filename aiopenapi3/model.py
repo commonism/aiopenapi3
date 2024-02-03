@@ -126,7 +126,7 @@ class Model:  # (BaseModel):
             discriminators = []
 
         r: List[Union[Type[BaseModel], Type[TypeAdapter]]] = list()
-
+        nullable = Model.is_nullable(schema)
         for _type in Model.types(schema):
             if _type == "null":
                 continue
@@ -134,17 +134,17 @@ class Model:  # (BaseModel):
 
         if len(r) > 1:
             ru: object = Union[tuple(r)]
+            if nullable:
+                ru = Optional[ru]
             type_name = schema._get_identity("L8")
             m: Type[RootModel] = pydantic.create_model(type_name, __base__=(RootModel[ru],), __module__=me.__name__)
         elif len(r) == 1:
             m: Type[BaseModel] = cast(Type[BaseModel], r[0])
+            if nullable:
+                type_name = schema._get_identity("L8")
+                m = pydantic.create_model(type_name, __base__=(RootModel[Optional[m]],), __module__=me.__name__)
         else:  # == 0
-            assert schema.type == "null"
             return TypeAdapter(None.__class__)
-
-        if not isinstance(m, TypeAdapter) and Model.is_nullable(schema):
-            n = TypeAdapter(Optional[m])
-            return cast(Type[TypeAdapter], n)
 
         return cast(Type[BaseModel], m)
 
@@ -323,6 +323,7 @@ class Model:  # (BaseModel):
         return ConfigDict(
             extra=extra_,
             arbitrary_types_allowed=arbitrary_types_allowed_,
+            defer_build=True,
             # validate_assignment=True
         )
 
