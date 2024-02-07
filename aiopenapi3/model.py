@@ -64,6 +64,10 @@ def generate_type_format_to_class():
 
 
 def class_from_schema(s, _type):
+    if _type == "integer":
+        return int
+    elif _type == "boolean":
+        return bool
     a = type_format_to_class[_type]
     b = a.get(s.format, a[None])
     return b
@@ -219,13 +223,11 @@ class Model:  # (BaseModel):
         nullable = Model.is_nullable(schema)
         for _type in Model.types(schema):
             if _type == "null":
-                continue
+                r.append(None.__class__)
             r.append(Model.createClassInfo(schema, _type, schemanames, discriminators, extra))
 
         if len(r) > 1:
             ru: object = Union[tuple(r)]
-            if nullable:
-                ru = Optional[ru]
             type_name = schema._get_identity("L8")
             m: Type[RootModel] = pydantic.create_model(type_name, __base__=(RootModel[ru],), __module__=me.__name__)
         elif len(r) == 1:
@@ -381,13 +383,16 @@ class Model:  # (BaseModel):
         if classinfo.root:
             m = pydantic.create_model(type_name, __base__=(RootModel[classinfo.root],), __module__=me.__name__)
         else:
-            m = pydantic.create_model(
-                type_name,
-                #                __base__=(BaseModel,),
-                __module__=me.__name__,
-                model_config=classinfo.config,
-                **classinfo.fields,
-            )
+            if _type == "object":
+                m = pydantic.create_model(
+                    type_name,
+                    #                __base__=(BaseModel,),
+                    __module__=me.__name__,
+                    model_config=classinfo.config,
+                    **classinfo.fields,
+                )
+            else:
+                m = None.__class__
         return cast(Type[BaseModel], m)
 
     @staticmethod
@@ -460,20 +465,13 @@ class Model:  # (BaseModel):
                 r = [Literal[_names]]  # type: ignore[assignment,list-item]
             else:
                 for _type in Model.types(schema) if not _type else [_type]:
-                    if _type == "integer":
-                        r.append(int)
-                    elif _type == "number":
-                        r.append(class_from_schema(schema, "number"))
-                    elif _type == "string":
-                        if not (oneOf:=getattr(schema, "oneOf", [])):
-                            v = class_from_schema(schema, "string")
+                    if _type in ("boolean", "integer", "number", "string"):
+                        if not (oneOf := getattr(schema, "oneOf", [])):
+                            v = class_from_schema(schema, _type)
                             r.append(v)
                         else:
-                            v = [Model.createAnnotation(i, _type="string") for i in oneOf if "string" in Model.types(i)]
+                            v = [Model.createAnnotation(i, _type=_type) for i in oneOf if _type in Model.types(i)]
                             r.extend(v)
-
-                    elif _type == "boolean":
-                        r.append(bool)
                     elif _type == "array":
                         if isinstance(schema.items, list):
                             v = Tuple[tuple(Model.createAnnotation(i, fwdref=True) for i in schema.items)]
@@ -511,11 +509,12 @@ class Model:  # (BaseModel):
             raise TypeError(type(schema))
         return rr
 
-
     @staticmethod
     def types(schema: "SchemaType"):
         if isinstance(schema.type, str):
             yield schema.type
+            if getattr(schema, "nullable", False):
+                yield "null"
         else:
             typesfilter: Set[str] = set()
             values: Set[str]
