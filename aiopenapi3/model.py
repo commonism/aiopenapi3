@@ -1,5 +1,6 @@
 import collections
 import dataclasses
+import inspect
 import logging
 import re
 import sys
@@ -82,6 +83,9 @@ class _ClassInfo:
     class _PropertyInfo:
         annotation: Any = None
         default: Any = pydantic_core.PydanticUndefined
+
+    name: str
+    type_: str
 
     root: Any = None
     config: Dict[str, Any] = dataclasses.field(default_factory=dict)
@@ -190,6 +194,39 @@ class _ClassInfo:
             raise ValueError()
         return self
 
+    def model(self):
+        if self.root:
+            #            m = pydantic.create_model(self.name, __base__=(RootModel[self.root],), __module__=me.__name__)
+            m = self.root
+        else:
+            if self.type_ == "object":
+                m = pydantic.create_model(
+                    self.name,
+                    __module__=me.__name__,
+                    model_config=self.config,
+                    **self.fields,
+                )
+            else:
+                m = None.__class__
+        return m
+
+    @classmethod
+    def collapse(cls, type_name, items) -> Type[BaseModel]:
+        r: List[Union[Type[BaseModel], Type[None]]]
+
+        r = [i.model() for i in items]
+
+        if len(r) > 1:
+            ru: object = Union[tuple(r)]
+            m: Type[RootModel] = pydantic.create_model(type_name, __base__=(RootModel[ru],), __module__=me.__name__)
+        elif len(r) == 1:
+            m: Type[BaseModel] = cast(Type[BaseModel], r[0])
+            if not (inspect.isclass(m) and issubclass(m, pydantic.BaseModel)):
+                m = pydantic.create_model(type_name, __base__=(RootModel[m],), __module__=me.__name__)
+        else:  # == 0
+            assert len(r), r
+        return m
+
 
 _T = TypeVar("_T")
 
@@ -212,31 +249,19 @@ class Model:  # (BaseModel):
         schemanames: Optional[List[str]] = None,
         discriminators: Optional[List["DiscriminatorType"]] = None,
         extra: Optional["SchemaType"] = None,
-    ) -> Union[Type[BaseModel], Type[TypeAdapter]]:
+    ) -> Type[BaseModel]:
         if schemanames is None:
             schemanames = []
 
         if discriminators is None:
             discriminators = []
 
-        r: List[Union[Type[BaseModel], Type[TypeAdapter]]] = list()
-        nullable = Model.is_nullable(schema)
+        r: List[_ClassInfo] = list()
+
         for _type in Model.types(schema):
-            if _type == "null":
-                r.append(None.__class__)
             r.append(Model.createClassInfo(schema, _type, schemanames, discriminators, extra))
 
-        if len(r) > 1:
-            ru: object = Union[tuple(r)]
-            type_name = schema._get_identity("L8")
-            m: Type[RootModel] = pydantic.create_model(type_name, __base__=(RootModel[ru],), __module__=me.__name__)
-        elif len(r) == 1:
-            m: Type[BaseModel] = cast(Type[BaseModel], r[0])
-            if nullable:
-                type_name = schema._get_identity("L8")
-                m = pydantic.create_model(type_name, __base__=(RootModel[Optional[m]],), __module__=me.__name__)
-        else:  # == 0
-            return None.__class__
+        m = _ClassInfo.collapse(schema._get_identity("L8"), r)
 
         return cast(Type[BaseModel], m)
 
@@ -248,12 +273,12 @@ class Model:  # (BaseModel):
         schemanames: List[str],
         discriminators: List["DiscriminatorType"],
         extra: Optional["SchemaType"],
-    ) -> Type[BaseModel]:
+    ) -> _ClassInfo:
         from . import v20, v30, v31
 
         type_name = schema._get_identity("L8")  # + f"_{type}"
 
-        classinfo = _ClassInfo()
+        classinfo = _ClassInfo(type_name, _type)
 
         # create models for primitive types to be nullable
         if _type in ("string", "integer", "number", "boolean"):
@@ -363,6 +388,11 @@ class Model:  # (BaseModel):
         elif _type == "array":
             classinfo.root = Model.createAnnotation(schema, _type="array")
 
+        elif _type == "null":
+            classinfo.root = None.__class__
+        else:
+            raise ValueError(_type)
+
         if _type in ("array", "object"):
             if schema.enum or getattr(schema, "const", None):
                 raise NotImplementedError("complex enums/const are not supported")
@@ -380,20 +410,7 @@ class Model:  # (BaseModel):
             classinfo.properties["aio3_additionalProperties"].default = property(mkx()[0])
 
         classinfo.validate()
-        if classinfo.root:
-            m = pydantic.create_model(type_name, __base__=(RootModel[classinfo.root],), __module__=me.__name__)
-        else:
-            if _type == "object":
-                m = pydantic.create_model(
-                    type_name,
-                    #                __base__=(BaseModel,),
-                    __module__=me.__name__,
-                    model_config=classinfo.config,
-                    **classinfo.fields,
-                )
-            else:
-                m = None.__class__
-        return cast(Type[BaseModel], m)
+        return classinfo
 
     @staticmethod
     def createConfigDict(schema: "SchemaType"):
@@ -466,11 +483,20 @@ class Model:  # (BaseModel):
             else:
                 for _type in Model.types(schema) if not _type else [_type]:
                     if _type in ("boolean", "integer", "number", "string"):
-                        if not (oneOf := getattr(schema, "oneOf", [])):
+                        oneOf = [i for i in getattr(schema, "oneOf", []) if _type in Model.types(i)]
+                        anyOf = [i for i in getattr(schema, "anyOf", []) if _type in Model.types(i)]
+                        allOf = [i for i in getattr(schema, "allOf", []) if _type in Model.types(i)]
+
+                        if allOf:
+                            raise NotImplementedError(f"primitive type {_type} allOf is not implemented")
+
+                        if not (anyOf or oneOf):
                             v = class_from_schema(schema, _type)
                             r.append(v)
                         else:
-                            v = [Model.createAnnotation(i, _type=_type) for i in oneOf if _type in Model.types(i)]
+                            v = [Model.createAnnotation(i, _type=_type) for i in oneOf]
+                            r.extend(v)
+                            v = [Model.createAnnotation(i, _type=_type) for i in anyOf]
                             r.extend(v)
                     elif _type == "array":
                         if isinstance(schema.items, list):
