@@ -10,5 +10,6 @@ components:
         id:
           type: integer
     Ref:
+      type: object
       allOf:
         - $ref: "#/components/schemas/Any"

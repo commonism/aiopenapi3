@@ -315,6 +315,7 @@ class Model:  # (BaseModel):
                         extra=schema if schema.properties else None,
                     )
                     for i in schema.anyOf
+                    if _type in Model.types(i)
                 )
                 if schema.discriminator and schema.discriminator.mapping:
                     classinfo.root = Annotated[
@@ -332,7 +333,7 @@ class Model:  # (BaseModel):
                         extra=schema if schema.properties else None,
                     )
                     for i in schema.oneOf
-                    if Model.is_type(i, _type)
+                    if _type in Model.types(i)
                 )
                 if schema.discriminator and schema.discriminator.mapping:
                     classinfo.root = Annotated[

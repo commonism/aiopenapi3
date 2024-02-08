@@ -176,9 +176,9 @@ async def test_createPet(event_loop, server, client):
 
     print(json.dumps(data["pet"], indent=4))
     r = await client._.createPet(data=data)
-    assert isinstance(r, client.components.schemas["Pet-Input"].get_type())
+    assert isinstance(r, client.components.schemas["Cat"].get_type())
 
-    r = await client._.createPet(data=randomPet(client, name=r.root.root.name))
+    r = await client._.createPet(data=randomPet(client, name=r.root.name))
     Error = client.components.schemas["Error"].get_type()
     assert isinstance(r, Error)
     # type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
@@ -198,7 +198,7 @@ async def test_listPet(event_loop, server, client):
 @pytest.mark.asyncio
 async def test_getPet(event_loop, server, client):
     pet = await client._.createPet(data=randomPet(client, str(uuid.uuid4())))
-    r = await client._.getPet(parameters={"petId": pet.root.identifier})
+    r = await client._.getPet(parameters={"petId": pet.identifier})
 
     #   mismatch due to serialization vs validation models for in/out
     #   https://github.com/tiangolo/fastapi/pull/10011
