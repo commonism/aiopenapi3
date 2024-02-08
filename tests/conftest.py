@@ -498,3 +498,13 @@ def with_schema_ref_nesting():
 @pytest.fixture
 def with_schema_nullable(openapi_version):
     yield _get_parsed_yaml(f"schema-nullable-v{openapi_version.major}{openapi_version.minor}.yaml")
+
+
+@pytest.fixture
+def with_schema_oneOf_nullable(openapi_version):
+    yield _get_parsed_yaml(f"schema-oneOf-nullable-v{openapi_version.major}{openapi_version.minor}.yaml")
+
+
+@pytest.fixture
+def with_schema_oneOf_mixed():
+    yield _get_parsed_yaml(f"schema-oneOf-mixed.yaml")

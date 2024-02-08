@@ -29,7 +29,6 @@ components:
       nullable: true
 
     union:
-      type: object
       oneOf:
         - $ref: '#/components/schemas/string'
         - $ref: '#/components/schemas/integer'

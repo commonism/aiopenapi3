@@ -494,12 +494,13 @@ def test_schema_ref_nesting(with_schema_ref_nesting):
         ("multi", 1, 1, True),
         ("multi", "a", "a", True),
         ("multi", None, None, True),
+        ("null", None, None, True),
     ],
 )
 def test_schema_nullable(with_schema_nullable, schema, input, output, okay):
     api = OpenAPI("/", with_schema_nullable)  # , plugins=[NullableRefs()])
 
-    if schema == "multi" and not api.openapi.startswith("3.1"):
+    if schema in ("multi", "null") and not api.openapi.startswith("3.1"):
         pytest.skip("version")
 
     m = api.components.schemas[schema]
@@ -509,3 +510,30 @@ def test_schema_nullable(with_schema_nullable, schema, input, output, okay):
     else:
         with pytest.raises(ValidationError):
             m.model(input)
+
+
+def test_schema_oneOf_nullable(with_schema_oneOf_nullable):
+    api = OpenAPI("/", with_schema_oneOf_nullable)
+
+    s = api.components.schemas["object"]
+    t = s.get_type()
+    n = s.model({"typed": None})
+    m = s.model({"typed": "4"})
+    assert not isinstance(m, pydantic.RootModel)
+    m = s.model({"typed": "5"})
+    assert not isinstance(m, pydantic.RootModel)
+    with pytest.raises(ValidationError):
+        s.model({"typed": "6"})
+
+
+def test_schema_oneOf_mixed(with_schema_oneOf_mixed):
+    api = OpenAPI("/", with_schema_oneOf_mixed)
+
+    s = api.components.schemas["object"]
+    t = s.get_type()
+    m = s.model({"typed": 4})
+    assert not isinstance(m, pydantic.RootModel)
+    m = s.model({"typed": "5"})
+    assert not isinstance(m, pydantic.RootModel)
+    with pytest.raises(ValidationError):
+        s.model({"typed": "6"})
