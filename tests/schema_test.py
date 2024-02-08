@@ -317,9 +317,9 @@ def test_schema_discriminated_union_discriminator_name(with_schema_discriminated
     api = OpenAPI("/", with_schema_discriminated_union_discriminator_name)
 
 
-def test_schema_discriminated_union_array(with_schema_discriminated_union_array):
+def test_schema_discriminated_union_invalid_array(with_schema_discriminated_union_invalid_array):
     with pytest.raises(aiopenapi3.errors.SpecError):
-        api = OpenAPI("/", with_schema_discriminated_union_array)
+        api = OpenAPI("/", with_schema_discriminated_union_invalid_array)
 
 
 def test_schema_discriminated_union_warnings(with_schema_discriminated_union_warning, openapi_version):
@@ -510,6 +510,34 @@ def test_schema_nullable(with_schema_nullable, schema, input, output, okay):
     else:
         with pytest.raises(ValidationError):
             m.model(input)
+
+
+def test_schema_oneOf(with_schema_oneOf):
+    api = OpenAPI("/", with_schema_oneOf)
+    al = api.components.schemas["AL"]
+    t = al.get_type()
+    m = t.model_validate([{"type": "a", "value": 1}])
+
+    ab = api.components.schemas["AB"]
+    t = ab.get_type()
+    m = t.model_validate([{"type": "a", "value": 1}])
+    m = t.model_validate({"type": "a", "value": 1})
+    m = t.model_validate("string")
+
+    with pytest.raises(ValidationError):
+        t.model_validate({"type": "a", "value": "a"})
+
+    with pytest.raises(ValidationError):
+        t.model_validate([{"type": "a", "value": "a"}])
+
+    with pytest.raises(ValidationError):
+        t.model_validate(1)
+
+    with pytest.raises(ValidationError):
+        t.model_validate(1.1)
+
+    with pytest.raises(ValidationError):
+        t.model_validate(True)
 
 
 def test_schema_oneOf_nullable(with_schema_oneOf_nullable):
