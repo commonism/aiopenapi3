@@ -1,0 +1,40 @@
+
+openapi: 3.1.0
+info:
+  version: 1.0.0
+  title: oneOf with possibilities
+
+components:
+  schemas:
+    A:
+      title: A
+      type: object
+      additionalProperties: False
+      properties:
+        type:
+          const: "a"
+        value:
+          type: integer
+
+    B:
+      title: B
+      type: string
+
+    AL:
+      type: array
+      items:
+        $ref: "#/components/schemas/A"
+
+    AB:
+      title: AB
+      oneOf:
+        - type: object
+          additionalProperties: False
+          oneOf:
+            - $ref: '#/components/schemas/A'
+          discriminator:
+            propertyName: type
+            mapping:
+              a: '#/components/schemas/A'
+        - $ref: "#/components/schemas/AL"
+        - $ref: "#/components/schemas/B"

@@ -106,7 +106,7 @@ class _ClassInfo:
 
     def createFields(self, schema: "SchemaType"):
         if schema.type == "array":
-            return self
+            return
 
         if Model.is_type(schema, "object") or Model.is_type_any(schema):
             f: Union[SchemaBase, ReferenceBase]
@@ -123,7 +123,7 @@ class _ClassInfo:
                 self.properties[name].default = Model.createField(f, args)
         else:
             raise ValueError(schema.type)
-        return self
+        return
 
     def createAnnotations(
         self, schema: "SchemaType", discriminators: List["DiscriminatorType"], shmanm: List[str], fwdref=False
@@ -137,7 +137,7 @@ class _ClassInfo:
                 return self._createAnnotations(schema, "array", discriminators, shmanm, fwdref)
         else:
             return self._createAnnotations(schema, schema.type, discriminators, shmanm, fwdref)
-        return self
+        return
 
     def _createAnnotations(self, schema: "SchemaType", _type: str, discriminators, shmanm, fwdref=False):
         if _type == "array":
@@ -192,11 +192,10 @@ class _ClassInfo:
             pass
         else:
             raise ValueError()
-        return self
+        return
 
-    def model(self):
+    def model(self) -> Union[Type[BaseModel], Type[None]]:
         if self.root:
-            #            m = pydantic.create_model(self.name, __base__=(RootModel[self.root],), __module__=me.__name__)
             m = self.root
         else:
             if self.type_ == "object":
@@ -387,7 +386,18 @@ class Model:  # (BaseModel):
                         classinfo.createFields(i)
 
         elif _type == "array":
-            classinfo.root = Model.createAnnotation(schema, _type="array")
+            t = list(
+                Model.createAnnotation(i, _type=_type) for i in getattr(schema, "oneOf", []) if Model.is_type(i, _type)
+            )
+
+            if not t:
+                t.append(Model.createAnnotation(schema, _type="array"))
+
+            if len(t) > 1:
+                t = tuple(t)
+                classinfo.root = Union[t]
+            else:
+                classinfo.root = t[0]
 
         elif _type == "null":
             classinfo.root = None.__class__

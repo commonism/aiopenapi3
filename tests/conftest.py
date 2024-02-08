@@ -328,8 +328,8 @@ def with_schema_discriminated_union_discriminator_name(openapi_version):
 
 
 @pytest.fixture
-def with_schema_discriminated_union_array(openapi_version):
-    yield _get_parsed_yaml("schema-discriminated-union-array.yaml", openapi_version)
+def with_schema_discriminated_union_invalid_array(openapi_version):
+    yield _get_parsed_yaml("schema-discriminated-union-invalid-array.yaml", openapi_version)
 
 
 @pytest.fixture
@@ -498,6 +498,11 @@ def with_schema_ref_nesting():
 @pytest.fixture
 def with_schema_nullable(openapi_version):
     yield _get_parsed_yaml(f"schema-nullable-v{openapi_version.major}{openapi_version.minor}.yaml")
+
+
+@pytest.fixture
+def with_schema_oneOf():
+    yield _get_parsed_yaml("schema-oneOf.yaml")
 
 
 @pytest.fixture
