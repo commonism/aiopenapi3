@@ -482,16 +482,18 @@ class Request(RequestBase):
         self, result: httpx.Response, expected_response: "v3xResponseType", content_type: Optional[str]
     ) -> Tuple[str, "v3xMediaTypeType"]:
         if content_type:
+            """
+            https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#response-object
+            The key is a media type or media type range
+            https://datatracker.ietf.org/doc/html/rfc7231#appendix-D
+            media-range = ( "*/*" / ( type "/*" ) / ( type "/" subtype ) ) *( OWS ";" OWS parameter )
+            """
             content_type, _, encoding = content_type.partition(";")
-            expected_media: Optional["v3xMediaTypeType"] = expected_response.content.get(content_type, None)
-            if expected_media is None and "/" in content_type:
-                # accept media type ranges in the spec. the most specific matching
-                # type should always be chosen, but if we do not have a match here
-                # a generic range should be accepted if one if provided
-                # https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#response-object
-
-                generic_type = content_type.split("/")[0] + "/*"
-                expected_media = expected_response.content.get(generic_type, None)
+            expected_media: Optional["v3xMediaTypeType"] = (
+                expected_response.content.get(content_type, None)
+                or expected_response.content.get(content_type.partition("/")[0] + "/*", None)
+                or expected_response.content.get("*/*", None)
+            )
         else:
             expected_media = None
 
@@ -559,6 +561,7 @@ class Request(RequestBase):
                 operationId=self.operation.operationId,
                 parsed=data,
                 expected_type=getattr(expected_media.schema_, "_target", expected_media.schema_),
+                status_code=status_code,
             ).parsed
 
             if expected_media.schema_ is None:
