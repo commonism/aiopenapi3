@@ -454,7 +454,6 @@ class SchemaBase(BaseModel):
             r = type_.validate_python(data)
         else:
             r = type_.model_validate(data)
-#        if self.type in ("string", "number", "integer", "array", "boolean"):
         if isinstance(r, RootModel):
             return r.root
         return r

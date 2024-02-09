@@ -1,0 +1,54 @@
+
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: oneOf with possibilities
+
+components:
+  schemas:
+    A:
+      title: A
+      type: object
+      additionalProperties: False
+      properties:
+        type:
+          enum: ["a"]
+        value:
+          type: integer
+          exclusiveMaximum: true
+          maximum: 5
+
+    B:
+      title: B
+      type: string
+      enum: ["b"]
+
+    L:
+      type: array
+      items:
+        $ref: "#/components/schemas/A"
+
+    OA:
+      title: OA
+      anyOf:
+        - $ref: "#/components/schemas/A"
+        - type: object
+          additionalProperties: False
+          nullable: True
+
+
+    OB:
+      title: OB
+      anyOf:
+        - $ref: "#/components/schemas/B"
+        - type: object
+          additionalProperties: False
+          nullable: True
+
+    OL:
+      title: OL
+      anyOf:
+        - $ref: "#/components/schemas/L"
+        - type: object
+          additionalProperties: False
+          nullable: True

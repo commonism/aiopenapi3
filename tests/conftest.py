@@ -363,11 +363,6 @@ def with_schema_extensions(openapi_version):
 
 
 @pytest.fixture
-def with_schema_anyof():
-    yield _get_parsed_yaml("schema-anyof.yaml")
-
-
-@pytest.fixture
 def with_schema_recursion(openapi_version):
     yield _get_parsed_yaml("schema-recursion.yaml", openapi_version)
 
@@ -511,5 +506,15 @@ def with_schema_oneOf_nullable(openapi_version):
 
 
 @pytest.fixture
+def with_schema_oneOf_properties():
+    yield _get_parsed_yaml("schema-oneOf-properties.yaml")
+
+
+@pytest.fixture
 def with_schema_oneOf_mixed():
     yield _get_parsed_yaml(f"schema-oneOf-mixed.yaml")
+
+
+@pytest.fixture
+def with_schema_anyOf():
+    yield _get_parsed_yaml("schema-anyOf.yaml")

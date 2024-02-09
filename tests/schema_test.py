@@ -55,8 +55,8 @@ def test_schema_without_properties(httpx_mock):
     assert len(result.no_properties.model_fields) == 0
 
 
-def test_schema_anyof(with_schema_anyof):
-    api = OpenAPI("/", with_schema_anyof)
+def test_schema_anyof(with_schema_oneOf_properties):
+    api = OpenAPI("/", with_schema_oneOf_properties)
     s = api.components.schemas["AB"]
     t = s.get_type()
 
@@ -565,3 +565,24 @@ def test_schema_oneOf_mixed(with_schema_oneOf_mixed):
     assert not isinstance(m, pydantic.RootModel)
     with pytest.raises(ValidationError):
         s.model({"typed": "6"})
+
+
+def test_schema_anyOf(with_schema_anyOf):
+    api = OpenAPI("/", with_schema_anyOf)
+    oa = api.components.schemas["OA"]
+    toa = oa.get_type()
+    m = toa.model_validate({"type": "a", "value": 1})
+    m = toa.model_validate(None)
+    with pytest.raises(ValidationError):
+        toa.model_validate({"type": "a", "value": 5})
+
+    ob = api.components.schemas["OB"]
+    tob = ob.get_type()
+    m = tob.model_validate("b")
+    m = tob.model_validate(None)
+    with pytest.raises(ValidationError):
+        tob.model_validate("a")
+
+    ol = api.components.schemas["OL"]
+    tol = ol.get_type()
+    m = tol.model_validate([{"type": "a", "value": 1}])

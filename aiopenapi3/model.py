@@ -281,22 +281,18 @@ class Model:  # (BaseModel):
 
         # create models for primitive types to be nullable
         if _type in ("string", "integer", "number", "boolean"):
-            t = list(
-                Model.createAnnotation(i, _type=_type) for i in getattr(schema, "oneOf", []) if Model.is_type(i, _type)
-            )
-
-            if not t:
-                if typing.get_origin((_t := Model.createAnnotation(schema, _type=_type))) != Literal:
-                    t.append(Annotated[_t, Model.createField(schema, None)])
-                else:
-                    t.append(_t)
-
-            if len(t) > 1:
-                t = tuple(t)
-                classinfo.root = Union[t]
+            """
+            for primitive types the anyOf/oneOf is taken care of in Model.createAnnotation
+            """
+            if typing.get_origin((_t := Model.createAnnotation(schema, _type=_type))) != Literal:
+                classinfo.root = Annotated[_t, Model.createField(schema, None)]
             else:
-                classinfo.root = t[0]
-
+                classinfo.root = _t
+        elif _type == "array":
+            """anyOf/oneOf is taken care in in createAnnotation"""
+            classinfo.root = Model.createAnnotation(schema, _type="array")
+        elif _type == "null":
+            classinfo.root = None.__class__
         elif _type == "object":
             # this is a anyOf/oneOf - the parent may have properties which will collide with __root__
             # so - add the parent properties to this model
@@ -384,23 +380,6 @@ class Model:  # (BaseModel):
                     for i in schema.allOf:
                         classinfo.createAnnotations(i, discriminators, schemanames, fwdref=True)
                         classinfo.createFields(i)
-
-        elif _type == "array":
-            t = list(
-                Model.createAnnotation(i, _type=_type) for i in getattr(schema, "oneOf", []) if Model.is_type(i, _type)
-            )
-
-            if not t:
-                t.append(Model.createAnnotation(schema, _type="array"))
-
-            if len(t) > 1:
-                t = tuple(t)
-                classinfo.root = Union[t]
-            else:
-                classinfo.root = t[0]
-
-        elif _type == "null":
-            classinfo.root = None.__class__
         else:
             raise ValueError(_type)
 
@@ -510,6 +489,22 @@ class Model:  # (BaseModel):
                             v = [Model.createAnnotation(i, _type=_type) for i in anyOf]
                             r.extend(v)
                     elif _type == "array":
+                        r.extend(
+                            list(
+                                Model.createAnnotation(i, _type=_type)
+                                for i in getattr(schema, "oneOf", [])
+                                if Model.is_type(i, _type)
+                            )
+                        )
+
+                        r.extend(
+                            list(
+                                Model.createAnnotation(i, _type=_type)
+                                for i in getattr(schema, "anyOf", [])
+                                if Model.is_type(i, _type)
+                            )
+                        )
+
                         if isinstance(schema.items, list):
                             v = Tuple[tuple(Model.createAnnotation(i, fwdref=True) for i in schema.items)]
                         elif schema.items:
