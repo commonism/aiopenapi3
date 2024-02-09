@@ -19,19 +19,19 @@ from aiopenapi3 import OpenAPI
 URLBASE = "/"
 
 
-def test_pickle(with_paths_security_v20, with_schema_anyof, with_parsing_paths_links):
+def test_pickle(with_paths_security_v20, with_schema_oneOf_properties, with_parsing_paths_links):
     """
     Test pickle for
         * Swagger
         * OpenAPI 3
         * OpenAPI 3.1
     """
-    for dd in [with_paths_security_v20, with_schema_anyof, with_parsing_paths_links]:
+    for dd in [with_paths_security_v20, with_schema_oneOf_properties, with_parsing_paths_links]:
         api = OpenAPI(URLBASE, dd)
         name = "test"
         p = Path(f"{name}.pickle")
 
-        if dd == with_schema_anyof:
+        if dd == with_schema_oneOf_properties:
             A = api.components.schemas["A"].model_construct()
             with p.open("wb") as f:
                 pickle.dump(A, f)
