@@ -97,7 +97,11 @@ class RequestError(HTTPError):
 class ResponseError(HTTPError):
     """the response can not be processed accordingly"""
 
-    pass
+    def __repr__(self):
+        if hasattr(self, "__cause__"):
+            return f"<{self.__class__} {self.__cause__.__repr__()}"
+        else:
+            return super().__repr__()
 
 
 @dataclasses.dataclass
