@@ -761,7 +761,11 @@ class OpenAPI:
                     returned node is a unresolved reference
                     resolve & retry
                     """
-                    v = root.resolve_jp(r.ref)
+                    to = JSONReference.split(r.ref)
+                    if to[0] in ("", urlstr):
+                        v = root.resolve_jp(to[1])
+                    else:
+                        v = self.resolve_jr(root, obj, r)
                     if not isinstance(v, ReferenceBase) or v.ref == r.ref:
                         return r
                     continue

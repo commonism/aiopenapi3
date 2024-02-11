@@ -25,3 +25,9 @@ components:
               enum:
               - "4"
             - type: "null"
+
+    enumed:
+      oneOf:
+        - type: string
+          enum: ["5"]
+        - enum: [null]

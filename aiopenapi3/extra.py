@@ -88,12 +88,10 @@ class Reduce(Document, Init):
         for name, parameter in list(ctx.initialized.components.parameters.items()):
             if parameter.schema_._model_type is None:
                 del ctx.initialized.components.parameters[name]
-                break
 
         for name, schema in list(ctx.initialized.components.schemas.items()):
             if schema._model_type is None:
                 del ctx.initialized.components.schemas[name]
-                break
 
         for name, response in list(ctx.initialized.components.responses.items()):
             for k, v in response.content.items():
