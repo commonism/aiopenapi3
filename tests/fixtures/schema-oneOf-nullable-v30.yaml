@@ -27,3 +27,9 @@ components:
             - type: object
               additionalProperties: False
               nullable: True
+
+    enumed:
+      oneOf:
+        - type: string
+          enum: ["5"]
+        - enum: [null]

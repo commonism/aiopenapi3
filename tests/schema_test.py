@@ -553,6 +553,13 @@ def test_schema_oneOf_nullable(with_schema_oneOf_nullable):
     with pytest.raises(ValidationError):
         s.model({"typed": "6"})
 
+    s = api.components.schemas["enumed"]
+    t = s.get_type()
+    s.model("5")
+    s.model(None)
+    with pytest.raises(ValidationError):
+        s.model("4")
+
 
 def test_schema_oneOf_mixed(with_schema_oneOf_mixed):
     api = OpenAPI("/", with_schema_oneOf_mixed)
