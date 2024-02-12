@@ -27,8 +27,7 @@ the plugin interface replicates the suds way of  dealing with broken data/schema
 
 class Plugin(abc.ABC):
     @dataclasses.dataclass
-    class Context:
-        ...
+    class Context: ...
 
     def __init__(self) -> None:
         self._api: Optional["OpenAPI"] = None

@@ -196,8 +196,7 @@ class RequestBase:
         ...
 
     @abc.abstractmethod
-    def _prepare(self, data: Optional["RequestData"], parameters: Optional["RequestParameters"]) -> None:
-        ...
+    def _prepare(self, data: Optional["RequestData"], parameters: Optional["RequestParameters"]) -> None: ...
 
     def _build_req(self, session: Union[httpx.Client, httpx.AsyncClient]) -> httpx.Request:
         url: yarl.URL = self.api.url
@@ -360,9 +359,9 @@ class OperationIndex:
     class OperationTag:
         def __init__(self, oi: "OperationIndex") -> None:
             self._oi = oi
-            self._operations: Dict[
-                str, Tuple["HTTPMethodType", str, "OperationType", Optional[List["ServerType"]]]
-            ] = dict()
+            self._operations: Dict[str, Tuple["HTTPMethodType", str, "OperationType", Optional[List["ServerType"]]]] = (
+                dict()
+            )
 
         def __getattr__(self, item) -> RequestBase:
             (method, path, op, servers) = self._operations[item]
@@ -400,9 +399,9 @@ class OperationIndex:
         self._api: "OpenAPI" = api
         self._root: "RootType" = api._root
 
-        self._operations: Dict[
-            str, Tuple[str, "HTTPMethodType", "OperationType", Optional[List["ServerType"]]]
-        ] = dict()
+        self._operations: Dict[str, Tuple[str, "HTTPMethodType", "OperationType", Optional[List["ServerType"]]]] = (
+            dict()
+        )
         self._tags: Dict[str, "OperationIndex.OperationTag"] = collections.defaultdict(
             lambda: OperationIndex.OperationTag(self)
         )

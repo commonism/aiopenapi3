@@ -1,6 +1,7 @@
 """
 This file tests that paths are parsed and populated correctly
 """
+
 import base64
 import copy
 import uuid

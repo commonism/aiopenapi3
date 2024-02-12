@@ -441,11 +441,9 @@ class OpenAPI:
         """Process attributes of a schema and filter out the processed ones."""
         combined_attributes = cls._get_combined_attributes(schema)
         return {
-            id(item._target)
-            if isinstance(item, ReferenceBase)
-            else id(item): item._target
-            if isinstance(item, ReferenceBase)
-            else item
+            id(item._target) if isinstance(item, ReferenceBase) else id(item): (
+                item._target if isinstance(item, ReferenceBase) else item
+            )
             for item in combined_attributes
             if isinstance(item, (ReferenceBase, SchemaBase)) and id(item) not in processed
         }
