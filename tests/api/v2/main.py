@@ -70,7 +70,7 @@ def getPet(pet_id: str = Path(..., alias="petId")) -> schema.Pets:
 @router.delete(
     "/pets/{petId}", operation_id="deletePet", responses={204: {"model": None}, 404: {"model": schema.Error}}
 )
-def deletePet(response: Response, pet_id: int = Path(..., alias="petId")) -> None:
+def deletePet(response: Response, pet_id: uuid.UUID = Path(..., alias="petId")) -> None:
     for k, v in ZOO.items():
         if pet_id == v.identifier:
             del ZOO[k]
