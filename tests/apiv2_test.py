@@ -210,7 +210,7 @@ async def test_getPet(event_loop, server, client):
 
 @pytest.mark.asyncio
 async def test_deletePet(event_loop, server, client):
-    r = await client._.deletePet(parameters={"petId": -1})
+    r = await client._.deletePet(parameters={"petId": uuid.uuid4()})
     assert type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
 
     await client._.createPet(data=randomPet(client, str(uuid.uuid4())))

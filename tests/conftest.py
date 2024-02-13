@@ -213,6 +213,11 @@ def with_paths_parameters(openapi_version):
 
 
 @pytest.fixture
+def with_paths_parameters_oneOf():
+    yield _get_parsed_yaml("paths-parameters-oneOf.yaml")
+
+
+@pytest.fixture
 def with_paths_parameters_invalid(openapi_version):
     """
     Provides a spec with parameters

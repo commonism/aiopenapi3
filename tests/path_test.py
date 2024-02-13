@@ -227,6 +227,30 @@ def test_paths_parameters_invalid(with_paths_parameters_invalid):
         OpenAPI(URLBASE, with_paths_parameters_invalid, session_factory=httpx.Client)
 
 
+def test_paths_parameters_oneOf(httpx_mock, with_paths_parameters_oneOf):
+    api = OpenAPI(URLBASE, with_paths_parameters_oneOf, session_factory=httpx.Client)
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="test")
+    api._.getTest(parameters={"nullable_array": ["x", "1"]})
+    api._.getTest(parameters={"nullable_array": None})
+    import pydantic
+
+    with pytest.raises(pydantic.ValidationError):
+        api._.getTest(parameters={"nullable_array": "x"})
+    with pytest.raises(pydantic.ValidationError):
+        api._.getTest(parameters={"nullable_array": 1})
+    with pytest.raises(pydantic.ValidationError):
+        api._.getTest(parameters={"nullable_array": {"a": "A"}})
+
+    api._.getTest(parameters={"nullable_object": {"a": "A"}})
+    api._.getTest(parameters={"nullable_object": None})
+    with pytest.raises(pydantic.ValidationError):
+        api._.getTest(parameters={"nullable_object": "x"})
+    with pytest.raises(pydantic.ValidationError):
+        api._.getTest(parameters={"nullable_object": 1})
+    with pytest.raises(pydantic.ValidationError):
+        api._.getTest(parameters={"nullable_object": ["x"]})
+
+
 def test_paths_parameter_missing(with_paths_parameter_missing):
     with pytest.raises(OperationParameterValidationError, match="Parameter name not found in parameters: missing"):
         OpenAPI(URLBASE, with_paths_parameter_missing, session_factory=httpx.Client)

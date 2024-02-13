@@ -6,7 +6,7 @@ import uuid
 from typing import Union, Optional, Dict, Any
 from collections.abc import MutableMapping
 
-from pydantic import Field, model_validator
+from pydantic import BaseModel, Field, model_validator
 import more_itertools
 
 from ..base import ObjectExtended, ParameterBase as ParameterBase_, ReferenceBase
@@ -15,6 +15,7 @@ from ..errors import ParameterFormatError
 from .example import Example
 from .general import Reference
 from .schemas import Schema
+from ..model import TYPES_SCHEMA_MAP
 
 if typing.TYPE_CHECKING:
     from .paths import MediaType
@@ -50,33 +51,43 @@ class _ParameterCodec:
 
     def _encode(self, name: str, value):
         schema, style, explode = self._codec()
-        return self._encode_value(name, value, schema, explode, style)
+        value = schema.model(value)
+        if isinstance(value, BaseModel):
+            type_ = "object"
+        elif (t := type(value)) == bool:
+            type_ = "boolean"
+        elif t in (bytes, datetime.datetime, datetime.date, datetime.time, datetime.timedelta, uuid.UUID):
+            type_ = "string"
+        else:
+            type_ = TYPES_SCHEMA_MAP[type(value)]
 
-    def _encode_value(self, name: str, value, schema: "v3xSchemaType", explode: bool, style: str):
+        return self._encode_value(name, type_, value, schema, explode, style)
+
+    def _encode_value(self, name: str, type_: str, value, schema: "v3xSchemaType", explode: bool, style: str):
         f = getattr(self, f"_encode__{style}")
-        return f(name, value, schema, explode)
+        return f(name, type_, value, schema, explode)
 
-    def _encode__matrix(self, name: str, value, schema: "v3xSchemaType", explode: bool):
+    def _encode__matrix(self, name: str, type_: str, value, schema: "v3xSchemaType", explode: bool):
         """
         3.2.7.  Path-Style Parameter Expansion: {;var}
 
         https://www.rfc-editor.org/rfc/rfc6570#section-3.2.8
+        :param type_:
         """
-        if schema.type in frozenset(["string", "number", "bool", "integer"]):
+        if type_ in frozenset(["string", "number", "boolean", "integer"]):
             # ;color=blue
-            if value:
-                value = f";{name}={value}"
-            else:
-                value = f";{name}"
-        elif schema.type == "array":
+            value = f";{name}={value}"
+        elif type_ == "null":
+            value = f";{name}"
+        elif type_ == "array":
             if explode is False:
                 # ;color=blue,black,brown
                 value = f";{name}={','.join(value)}"
             else:
                 # ;color=blue;color=black;color=brown
                 value = "".join([f";{name}={v}" for v in value])
-        elif schema.type == "object":
-            values = value if isinstance(value, dict) else dict(value._iter(to_dict=True))
+        elif type_ == "object":
+            values = value if isinstance(value, dict) else value.model_dump(exclude_unset=True)
             value = ",".join([f"{k},{v}" for k, v in values.items()])
             if explode is False:
                 # ;color=R,100,G,200,B,150
@@ -86,23 +97,22 @@ class _ParameterCodec:
                 value = f";{value}"
         return {name: value}
 
-    def _encode__label(self, name: str, value, schema: "v3xSchemaType", explode: bool):
+    def _encode__label(self, name: str, type_: str, value, schema: "v3xSchemaType", explode: bool):
         """
         3.2.5.  Label Expansion with Dot-Prefix: {.var}
 
         https://www.rfc-editor.org/rfc/rfc6570#section-3.2.8
         """
-        if schema.type in frozenset(["string", "number", "bool", "integer"]):
+        if type_ in frozenset(["string", "number", "boolean", "integer"]):
             # .blue
-            if value:
-                value = f".{value}"
-            else:
-                value = "."
-        elif schema.type == "array":
+            value = f".{value}"
+        elif type_ == "null":
+            value = "."
+        elif type_ == "array":
             # .blue.black.brown
             value = "." + ".".join(value)
-        elif schema.type == "object":
-            values = value if isinstance(value, dict) else dict(value._iter(to_dict=True))
+        elif type_ == "object":
+            values = value if isinstance(value, dict) else value.model_dump(exclude_unset=True)
             if explode:
                 # .R=100.G=200.B=150
                 value = ".".join([f"{k}={v}" for k, v in values.items()])
@@ -110,10 +120,11 @@ class _ParameterCodec:
                 # .R.100.G.200.B.150
                 value = ".".join([f"{k}.{v}" for k, v in values.items()])
             value = "." + value
-
+        else:
+            raise ValueError(type_)
         return {name: value}
 
-    def _encode__form(self, name: str, value, schema: "v3xSchemaType", explode: bool):
+    def _encode__form(self, name: str, type_: str, value, schema: "v3xSchemaType", explode: bool):
         """
         https://spec.openapis.org/oas/v3.1.0#style-examples
 
@@ -122,10 +133,13 @@ class _ParameterCodec:
 
         https://www.rfc-editor.org/rfc/rfc6570#section-3.2.8
         """
-        if schema.type in frozenset(["string", "number", "bool", "integer"]):
+
+        if type_ in frozenset(["string", "number", "boolean", "integer"]):
             # color=blue
             return {name: value}
-        elif schema.type == "array":
+        elif type_ == "null":
+            return {name: None}
+        elif type_ == "array":
             assert isinstance(value, (list, tuple))
             if explode is False:
                 # color=blue,black,brown
@@ -134,35 +148,37 @@ class _ParameterCodec:
                 # color=blue&color=black&color=brown
                 pass
             return {name: value}
-        elif schema.type == "object":
-            values = value if isinstance(value, dict) else value.model_dump()
+        elif type_ == "object":
+            values = value if isinstance(value, dict) else value.model_dump(exclude_unset=True)
 
             if explode is False:
                 # color=R,100,G,200,B,150
                 value = ",".join([f"{k},{v}" for k, v in values.items()])
+                return {name: value}
             else:
                 # R=100&G=200&B=150
                 return values
-        return {name: value}
+        else:
+            raise ValueError(type_)
 
-    def _encode__simple(self, name: str, value, schema: "v3xSchemaType", explode: bool):
+    def _encode__simple(self, name: str, type_: str, value, schema: "v3xSchemaType", explode: bool):
         """
         3.2.2.  Simple String Expansion: {var}
 
         https://www.rfc-editor.org/rfc/rfc6570#section-3.2.2
         """
-        if value is None:
-            return dict()
 
-        if schema.type in frozenset(["string", "number", "bool", "integer"]):
+        if type_ in frozenset(["string", "number", "boolean", "integer"]):
             return {name: value}
-        elif schema.type == "array":
+        elif type_ == "null":
+            return dict()
+        elif type_ == "array":
             assert isinstance(value, (list, tuple))
             # blue,black,brown
             value = ",".join(map(str, value))
             return {name: value}
-        elif schema.type == "object":
-            values = value if isinstance(value, dict) else dict(value._iter(to_dict=True))
+        elif type_ == "object":
+            values = value if isinstance(value, dict) else value.model_dump(exclude_unset=True)
             if explode is False:
                 # R,100,G,200,B,150
                 value = ",".join([f"{k},{v}" for k, v in values.items()])
@@ -170,32 +186,37 @@ class _ParameterCodec:
                 # R=100,G=200,B=150
                 value = ",".join([f"{k}={v}" for k, v in values.items()])
             return {name: value}
+        else:
+            raise ValueError(type_)
 
-    def _encode__spaceDelimited(self, name: str, value, schema: "v3xSchemaType", explode: bool):
+    def _encode__spaceDelimited(self, name: str, type_: str, value, schema: "v3xSchemaType", explode: bool):
         # blue%20black%20brown
         # R%20100%20G%20200%20B%20150
-        return self._encode__Delimited(" ", name, value, schema, explode)
+        return self._encode__Delimited(" ", name, type_, value, schema, explode)
 
-    def _encode__pipeDelimited(self, name: str, value, schema: "v3xSchemaType", explode: bool):
+    def _encode__pipeDelimited(self, name: str, type_: str, value, schema: "v3xSchemaType", explode: bool):
         # blue|black|brown
         # R|100|G|200|B|150
-        return self._encode__Delimited("|", name, value, schema, explode)
+        return self._encode__Delimited("|", name, type_, value, schema, explode)
 
-    def _encode__Delimited(self, sep: str, name: str, value, schema: "v3xSchemaType", explode: bool):
+    def _encode__Delimited(self, sep: str, name: str, type_: str, value, schema: "v3xSchemaType", explode: bool):
         assert explode is False
 
         if value is None:
             return dict()
 
-        if schema.type == "array":
+        if type_ == "array":
             value = sep.join(value)
-        elif schema.type == "object":
-            values = value if isinstance(value, dict) else dict(value._iter(to_dict=True))
+        elif type_ == "object":
+            values = value if isinstance(value, dict) else value.model_dump(exclude_unset=True)
             value = sep.join([f"{k}{sep}{v}" for k, v in values.items()])
+        else:
+            raise ValueError(type_)
+
         return {name: value}
 
-    def _encode__deepObject(self, name: str, value, schema: "v3xSchemaType", explode: bool):
-        assert schema.type == "object" and explode is True
+    def _encode__deepObject(self, name: str, type_: str, value, schema: "v3xSchemaType", explode: bool):
+        assert type_ == "object" and explode is True
 
         if not value:
             return dict()
