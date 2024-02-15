@@ -1,9 +1,10 @@
 import errno
 import uuid
-from typing import Optional
+from typing import Optional, Union
+from typing_extensions import Annotated
 
 import starlette.status
-from fastapi import Body, Response, APIRouter, Path
+from fastapi import Body, Response, Header, APIRouter, Path
 from fastapi.responses import JSONResponse
 from fastapi_versioning import version
 
@@ -70,7 +71,11 @@ def getPet(pet_id: str = Path(..., alias="petId")) -> schema.Pets:
 @router.delete(
     "/pets/{petId}", operation_id="deletePet", responses={204: {"model": None}, 404: {"model": schema.Error}}
 )
-def deletePet(response: Response, pet_id: uuid.UUID = Path(..., alias="petId")) -> None:
+def deletePet(
+    response: Response,
+    x_raise_nonexist: Annotated[Union[bool, None], Header()],
+    pet_id: uuid.UUID = Path(..., alias="petId"),
+) -> None:
     for k, v in ZOO.items():
         if pet_id == v.identifier:
             del ZOO[k]
