@@ -3,6 +3,7 @@ import datetime
 import decimal
 import typing
 import uuid
+import json
 from typing import Union, Optional, Dict, Any
 from collections.abc import MutableMapping
 
@@ -54,12 +55,19 @@ class _ParameterCodec:
         value = schema.model(value)
         if isinstance(value, BaseModel):
             type_ = "object"
-        elif (t := type(value)) == bool:
-            type_ = "boolean"
-        elif t in (bytes, datetime.datetime, datetime.date, datetime.time, datetime.timedelta, uuid.UUID):
+        elif (t := type(value)) in (
+            bytes,
+            datetime.datetime,
+            datetime.date,
+            datetime.time,
+            datetime.timedelta,
+            uuid.UUID,
+        ):
             type_ = "string"
+        elif t in TYPES_SCHEMA_MAP:
+            type_ = TYPES_SCHEMA_MAP[t]
         else:
-            type_ = TYPES_SCHEMA_MAP[type(value)]
+            raise TypeError(f"Unsupported type {t}")
 
         return self._encode_value(name, type_, value, schema, explode, style)
 
@@ -74,9 +82,11 @@ class _ParameterCodec:
         https://www.rfc-editor.org/rfc/rfc6570#section-3.2.8
         :param type_:
         """
-        if type_ in frozenset(["string", "number", "boolean", "integer"]):
+        if type_ in frozenset(["string", "number", "integer"]):
             # ;color=blue
             value = f";{name}={value}"
+        elif type_ == "boolean":
+            value = f";{name}={json.dumps(value)}"
         elif type_ == "null":
             value = f";{name}"
         elif type_ == "array":
@@ -101,11 +111,15 @@ class _ParameterCodec:
         """
         3.2.5.  Label Expansion with Dot-Prefix: {.var}
 
-        https://www.rfc-editor.org/rfc/rfc6570#section-3.2.8
+        https://www.rfc-editor.org/rfc/rfc6570#section-3.2.5
         """
-        if type_ in frozenset(["string", "number", "boolean", "integer"]):
+        if type_ == "string":
             # .blue
             value = f".{value}"
+        elif type_ in frozenset(["number", "integer"]):
+            value = f".{str(value)}"
+        elif type_ == "boolean":
+            value = f".{json.dumps(value)}"
         elif type_ == "null":
             value = "."
         elif type_ == "array":
@@ -134,11 +148,15 @@ class _ParameterCodec:
         https://www.rfc-editor.org/rfc/rfc6570#section-3.2.8
         """
 
-        if type_ in frozenset(["string", "number", "boolean", "integer"]):
+        if type_ == "string":
             # color=blue
             return {name: value}
+        elif type_ in frozenset(["number", "integer"]):
+            return {name: str(value)}
+        elif type_ == "boolean":
+            return {name: json.dumps(value)}
         elif type_ == "null":
-            return {name: None}
+            return {name: ""}
         elif type_ == "array":
             assert isinstance(value, (list, tuple))
             if explode is False:
@@ -168,8 +186,12 @@ class _ParameterCodec:
         https://www.rfc-editor.org/rfc/rfc6570#section-3.2.2
         """
 
-        if type_ in frozenset(["string", "number", "boolean", "integer"]):
+        if type_ == "string":
             return {name: value}
+        elif type_ in frozenset(["number", "integer"]):
+            return {name: str(value)}
+        elif type_ == "boolean":
+            return {name: json.dumps(value)}
         elif type_ == "null":
             return dict()
         elif type_ == "array":

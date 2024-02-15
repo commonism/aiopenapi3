@@ -278,6 +278,9 @@ def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
         "string": "blue",
         "empty": None,
         "object": {"R": 100, "G": 200, "B": 150},
+        "boolean": False,
+        "integer": 100,
+        "number": 2**78 * 1.1,
     }
 
     ne = parameters.copy()
@@ -300,7 +303,7 @@ def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
     #    r = api._.LabelPath(parameters=parameters)
     r = api.createRequest("LabelPath")
     r._prepare(None, parameters)
-    assert r.req.url == "/label/query/.blue/.blue.black.brown/.R.100.G.200.B.150/."
+    assert r.req.url == "/label/query/.blue/.blue.black.brown/.R.100.G.200.B.150/./.false/.100/.3.3245460039402305e+23"
     v = r.request(parameters=parameters)
     request = httpx_mock.get_requests()[-1]
     u = yarl.URL(str(request.url))
@@ -315,7 +318,9 @@ def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
     assert u.parts[4] == ".blue"
     assert u.parts[5] == ".blue.black.brown"
     assert u.parts[6] == ".R=100.G=200.B=150"
-    #    assert u.parts[7] == ""
+    assert u.parts[7] == ".false"
+    assert u.parts[8] == ".100"
+    assert u.parts[9] == ".3.3245460039402305e+23"
 
     r = api._.deepObjectExplodeQuery(parameters={"object": parameters["object"]})
     request = httpx_mock.get_requests()[-1]
@@ -355,6 +360,9 @@ def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
     assert u.parts[5] == ";array=blue,black,brown"
     assert u.parts[6] == ";object=R,100,G,200,B,150"
     assert u.parts[7] == ";empty"
+    assert u.parts[8] == ";boolean=false"
+    assert u.parts[9] == ";integer=100"
+    assert u.parts[10] == ";number=3.3245460039402305e+23"
 
     r = api._.simpleHeader(parameters=ne)
     request = httpx_mock.get_requests()[-1]
@@ -363,6 +371,9 @@ def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
     assert request.headers.get("string") == "blue"
     assert request.headers.get("array") == "blue,black,brown"
     assert request.headers.get("object") == "R,100,G,200,B,150"
+    assert request.headers.get("boolean") == "false"
+    assert request.headers.get("integer") == "100"
+    assert request.headers.get("number") == "3.3245460039402305e+23"
 
     r = api._.simpleExplodePath(parameters=ne)
     request = httpx_mock.get_requests()[-1]
@@ -371,6 +382,9 @@ def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
     assert u.parts[5] == "blue"
     assert u.parts[6] == "blue,black,brown"
     assert u.parts[7] == "R=100,G=200,B=150"
+    assert u.parts[8] == "false"
+    assert u.parts[9] == "100"
+    assert u.parts[10] == "3.3245460039402305e+23"
 
     return
 

@@ -191,8 +191,11 @@ async def test_createPet(event_loop, server, client):
 @pytest.mark.asyncio
 async def test_listPet(event_loop, server, client):
     r = await client._.createPet(data=randomPet(client, str(uuid.uuid4())))
-    l = await client._.listPet()
+    l = await client._.listPet(parameters={"limit": 1})
     assert len(l) > 0
+
+    l = await client._.listPet(parameters={"limit": None})
+    assert isinstance(l, client.components.schemas["HTTPValidationError"].get_type())
 
 
 @pytest.mark.asyncio
@@ -210,15 +213,15 @@ async def test_getPet(event_loop, server, client):
 
 @pytest.mark.asyncio
 async def test_deletePet(event_loop, server, client):
-    r = await client._.deletePet(parameters={"petId": uuid.uuid4()})
+    r = await client._.deletePet(parameters={"petId": uuid.uuid4(), "x-raise-nonexist": False})
     assert type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
 
     await client._.createPet(data=randomPet(client, str(uuid.uuid4())))
-    zoo = await client._.listPet()
+    zoo = await client._.listPet(parameters={"limit": 1})
     for pet in zoo:
         while hasattr(pet, "root"):
             pet = pet.root
-        await client._.deletePet(parameters={"petId": pet.identifier})
+        await client._.deletePet(parameters={"petId": pet.identifier, "x-raise-nonexist": None})
 
 
 @pytest.mark.asyncio

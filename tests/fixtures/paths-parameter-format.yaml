@@ -17,6 +17,9 @@ paths:
         - $ref: "#/components/parameters/StringFormQuery"
         - $ref: "#/components/parameters/ArrayFormQuery"
         - $ref: "#/components/parameters/ObjectFormQuery"
+        - $ref: "#/components/parameters/BooleanFormQuery"
+        - $ref: "#/components/parameters/IntegerFormQuery"
+        - $ref: "#/components/parameters/NumberFormQuery"
 
       responses: &resp
         '200':
@@ -36,10 +39,13 @@ paths:
         - $ref: "#/components/parameters/StringFormExplodeQuery"
         - $ref: "#/components/parameters/ArrayFormExplodeQuery"
         - $ref: "#/components/parameters/ObjectFormExplodeQuery"
+        - $ref: "#/components/parameters/BooleanFormExplodeQuery"
+        - $ref: "#/components/parameters/IntegerFormExplodeQuery"
+        - $ref: "#/components/parameters/NumberFormExplodeQuery"
 
       responses: *resp
 
-  /label/query/{string}/{array}/{object}/{empty}:
+  /label/query/{string}/{array}/{object}/{empty}/{boolean}/{integer}/{number}:
     get:
       operationId: LabelPath
       parameters:
@@ -47,6 +53,9 @@ paths:
         - $ref: "#/components/parameters/StringLabelPath"
         - $ref: "#/components/parameters/ArrayLabelPath"
         - $ref: "#/components/parameters/ObjectLabelPath"
+        - $ref: "#/components/parameters/BooleanLabelPath"
+        - $ref: "#/components/parameters/IntegerLabelPath"
+        - $ref: "#/components/parameters/NumberLabelPath"
 
       responses: *resp
 
@@ -57,6 +66,9 @@ paths:
         - $ref: "#/components/parameters/StringLabelExplodePath"
         - $ref: "#/components/parameters/ArrayLabelExplodePath"
         - $ref: "#/components/parameters/ObjectLabelExplodePath"
+        - $ref: "#/components/parameters/BooleanLabelExplodePath"
+        - $ref: "#/components/parameters/IntegerLabelExplodePath"
+        - $ref: "#/components/parameters/NumberLabelExplodePath"
 
       responses: *resp
 
@@ -87,12 +99,15 @@ paths:
         - $ref: "#/components/parameters/ArraypipeDelimitedQuery"
       responses: *resp
 
-  /matrix/path/{string}/{array}/{object}/{empty}:
+  /matrix/path/{string}/{array}/{object}/{empty}/{boolean}/{integer}/{number}:
     parameters:
       - $ref: "#/components/parameters/EmptyMatrixPath"
       - $ref: "#/components/parameters/StringMatrixPath"
       - $ref: "#/components/parameters/ArrayMatrixPath"
       - $ref: "#/components/parameters/ObjectMatrixPath"
+      - $ref: "#/components/parameters/BooleanMatrixPath"
+      - $ref: "#/components/parameters/IntegerMatrixPath"
+      - $ref: "#/components/parameters/NumberMatrixPath"
 
     get:
       operationId: matrixPath
@@ -107,15 +122,20 @@ paths:
         - $ref: "#/components/parameters/StringSimpleHeader"
         - $ref: "#/components/parameters/ArraySimpleHeader"
         - $ref: "#/components/parameters/ObjectSimpleHeader"
+        - $ref: "#/components/parameters/BooleanSimpleHeader"
+        - $ref: "#/components/parameters/IntegerSimpleHeader"
+        - $ref: "#/components/parameters/NumberSimpleHeader"
 
       responses: *resp
 
-  /simple/explode/path/{string}/{array}/{object}:
+  /simple/explode/path/{string}/{array}/{object}/{boolean}/{integer}/{number}:
     parameters:
       - $ref: "#/components/parameters/StringSimpleExplodePath"
       - $ref: "#/components/parameters/ArraySimpleExplodePath"
       - $ref: "#/components/parameters/ObjectSimpleExplodePath"
-
+      - $ref: "#/components/parameters/BooleanSimpleExplodePath"
+      - $ref: "#/components/parameters/IntegerSimpleExplodePath"
+      - $ref: "#/components/parameters/NumberSimpleExplodePath"
     get:
       operationId: simpleExplodePath
 
@@ -138,6 +158,28 @@ components:
           type: integer
         B:
           type: integer
+
+    Array:
+      type: array
+      items:
+        type: string
+
+    String:
+      type: string
+
+    Empty:
+      oneOf:
+        - type: string
+        - enum: [null]
+
+    Boolean:
+      type: boolean
+
+    Integer:
+      type: integer
+
+    Number:
+      type: number
 
     Matrjoschka:
       type: object
@@ -167,8 +209,7 @@ components:
       explode: false
       required: true
       schema:
-        type: number
-        nullable: true
+        $ref: "#/components/schemas/Empty"
 
     StringFormQuery:
       in: query
@@ -177,7 +218,7 @@ components:
       explode: false
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/String"
 
     ArrayFormQuery:
       in: query
@@ -186,9 +227,7 @@ components:
       explode: false
       required: true
       schema:
-        type: array
-        items:
-          type: string
+        $ref: "#/components/schemas/Array"
 
     ObjectFormQuery:
       in: query
@@ -199,6 +238,33 @@ components:
       schema:
         $ref: "#/components/schemas/RGB"
 
+    BooleanFormQuery:
+      in: query
+      name: boolean
+      style: form
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/Boolean"
+
+    IntegerFormQuery:
+      in: query
+      name: integer
+      style: form
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/Integer"
+
+    NumberFormQuery:
+      in: query
+      name: number
+      style: form
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/Number"
+
     StringFormExplodeQuery:
       in: query
       name: string
@@ -206,7 +272,7 @@ components:
       explode: true
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/String"
 
     ArrayFormExplodeQuery:
       in: query
@@ -215,9 +281,7 @@ components:
       explode: true
       required: true
       schema:
-        type: array
-        items:
-          type: string
+        $ref: "#/components/schemas/Array"
 
     ObjectFormExplodeQuery:
       in: query
@@ -228,6 +292,34 @@ components:
       schema:
         $ref: "#/components/schemas/RGB"
 
+    BooleanFormExplodeQuery:
+      in: query
+      name: boolean
+      style: form
+      explode: true
+      required: true
+      schema:
+        $ref: "#/components/schemas/Boolean"
+
+    IntegerFormExplodeQuery:
+      in: query
+      name: integer
+      style: form
+      explode: true
+      required: true
+      schema:
+        $ref: "#/components/schemas/Integer"
+
+    NumberFormExplodeQuery:
+      in: query
+      name: number
+      style: form
+      explode: true
+      required: true
+      schema:
+        $ref: "#/components/schemas/Number"
+
+
     EmptyLabelPath:
       in: path
       name: empty
@@ -235,8 +327,7 @@ components:
       explode: false
       required: true
       schema:
-        type: string
-        nullable: true
+        $ref: "#/components/schemas/Empty"
 
     StringLabelPath:
       in: path
@@ -245,7 +336,7 @@ components:
       explode: false
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/String"
 
     ArrayLabelPath:
       in: path
@@ -254,9 +345,7 @@ components:
       explode: false
       required: true
       schema:
-        type: array
-        items:
-          type: string
+        $ref: "#/components/schemas/Array"
 
     ObjectLabelPath:
       in: path
@@ -267,6 +356,34 @@ components:
       schema:
         $ref: "#/components/schemas/RGB"
 
+    BooleanLabelPath:
+      in: path
+      name: boolean
+      style: label
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/Boolean"
+
+    IntegerLabelPath:
+      in: path
+      name: integer
+      style: label
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/Integer"
+
+    NumberLabelPath:
+      in: path
+      name: number
+      style: label
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/Number"
+
+
     StringLabelExplodePath:
       in: path
       name: string
@@ -274,7 +391,7 @@ components:
       explode: true
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/String"
 
     ArrayLabelExplodePath:
       in: path
@@ -283,9 +400,7 @@ components:
       explode: true
       required: true
       schema:
-        type: array
-        items:
-          type: string
+        $ref: "#/components/schemas/Array"
 
     ObjectLabelExplodePath:
       in: path
@@ -296,6 +411,32 @@ components:
       schema:
         $ref: "#/components/schemas/RGB"
 
+    BooleanLabelExplodePath:
+      in: path
+      name: boolean
+      style: label
+      explode: true
+      required: true
+      schema:
+        $ref: "#/components/schemas/Boolean"
+
+    IntegerLabelExplodePath:
+      in: path
+      name: integer
+      style: label
+      explode: true
+      required: true
+      schema:
+        $ref: "#/components/schemas/Integer"
+
+    NumberLabelExplodePath:
+      in: path
+      name: number
+      style: label
+      explode: true
+      required: true
+      schema:
+        $ref: "#/components/schemas/Number"
 
     ObjectdeepObjectExplodeQuery:
       in: query
@@ -322,9 +463,7 @@ components:
       explode: false
       required: true
       schema:
-        type: array
-        items:
-          type: string
+        $ref: "#/components/schemas/Array"
 
     ObjectspaceDelimitedQuery:
       in: query
@@ -342,9 +481,7 @@ components:
       explode: false
       required: true
       schema:
-        type: array
-        items:
-          type: string
+        $ref: "#/components/schemas/Array"
 
     EmptyMatrixPath:
       in: path
@@ -353,8 +490,7 @@ components:
       explode: false
       required: true
       schema:
-        type: string
-        nullable: true
+        $ref: "#/components/schemas/Empty"
 
     StringMatrixPath:
       in: path
@@ -363,7 +499,7 @@ components:
       explode: false
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/String"
 
     ArrayMatrixPath:
       in: path
@@ -372,9 +508,7 @@ components:
       explode: false
       required: true
       schema:
-        type: array
-        items:
-          type: string
+        $ref: "#/components/schemas/Array"
 
     ObjectMatrixPath:
       in: path
@@ -385,6 +519,33 @@ components:
       schema:
         $ref: "#/components/schemas/RGB"
 
+    BooleanMatrixPath:
+      in: path
+      name: boolean
+      style: matrix
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/Boolean"
+
+    IntegerMatrixPath:
+      in: path
+      name: integer
+      style: matrix
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/Integer"
+
+    NumberMatrixPath:
+      in: path
+      name: number
+      style: matrix
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/Number"
+
     EmptySimpleHeader:
       in: header
       name: empty
@@ -392,7 +553,7 @@ components:
       explode: false
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/String"
 
     StringSimpleHeader:
       in: header
@@ -401,7 +562,7 @@ components:
       explode: false
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/String"
 
     ArraySimpleHeader:
       in: header
@@ -410,9 +571,7 @@ components:
       explode: false
       required: true
       schema:
-        type: array
-        items:
-          type: string
+        $ref: "#/components/schemas/Array"
 
     ObjectSimpleHeader:
       in: header
@@ -423,6 +582,34 @@ components:
       schema:
         $ref: "#/components/schemas/RGB"
 
+    BooleanSimpleHeader:
+      in: header
+      name: boolean
+      style: simple
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/Boolean"
+
+    IntegerSimpleHeader:
+      in: header
+      name: integer
+      style: simple
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/Integer"
+
+    NumberSimpleHeader:
+      in: header
+      name: number
+      style: simple
+      explode: false
+      required: true
+      schema:
+        $ref: "#/components/schemas/Number"
+
+
     StringSimpleExplodePath:
       in: path
       name: string
@@ -430,7 +617,7 @@ components:
       explode: true
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/String"
 
     ArraySimpleExplodePath:
       in: path
@@ -439,9 +626,7 @@ components:
       explode: true
       required: true
       schema:
-        type: array
-        items:
-          type: string
+        $ref: "#/components/schemas/Array"
 
     ObjectSimpleExplodePath:
       in: path
@@ -451,3 +636,30 @@ components:
       required: true
       schema:
         $ref: "#/components/schemas/RGB"
+
+    BooleanSimpleExplodePath:
+      in: path
+      name: boolean
+      style: simple
+      explode: true
+      required: true
+      schema:
+        $ref: "#/components/schemas/Boolean"
+
+    IntegerSimpleExplodePath:
+      in: path
+      name: integer
+      style: simple
+      explode: true
+      required: true
+      schema:
+        $ref: "#/components/schemas/Integer"
+
+    NumberSimpleExplodePath:
+      in: path
+      name: number
+      style: simple
+      explode: true
+      required: true
+      schema:
+        $ref: "#/components/schemas/Number"
