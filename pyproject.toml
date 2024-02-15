@@ -101,7 +101,7 @@ addopts = "--ignore-glob 'tests/my_*.py'"
 [tool.pdm.dev-dependencies]
 tests = [
     "pytest",
-    "pytest-asyncio",
+    "pytest-asyncio==0.21.1",
     "pytest-httpx",
     "pytest-cov",
     "fastapi",
