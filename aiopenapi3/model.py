@@ -285,7 +285,7 @@ class Model:  # (BaseModel):
             for primitive types the anyOf/oneOf is taken care of in Model.createAnnotation
             """
             if typing.get_origin((_t := Model.createAnnotation(schema, _type=_type))) != Literal:
-                classinfo.root = Annotated[_t, Model.createField(schema, None)]
+                classinfo.root = Annotated[_t, Model.createField(schema, _type=_type, args=None)]
             else:
                 classinfo.root = _t
         elif _type == "array":
@@ -478,16 +478,19 @@ class Model:  # (BaseModel):
                         allOf = [i for i in getattr(schema, "allOf", []) if _type in Model.types(i)]
 
                         if allOf:
-                            raise NotImplementedError(f"primitive type {_type} allOf is not implemented")
+                            if len(allOf) > 1:
+                                raise NotImplementedError(f"primitive type {_type} allOf is not implemented")
 
-                        if not (anyOf or oneOf):
-                            v = class_from_schema(schema, _type)
-                            r.append(v)
-                        else:
-                            v = [Model.createAnnotation(i, _type=_type) for i in oneOf]
-                            r.extend(v)
-                            v = [Model.createAnnotation(i, _type=_type) for i in anyOf]
-                            r.extend(v)
+                        #                        if not (anyOf or oneOf or allOf):
+                        v = class_from_schema(schema, _type)
+                        r.append(v)
+                        #                       else:
+                        v = [Model.createAnnotation(i, _type=_type) for i in oneOf]
+                        r.extend(v)
+                        v = [Model.createAnnotation(i, _type=_type) for i in anyOf]
+                        r.extend(v)
+                        v = [Model.createAnnotation(i, _type=_type) for i in allOf]
+                        r.extend(v)
                     elif _type == "array":
                         r.extend(
                             list(
@@ -615,7 +618,7 @@ class Model:  # (BaseModel):
         return schema.type is None
 
     @staticmethod
-    def createField(schema: "SchemaType", args=None):
+    def createField(schema: "SchemaType", _type=None, args=None):
         if args is None:
             args = dict(default=getattr(schema, "default", None))
 
@@ -626,7 +629,7 @@ class Model:  # (BaseModel):
         #     if "default" not in args:
         #         args["default"] = None
 
-        if Model.is_type(schema, "integer") or Model.is_type(schema, "number"):
+        if Model.is_type(schema, "integer") or Model.is_type(schema, "number") or (_type in {"integer", "number"}):
             """
             https://docs.pydantic.dev/latest/usage/fields/#numeric-constraints
             """
@@ -657,7 +660,7 @@ class Model:  # (BaseModel):
                 }.items():
                     if (v := getattr(schema, k, None)) is not None:
                         args[m] = v
-        if Model.is_type(schema, "string"):
+        if Model.is_type(schema, "string") or _type == "string":
             """
             https://docs.pydantic.dev/latest/usage/fields/#string-constraints
             """

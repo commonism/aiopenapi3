@@ -200,6 +200,7 @@ def _test_schema_with_additionalProperties(api):
     assert issubclass(Errors, pydantic.RootModel)
 
     e = Errors(data)
+    assert isinstance(e.root["ENODEV"], pydantic.BaseModel)
 
     Errnos = gettype("Errnos").get_type()
     assert issubclass(Errnos, pydantic.RootModel)
@@ -593,3 +594,36 @@ def test_schema_anyOf(with_schema_anyOf):
     ol = api.components.schemas["OL"]
     tol = ol.get_type()
     m = tol.model_validate([{"type": "a", "value": 1}])
+
+
+def test_schema_type_validators(with_schema_type_validators):
+    api = OpenAPI(URLBASE, with_schema_type_validators)
+
+    t = (m := api.components.schemas["Integer"]).get_type()
+    v = t.model_validate("10")
+    with pytest.raises(ValidationError):
+        v = t.model_validate("9")
+
+    t = (m := api.components.schemas["Number"]).get_type()
+    v = t.model_validate("10.")
+    with pytest.raises(ValidationError):
+        v = t.model_validate("9.99")
+
+    t = (m := api.components.schemas["String"]).get_type()
+    v = t.model_validate("valid")
+    with pytest.raises(ValidationError):
+        v = t.model_validate("invalid")
+
+    t = (m := api.components.schemas["Any"]).get_type()
+
+    v = t.model_validate("10")
+    with pytest.raises(ValidationError):
+        v = t.model_validate("9")
+
+    v = t.model_validate("10.")
+    with pytest.raises(ValidationError):
+        v = t.model_validate("9.99")
+
+    v = t.model_validate("valid")
+    with pytest.raises(ValidationError):
+        v = t.model_validate("invalid")

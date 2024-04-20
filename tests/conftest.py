@@ -388,6 +388,11 @@ def with_schema_type_list():
 
 
 @pytest.fixture
+def with_schema_type_validators():
+    yield _get_parsed_yaml("schema-type-validators.yaml")
+
+
+@pytest.fixture
 def with_schema_type_missing():
     yield _get_parsed_yaml("schema-type-missing.yaml")
 
