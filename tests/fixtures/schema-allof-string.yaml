@@ -1,0 +1,38 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: from authentik
+
+components:
+  schemas:
+    Enum:
+      enum:
+      - valid
+      type: string
+    minLength:
+      type: string
+      minLength: 5
+    maxLength:
+      type: string
+      maxLength: 5
+    mixLength:
+      type: string
+      maxLength: 5
+      minLength: 5
+    allOfEnum:
+      allOf:
+      - $ref: '#/components/schemas/Enum'
+      description: single allOf
+    allOfmixLength:
+      allOf:
+      - $ref: '#/components/schemas/mixLength'
+      description: single allOf
+    allOfCombined:
+      type: string
+      maxLength: 5
+      allOf:
+      - $ref: '#/components/schemas/minLength'
+    allOfMinMaxLength:
+      allOf:
+      - $ref: '#/components/schemas/minLength'
+      - $ref: '#/components/schemas/maxLength'
