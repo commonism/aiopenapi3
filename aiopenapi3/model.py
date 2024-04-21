@@ -120,7 +120,7 @@ class _ClassInfo:
                     args["default"] = None
 
                 name = Model.nameof(name, args=args)
-                self.properties[name].default = Model.createField(f, args)
+                self.properties[name].default = Model.createField(f, None, args)
         else:
             raise ValueError(schema.type)
         return
@@ -477,20 +477,16 @@ class Model:  # (BaseModel):
                         anyOf = [i for i in getattr(schema, "anyOf", []) if _type in Model.types(i)]
                         allOf = [i for i in getattr(schema, "allOf", []) if _type in Model.types(i)]
 
-                        if allOf:
-                            if len(allOf) > 1:
-                                raise NotImplementedError(f"primitive type {_type} allOf is not implemented")
-
-                        #                        if not (anyOf or oneOf or allOf):
-                        v = class_from_schema(schema, _type)
-                        r.append(v)
-                        #                       else:
-                        v = [Model.createAnnotation(i, _type=_type) for i in oneOf]
-                        r.extend(v)
-                        v = [Model.createAnnotation(i, _type=_type) for i in anyOf]
-                        r.extend(v)
-                        v = [Model.createAnnotation(i, _type=_type) for i in allOf]
-                        r.extend(v)
+                        if not (anyOf or oneOf or allOf):
+                            v = class_from_schema(schema, _type)
+                            r.append(v)
+                        else:
+                            v = [Model.createAnnotation(i, _type=_type) for i in oneOf]
+                            r.extend(v)
+                            v = [Model.createAnnotation(i, _type=_type) for i in anyOf]
+                            r.extend(v)
+                            v = [Model.createAnnotation(i, _type=_type) for i in allOf]
+                            r.extend(v)
                     elif _type == "array":
                         r.extend(
                             list(
@@ -628,6 +624,13 @@ class Model:  # (BaseModel):
         # if (v:= (getattr(schema,"readOnly", None) or getattr(schema,"writeOnly", None))) is not None:
         #     if "default" not in args:
         #         args["default"] = None
+
+        """
+        collect allOf validators for this field in args before proceeding
+        """
+        allOf = [i for i in getattr(schema, "allOf", []) if _type in Model.types(i)]
+        for i in allOf:
+            Model.createField(i, _type, args)
 
         if Model.is_type(schema, "integer") or Model.is_type(schema, "number") or (_type in {"integer", "number"}):
             """

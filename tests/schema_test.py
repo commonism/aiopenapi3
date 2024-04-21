@@ -597,7 +597,7 @@ def test_schema_anyOf(with_schema_anyOf):
 
 
 def test_schema_type_validators(with_schema_type_validators):
-    api = OpenAPI(URLBASE, with_schema_type_validators)
+    api = OpenAPI("/", with_schema_type_validators)
 
     t = (m := api.components.schemas["Integer"]).get_type()
     v = t.model_validate("10")
@@ -627,3 +627,44 @@ def test_schema_type_validators(with_schema_type_validators):
     v = t.model_validate("valid")
     with pytest.raises(ValidationError):
         v = t.model_validate("invalid")
+
+
+def test_schema_allof_string(with_schema_allof_string):
+    api = OpenAPI("/", with_schema_allof_string)
+
+    t = (m := api.components.schemas["allOfEnum"]).get_type()
+    v = t.model_validate("valid")
+    with pytest.raises(ValidationError):
+        v = t.model_validate("invalid")
+
+    t = (m := api.components.schemas["minLength"]).get_type()
+    v = t.model_validate("valid")
+    with pytest.raises(ValidationError):
+        t.model_validate("_")
+
+    t = (m := api.components.schemas["maxLength"]).get_type()
+    v = t.model_validate("valid")
+    with pytest.raises(ValidationError):
+        t.model_validate("invalid")
+
+    t = (m := api.components.schemas["mixLength"]).get_type()
+    v = t.model_validate("valid")
+    with pytest.raises(ValidationError):
+        t.model_validate("invalid")
+    with pytest.raises(ValidationError):
+        t.model_validate("_")
+
+    t = (m := api.components.schemas["allOfmixLength"]).get_type()
+    v = t.model_validate("valid")
+    with pytest.raises(ValidationError):
+        t.model_validate("invalid")
+
+    t = (m := api.components.schemas["allOfCombined"]).get_type()
+    v = t.model_validate("valid")
+    with pytest.raises(ValidationError):
+        t.model_validate("invalid")
+
+    t = (m := api.components.schemas["allOfMinMaxLength"]).get_type()
+    v = t.model_validate("valid")
+    with pytest.raises(ValidationError):
+        t.model_validate("invalid")
