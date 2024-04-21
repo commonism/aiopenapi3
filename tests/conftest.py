@@ -393,7 +393,7 @@ def with_schema_type_list():
 
 
 @pytest.fixture
-def with_schema_type_validators():
+def with_schema_type_validators(openapi_version):
     yield _get_parsed_yaml("schema-type-validators.yaml")
 
 
