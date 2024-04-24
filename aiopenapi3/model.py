@@ -104,7 +104,7 @@ class _ClassInfo:
             r.append((k, (v.annotation, v.default)))
         return dict(r)
 
-    def createFields(self, schema: "SchemaType"):
+    def createFields(self, schema: "SchemaType", overwrite=False):
         if schema.type == "array":
             return
 
@@ -112,6 +112,12 @@ class _ClassInfo:
             f: Union[SchemaBase, ReferenceBase]
             assert schema.properties is not None
             for name, f in schema.properties.items():
+                if (
+                    overwrite is False
+                    and self.properties[Model.nameof(name)].default != pydantic_core.PydanticUndefined
+                ):
+                    continue
+
                 args: Dict[str, Any] = dict()
                 assert schema.required is not None
                 if (v := getattr(f, "default", None)) is not None:
@@ -126,20 +132,27 @@ class _ClassInfo:
         return
 
     def createAnnotations(
-        self, schema: "SchemaType", discriminators: List["DiscriminatorType"], shmanm: List[str], fwdref=False
+        self,
+        schema: "SchemaType",
+        discriminators: List["DiscriminatorType"],
+        shmanm: List[str],
+        fwdref=False,
+        overwrite=False,
     ):
         if isinstance(schema.type, list):
             self.root = Model.createAnnotation(schema)
         elif schema.type is None:
             if schema.properties:
-                return self._createAnnotations(schema, "object", discriminators, shmanm, fwdref)
+                return self._createAnnotations(schema, "object", discriminators, shmanm, fwdref, overwrite)
             elif schema.items:
                 return self._createAnnotations(schema, "array", discriminators, shmanm, fwdref)
         else:
             return self._createAnnotations(schema, schema.type, discriminators, shmanm, fwdref)
         return
 
-    def _createAnnotations(self, schema: "SchemaType", _type: str, discriminators, shmanm, fwdref=False):
+    def _createAnnotations(
+        self, schema: "SchemaType", _type: str, discriminators, shmanm, fwdref=False, overwrite=False
+    ):
         if _type == "array":
             v = Model.createAnnotation(schema)
             if Model.is_nullable(schema):
@@ -174,6 +187,9 @@ class _ClassInfo:
             else:
                 assert schema.properties is not None
                 for name, f in schema.properties.items():
+                    if overwrite is False and self.properties[Model.nameof(name)].annotation is not None:
+                        continue
+
                     canbenull = True
                     r = Model.createAnnotation(f, fwdref=fwdref)
                     if typing.get_origin(r) == Literal:
@@ -271,7 +287,7 @@ class Model:  # (BaseModel):
         _type: str,
         schemanames: List[str],
         discriminators: List["DiscriminatorType"],
-        extra: Optional["SchemaType"],
+        extra: Optional[List["SchemaType"]],
     ) -> _ClassInfo:
         from . import v20, v30, v31
 
@@ -297,8 +313,9 @@ class Model:  # (BaseModel):
             # this is a anyOf/oneOf - the parent may have properties which will collide with __root__
             # so - add the parent properties to this model
             if extra:
-                classinfo.createAnnotations(extra, discriminators, schemanames)
-                classinfo.createFields(extra)
+                for exi in extra:
+                    classinfo.createAnnotations(exi, discriminators, schemanames)
+                    classinfo.createFields(exi)
 
             if hasattr(schema, "anyOf") and schema.anyOf:
                 assert all(schema.anyOf)
@@ -307,7 +324,7 @@ class Model:  # (BaseModel):
                     i.get_type(
                         names=schemanames + ([cast(str, i.ref)] if isinstance(i, ReferenceBase) else []),
                         discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
-                        extra=schema if schema.properties else None,
+                        extra=[schema] if schema.properties else [] + schema.allOf,
                     )
                     for i in schema.anyOf
                     if _type in Model.types(i)
@@ -325,7 +342,7 @@ class Model:  # (BaseModel):
                     i.get_type(
                         names=schemanames + ([cast(str, i.ref)] if isinstance(i, ReferenceBase) else []),
                         discriminators=discriminators + ([schema.discriminator] if schema.discriminator else []),
-                        extra=schema if schema.properties else None,
+                        extra=[schema] if schema.properties else [] + schema.allOf,
                     )
                     for i in schema.oneOf
                     if _type in Model.types(i)
@@ -339,8 +356,8 @@ class Model:  # (BaseModel):
                         classinfo.root = Union[t]
             else:
                 # default schema properties …
-                classinfo._createAnnotations(schema, _type, discriminators, schemanames, fwdref=True)
-                classinfo.createFields(schema)
+                classinfo._createAnnotations(schema, _type, discriminators, schemanames, fwdref=True, overwrite=True)
+                classinfo.createFields(schema, overwrite=True)
                 if "patternProperties" in schema.model_fields_set:
 
                     def mkx():

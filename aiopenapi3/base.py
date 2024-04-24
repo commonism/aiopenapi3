@@ -399,11 +399,11 @@ class SchemaBase(BaseModel):
         self,
         names: Optional[List[str]] = None,
         discriminators: Optional[Sequence[DiscriminatorBase]] = None,
-        extra: Optional["SchemaBase"] = None,
+        extra: Optional[List["SchemaBase"]] = None,
     ) -> Type[BaseModel]:
         from .model import Model
 
-        if extra is None:
+        if extra is None or extra == []:
             self._model_type = Model.from_schema(
                 cast("SchemaType", self), names, cast(List["DiscriminatorType"], discriminators)
             )
@@ -422,7 +422,7 @@ class SchemaBase(BaseModel):
         self,
         names: Optional[List[str]] = None,
         discriminators: Optional[Sequence[DiscriminatorBase]] = None,
-        extra: Optional["SchemaBase"] = None,
+        extra: Optional[List["SchemaBase"]] = None,
         fwdref: bool = False,
     ) -> Union[Type[BaseModel], Type[TypeAdapter], ForwardRef]:
         if fwdref:
@@ -431,7 +431,7 @@ class SchemaBase(BaseModel):
                 return ForwardRef(f'__types["{self._get_identity("FWD")}"]', module="aiopenapi3.me")
             else:
                 return ForwardRef(f'__types["{self._get_identity("FWD")}"]')
-        if extra is None:
+        if extra is None or extra == []:
             if self._model_type is None:
                 self._model_type = self.set_type(names, discriminators, extra)
             return self._model_type
@@ -450,10 +450,7 @@ class SchemaBase(BaseModel):
         """
 
         type_ = cast("SchemaType", self.get_type())
-        if isinstance(type_, TypeAdapter):
-            r = type_.validate_python(data)
-        else:
-            r = type_.model_validate(data)
+        r = type_.model_validate(data)
         if isinstance(r, RootModel):
             return r.root
         return r

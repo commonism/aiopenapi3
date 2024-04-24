@@ -668,3 +668,26 @@ def test_schema_allof_string(with_schema_allof_string):
     v = t.model_validate("valid")
     with pytest.raises(ValidationError):
         t.model_validate("invalid")
+
+
+def test_schema_allof_oneof_combined(with_schema_allof_oneof_combined):
+    api = OpenAPI("/", with_schema_allof_oneof_combined)
+
+    t = (m := api.components.schemas["AllOfResponse"]).get_type()
+    t.model_validate({"retCode": 0, "data": {"string": ""}})
+    with pytest.raises(ValidationError):
+        t.model_validate({"retCode": 0, "data": {"a": {"a": "a"}}})
+    with pytest.raises(ValidationError):
+        t.model_validate({"data": {"a": {"a": "a"}}})
+    with pytest.raises(ValidationError):
+        t.model_validate({"retCode": 0, "data": 1})
+
+    t = (m := api.components.schemas["ShutdownRequest"]).get_type()
+    t.model_validate({"token": "1", "cmd": "shutdown", "data": {"delay": 0}})
+
+    with pytest.raises(ValidationError):
+        t.model_validate({"token": 1444, "cmd": "shutdown", "data": {"delay": 0}})
+    with pytest.raises(ValidationError):
+        t.model_validate({"token": "1", "cmd": "invalid", "data": {"delay": 0}})
+    with pytest.raises(ValidationError):
+        t.model_validate({"token": "1", "cmd": "shutdown", "data": {"delay": "invalid"}})

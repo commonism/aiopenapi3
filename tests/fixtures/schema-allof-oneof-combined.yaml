@@ -1,0 +1,90 @@
+#
+# taken from https://github.com/OAI/OpenAPI-Specification/issues/2141
+#
+
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: OpenAPI JSON Schema applicator combinations
+
+# Top-level schema included so you can play with this in a standard JSON Schema validator,
+# like http://jsonschmalint.com
+#$ref: "#/components/schemas/Object"
+
+components:
+  schemas:
+    Response:
+      type: object
+      additionalProperties: false
+      properties:
+        retCode:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+      required:
+      - retCode
+      - data
+
+    AllOfResponse:
+      type: object
+      additionalProperties: false
+      allOf:
+      - $ref: "#/components/schemas/Response"
+      oneOf:
+      - type: object
+        additionalProperties: false
+        properties:
+          data:
+            type: object
+            additionalProperties: false
+            properties:
+              string:
+                type: string
+            required:
+            - string
+
+    AuthenticatedRequest:
+      type: object
+      additionalProperties: False
+      properties:
+        token:
+          type: string
+        cmd:
+          type: string
+      required:
+      - token
+      - command
+
+    ShutdownRequest:
+      type: object
+      additionalProperties: false
+      allOf:
+      - $ref: "#/components/schemas/AuthenticatedRequest"
+      properties:
+        cmd:
+          type: string
+          enum:
+          - "shutdown"
+          default: shutdown
+        data:
+          type: object
+          additionalProperties: false
+          properties:
+            delay:
+              type: integer
+          required:
+          - delay
+      required:
+      - data
+      - cmd
+
+    Request:
+      type: object
+      additionalProperties: false
+      discriminator:
+        propertyName: cmd
+        mapping:
+          shutdown: "#/components/schemas/ShutdownRequest"
+      oneOf:
+      - $ref: "#/components/schemas/ShutdownRequest"
