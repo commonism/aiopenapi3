@@ -318,6 +318,11 @@ def with_schema_allof_string(openapi_version):
 
 
 @pytest.fixture
+def with_schema_allof_oneof_combined(openapi_version):
+    yield _get_parsed_yaml("schema-allof-oneof-combined.yaml", openapi_version)
+
+
+@pytest.fixture
 def with_schema_discriminated_union(openapi_version):
     yield _get_parsed_yaml("schema-discriminated-union.yaml", openapi_version)
 

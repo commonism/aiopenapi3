@@ -156,6 +156,11 @@ class OpenAPI:
         """
         Create an OpenAPI object from a description document file.
 
+        from pathlib import Path
+        import aiopenapi3
+
+        api = aiopenapi3.OpenAPI.load_file("/",pathlib.Path("schema.yaml"), loader=aiopenapi3.FileSystemLoader(pathlib.Path("/tmp")), session_factory=httpx.Client)
+
 
         :param url: the fictive url of the description document
         :param path: description document location
@@ -163,6 +168,8 @@ class OpenAPI:
         :param loader: the backend to access referenced description documents
         :param plugins: potions to cure defects in the description document or requests/responses
         :param use_operation_tags: honor tags
+
+
         """
         assert loader
         if not isinstance(path, yarl.URL):
