@@ -3,6 +3,7 @@ import datetime
 import sys
 import json
 import itertools
+import typing
 from typing import List
 from pstats import SortKey
 import pstats
@@ -32,8 +33,11 @@ from .openapi import OpenAPI
 
 from .loader import ChainLoader, RedirectLoader, WebLoader
 import aiopenapi3.loader
-
+from aiopenapi3.v30.formdata import decode_content_type
 from .log import init
+
+if typing.TYPE_CHECKING:
+    import aiopenapi3.request
 
 init()
 
@@ -148,6 +152,7 @@ def schema_display_stats(api, duration):
 def main(argv=None):
     global log
     plugins = []
+
     parser = argparse.ArgumentParser("aiopenapi3", description="Swagger 2.0, OpenAPI 3.0, OpenAPI 3.1 validator")
     parser.add_argument("-v", "--verbose", action="store_true", default=False, help="be verbose")
     parser.add_argument("-p", "--profile", action="store_true", default=False)
@@ -234,9 +239,7 @@ def main(argv=None):
         if auth:
             api.authenticate(**auth)
 
-        import aiopenapi3.request
-
-        req: aiopenapi3.request.RequestBase
+        req: "aiopenapi3.request.RequestBase"
         if args.method:
             req = api.createRequest((args.operationId, args.method))
         else:
@@ -253,12 +256,17 @@ def main(argv=None):
             print(e.response.headers)
             return
 
-        obj = response.json()
-        if args.format:
-            assert expr
-            obj = expr.search(obj)
+        ct = response.headers["content-type"]
+        type, subtype, _ = decode_content_type(ct)
+        if f"{type}/{subtype}" == "application/json":
+            obj = response.json()
+            if args.format:
+                assert expr
+                obj = expr.search(obj)
 
-        print(json.dumps(obj, indent=2, sort_keys=True))
+            print(json.dumps(obj, indent=2, sort_keys=True))
+        else:
+            print(ret)
 
     cmd.set_defaults(func=cmd_call)
 
