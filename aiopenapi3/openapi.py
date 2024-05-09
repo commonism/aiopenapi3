@@ -49,6 +49,7 @@ if typing.TYPE_CHECKING:
         ReferenceType,
         RequestType,
         HTTPMethodType,
+        ServerType,
     )
 
 
@@ -474,6 +475,7 @@ class OpenAPI:
         def is_schema(v: Tuple[str, "SchemaType"]) -> bool:
             return isinstance(v[1], (v20.Schema, v30.Schema, v31.Schema))
 
+        op: Operation
         if isinstance(self._root, v20.Root):
             documents = cast(List[v20.Root], self._documents.values())
             # Schema
@@ -486,7 +488,7 @@ class OpenAPI:
                 # PathItems
                 for path, obj in (self.paths or dict()).items():
                     for m in obj.model_fields_set & HTTP_METHODS:
-                        op: Operation = getattr(obj, m)
+                        op = getattr(obj, m)
 
                         for r, response in op.responses.items():
                             if isinstance(response, ReferenceBase):
@@ -519,7 +521,7 @@ class OpenAPI:
             # PathItems
             for path, obj in (self.paths or dict()).items():
                 for m in obj.model_fields_set & HTTP_METHODS:
-                    op: Operation = getattr(obj, m)
+                    op = getattr(obj, m)
 
                     for parameter in op.parameters + obj.parameters:
                         if parameter.schema_:
@@ -634,6 +636,7 @@ class OpenAPI:
             r = yarl.URL.build(scheme=scheme, host=host, port=port, path=path)
             return r
         elif isinstance(self._root, (v30.Root, v31.Root)):
+            assert self._root.servers
             server: "ServerType" = self._server_select(self._root.servers)
             return self._base_url.join(yarl.URL(server.createUrl(self._server_variables)))
 

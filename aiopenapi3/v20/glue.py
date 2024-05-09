@@ -25,7 +25,15 @@ except ImportError:
     httpx_auth = None
 
 if typing.TYPE_CHECKING:
-    from .._types import ParameterType, ReferenceType, RequestParameters, RequestData
+    from .._types import (
+        ParameterType,
+        ReferenceType,
+        RequestParameters,
+        RequestData,
+        ResponseHeadersType,
+        ResponseDataType,
+        HeaderType,
+    )
     from .schemas import Schema
     from .general import Reference
     from .paths import Response as v20ResponseType
@@ -261,7 +269,7 @@ class Request(RequestBase):
 
     def _process__headers(
         self, result: httpx.Response, headers: Dict[str, str], expected_response: "v20ResponseType"
-    ) -> Dict[str, str]:
+    ) -> "ResponseHeadersType":
         rheaders = dict()
         if expected_response.headers:
             required = dict(map(lambda x: (x[0].lower(), x[1]), expected_response.headers.items()))
@@ -271,24 +279,22 @@ class Request(RequestBase):
             """
             available = frozenset(result.headers.keys())
             if missing := (required.keys() - available):
-                missing = {k: required[k] for k in missing}
-                raise HeadersMissingError(self.operation, missing, result)
+                report: Dict[str, "HeaderType"] = {k: required[k] for k in missing}
+                raise HeadersMissingError(self.operation, report, result)
             for name, header in expected_response.headers.items():
                 data = headers.get(name, None)
                 if data:
                     rheaders[name] = header._schema.model(header._decode(data))
         return rheaders
 
-    def _process_stream(self, result: httpx.Response) -> Tuple[Dict[str, str], Optional["Schema"]]:
+    def _process_stream(self, result: httpx.Response) -> Tuple["ResponseHeadersType", Optional["Schema"]]:
         status_code = str(result.status_code)
         expected_response = self._process__status_code(result, status_code)
         headers = self._process__headers(result, result.headers, expected_response)
         return headers, expected_response.schema_
 
-    def _process_request(
-        self, result: httpx.Response
-    ) -> Tuple[Dict[str, str], Optional[Union[pydantic.BaseModel, str]]]:
-        rheaders = dict()
+    def _process_request(self, result: httpx.Response) -> Tuple["ResponseHeadersType", "ResponseDataType"]:
+        rheaders: "ResponseHeadersType" = dict()
         # spec enforces these are strings
         status_code = str(result.status_code)
         content_type = result.headers.get("Content-Type", None)

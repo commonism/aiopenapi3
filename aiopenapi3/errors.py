@@ -12,6 +12,7 @@ if typing.TYPE_CHECKING:
         RequestType,
         RequestData,
         RequestParameters,
+        ServerType,
         HeaderType,
         ExpectedType,
         OperationType,
@@ -71,7 +72,7 @@ class OperationIdDuplicationError(SpecError):
     """
 
     operationid: str
-    paths: List[Tuple[str, str, object]]
+    paths: List[Tuple[str, str, object, Optional[List["ServerType"]]]]
 
 
 class ParameterFormatError(SpecError):
