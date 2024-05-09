@@ -21,7 +21,7 @@ class ServerVariable(ObjectExtended):
     def validate_ServerVariable(cls, s: "ServerVariable"):
         assert isinstance(s.enum, (list, None.__class__))
         # default value must be in enum
-        assert s.default in (s.enum or [s.default])
+        assert s.default is None or s.default in (s.enum or [s.default])
         return s
 
 
@@ -45,12 +45,12 @@ class Server(ObjectExtended):
     def validate_parameter_enum(self, parameters: Dict[str, str]):
         for name, value in parameters.items():
             if v := self.variables.get(name):
-                if value not in v.enum:
+                if v.enum and value not in v.enum:
                     raise ValueError(f"Server Variable {name} value {value} not allowed ({v.enum})")
 
     def createUrl(self, variables: Dict[str, str]) -> str:
         self.validate_parameter_enum(variables)
-        vars: Dict[str, str] = dict(map(lambda x: (x[0], x[1].default), self.variables.items()))
+        vars: Dict[str, Optional[str]] = dict(map(lambda x: (x[0], x[1].default), self.variables.items()))
         vars.update(variables)
         url: str = self.url.format(**vars)
         return url

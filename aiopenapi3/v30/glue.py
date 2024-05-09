@@ -40,6 +40,8 @@ if TYPE_CHECKING:
         ParameterType,
         RequestFilesParameter,
         RequestFileParameter,
+        ResponseHeadersType,
+        ResponseDataType,
     )
 
     from .paths import Response as v30Response, MediaType as v30MediaType
@@ -458,7 +460,7 @@ class Request(RequestBase):
 
     def _process__headers(
         self, result: httpx.Response, headers: Dict[str, str], expected_response: "v3xResponseType"
-    ) -> Dict[str, str]:
+    ) -> "ResponseHeadersType":
         rheaders = dict()
         if expected_response.headers:
             required = dict(
@@ -509,7 +511,7 @@ class Request(RequestBase):
         assert content_type is not None
         return content_type, expected_media
 
-    def _process_stream(self, result: httpx.Response) -> Tuple[Dict[str, str], Optional["SchemaType"]]:
+    def _process_stream(self, result: httpx.Response) -> Tuple["ResponseHeadersType", Optional["SchemaType"]]:
         status_code = str(result.status_code)
         content_type = result.headers.get("Content-Type", None)
 
@@ -520,9 +522,7 @@ class Request(RequestBase):
 
         return headers, expected_media.schema_
 
-    def _process_request(
-        self, result: httpx.Response
-    ) -> Tuple[Dict[str, str], Optional[Union[pydantic.BaseModel, str]]]:
+    def _process_request(self, result: httpx.Response) -> Tuple["ResponseHeadersType", "ResponseDataType"]:
         rheaders = dict()
         # spec enforces these are strings
         status_code = str(result.status_code)

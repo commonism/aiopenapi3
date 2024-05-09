@@ -263,7 +263,7 @@ class Model:  # (BaseModel):
         schema: "SchemaType",
         schemanames: Optional[List[str]] = None,
         discriminators: Optional[List["DiscriminatorType"]] = None,
-        extra: Optional["SchemaType"] = None,
+        extra: Optional[List["SchemaType"]] = None,
     ) -> Type[BaseModel]:
         if schemanames is None:
             schemanames = []
@@ -535,7 +535,7 @@ class Model:  # (BaseModel):
                             continue
                         else:
                             raise TypeError(schema.items)
-                        r.append(v)
+                        r.append(v)  # type: ignore[arg-type]
                     elif _type == "object":
                         r.append(schema.get_type(fwdref=fwdref))
                     elif _type == "null":
@@ -546,11 +546,11 @@ class Model:  # (BaseModel):
             if len(r) == 1:
                 rr = r[0]
             elif len(r) > 1:
-                rr = Union[tuple(r)]  # type: ignore[arg-type]
+                rr = Union[tuple(r)]  # type: ignore[assignment]
             else:
                 rr = None  # type: ignore[assignment]
             if nullable is True:
-                rr = Optional[rr]
+                rr = Optional[rr]  # type: ignore[assignment]
         elif isinstance(schema, ReferenceBase):
             rr = Model.createAnnotation(schema._target, fwdref=True)
         else:
@@ -590,15 +590,18 @@ class Model:  # (BaseModel):
                 )
 
                 # allOf - intersection of types
+                allOfs: List["SchemaType"]
                 if allOfs := sum([getattr(schema, "allOf", [])], []):
                     for x in allOfs:
                         allOf &= set(Model.types(x))
 
                 # anyOf - union of types
+                anyOfs: List["SchemaType"]
                 if anyOfs := sum([getattr(schema, "anyOf", [])], []):
                     anyOf = set.union(*[set(Model.types(x)) for x in anyOfs]) if anyOfs else set()
 
                 # oneOf - union of types
+                oneOfs: List["SchemaType"]
                 if oneOfs := sum([getattr(schema, "oneOf", [])], []):
                     oneOf = set.union(*[set(Model.types(x)) for x in oneOfs]) if oneOfs else set()
 

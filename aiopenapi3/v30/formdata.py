@@ -141,10 +141,11 @@ def encode_multipart_parameters(
         type, subtype, params = decode_content_type(ct)
 
         if type in ["image", "audio", "application"]:
+            v: bytes
             if isinstance(value, bytes):
-                v: bytes = value
+                v = value
             else:
-                v: bytes = value.encode()
+                v = value.encode()
 
             codec = "base64"
 
@@ -174,9 +175,8 @@ def encode_multipart_parameters(
         for header, value in headers.items():
             env.add_header(header, value)
 
-        v: str
-        for k, v in params:
-            env.set_param(k, v, "Content-Type")
+        for k, p in params:
+            env.set_param(k, p, "Content-Type")
 
         env.set_payload(data)
 

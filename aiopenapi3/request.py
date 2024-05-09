@@ -67,20 +67,20 @@ class RequestParameter:
 
 class RequestBase:
     class StreamResponse(NamedTuple):
-        headers: Dict[str, str]
+        headers: "ResponseHeadersType"
         schema: Optional["SchemaType"]
         session: httpx.Client
         result: httpx.Response
 
     class Response(NamedTuple):
-        headers: Dict[str, str]
+        headers: "ResponseHeadersType"
         data: Any
         result: httpx.Response
 
     class Vars(NamedTuple):
-        parameters: Dict[str, str]
-        data: Any
-        context: Any
+        parameters: Optional[Dict[str, str]]
+        data: Optional[Any]
+        context: Optional[Any]
         """
         call provided context data for use in :func:`aiopenapi3.plugin.Message`
         """
@@ -146,14 +146,14 @@ class RequestBase:
 
     def __call__(
         self, *args, return_headers: bool = False, context=None, **kwargs
-    ) -> Union["JSON", Tuple[Dict[str, str], "JSON"]]:
+    ) -> Union["JSON", Tuple["ResponseHeadersType", "JSON"]]:
         """
         :param args:
         :param return_headers:  if set return a tuple (header, body)
         :param kwargs:
         :return: body or (header, body)
         """
-        headers, data, result = self.request(*args, context=context, **kwargs)
+        headers, data, result = self.request(*args, context=context, **kwargs)  # type: ignore[misc]
         if return_headers:
             return headers, data
         return data
@@ -297,15 +297,15 @@ class RequestBase:
 
 class AsyncRequestBase(RequestBase):
     class StreamResponse(NamedTuple):
-        headers: Dict[str, str]
-        schema: "SchemaType"
+        headers: "ResponseHeadersType"
+        schema: Optional["SchemaType"]
         session: httpx.AsyncClient
         result: httpx.Response
 
     async def __call__(  # type: ignore[override]
         self, *args, return_headers: bool = False, context: Any = None, **kwargs
     ) -> Union["JSON", Tuple[Dict[str, str], "JSON"]]:
-        headers, data, result = await self.request(*args, context=context, **kwargs)
+        headers, data, result = await self.request(*args, context=context, **kwargs)  # type: ignore [misc]
         if return_headers:
             return headers, data
         return data
@@ -399,15 +399,16 @@ class OperationIndex:
         self._api: "OpenAPI" = api
         self._root: "RootType" = api._root
 
-        self._operations: Dict[str, Tuple[str, "HTTPMethodType", "OperationType", Optional[List["ServerType"]]]] = (
+        self._operations: Dict[str, Tuple["HTTPMethodType", str, "OperationType", Optional[List["ServerType"]]]] = (
             dict()
         )
         self._tags: Dict[str, "OperationIndex.OperationTag"] = collections.defaultdict(
             lambda: OperationIndex.OperationTag(self)
         )
+        pi: "PathItemType"
         for path, pi in self._root.paths.items():
             op: "OperationType"
-            pi: "PathItemType"
+            servers: Optional[List["ServerType"]]
             if pi.ref:
                 pi = pi.ref._target
             for method in pi.model_fields_set & HTTP_METHODS:
@@ -459,7 +460,7 @@ class OperationIndex:
         """
         return getattr(self, item) if isinstance(item, str) else self._api.createRequest(item)
 
-    def __iter__(self) -> "OpenationIndex.Iter":
+    def __iter__(self) -> Iter:
         return self.Iter(self._root, self._use_operation_tags)
 
     def __getstate__(self):

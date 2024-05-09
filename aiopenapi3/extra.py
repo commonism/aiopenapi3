@@ -1,18 +1,21 @@
 import typing
-from typing import List, Union, Optional, Tuple
+from typing import List, Union, Optional, Tuple, Dict
 import logging
 import re
 
 from .plugin import Document, Init
 
 if typing.TYPE_CHECKING:
-    from ._types import HTTPMethodMatchType
+    from ._types import HTTPMethodMatchType, PathItemType
 
     PathMatchType = Union[re.Pattern, str]
     OperationIdMatchType = Union[re.Pattern, str]
 
 
 class Reduce(Document, Init):
+    class Context:
+        pass
+
     """
     The Reduce plugin removes all not listed PathItems from the paths, limits initialization to models required and removes non required schemas
     """
@@ -32,7 +35,7 @@ class Reduce(Document, Init):
         super().__init__()
 
     def _reduced_paths(self, ctx: "Document.Context") -> dict:
-        reduced = {}
+        reduced: Dict[str, Dict[str, "PathItemType"]] = {}
         if "paths" not in ctx.document:
             return reduced
         keep_keys = {"summary", "description", "servers", "parameters"}
