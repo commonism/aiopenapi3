@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 class MIMEFormdata(nonmultipart.MIMENonMultipart):
     def __init__(self, keyname, *args, **kwargs):
-        super(MIMEFormdata, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.add_header("Content-Disposition", f'form-data; name="{keyname}"')
         del self["MIME-Version"]
 
@@ -74,7 +74,7 @@ def parameters_from_multipart(data, media, rbq):
 
 
 def parameters_from_urlencoded(data: "BaseModel", media: "MediaTypeType"):
-    params = collections.defaultdict(lambda: list())
+    params = collections.defaultdict(list)
     k: str
     for k in data.model_fields_set:
         v = getattr(data, k)
