@@ -29,7 +29,7 @@ if typing.TYPE_CHECKING:
     from .base import DiscriminatorBase
     from ._types import SchemaType, ReferenceType, PrimitiveTypes, DiscriminatorType
 
-type_format_to_class: Dict[str, Dict[str, Type]] = collections.defaultdict(lambda: dict())
+type_format_to_class: Dict[str, Dict[str, Type]] = collections.defaultdict(dict)
 
 log = logging.getLogger("aiopenapi3.model")
 
@@ -300,7 +300,7 @@ class Model:  # (BaseModel):
             """
             for primitive types the anyOf/oneOf is taken care of in Model.createAnnotation
             """
-            if typing.get_origin((_t := Model.createAnnotation(schema, _type=_type))) != Literal:
+            if typing.get_origin(_t := Model.createAnnotation(schema, _type=_type)) != Literal:
                 classinfo.root = Annotated[_t, Model.createField(schema, _type=_type, args=None)]
             else:
                 classinfo.root = _t
@@ -576,7 +576,7 @@ class Model:  # (BaseModel):
                     typesfilter.add(cast(str, TYPES_SCHEMA_MAP.get(type(const))))
 
                 if enum := getattr(schema, "enum", None):
-                    typesfilter |= set([cast(str, TYPES_SCHEMA_MAP.get(type(i))) for i in enum])
+                    typesfilter |= {cast(str, TYPES_SCHEMA_MAP.get(type(i))) for i in enum}
 
                 """
                 allOf / anyOf / oneOf do not need to be of type object
@@ -614,8 +614,7 @@ class Model:  # (BaseModel):
             if typesfilter:
                 values = values & typesfilter
 
-            for i in values:
-                yield i
+            yield from values
 
     @staticmethod
     def is_type(schema: "SchemaType", type_) -> bool:

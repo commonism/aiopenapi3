@@ -15,7 +15,7 @@ else:
     HTTPX_AUTH_METHODS = {
         name.lower(): getattr(httpx_auth, name)
         for name in httpx_auth.__all__
-        if inspect.isclass((class_ := getattr(httpx_auth, name)))
+        if inspect.isclass(class_ := getattr(httpx_auth, name))
         if issubclass(class_, httpx.Auth)
     }
 

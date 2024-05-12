@@ -661,7 +661,7 @@ class OpenAPI:
             raise TypeError(self._root)  # noqa
 
         if v:
-            raise ValueError("{} does not accept security schemes {}".format(self.info.title, sorted(v)))
+            raise ValueError(f"{self.info.title} does not accept security schemes {sorted(v)}")
 
         for security_scheme, value in kwargs.items():
             if value is None:
