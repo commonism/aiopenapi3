@@ -150,7 +150,7 @@ def test_paths_security(httpx_mock, with_paths_security):
     api.authenticate(None, cookieAuth=auth)
     api._.api_v1_auth_login_create(data={}, parameters={})
     request = httpx_mock.get_requests()[-1]
-    assert request.headers["Cookie"] == "Session={}".format(auth)
+    assert request.headers["Cookie"] == f"Session={auth}"
 
     api.authenticate(None, basicAuth=(auth, auth))
     api._.api_v1_auth_login_create(data={}, parameters={})
@@ -168,7 +168,7 @@ def test_paths_security(httpx_mock, with_paths_security):
     api.authenticate(None, bearerAuth=auth)
     api._.api_v1_auth_login_create(data={}, parameters={})
     request = httpx_mock.get_requests()[-1]
-    assert request.headers["Authorization"] == "Bearer {}".format(auth)
+    assert request.headers["Authorization"] == f"Bearer {auth}"
 
     # null session - via empty Operation Security
     api.authenticate(None)
