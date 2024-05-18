@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import errno
 from typing import Optional
 
@@ -19,8 +17,7 @@ ZOO = dict()
 
 
 def _idx(l):
-    for i in range(l):
-        yield i
+    yield from range(l)
 
 
 idx = _idx(100)
