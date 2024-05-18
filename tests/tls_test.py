@@ -40,11 +40,11 @@ def certs():
     }
     for caname, cadata in _data.items():
         root = trustme.CA(organization_name=f"{caname} Root")
-        root.cert_pem.write_to_path((cafile := Path(f"tests/data/tls-root-{caname}.pem")))
+        root.cert_pem.write_to_path(cafile := Path(f"tests/data/tls-root-{caname}.pem"))
         cadata["issuer"] = str(cafile)
 
         ca = trustme.CA(root, organization_name=f"{caname} CA")
-        root.cert_pem.write_to_path((cafile := Path(f"tests/data/tls-ca-{caname}.pem")))
+        root.cert_pem.write_to_path(cafile := Path(f"tests/data/tls-ca-{caname}.pem"))
         cadata["self"] = str(cafile)
 
         for cert_, argv in cadata["certs"].items():
