@@ -306,6 +306,9 @@ def test_schema_with_patternProperties(with_schema_patternProperties):
     assert a.aio3_patternProperties == {"^S_": [], "^I_": [("I_5", 100)]}
 
     o = O.model_validate({"O_5": {1: 2}})
+    assert isinstance(o, pydantic.BaseModel)
+    with pytest.raises(ValidationError):
+        o = O.model_validate({"X_5": {1: 2}})
 
     return
 
