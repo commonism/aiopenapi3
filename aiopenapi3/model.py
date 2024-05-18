@@ -393,6 +393,25 @@ class Model:  # (BaseModel):
 
                     classinfo.properties["aio3_patternProperties"].default = property(mkx())
 
+                    if not schema.additionalProperties:
+
+                        def mkx():
+                            def validate_patternProperties(self_):
+                                patterns = typing.get_args(self_.aio3_patternProperty.__annotations__["item"])
+                                for name, value in self_.model_extra.items():
+                                    for pattern in patterns:
+                                        if re.match(pattern, name):
+                                            break
+                                        else:
+                                            raise ValueError(f"unmatched property {name}")
+                                return self_
+
+                            return validate_patternProperties
+
+                        classinfo.properties["aio3_validate_patternProperties"].default = pydantic.model_validator(
+                            mode="after"
+                        )(mkx())
+
                 if schema.allOf:
                     for i in schema.allOf:
                         classinfo.createAnnotations(i, discriminators, schemanames, fwdref=True)
