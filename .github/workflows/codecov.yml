@@ -13,7 +13,7 @@ jobs:
       PYTHON: ${{ matrix.python }}
     steps:
     - uses: actions/checkout@master
-    - uses: pdm-project/setup-pdm@v3
+    - uses: pdm-project/setup-pdm@v4
       with:
         python-version: ${{ matrix.python }}
     - name: install deps
@@ -32,7 +32,7 @@ jobs:
         pdm run pytest --cov=aiopenapi3/ --cov-report=xml:./coverage/reports/coverage-optional.xml tests/
         pdm run pytest --cov=tests/      --cov-report=xml:./coverage/reports/coverage-optional-tests.xml    tests/
     - name: Upload coverage to Codecov (core)
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         directory: ./coverage/reports/
@@ -43,7 +43,7 @@ jobs:
         name: codecov-aiopenapi3
         verbose: true
     - name: Upload coverage to Codecov (tests)
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         directory: ./coverage/reports/
