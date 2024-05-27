@@ -43,10 +43,10 @@ def test_paths_security_v20_securityparameters(httpx_mock, with_paths_security_v
     assert request.url.params["auth"] == auth
 
     # header
-    api.authenticate(None, HeaderAuth="Bearer {}".format(auth))
+    api.authenticate(None, HeaderAuth=f"Bearer {auth}")
     api._.createUser(data={}, parameters={})
     request = httpx_mock.get_requests()[-1]
-    assert request.headers["Authorization"] == "Bearer {}".format(auth)
+    assert request.headers["Authorization"] == f"Bearer {auth}"
 
     # null session
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=[user.model_dump()])
@@ -98,7 +98,7 @@ def test_paths_security_v20_post_body(httpx_mock, with_paths_security_v20):
     user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.model_dump())
 
-    api.authenticate(HeaderAuth="Bearer {}".format(auth))
+    api.authenticate(HeaderAuth=f"Bearer {auth}")
     with pytest.raises(ValueError, match="Request Body is required but none was provided."):
         api._.createUser(data=None, parameters={})
     api._.createUser(data={}, parameters={})
