@@ -1,6 +1,7 @@
 import copy
 import typing
 import sys
+import uuid
 from unittest.mock import MagicMock, patch
 
 if sys.version_info >= (3, 9):
@@ -92,6 +93,15 @@ def test_schema_self_recursion(with_schema_self_recursion):
 
     with pytest.raises(RecursionError):
         api.components.schemas["Any"].get_type().model_construct()
+
+
+def test_schema_string_pattern(with_schema_string_pattern):
+    api = OpenAPI("/", with_schema_string_pattern)
+    GUID = api.components.schemas["GUID"].get_type()
+    GUID.model_validate(str(uuid.uuid4()))
+
+    with pytest.raises(ValidationError):
+        GUID.model_validate(str(uuid.uuid4()).replace("-", "@"))
 
 
 def test_schema_type_list(with_schema_type_list):
@@ -305,12 +315,14 @@ def test_schema_with_patternProperties(with_schema_patternProperties):
 
     assert a.aio3_patternProperties == {"^S_": [], "^I_": [("I_5", 100)]}
 
+    with pytest.raises(ValidationError):
+        A.model_validate({"X_5": {1: 2}})
+
     o = O.model_validate({"O_5": {1: 2}})
     assert isinstance(o, pydantic.BaseModel)
-    with pytest.raises(ValidationError):
-        o = O.model_validate({"X_5": {1: 2}})
 
-    return
+    with pytest.raises(ValidationError):
+        O.model_validate({"X_5": {1: 2}})
 
 
 def test_schema_discriminated_union(with_schema_discriminated_union):

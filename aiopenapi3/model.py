@@ -402,8 +402,8 @@ class Model:  # (BaseModel):
                                     for pattern in patterns:
                                         if re.match(pattern, name):
                                             break
-                                        else:
-                                            raise ValueError(f"unmatched property {name}")
+                                    else:
+                                        raise ValueError(f"unmatched property {name}")
                                 return self_
 
                             return validate_patternProperties
@@ -705,12 +705,14 @@ class Model:  # (BaseModel):
             """
             https://docs.pydantic.dev/latest/usage/fields/#string-constraints
             """
+            for k, m in {
+                "maxLength": "max_length",
+                "minLength": "min_length",
+                "pattern": "pattern",
+            }.items():
+                if (v := getattr(schema, k, None)) is not None:
+                    args[m] = v
 
-            if (v := getattr(schema, "maxLength", None)) is not None:
-                args["max_length"] = v
-
-            if (v := getattr(schema, "minLength", None)) is not None:
-                args["min_length"] = v
         return Field(**args)
 
     @staticmethod
