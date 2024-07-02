@@ -176,7 +176,7 @@ class RequestBase:
         try:
             result = session.send(req, stream=True)
         except Exception as e:
-            raise RequestError(self.operation, req, data, parameters) from e
+            raise RequestError(self.operation, self, data, parameters) from e
         return result
 
     @abc.abstractmethod
@@ -317,7 +317,7 @@ class AsyncRequestBase(RequestBase):
         try:
             result = await session.send(req, stream=True)
         except Exception as e:
-            raise RequestError(self.operation, req, data, parameters or dict()) from e
+            raise RequestError(self.operation, self, data, parameters or dict()) from e
         return result
 
     async def request(  # type: ignore[override]

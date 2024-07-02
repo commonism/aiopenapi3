@@ -2,7 +2,7 @@
 
 A Python [OpenAPI 3 Specification](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md) client and validator for Python 3.
 
-[![Test](https://github.com/commonism/aiopenapi3/workflows/Codecov/badge.svg?event=push&branch=master)](https://github.com/commonism/aiopenapi3/actions?query=workflow%3ACodecov+event%3Apush+branch%3Amaster)
+[![Test](https://github.com/commonism/aiopenapi3/actions/workflows/codecov.yml/badge.svg?event=push&branch=master)](https://github.com/commonism/aiopenapi3/actions?query=workflow%3ACodecov+event%3Apush+branch%3Amaster)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/commonism/aiopenapi3/master.svg)](https://results.pre-commit.ci/latest/github/commonism/aiopenapi3/master)
 [![Coverage](https://img.shields.io/codecov/c/github/commonism/aiopenapi3)](https://codecov.io/gh/commonism/aiopenapi3)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/aiopenapi3.svg)](https://pypi.org/project/aiopenapi3)
