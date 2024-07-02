@@ -87,12 +87,18 @@ class HTTPError(ErrorBase):
     pass
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(repr=False)
 class RequestError(HTTPError):
     operation: Optional["OperationType"]
     request: Optional["RequestType"]
     data: Optional["RequestData"]
     parameters: Optional["RequestParameters"]
+
+    def __str__(self):
+        if self.request:
+            return f"<{self.__class__.__name__} {self.operation.operationId}/{self.request.method}#{self.request.path}>"
+        else:
+            return f"<{self.__class__.__name__}>"
 
 
 class ResponseError(HTTPError):
@@ -104,8 +110,11 @@ class ResponseError(HTTPError):
         else:
             return super().__repr__()
 
+    def __str__(self):
+        return f"<{self.__class__.__name__} {self.response.request.method} '{self.response.request.url.path}' ({self.operation.operationId})>"
 
-@dataclasses.dataclass
+
+@dataclasses.dataclass(repr=False)
 class ContentLengthExceededError(ResponseError):
     """The Content-Length exceeds our Limits"""
 
@@ -115,7 +124,7 @@ class ContentLengthExceededError(ResponseError):
     response: httpx.Response
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(repr=False)
 class ContentTypeError(ResponseError):
     """The content-type is unexpected"""
 
@@ -124,8 +133,12 @@ class ContentTypeError(ResponseError):
     message: str
     response: httpx.Response
 
+    def __str__(self):
+        return f"""<{self.__class__.__name__} {self.response.request.method} '{self.response.request.url.path}' ({self.operation.operationId})>
+            {self.content_type}"""
 
-@dataclasses.dataclass
+
+@dataclasses.dataclass(repr=False)
 class HTTPStatusError(ResponseError):
     """The HTTP Status is unexpected"""
 
@@ -134,8 +147,12 @@ class HTTPStatusError(ResponseError):
     message: str
     response: httpx.Response
 
+    def __str__(self):
+        return f"""<{self.__class__.__name__} {self.response.request.method} '{self.response.request.url.path}' ({self.operation.operationId})>
+            {self.http_status}"""
 
-@dataclasses.dataclass
+
+@dataclasses.dataclass(repr=False)
 class ResponseDecodingError(ResponseError):
     """the json decoder failed"""
 
@@ -144,7 +161,7 @@ class ResponseDecodingError(ResponseError):
     response: httpx.Response
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(repr=False)
 class ResponseSchemaError(ResponseError):
     """the response data does not match the schema"""
 
@@ -154,11 +171,19 @@ class ResponseSchemaError(ResponseError):
     response: httpx.Response
     exception: Optional[Exception]
 
+    def __str__(self):
+        return f"""<{self.__class__.__name__} {self.response.request.method} '{self.response.request.url.path}' ({self.operation.operationId})
+        {self.exception}>"""
 
-@dataclasses.dataclass
+
+@dataclasses.dataclass(repr=False)
 class HeadersMissingError(ResponseError):
     """the response is missing required header/s"""
 
     operation: "OperationType"
     missing: Dict[str, "HeaderType"]
     response: httpx.Response
+
+    def __str__(self):
+        return f"""<{self.__class__.__name__} {self.response.request.method} '{self.response.request.url.path}' ({self.operation.operationId})
+        {self.missing}>"""
