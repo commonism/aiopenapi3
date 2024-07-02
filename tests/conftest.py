@@ -393,6 +393,11 @@ def with_schema_self_recursion(openapi_version):
 
 
 @pytest.fixture
+def with_schema_string_pattern(openapi_version):
+    yield _get_parsed_yaml("schema-string-pattern.yaml", openapi_version)
+
+
+@pytest.fixture
 def with_schema_type_list():
     yield _get_parsed_yaml("schema-type-list.yaml")
 
