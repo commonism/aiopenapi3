@@ -323,7 +323,7 @@ class Request(RequestBase):
             try:
                 data = json.loads(data)
             except json.decoder.JSONDecodeError:
-                raise ResponseDecodingError(self.operation, result, data)
+                raise ResponseDecodingError(self.operation, data, result)
 
             data = self.api.plugins.message.parsed(
                 request=self,
