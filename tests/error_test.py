@@ -20,7 +20,7 @@ def test_response_error(httpx_mock, with_paths_response_error):
     str(e.value)
 
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=201, json="ok")
-    with pytest.raises(HTTPStatusError):
+    with pytest.raises(HTTPStatusError) as e:
         api._.test()
     str(e.value)
 
