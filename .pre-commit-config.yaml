@@ -35,7 +35,7 @@ repos:
         - "--ignore=E203,W503"
         - "--select=W504"
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.16.0
+    rev: v3.17.0
     hooks:
       - id: pyupgrade
         args: [--py38-plus, --keep-runtime-typing]
