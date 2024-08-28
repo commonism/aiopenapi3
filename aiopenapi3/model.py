@@ -77,6 +77,10 @@ def class_from_schema(s, _type):
 import pydantic_core
 
 
+class ConfiguredRootModel(RootModel):
+    model_config = dict(regex_engine="python-re")
+
+
 @dataclasses.dataclass
 class _ClassInfo:
     @dataclasses.dataclass
@@ -226,18 +230,20 @@ class _ClassInfo:
         return m
 
     @classmethod
-    def collapse(cls, type_name, items) -> Type[BaseModel]:
+    def collapse(cls, type_name, items: List["_ClassInfo"]) -> Type[BaseModel]:
         r: List[Union[Type[BaseModel], Type[None]]]
 
         r = [i.model() for i in items]
 
         if len(r) > 1:
             ru: object = Union[tuple(r)]
-            m: Type[RootModel] = pydantic.create_model(type_name, __base__=(RootModel[ru],), __module__=me.__name__)
+            m: Type[RootModel] = pydantic.create_model(
+                type_name, __base__=(ConfiguredRootModel[ru],), __module__=me.__name__
+            )
         elif len(r) == 1:
             m: Type[BaseModel] = cast(Type[BaseModel], r[0])
             if not (inspect.isclass(m) and issubclass(m, pydantic.BaseModel)):
-                m = pydantic.create_model(type_name, __base__=(RootModel[m],), __module__=me.__name__)
+                m = pydantic.create_model(type_name, __base__=(ConfiguredRootModel[m],), __module__=me.__name__)
         else:  # == 0
             assert len(r), r
         return m
@@ -476,6 +482,7 @@ class Model:  # (BaseModel):
         return ConfigDict(
             extra=extra_,
             arbitrary_types_allowed=arbitrary_types_allowed_,
+            regex_engine="python-re",
             # defer_build=True,
             # validate_assignment=True
         )

@@ -398,6 +398,11 @@ def with_schema_string_pattern(openapi_version):
 
 
 @pytest.fixture
+def with_schema_regex_engine(openapi_version):
+    yield _get_parsed_yaml("schema-regex-engine.yaml", openapi_version)
+
+
+@pytest.fixture
 def with_schema_type_list():
     yield _get_parsed_yaml("schema-type-list.yaml")
 
