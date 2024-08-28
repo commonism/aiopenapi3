@@ -1,0 +1,20 @@
+openapi: "3.1.0"
+info:
+  version: 1.0.0
+  title: |
+    string pattern test with pattern invalid with pydantic-core/rust regex
+    https://github.com/pydantic/pydantic-core/issues/1374
+
+components:
+  schemas:
+    Root:
+      type: string
+      pattern: ^Passphrase:[ ^[ !#-~]+$
+
+    Object:
+      type: object
+      additionalProperties: False
+      properties:
+        v:
+          type: string
+          pattern:  ^Passphrase:[ ^[ !#-~]+$

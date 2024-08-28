@@ -4,6 +4,8 @@ import sys
 import uuid
 from unittest.mock import MagicMock, patch
 
+from pydantic.fields import FieldInfo
+
 if sys.version_info >= (3, 9):
     from pathlib import Path
 else:
@@ -102,6 +104,37 @@ def test_schema_string_pattern(with_schema_string_pattern):
 
     with pytest.raises(ValidationError):
         GUID.model_validate(str(uuid.uuid4()).replace("-", "@"))
+
+
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="typing")
+def test_schema_regex_engine(with_schema_regex_engine):
+    api = OpenAPI("/", with_schema_regex_engine)
+    Root = api.components.schemas["Root"].get_type()
+
+    Root.model_validate("Passphrase: test!")
+
+    with pytest.raises(ValidationError):
+        Root.model_validate("P_ssphrase:")
+
+    Object = api.components.schemas["Object"].get_type()
+    Object.model_validate({"v": "Passphrase: test!"})
+
+    with pytest.raises(ValidationError):
+        Object.model_validate({"v": "P_ssphrase:"})
+
+    import pydantic_core._pydantic_core
+
+    with pytest.raises(pydantic_core._pydantic_core.SchemaError, match="error: unclosed character class$"):
+        annotations = typing.get_args(Root.model_fields["root"].annotation)
+        assert len(annotations) == 2 and annotations[0] == str and isinstance(annotations[1], FieldInfo), annotations
+        metadata = annotations[1].metadata
+        assert len(metadata) == 1, metadata
+        pattern = metadata[0].pattern
+        assert isinstance(pattern, str), pattern
+        from typing import Annotated
+
+        C = Annotated[str, pydantic.Field(pattern=pattern)]
+        pydantic.create_model("C", __base__=(pydantic.RootModel[C],))
 
 
 def test_schema_type_list(with_schema_type_list):
