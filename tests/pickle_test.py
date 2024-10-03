@@ -3,14 +3,9 @@ Tests parsing specs
 """
 
 from pathlib import Path
-import sys
 import pickle
 import copy
 
-if sys.version_info >= (3, 9):
-    pass
-else:
-    import pathlib3x as pathlib
 
 import pytest
 

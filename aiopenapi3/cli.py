@@ -4,7 +4,6 @@ import sys
 import json
 import itertools
 import typing
-from typing import List
 from pstats import SortKey
 import pstats
 import io
@@ -24,10 +23,7 @@ import aiopenapi3.plugin
 logg = logging.getLogger()
 logging.basicConfig()
 
-if sys.version_info >= (3, 9):
-    from pathlib import Path
-else:
-    from pathlib3x import Path
+from pathlib import Path
 
 from .openapi import OpenAPI
 
@@ -55,7 +51,7 @@ def loader_prepare(args, session_factory):
     return loader
 
 
-def plugins_load(baseurl, plugins: List[str]) -> List[aiopenapi3.plugin.Plugin]:
+def plugins_load(baseurl, plugins: list[str]) -> list[aiopenapi3.plugin.Plugin]:
     """
     load Plugins from python files
     """

@@ -1,6 +1,7 @@
 import typing
 import warnings
-from typing import Optional, Any, List, Dict, ForwardRef, Union, Tuple, cast, Type, FrozenSet, Sequence
+from typing import Optional, Any, ForwardRef, Union, cast
+from collections.abc import Sequence
 
 import re
 import builtins
@@ -8,10 +9,7 @@ import keyword
 import uuid
 import sys
 
-if sys.version_info >= (3, 9):
-    from pathlib import Path
-else:
-    from pathlib3x import Path
+from pathlib import Path
 
 if sys.version_info >= (3, 10):
     from typing import TypeGuard
@@ -70,7 +68,7 @@ class ObjectExtended(ObjectBase):
 
 
 class PathsBase(ObjectBase):
-    extensions: Dict[str, Any]
+    extensions: dict[str, Any]
 
     @property
     def _paths(self):
@@ -88,7 +86,7 @@ class PathsBase(ObjectBase):
 
 class PathItemBase:
     #    parameters: Optional[List[Union["ParameterBase", "ReferenceBase"]]]
-    parameters: List[Any]
+    parameters: list[Any]
 
 
 class RootBase:
@@ -320,12 +318,12 @@ class SchemaBase(BaseModel):
     The Base for the Schema
     """
 
-    _model_type: Type["BaseModel"] = PrivateAttr(default=None)
+    _model_type: type["BaseModel"] = PrivateAttr(default=None)
     """
     use to store _the_ model
     """
 
-    _model_types: List[Type["BaseModel"]] = PrivateAttr(default_factory=list)
+    _model_types: list[type["BaseModel"]] = PrivateAttr(default_factory=list)
     """
     sub-schemas add the properties of the parent to the model of the subschemas
 
@@ -397,22 +395,22 @@ class SchemaBase(BaseModel):
 
     def set_type(
         self,
-        names: Optional[List[str]] = None,
+        names: Optional[list[str]] = None,
         discriminators: Optional[Sequence[DiscriminatorBase]] = None,
-        extra: Optional[List["SchemaBase"]] = None,
-    ) -> Type[BaseModel]:
+        extra: Optional[list["SchemaBase"]] = None,
+    ) -> type[BaseModel]:
         from .model import Model
 
         if extra is None or extra == []:
             self._model_type = Model.from_schema(
-                cast("SchemaType", self), names, cast(List["DiscriminatorType"], discriminators)
+                cast("SchemaType", self), names, cast(list["DiscriminatorType"], discriminators)
             )
             return self._model_type
         else:
             identity = self._identity
             self._identity = f"{identity}.c{len(self._model_types)}"
             r = Model.from_schema(
-                cast("SchemaType", self), names, cast(List["DiscriminatorType"], discriminators), extra
+                cast("SchemaType", self), names, cast(list["DiscriminatorType"], discriminators), extra
             )
             self._model_types.append(r)
             self._identity = identity
@@ -420,11 +418,11 @@ class SchemaBase(BaseModel):
 
     def get_type(
         self,
-        names: Optional[List[str]] = None,
+        names: Optional[list[str]] = None,
         discriminators: Optional[Sequence[DiscriminatorBase]] = None,
-        extra: Optional[List["SchemaBase"]] = None,
+        extra: Optional[list["SchemaBase"]] = None,
         fwdref: bool = False,
-    ) -> Union[Type[BaseModel], Type[TypeAdapter], ForwardRef]:
+    ) -> Union[type[BaseModel], type[TypeAdapter], ForwardRef]:
         if fwdref:
             if "module" in ForwardRef.__init__.__code__.co_varnames:
                 # FIXME Python < 3.9 compat
@@ -438,7 +436,7 @@ class SchemaBase(BaseModel):
         else:
             return self.set_type(names, discriminators, extra)
 
-    def model(self, data: "JSON") -> Union[BaseModel, List[BaseModel]]:
+    def model(self, data: "JSON") -> Union[BaseModel, list[BaseModel]]:
         """
         Generates a model representing this schema from the given data.
 
@@ -458,9 +456,9 @@ class SchemaBase(BaseModel):
 
 class OperationBase:
     # parameters: Optional[List[Union[ParameterBase, ReferenceBase]]]
-    parameters: List[Any]
+    parameters: list[Any]
 
-    def _validate_path_parameters(self, pi_: "PathItemBase", path_: str, loc: Tuple[Any, str]):
+    def _validate_path_parameters(self, pi_: "PathItemBase", path_: str, loc: tuple[Any, str]):
         """
         Ensures that all parameters for this path are valid
         """
@@ -476,8 +474,8 @@ class OperationBase:
 
         assert self.parameters is not None
         assert pi_.parameters is not None
-        op: FrozenSet[str] = frozenset(map(lambda x: x.name, filter(parameter_in_path, self.parameters)))
-        pi: FrozenSet[str] = frozenset(map(lambda x: x.name, filter(parameter_in_path, pi_.parameters)))
+        op: frozenset[str] = frozenset(map(lambda x: x.name, filter(parameter_in_path, self.parameters)))
+        pi: frozenset[str] = frozenset(map(lambda x: x.name, filter(parameter_in_path, pi_.parameters)))
 
         invalid = sorted(filter(lambda x: re.match(r"^([a-zA-Z0-9\-\._~]+)$", x) is None or len(x) == 0, op | pi))
         if invalid:

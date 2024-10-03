@@ -1,6 +1,5 @@
 import dataclasses
-import typing
-from typing import TYPE_CHECKING, List, Any, Dict, Optional, Type
+from typing import TYPE_CHECKING, Any, Optional
 import abc
 import sys
 
@@ -48,11 +47,11 @@ class Init(Plugin):
     class Context:
         initialized: Optional["OpenAPI"] = None
         """available in :func:`~aiopenapi3.plugin.Init.initialized`"""
-        schemas: Optional[Dict[str, "SchemaBase"]] = None
+        schemas: Optional[dict[str, "SchemaBase"]] = None
         """available in :func:`~aiopenapi3.plugin.Init.schemas`"""
-        resolved: Optional[List["SchemaBase"]] = None
+        resolved: Optional[list["SchemaBase"]] = None
         """available in :func:`~aiopenapi3.plugin.Init.schemas`"""
-        paths: Optional[Dict[str, "PathItemBase"]] = None
+        paths: Optional[dict[str, "PathItemBase"]] = None
         """available in :func:`~aiopenapi3.plugin.Init.paths`"""
 
     def schemas(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
@@ -81,7 +80,7 @@ class Document(Plugin):
     class Context:
         url: yarl.URL
         """available in :func:`~aiopenapi3.plugin.Document.loaded` :func:`~aiopenapi3.plugin.Document.parsed`"""
-        document: Dict[str, Any]
+        document: dict[str, Any]
         """available in :func:`~aiopenapi3.plugin.Document.loaded` :func:`~aiopenapi3.plugin.Document.parsed`"""
 
     def loaded(self, ctx: "Document.Context") -> "Document.Context":  # pragma: no cover
@@ -110,7 +109,7 @@ class Message(Plugin):
         """available :func:`~aiopenapi3.plugin.Message.marshalled` :func:`~aiopenapi3.plugin.Message.sending`
         :func:`~aiopenapi3.plugin.Message.received` :func:`~aiopenapi3.plugin.Message.parsed`
         :func:`~aiopenapi3.plugin.Message.unmarshalled`"""
-        marshalled: Optional[Dict[str, Any]] = None
+        marshalled: Optional[dict[str, Any]] = None
         """available :func:`~aiopenapi3.plugin.Message.marshalled` """
         sending: Optional[str] = None
         """available :func:`~aiopenapi3.plugin.Message.sending` """
@@ -122,9 +121,9 @@ class Message(Plugin):
         """available :func:`~aiopenapi3.plugin.Message.received` """
         content_type: Optional[str] = None
         """available :func:`~aiopenapi3.plugin.Message.received` """
-        parsed: Optional[Dict[str, Any]] = None
+        parsed: Optional[dict[str, Any]] = None
         """available :func:`~aiopenapi3.plugin.Message.parsed` """
-        expected_type: Optional[typing.Type] = None
+        expected_type: Optional[type] = None
         """available :func:`~aiopenapi3.plugin.Message.parsed` """
         unmarshalled: Optional[BaseModel] = None
         """available :func:`~aiopenapi3.plugin.Message.unmarshalled` """
@@ -161,7 +160,7 @@ class Message(Plugin):
 
 
 class Domain:
-    def __init__(self, ctx, plugins: List[Plugin]):
+    def __init__(self, ctx, plugins: list[Plugin]):
         self.ctx = ctx
         self.plugins = plugins
 
@@ -195,9 +194,9 @@ class Method:
 
 
 class Plugins:
-    _domains: Dict[str, Type[Plugin]] = {"init": Init, "document": Document, "message": Message}
+    _domains: dict[str, type[Plugin]] = {"init": Init, "document": Document, "message": Message}
 
-    def __init__(self, plugins: List[Plugin]):
+    def __init__(self, plugins: list[Plugin]):
         for p in plugins:
             assert isinstance(p, Plugin)
 
@@ -205,15 +204,15 @@ class Plugins:
         self._document = self._get_domain("document", plugins)
         self._message = self._get_domain("message", plugins)
 
-    def _get_domain(self, name: str, plugins: List[Plugin]) -> "Domain":
-        domain: Optional[Type[Plugin]]
+    def _get_domain(self, name: str, plugins: list[Plugin]) -> "Domain":
+        domain: Optional[type[Plugin]]
         if (domain := self._domains.get(name)) is None:
             raise ValueError(name)  # noqa
 
         def domain_type_f(p: Plugin) -> TypeGuard[Plugin]:
             return isinstance(p, domain)
 
-        p: List[Plugin] = list(filter(domain_type_f, plugins))
+        p: list[Plugin] = list(filter(domain_type_f, plugins))
         return Domain(domain.Context, p)
 
     @property

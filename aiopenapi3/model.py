@@ -4,7 +4,7 @@ import inspect
 import logging
 import re
 import sys
-from typing import Any, Set, Type, cast, TypeVar
+from typing import Any, cast, TypeVar
 import typing
 
 if sys.version_info >= (3, 10):
@@ -12,12 +12,7 @@ if sys.version_info >= (3, 10):
 else:
     from typing_extensions import TypeGuard
 
-if sys.version_info >= (3, 9):
-    from typing import List, Optional, Union, Tuple, Dict, Annotated, Literal
-else:
-    from typing import List, Optional, Union, Tuple, Dict
-    from typing_extensions import Annotated, Literal
-
+from typing import List, Optional, Union, Tuple, Dict, Annotated, Literal
 from pydantic import BaseModel, TypeAdapter, Field, RootModel, ConfigDict
 import pydantic
 
@@ -29,7 +24,7 @@ if typing.TYPE_CHECKING:
     from .base import DiscriminatorBase
     from ._types import SchemaType, ReferenceType, PrimitiveTypes, DiscriminatorType
 
-type_format_to_class: Dict[str, Dict[str, Type]] = collections.defaultdict(dict)
+type_format_to_class: dict[str, dict[str, type]] = collections.defaultdict(dict)
 
 log = logging.getLogger("aiopenapi3.model")
 
@@ -92,8 +87,8 @@ class _ClassInfo:
     type_: str
 
     root: Any = None
-    config: Dict[str, Any] = dataclasses.field(default_factory=dict)
-    properties: Dict[str, _PropertyInfo] = dataclasses.field(
+    config: dict[str, Any] = dataclasses.field(default_factory=dict)
+    properties: dict[str, _PropertyInfo] = dataclasses.field(
         default_factory=lambda: collections.defaultdict(lambda: _ClassInfo._PropertyInfo())
     )
 
@@ -122,7 +117,7 @@ class _ClassInfo:
                 ):
                     continue
 
-                args: Dict[str, Any] = dict()
+                args: dict[str, Any] = dict()
                 assert schema.required is not None
                 if (v := getattr(f, "default", None)) is not None:
                     args["default"] = v
@@ -138,8 +133,8 @@ class _ClassInfo:
     def createAnnotations(
         self,
         schema: "SchemaType",
-        discriminators: List["DiscriminatorType"],
-        shmanm: List[str],
+        discriminators: list["DiscriminatorType"],
+        shmanm: list[str],
         fwdref=False,
         overwrite=False,
     ):
@@ -214,7 +209,7 @@ class _ClassInfo:
             raise ValueError()
         return
 
-    def model(self) -> Union[Type[BaseModel], Type[None]]:
+    def model(self) -> Union[type[BaseModel], type[None]]:
         if self.root:
             m = self.root
         else:
@@ -230,18 +225,18 @@ class _ClassInfo:
         return m
 
     @classmethod
-    def collapse(cls, type_name, items: List["_ClassInfo"]) -> Type[BaseModel]:
-        r: List[Union[Type[BaseModel], Type[None]]]
+    def collapse(cls, type_name, items: list["_ClassInfo"]) -> type[BaseModel]:
+        r: list[Union[type[BaseModel], type[None]]]
 
         r = [i.model() for i in items]
 
         if len(r) > 1:
             ru: object = Union[tuple(r)]
-            m: Type[RootModel] = pydantic.create_model(
+            m: type[RootModel] = pydantic.create_model(
                 type_name, __base__=(ConfiguredRootModel[ru],), __module__=me.__name__
             )
         elif len(r) == 1:
-            m: Type[BaseModel] = cast(Type[BaseModel], r[0])
+            m: type[BaseModel] = cast(type[BaseModel], r[0])
             if not (inspect.isclass(m) and issubclass(m, pydantic.BaseModel)):
                 m = pydantic.create_model(type_name, __base__=(ConfiguredRootModel[m],), __module__=me.__name__)
         else:  # == 0
@@ -252,7 +247,7 @@ class _ClassInfo:
 _T = TypeVar("_T")
 
 
-def _follow(r: "ReferenceType", t: Type[_T]) -> TypeGuard[_T]:
+def _follow(r: "ReferenceType", t: type[_T]) -> TypeGuard[_T]:
     assert isinstance(r, ReferenceBase)
     if isinstance(r._target, t):
         return r._target
@@ -261,39 +256,39 @@ def _follow(r: "ReferenceType", t: Type[_T]) -> TypeGuard[_T]:
 
 
 class Model:  # (BaseModel):
-    ALIASES: Dict[str, str] = dict()
+    ALIASES: dict[str, str] = dict()
 
     @classmethod
     def from_schema(
         cls,
         schema: "SchemaType",
-        schemanames: Optional[List[str]] = None,
-        discriminators: Optional[List["DiscriminatorType"]] = None,
-        extra: Optional[List["SchemaType"]] = None,
-    ) -> Type[BaseModel]:
+        schemanames: Optional[list[str]] = None,
+        discriminators: Optional[list["DiscriminatorType"]] = None,
+        extra: Optional[list["SchemaType"]] = None,
+    ) -> type[BaseModel]:
         if schemanames is None:
             schemanames = []
 
         if discriminators is None:
             discriminators = []
 
-        r: List[_ClassInfo] = list()
+        r: list[_ClassInfo] = list()
 
         for _type in Model.types(schema):
             r.append(Model.createClassInfo(schema, _type, schemanames, discriminators, extra))
 
         m = _ClassInfo.collapse(schema._get_identity("L8"), r)
 
-        return cast(Type[BaseModel], m)
+        return cast(type[BaseModel], m)
 
     @classmethod
     def createClassInfo(
         cls,
         schema: "SchemaType",
         _type: str,
-        schemanames: List[str],
-        discriminators: List["DiscriminatorType"],
-        extra: Optional[List["SchemaType"]],
+        schemanames: list[str],
+        discriminators: list["DiscriminatorType"],
+        extra: Optional[list["SchemaType"]],
     ) -> _ClassInfo:
         from . import v20, v30, v31
 
@@ -490,7 +485,7 @@ class Model:  # (BaseModel):
     @staticmethod
     def createAnnotation(
         schema: Optional[Union["SchemaType", "ReferenceType"]], _type: Optional[str] = None, fwdref: bool = False
-    ) -> Type:
+    ) -> type:
         if schema is None:
             return BaseModel
         if isinstance(schema, SchemaBase):
@@ -500,8 +495,8 @@ class Model:  # (BaseModel):
             Required, can be None: Optional[str]
             Not required, can be None, is … by default: f4: Optional[str] = …
             """
-            r: List[Type] = list()
-            rr: Type
+            r: list[type] = list()
+            rr: type
             if (v := getattr(schema, "const", None)) is not None:
                 """
                 const - is not nullable
@@ -590,8 +585,8 @@ class Model:  # (BaseModel):
             if getattr(schema, "nullable", False):
                 yield "null"
         else:
-            typesfilter: Set[str] = set()
-            values: Set[str]
+            typesfilter: set[str] = set()
+            values: set[str]
             if isinstance(schema.type, list):
                 values = set(schema.type)
             elif schema.type is None:
@@ -608,7 +603,7 @@ class Model:  # (BaseModel):
                 allOf / anyOf / oneOf do not need to be of type object
                 but the type of their children can be used to limit the type of the parent
                 """
-                totalOf: List["SchemaType"]
+                totalOf: list["SchemaType"]
                 allOf, anyOf, oneOf = (
                     set(SCHEMA_TYPES),
                     set(SCHEMA_TYPES),
@@ -616,18 +611,18 @@ class Model:  # (BaseModel):
                 )
 
                 # allOf - intersection of types
-                allOfs: List["SchemaType"]
+                allOfs: list["SchemaType"]
                 if allOfs := sum([getattr(schema, "allOf", [])], []):
                     for x in allOfs:
                         allOf &= set(Model.types(x))
 
                 # anyOf - union of types
-                anyOfs: List["SchemaType"]
+                anyOfs: list["SchemaType"]
                 if anyOfs := sum([getattr(schema, "anyOf", [])], []):
                     anyOf = set.union(*[set(Model.types(x)) for x in anyOfs]) if anyOfs else set()
 
                 # oneOf - union of types
-                oneOfs: List["SchemaType"]
+                oneOfs: list["SchemaType"]
                 if oneOfs := sum([getattr(schema, "oneOf", [])], []):
                     oneOf = set.union(*[set(Model.types(x)) for x in oneOfs]) if oneOfs else set()
 
@@ -684,11 +679,11 @@ class Model:  # (BaseModel):
             from . import v20, v30, v31
 
             if isinstance(schema, (v20.Schema, v30.Schema)):
-                mof: Tuple[str, str] = ("multipleOf", "multiple_of")
+                mof: tuple[str, str] = ("multipleOf", "multiple_of")
                 if (v := getattr(schema, mof[0], None)) is not None:
                     args[mof[1]] = v
 
-                mum: List[Tuple[str, str, str, str]] = [
+                mum: list[tuple[str, str, str, str]] = [
                     ("maximum", "exclusiveMaximum", "le", "lt"),
                     ("minimum", "exclusiveMinimum", "ge", "gt"),
                 ]

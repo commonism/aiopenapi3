@@ -1,11 +1,4 @@
-import sys
-
-if sys.version_info >= (3, 9):
-    from typing import List, Optional, Union, Dict, Annotated, Literal
-else:
-    from typing import List, Optional, Union, Dict
-    from typing_extensions import Annotated, Literal
-
+from typing import Optional, Union, Annotated, Literal
 from pydantic import Field, RootModel, constr
 
 from ..base import ObjectExtended
@@ -21,7 +14,7 @@ class OAuthFlow(ObjectExtended):
     authorizationUrl: Optional[str] = Field(default=None)
     tokenUrl: Optional[str] = Field(default=None)
     refreshUrl: Optional[str] = Field(default=None)
-    scopes: Dict[str, str] = Field(default_factory=dict)
+    scopes: dict[str, str] = Field(default_factory=dict)
 
 
 class OAuthFlows(ObjectExtended):
@@ -83,7 +76,7 @@ class SecurityScheme(
     pass
 
 
-class SecurityRequirement(RootModel[Dict[str, List[str]]]):
+class SecurityRequirement(RootModel[dict[str, list[str]]]):
     """
     A `SecurityRequirement`_ object describes security schemes for API access.
 

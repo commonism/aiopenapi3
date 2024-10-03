@@ -1,11 +1,7 @@
-import sys
 import re
 import typing
 
-if sys.version_info >= (3, 9):
-    from pathlib import Path
-else:
-    from pathlib3x import Path
+from pathlib import Path
 
 import httpx
 import pytest
@@ -14,7 +10,6 @@ from aiopenapi3 import OpenAPI
 from aiopenapi3.loader import FileSystemLoader
 
 from aiopenapi3.extra import Cull, Reduce
-from typing import Dict
 
 if typing.TYPE_CHECKING:
     from aiopenapi3.plugin import Document
@@ -42,7 +37,7 @@ class MSGraph:
             ]
 
     @staticmethod
-    def _drop_required(schema: Dict, requirement: str) -> None:
+    def _drop_required(schema: dict, requirement: str) -> None:
         if "required" in schema:
             schema["required"] = [i for i in schema["required"] if i != requirement]
             if not schema["required"]:

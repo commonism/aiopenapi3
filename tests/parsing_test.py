@@ -2,15 +2,10 @@
 Tests parsing specs
 """
 
-import sys
 import uuid
 
 import yaml
 
-if sys.version_info >= (3, 9):
-    pass
-else:
-    import pathlib3x as pathlib
 
 import pytest
 
@@ -189,12 +184,7 @@ def test_parsing_schema_names(with_parsing_schema_names):
 
 
 def test_pydantic_classes():
-    if sys.version_info >= (3, 9):
-        from typing import Union, ForwardRef, Annotated, Literal
-    else:
-        from typing import Union, ForwardRef
-        from typing_extensions import Annotated, Literal
-
+    from typing import Union, ForwardRef, Annotated, Literal
     import types
 
     from pydantic import BaseModel, Field

@@ -6,10 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from pydantic.fields import FieldInfo
 
-if sys.version_info >= (3, 9):
-    from pathlib import Path
-else:
-    from pathlib3x import Path
+from pathlib import Path
 
 import yarl
 import httpx

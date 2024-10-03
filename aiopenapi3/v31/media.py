@@ -1,4 +1,4 @@
-from typing import Union, Optional, Dict, Any
+from typing import Union, Optional, Any
 
 from pydantic import Field
 
@@ -18,7 +18,7 @@ class Encoding(ObjectExtended):
     """
 
     contentType: Optional[str] = Field(default=None)
-    headers: Dict[str, Union[Header, Reference]] = Field(default_factory=dict)
+    headers: dict[str, Union[Header, Reference]] = Field(default_factory=dict)
     style: Optional[str] = Field(default=None)
     explode: Optional[bool] = Field(default=None)
     allowReserved: Optional[bool] = Field(default=None)
@@ -34,5 +34,5 @@ class MediaType(ObjectExtended):
 
     schema_: Optional[Schema] = Field(default=None, alias="schema")
     example: Optional[Any] = Field(default=None)  # 'any' type
-    examples: Dict[str, Union[Example, Reference]] = Field(default_factory=dict)
-    encoding: Dict[str, Encoding] = Field(default_factory=dict)
+    examples: dict[str, Union[Example, Reference]] = Field(default_factory=dict)
+    encoding: dict[str, Encoding] = Field(default_factory=dict)

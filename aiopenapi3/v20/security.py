@@ -1,11 +1,4 @@
-import sys
-
-if sys.version_info >= (3, 9):
-    from typing import List, Optional, Union, Dict, Annotated, Literal
-else:
-    from typing import List, Optional, Union, Dict
-    from typing_extensions import Annotated, Literal
-
+from typing import Optional, Union, Annotated, Literal
 
 from pydantic import Field, RootModel
 
@@ -33,7 +26,7 @@ class _SecuritySchemes:
         flow: Literal["implicit", "password", "application", "accessCode"]
         authorizationUrl: str
         tokenUrl: str
-        scopes: Dict[str, str]
+        scopes: dict[str, str]
 
 
 class SecurityScheme(
@@ -64,4 +57,4 @@ class SecurityRequirement(RootModel):
     https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#security-requirement-object
     """
 
-    root: Dict[str, List[str]]
+    root: dict[str, list[str]]

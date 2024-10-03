@@ -1,4 +1,4 @@
-from typing import Union, List, Optional, Dict, Any
+from typing import Union, Optional, Any
 
 from pydantic import Field, model_validator, RootModel
 
@@ -19,7 +19,7 @@ class RequestBody(ObjectExtended):
     """
 
     description: Optional[str] = Field(default=None)
-    content: Dict[str, MediaType] = Field(...)
+    content: dict[str, MediaType] = Field(...)
     required: Optional[bool] = Field(default=False)
 
 
@@ -32,7 +32,7 @@ class Link(ObjectExtended):
 
     operationRef: Optional[str] = Field(default=None)
     operationId: Optional[str] = Field(default=None)
-    parameters: Optional[Dict[str, Union[str, Any, "RuntimeExpression"]]] = Field(default=None)
+    parameters: Optional[dict[str, Union[str, Any, "RuntimeExpression"]]] = Field(default=None)
     requestBody: Optional[Union[str, "RuntimeExpression"]] = Field(default=None)
     description: Optional[str] = Field(default=None)
     server: Optional[Server] = Field(default=None)
@@ -58,9 +58,9 @@ class Response(ObjectExtended):
     """
 
     description: str = Field(...)
-    headers: Dict[str, Union[Header, Reference]] = Field(default_factory=dict)
-    content: Dict[str, MediaType] = Field(default_factory=dict)
-    links: Dict[str, Union[Link, Reference]] = Field(default_factory=dict)
+    headers: dict[str, Union[Header, Reference]] = Field(default_factory=dict)
+    content: dict[str, MediaType] = Field(default_factory=dict)
+    links: dict[str, Union[Link, Reference]] = Field(default_factory=dict)
 
 
 class Operation(ObjectExtended, OperationBase):
@@ -70,18 +70,18 @@ class Operation(ObjectExtended, OperationBase):
     .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#operation-object
     """
 
-    tags: Optional[List[str]] = Field(default=None)
+    tags: Optional[list[str]] = Field(default=None)
     summary: Optional[str] = Field(default=None)
     description: Optional[str] = Field(default=None)
     externalDocs: Optional[ExternalDocumentation] = Field(default=None)
     operationId: Optional[str] = Field(default=None)
-    parameters: List[Union[Parameter, Reference]] = Field(default_factory=list)
+    parameters: list[Union[Parameter, Reference]] = Field(default_factory=list)
     requestBody: Optional[Union[RequestBody, Reference]] = Field(default=None)
-    responses: Dict[str, Union[Response, Reference]] = Field(...)
-    callbacks: Dict[str, Union["Callback", Reference]] = Field(default_factory=dict)
+    responses: dict[str, Union[Response, Reference]] = Field(...)
+    callbacks: dict[str, Union["Callback", Reference]] = Field(default_factory=dict)
     deprecated: Optional[bool] = Field(default=None)
-    security: Optional[List[SecurityRequirement]] = Field(default=None)
-    servers: Optional[List[Server]] = Field(default=None)
+    security: Optional[list[SecurityRequirement]] = Field(default=None)
+    servers: Optional[list[Server]] = Field(default=None)
 
 
 class PathItem(ObjectExtended, PathItemBase):
@@ -103,12 +103,12 @@ class PathItem(ObjectExtended, PathItemBase):
     head: Optional[Operation] = Field(default=None)
     patch: Optional[Operation] = Field(default=None)
     trace: Optional[Operation] = Field(default=None)
-    servers: Optional[List[Server]] = Field(default=None)
-    parameters: List[Union[Parameter, Reference]] = Field(default_factory=list)
+    servers: Optional[list[Server]] = Field(default=None)
+    parameters: list[Union[Parameter, Reference]] = Field(default_factory=list)
 
 
 class Paths(PathsBase):
-    paths: Dict[str, PathItem]
+    paths: dict[str, PathItem]
 
     @model_validator(mode="before")
     def validate_Paths(cls, values):
@@ -132,7 +132,7 @@ class Callback(RootModel):
     This object MAY be extended with Specification Extensions.
     """
 
-    root: Dict[str, PathItem]
+    root: dict[str, PathItem]
 
 
 class RuntimeExpression(RootModel):

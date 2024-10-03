@@ -4,7 +4,7 @@ import decimal
 import typing
 import uuid
 import json
-from typing import Union, Optional, Dict, Any
+from typing import Union, Optional, Any
 from collections.abc import MutableMapping
 
 from pydantic import BaseModel, Field, model_validator
@@ -299,9 +299,9 @@ class ParameterBase(ObjectExtended, ParameterBase_):
     allowReserved: Optional[bool] = Field(default=None)
     schema_: Optional[Union[Schema, Reference]] = Field(default=None, alias="schema")
     example: Optional[Any] = Field(default=None)
-    examples: Dict[str, Union["Example", Reference]] = Field(default_factory=dict)
+    examples: dict[str, Union["Example", Reference]] = Field(default_factory=dict)
 
-    content: Dict[str, "MediaType"] = Field(default_factory=dict)
+    content: dict[str, "MediaType"] = Field(default_factory=dict)
 
 
 class _In(str, enum.Enum):

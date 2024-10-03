@@ -1,5 +1,6 @@
 import re
-from typing import TYPE_CHECKING, Dict, List, Sequence, Tuple, Union, TypeAlias, Type, Optional, Literal
+from typing import TYPE_CHECKING, Union, TypeAlias, Optional, Literal
+from collections.abc import Sequence
 
 import yaml
 
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
     pass
 
 
-RequestFileParameter = Tuple[str, FileTypes]
+RequestFileParameter = tuple[str, FileTypes]
 RequestFilesParameter = Sequence[RequestFileParameter]
 
 JSON: TypeAlias = Optional[Union[dict[str, "JSON"], list["JSON"], str, int, float, bool]]
@@ -24,7 +25,7 @@ https://github.com/python/typing/issues/182#issuecomment-1320974824
 
 RequestData = Union[JSON, BaseModel, RequestFilesParameter]
 RequestParameter = Union[str, BaseModel]
-RequestParameters = Dict[str, RequestParameter]
+RequestParameters = dict[str, RequestParameter]
 
 RootType = Union[v20.Root, v30.Root, v31.Root]
 ServerType = Union[v30.Server, v31.Server]
@@ -39,18 +40,18 @@ HeaderType = Union[v20.Header, v30.Header, v31.Header]
 RequestType = Union[v20.Request, v30.Request]
 MediaTypeType = Union[v30.MediaType, v31.MediaType]
 ExpectedType = Union[v20.Response, MediaTypeType]
-ResponseHeadersType = Dict[str, Union[str, BaseModel, List[BaseModel]]]
+ResponseHeadersType = dict[str, Union[str, BaseModel, list[BaseModel]]]
 ResponseDataType = Union[BaseModel, bytes, str]
 
 
-YAMLLoaderType = Union[Type[yaml.Loader], Type[yaml.CLoader], Type[yaml.SafeLoader], Type[yaml.CSafeLoader]]
+YAMLLoaderType = Union[type[yaml.Loader], type[yaml.CLoader], type[yaml.SafeLoader], type[yaml.CSafeLoader]]
 
 PrimitiveTypes = Union[str, float, int, bool]
 
 HTTPMethodType = Literal["get", "put", "post", "delete", "options", "head", "patch", "trace"]
 HTTPMethodMatchType = Union[re.Pattern, HTTPMethodType]
 
-__all__: List[str] = [
+__all__: list[str] = [
     "RootType",
     "ServerType",
     "SchemaType",
