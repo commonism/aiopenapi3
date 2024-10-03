@@ -18,7 +18,7 @@ def test_debug_log(httpx_mock, petstore_expanded):
         p = api._.find_pet_by_id(data={}, parameters={"id": 1})
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_debug_log_async(httpx_mock, petstore_expanded):
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json={"foo": 1})
 
