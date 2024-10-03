@@ -1,6 +1,5 @@
 import datetime
 import random
-import sys
 import asyncio
 import uuid
 from typing import ForwardRef
@@ -89,7 +88,6 @@ def test_Pet():
 
 
 @pytest.mark.asyncio(loop_scope="session")
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
 async def test_sync(server, version):
     url = f"http://{server.bind[0]}/{version}/openapi.json"
     api = await asyncio.to_thread(aiopenapi3.OpenAPI.load_sync, url)

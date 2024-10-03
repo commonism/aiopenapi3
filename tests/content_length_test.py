@@ -1,6 +1,5 @@
 import asyncio
 import random
-import sys
 
 import uvloop
 from hypercorn.asyncio import serve
@@ -26,10 +25,9 @@ def config(unused_tcp_port_factory):
     return c
 
 
-@pytest_asyncio.fixture(scope="session")
-async def server(event_loop, config):
-    policy = asyncio.get_event_loop_policy()
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+@pytest_asyncio.fixture(loop_scope="session")
+async def server(config):
+    event_loop = asyncio.get_event_loop()
     try:
         sd = asyncio.Event()
         task = event_loop.create_task(serve(app, config, shutdown_trigger=sd.wait))
@@ -37,11 +35,15 @@ async def server(event_loop, config):
     finally:
         sd.set()
         await task
-    asyncio.set_event_loop_policy(policy)
 
 
-@pytest_asyncio.fixture(scope="session")
-async def client(event_loop, server):
+@pytest.fixture(scope="session")
+def event_loop_policy():
+    return uvloop.EventLoopPolicy()
+
+
+@pytest_asyncio.fixture(loop_scope="session")
+async def client(server):
     api = await aiopenapi3.OpenAPI.load_async(f"http://{server.bind[0]}/openapi.json")
 
     return api
@@ -52,8 +54,8 @@ def content_length(request: Request, response: Response, content_length: int = Q
     return PlainTextResponse(content=b" " * content_length)
 
 
-@pytest.mark.asyncio
-async def test_content_length_exceeded(event_loop, server, client):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_content_length_exceeded(server, client):
     cl = random.randint(1, client._max_response_content_length)
     r = await client._.content_length(parameters=dict(content_length=cl))
     assert len(r) == cl
@@ -67,9 +69,8 @@ async def test_content_length_exceeded(event_loop, server, client):
         await client._.content_length(parameters=dict(content_length=cl))
 
 
-@pytest.mark.asyncio
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
-async def test_sync_content_length_exceeded(event_loop, server):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_sync_content_length_exceeded(server):
     client = await asyncio.to_thread(
         aiopenapi3.OpenAPI.load_sync,
         f"http://{server.bind[0]}/openapi.json",

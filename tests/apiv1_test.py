@@ -1,6 +1,5 @@
 import asyncio
 import uuid
-import sys
 
 import pytest
 import pytest_asyncio
@@ -51,7 +50,6 @@ def randomPet(name=None):
 
 
 @pytest.mark.asyncio(loop_scope="session")
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
 async def test_createPet(server, client):
     h, r = await asyncio.to_thread(client._.createPet, **randomPet())
     assert type(r).model_json_schema() == client.components.schemas["Pet"].get_type().model_json_schema()
@@ -62,7 +60,6 @@ async def test_createPet(server, client):
 
 
 @pytest.mark.asyncio(loop_scope="session")
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
 async def test_listPet(server, client):
     h, r = await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
     l = await asyncio.to_thread(client._.listPet)
@@ -70,7 +67,6 @@ async def test_listPet(server, client):
 
 
 @pytest.mark.asyncio(loop_scope="session")
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
 async def test_getPet(server, client):
     h, pet = await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
     r = await asyncio.to_thread(client._.getPet, parameters={"petId": pet.id})
@@ -83,7 +79,6 @@ async def test_getPet(server, client):
 
 
 @pytest.mark.asyncio(loop_scope="session")
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
 async def test_deletePet(server, client):
     r = await asyncio.to_thread(client._.deletePet, parameters={"petId": -1})
     print(r)

@@ -1,6 +1,5 @@
 import copy
 import typing
-import sys
 import uuid
 from unittest.mock import MagicMock, patch
 
@@ -103,7 +102,6 @@ def test_schema_string_pattern(with_schema_string_pattern):
         GUID.model_validate(str(uuid.uuid4()).replace("-", "@"))
 
 
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="typing")
 def test_schema_regex_engine(with_schema_regex_engine):
     api = OpenAPI("/", with_schema_regex_engine)
     Root = api.components.schemas["Root"].get_type()
