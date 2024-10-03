@@ -82,6 +82,7 @@ async def server(config):
     try:
         sd = asyncio.Event()
         task = event_loop.create_task(serve(app, config, shutdown_trigger=sd.wait))
+        await asyncio.sleep(1)
         yield config
     finally:
         sd.set()
@@ -219,7 +220,7 @@ async def test_sync(server, certs):
     assert l is not None
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_certificate_invalid(client):
     with pytest.raises(ValueError, match=r"Invalid parameter for SecurityScheme tls mutualTLS") as e:
         client.authenticate(tls="/tmp")
