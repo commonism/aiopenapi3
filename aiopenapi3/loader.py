@@ -7,7 +7,6 @@ import httpx
 import yarl
 import re
 
-import sys
 import importlib
 
 # prefer a fast json library here as we may parse large documents
@@ -21,10 +20,7 @@ for i in ["orjson", "simdjson", "ujson", "json"]:
 
 assert json is not None
 
-if sys.version_info >= (3, 9):
-    from pathlib import Path
-else:
-    from pathlib3x import Path
+from pathlib import Path
 
 from .plugin import Plugins
 

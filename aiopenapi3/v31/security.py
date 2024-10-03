@@ -1,12 +1,6 @@
 from pathlib import Path
-import sys
 
-if sys.version_info >= (3, 9):
-    from typing import List, Optional, Union, Tuple, Dict, Annotated, Literal
-else:
-    from typing import List, Optional, Union, Tuple, Dict
-    from typing_extensions import Annotated, Literal
-
+from typing import Optional, Union, Annotated, Literal
 from pydantic import Field, RootModel, constr
 
 from ..base import ObjectExtended
@@ -22,7 +16,7 @@ class OAuthFlow(ObjectExtended):
     authorizationUrl: Optional[str] = Field(default=None)
     tokenUrl: Optional[str] = Field(default=None)
     refreshUrl: Optional[str] = Field(default=None)
-    scopes: Dict[str, str] = Field(default_factory=dict)
+    scopes: dict[str, str] = Field(default_factory=dict)
 
 
 class OAuthFlows(ObjectExtended):
@@ -64,7 +58,7 @@ class _SecuritySchemes:
                 raise TypeError(type(value))
             if len(value) != 2:
                 raise ValueError(f"Invalid number of tuple parameters {len(value)} - 2 required")
-            files: Tuple[Path, Path] = (Path(value[0]), Path(value[1]))
+            files: tuple[Path, Path] = (Path(value[0]), Path(value[1]))
             if missing := sorted(filter(lambda x: not (x.exists() and x.is_file()), files)):
                 raise FileNotFoundError(missing)
 
@@ -100,7 +94,7 @@ class SecurityScheme(
     pass
 
 
-class SecurityRequirement(RootModel[Dict[str, List[str]]]):
+class SecurityRequirement(RootModel[dict[str, list[str]]]):
     """
     A `SecurityRequirement`_ object describes security schemes for API access.
 

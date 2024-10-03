@@ -1,6 +1,6 @@
 import enum
 import typing
-from typing import Union, Optional, Dict, Any
+from typing import Union, Optional, Any
 
 from pydantic import Field
 
@@ -33,9 +33,9 @@ class ParameterBase(ObjectExtended, _ParameterBase):
     allowReserved: Optional[bool] = Field(default=None)
     schema_: Optional[Schema] = Field(default=None, alias="schema")
     example: Optional[Any] = Field(default=None)
-    examples: Dict[str, Union["Example", Reference]] = Field(default_factory=dict)
+    examples: dict[str, Union["Example", Reference]] = Field(default_factory=dict)
 
-    content: Optional[Dict[str, "MediaType"]] = None
+    content: Optional[dict[str, "MediaType"]] = None
 
 
 class _In(str, enum.Enum):

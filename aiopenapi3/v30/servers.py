@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import Optional
 import re
 
 from pydantic import Field, model_validator
@@ -13,7 +13,7 @@ class ServerVariable(ObjectExtended):
     .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#server-variable-object
     """
 
-    enum: Optional[List[str]] = Field(default=None)
+    enum: Optional[list[str]] = Field(default=None)
     default: Optional[str] = Field(...)
     description: Optional[str] = Field(default=None)
 
@@ -34,7 +34,7 @@ class Server(ObjectExtended):
 
     url: str = Field(...)
     description: Optional[str] = Field(default=None)
-    variables: Dict[str, ServerVariable] = Field(default_factory=dict)
+    variables: dict[str, ServerVariable] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def validate_server_url_parameters(self) -> "Server":
@@ -42,15 +42,15 @@ class Server(ObjectExtended):
             raise ValueError(f"Missing Server Variables {sorted(p-r)} in {self.url}")
         return self
 
-    def validate_parameter_enum(self, parameters: Dict[str, str]):
+    def validate_parameter_enum(self, parameters: dict[str, str]):
         for name, value in parameters.items():
             if v := self.variables.get(name):
                 if v.enum and value not in v.enum:
                     raise ValueError(f"Server Variable {name} value {value} not allowed ({v.enum})")
 
-    def createUrl(self, variables: Dict[str, str]) -> str:
+    def createUrl(self, variables: dict[str, str]) -> str:
         self.validate_parameter_enum(variables)
-        vars: Dict[str, Optional[str]] = dict(map(lambda x: (x[0], x[1].default), self.variables.items()))
+        vars: dict[str, Optional[str]] = dict(map(lambda x: (x[0], x[1].default), self.variables.items()))
         vars.update(variables)
         url: str = self.url.format(**vars)
         return url

@@ -1,4 +1,4 @@
-from typing import Any, List, Dict
+from typing import Any
 
 
 from pydantic import Field, validator
@@ -25,12 +25,12 @@ class Root(ObjectExtended, RootBase):
 
     openapi: str = Field(...)
     info: Info = Field(...)
-    servers: List[Server] = Field(default_factory=list)
+    servers: list[Server] = Field(default_factory=list)
     paths: Paths = Field(default_factory=dict)
     components: Components = Field(default_factory=Components)
-    security: List[SecurityRequirement] = Field(default_factory=list)
-    tags: List[Tag] = Field(default_factory=list)
-    externalDocs: Dict[Any, Any] = Field(default_factory=dict)
+    security: list[SecurityRequirement] = Field(default_factory=list)
+    tags: list[Tag] = Field(default_factory=list)
+    externalDocs: dict[Any, Any] = Field(default_factory=dict)
 
     def _resolve_references(self, api):
         RootBase.resolve(api, self, self, PathItem, Reference)

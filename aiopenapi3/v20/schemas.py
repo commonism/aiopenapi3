@@ -1,4 +1,4 @@
-from typing import Union, List, Any, Optional, Dict
+from typing import Union, Any, Optional
 
 from pydantic import Field, PrivateAttr
 
@@ -33,13 +33,13 @@ class Schema(ObjectExtended, SchemaBase):
     uniqueItems: Optional[bool] = Field(default=None)
     maxProperties: Optional[int] = Field(default=None)
     minProperties: Optional[int] = Field(default=None)
-    required: List[str] = Field(default_factory=list)
-    enum: Optional[List[Any]] = Field(default=None)
+    required: list[str] = Field(default_factory=list)
+    enum: Optional[list[Any]] = Field(default=None)
     type: Optional[str] = Field(default=None)
 
-    items: Optional[Union[List[Union["Schema", Reference]], Union["Schema", Reference]]] = Field(default=None)
-    allOf: List[Union["Schema", Reference]] = Field(default_factory=list)
-    properties: Dict[str, Union["Schema", Reference]] = Field(default_factory=dict)
+    items: Optional[Union[list[Union["Schema", Reference]], Union["Schema", Reference]]] = Field(default=None)
+    allOf: list[Union["Schema", Reference]] = Field(default_factory=list)
+    properties: dict[str, Union["Schema", Reference]] = Field(default_factory=dict)
     additionalProperties: Optional[Union[bool, "Schema", Reference]] = Field(default=None)
 
     discriminator: Optional[str] = Field(default=None)  # 'Discriminator'

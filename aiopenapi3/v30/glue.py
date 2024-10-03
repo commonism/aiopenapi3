@@ -1,5 +1,6 @@
 import io
-from typing import List, Union, cast, TYPE_CHECKING, Dict, Optional, cast, Any, Tuple, Sequence
+from typing import Union, cast, TYPE_CHECKING, Optional, cast, Any
+from collections.abc import Sequence
 import json
 import urllib.parse
 
@@ -69,10 +70,10 @@ class Request(RequestBase):
         return None
 
     @property
-    def parameters(self) -> List["ParameterType"]:
+    def parameters(self) -> list["ParameterType"]:
         return self.operation.parameters + self.root.paths[self.path].parameters
 
-    def args(self, content_type: str = "application/json") -> Dict[str, Any]:
+    def args(self, content_type: str = "application/json") -> dict[str, Any]:
         op = self.operation
         parameters = op.parameters + self.root.paths[self.path].parameters
         if (
@@ -258,7 +259,7 @@ class Request(RequestBase):
             else:
                 self.req.auth = auth
 
-    def _prepare_parameters(self, provided: Optional["RequestParameters"]) -> Dict[str, str]:
+    def _prepare_parameters(self, provided: Optional["RequestParameters"]) -> dict[str, str]:
         """
         assigns the parameters provided to the header/path/cookie …
 
@@ -275,7 +276,7 @@ class Request(RequestBase):
         assert isinstance(self.operation, (v30.Operation, v31.Operation))
 
         if self.operation.requestBody:
-            rbq: Dict[str, str] = dict()  # requestBody Parameters
+            rbq: dict[str, str] = dict()  # requestBody Parameters
             ct = "multipart/form-data"
             if ct in self.operation.requestBody.content:
                 assert self.operation.requestBody.content[ct].encoding is not None
@@ -333,7 +334,7 @@ class Request(RequestBase):
         self.req.url = self.req.url.format(**path_parameters)
         return rbqh
 
-    def _prepare_body(self, data_: Optional["RequestData"], rbq: Dict[str, str]) -> None:
+    def _prepare_body(self, data_: Optional["RequestData"], rbq: dict[str, str]) -> None:
         from .. import v30, v31
 
         assert isinstance(self.operation, (v30.Operation, v31.Operation))
@@ -381,19 +382,19 @@ class Request(RequestBase):
                 self.req.headers["Content-Type"] = f'{msg.get_content_type()}; boundary="{msg.get_boundary()}"'
             elif isinstance(data_, list):
                 rfiles = list()
-                rdata: Dict[str, str] = dict()
+                rdata: dict[str, str] = dict()
                 name: str
-                value: Tuple[str, Any]
-                for name, value in cast(Sequence[Tuple[str, Any]], data_):
+                value: tuple[str, Any]
+                for name, value in cast(Sequence[tuple[str, Any]], data_):
                     if isinstance(value, tuple):
                         alias = fh = content_type = None
-                        headers: Dict[str, str] = {}
+                        headers: dict[str, str] = {}
                         if len(value) == 4:
-                            (alias, fh, content_type, headers) = cast(Tuple[str, Any, str, Dict[str, str]], value)
+                            (alias, fh, content_type, headers) = cast(tuple[str, Any, str, dict[str, str]], value)
                         elif len(value) == 3:
-                            (alias, fh, content_type) = cast(Tuple[str, Any, str], value)
+                            (alias, fh, content_type) = cast(tuple[str, Any, str], value)
                         elif len(value) == 2:
-                            (alias, fh) = cast(Tuple[str, Any], value)
+                            (alias, fh) = cast(tuple[str, Any], value)
                         elif len(value) == 1:
                             fh = cast(Any, value)
 
@@ -459,7 +460,7 @@ class Request(RequestBase):
         return expected_response
 
     def _process__headers(
-        self, result: httpx.Response, headers: Dict[str, str], expected_response: "v3xResponseType"
+        self, result: httpx.Response, headers: dict[str, str], expected_response: "v3xResponseType"
     ) -> "ResponseHeadersType":
         rheaders = dict()
         if expected_response.headers:
@@ -482,7 +483,7 @@ class Request(RequestBase):
 
     def _process__content_type(
         self, result: httpx.Response, expected_response: "v3xResponseType", content_type: Optional[str]
-    ) -> Tuple[str, "v3xMediaTypeType"]:
+    ) -> tuple[str, "v3xMediaTypeType"]:
         if content_type:
             """
             https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#response-object
@@ -511,7 +512,7 @@ class Request(RequestBase):
         assert content_type is not None
         return content_type, expected_media
 
-    def _process_stream(self, result: httpx.Response) -> Tuple["ResponseHeadersType", Optional["SchemaType"]]:
+    def _process_stream(self, result: httpx.Response) -> tuple["ResponseHeadersType", Optional["SchemaType"]]:
         status_code = str(result.status_code)
         content_type = result.headers.get("Content-Type", None)
 
@@ -522,7 +523,7 @@ class Request(RequestBase):
 
         return headers, expected_media.schema_
 
-    def _process_request(self, result: httpx.Response) -> Tuple["ResponseHeadersType", "ResponseDataType"]:
+    def _process_request(self, result: httpx.Response) -> tuple["ResponseHeadersType", "ResponseDataType"]:
         rheaders = dict()
         # spec enforces these are strings
         status_code = str(result.status_code)

@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import Optional
 
 from pydantic import Field, validator
 
@@ -23,16 +23,16 @@ class Root(ObjectExtended, RootBase):
     info: Info = Field(...)
     host: Optional[str] = Field(default=None)
     basePath: Optional[str] = Field(default=None)
-    schemes: List[str] = Field(default_factory=list)
-    consumes: List[str] = Field(default_factory=list)
-    produces: List[str] = Field(default_factory=list)
+    schemes: list[str] = Field(default_factory=list)
+    consumes: list[str] = Field(default_factory=list)
+    produces: list[str] = Field(default_factory=list)
     paths: Paths = Field(default_factory=dict)
-    definitions: Dict[str, Schema] = Field(default_factory=dict)
-    parameters: Dict[str, Parameter] = Field(default_factory=dict)
-    responses: Dict[str, Response] = Field(default_factory=dict)
-    securityDefinitions: Dict[str, SecurityScheme] = Field(default_factory=dict)
-    security: Optional[List[SecurityRequirement]] = Field(default=None)
-    tags: List[Tag] = Field(default_factory=list)
+    definitions: dict[str, Schema] = Field(default_factory=dict)
+    parameters: dict[str, Parameter] = Field(default_factory=dict)
+    responses: dict[str, Response] = Field(default_factory=dict)
+    securityDefinitions: dict[str, SecurityScheme] = Field(default_factory=dict)
+    security: Optional[list[SecurityRequirement]] = Field(default=None)
+    tags: list[Tag] = Field(default_factory=list)
     externalDocs: Optional[ExternalDocumentation] = Field(default=None)
 
     def _resolve_references(self, api):

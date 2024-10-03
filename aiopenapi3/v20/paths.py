@@ -1,4 +1,4 @@
-from typing import Union, List, Optional, Dict, Any
+from typing import Union, Optional, Any
 
 from pydantic import Field, model_validator
 
@@ -19,8 +19,8 @@ class Response(ObjectExtended):
 
     description: str = Field(...)
     schema_: Optional[Schema] = Field(default=None, alias="schema")
-    headers: Dict[str, Header] = Field(default_factory=dict)
-    examples: Optional[Dict[str, Any]] = Field(default=None)
+    headers: dict[str, Header] = Field(default_factory=dict)
+    examples: Optional[dict[str, Any]] = Field(default=None)
 
 
 class Operation(ObjectExtended, OperationBase):
@@ -30,18 +30,18 @@ class Operation(ObjectExtended, OperationBase):
     .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#operation-object
     """
 
-    tags: Optional[List[str]] = Field(default=None)
+    tags: Optional[list[str]] = Field(default=None)
     summary: Optional[str] = Field(default=None)
     description: Optional[str] = Field(default=None)
     externalDocs: Optional[ExternalDocumentation] = Field(default=None)
     operationId: Optional[str] = Field(default=None)
-    consumes: List[str] = Field(default_factory=list)
-    produces: List[str] = Field(default_factory=list)
-    parameters: List[Union[Parameter, Reference]] = Field(default_factory=list)
-    responses: Dict[str, Union[Reference, Response]] = Field(default_factory=dict)
-    schemes: List[str] = Field(default_factory=list)
+    consumes: list[str] = Field(default_factory=list)
+    produces: list[str] = Field(default_factory=list)
+    parameters: list[Union[Parameter, Reference]] = Field(default_factory=list)
+    responses: dict[str, Union[Reference, Response]] = Field(default_factory=dict)
+    schemes: list[str] = Field(default_factory=list)
     deprecated: Optional[bool] = Field(default=None)
-    security: Optional[List[SecurityRequirement]] = Field(default=None)
+    security: Optional[list[SecurityRequirement]] = Field(default=None)
 
 
 class PathItem(ObjectExtended, PathItemBase):
@@ -60,11 +60,11 @@ class PathItem(ObjectExtended, PathItemBase):
     options: Optional[Operation] = Field(default=None)
     head: Optional[Operation] = Field(default=None)
     patch: Optional[Operation] = Field(default=None)
-    parameters: List[Union[Parameter, Reference]] = Field(default_factory=list)
+    parameters: list[Union[Parameter, Reference]] = Field(default_factory=list)
 
 
 class Paths(PathsBase):
-    paths: Dict[str, PathItem]
+    paths: dict[str, PathItem]
 
     @model_validator(mode="before")
     def validate_Paths(cls, values):

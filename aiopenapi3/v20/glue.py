@@ -1,5 +1,6 @@
 import typing
-from typing import List, Union, cast, Tuple, Dict, Optional, Sequence
+from typing import Union, cast, Optional
+from collections.abc import Sequence
 import json
 import sys
 
@@ -72,7 +73,7 @@ class Request(RequestBase):
             return None
 
     @property
-    def parameters(self) -> List["Parameter"]:
+    def parameters(self) -> list["Parameter"]:
         return list(filter(in_not_body, self.operation.parameters + self.root.paths[self.path].parameters))
 
     def args(self, content_type: str = "application/json"):
@@ -131,7 +132,7 @@ class Request(RequestBase):
         ss = self.root.securityDefinitions[scheme].root
 
         if ss.type == "basic":
-            value = cast(List[str], value)
+            value = cast(list[str], value)
             self.req.auth = httpx.BasicAuth(*value)
 
         value = cast(str, value)
@@ -149,7 +150,7 @@ class Request(RequestBase):
         ss = self.root.securityDefinitions[scheme].root
 
         if ss.type == "basic":
-            value = cast(List[str], value)
+            value = cast(list[str], value)
             self.req.auth = httpx_auth.Basic(*value)
 
         value = cast(str, value)
@@ -268,7 +269,7 @@ class Request(RequestBase):
         return expected_response
 
     def _process__headers(
-        self, result: httpx.Response, headers: Dict[str, str], expected_response: "v20ResponseType"
+        self, result: httpx.Response, headers: dict[str, str], expected_response: "v20ResponseType"
     ) -> "ResponseHeadersType":
         rheaders = dict()
         if expected_response.headers:
@@ -279,7 +280,7 @@ class Request(RequestBase):
             """
             available = frozenset(result.headers.keys())
             if missing := (required.keys() - available):
-                report: Dict[str, "HeaderType"] = {k: required[k] for k in missing}
+                report: dict[str, "HeaderType"] = {k: required[k] for k in missing}
                 raise HeadersMissingError(self.operation, report, result)
             for name, header in expected_response.headers.items():
                 data = headers.get(name, None)
@@ -287,13 +288,13 @@ class Request(RequestBase):
                     rheaders[name] = header._schema.model(header._decode(data))
         return rheaders
 
-    def _process_stream(self, result: httpx.Response) -> Tuple["ResponseHeadersType", Optional["Schema"]]:
+    def _process_stream(self, result: httpx.Response) -> tuple["ResponseHeadersType", Optional["Schema"]]:
         status_code = str(result.status_code)
         expected_response = self._process__status_code(result, status_code)
         headers = self._process__headers(result, result.headers, expected_response)
         return headers, expected_response.schema_
 
-    def _process_request(self, result: httpx.Response) -> Tuple["ResponseHeadersType", "ResponseDataType"]:
+    def _process_request(self, result: httpx.Response) -> tuple["ResponseHeadersType", "ResponseDataType"]:
         rheaders: "ResponseHeadersType" = dict()
         # spec enforces these are strings
         status_code = str(result.status_code)

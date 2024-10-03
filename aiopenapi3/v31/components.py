@@ -1,4 +1,4 @@
-from typing import Union, Dict
+from typing import Union
 
 from pydantic import Field
 
@@ -20,13 +20,13 @@ class Components(ObjectExtended):
     .. _Components Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#components-object
     """
 
-    schemas: Dict[str, Union[Schema, bool]] = Field(default_factory=dict)
-    responses: Dict[str, Union[Response, Reference]] = Field(default_factory=dict)
-    parameters: Dict[str, Union[Parameter, Reference]] = Field(default_factory=dict)
-    examples: Dict[str, Union[Example, Reference]] = Field(default_factory=dict)
-    requestBodies: Dict[str, Union[RequestBody, Reference]] = Field(default_factory=dict)
-    headers: Dict[str, Union[Header, Reference]] = Field(default_factory=dict)
-    securitySchemes: Dict[str, Union[SecurityScheme, Reference]] = Field(default_factory=dict)
-    links: Dict[str, Union[Link, Reference]] = Field(default_factory=dict)
-    callbacks: Dict[str, Union[Callback, Reference]] = Field(default_factory=dict)
-    pathItems: Dict[str, Union[PathItem, Reference]] = Field(default_factory=dict)  # v3.1
+    schemas: dict[str, Union[Schema, bool]] = Field(default_factory=dict)
+    responses: dict[str, Union[Response, Reference]] = Field(default_factory=dict)
+    parameters: dict[str, Union[Parameter, Reference]] = Field(default_factory=dict)
+    examples: dict[str, Union[Example, Reference]] = Field(default_factory=dict)
+    requestBodies: dict[str, Union[RequestBody, Reference]] = Field(default_factory=dict)
+    headers: dict[str, Union[Header, Reference]] = Field(default_factory=dict)
+    securitySchemes: dict[str, Union[SecurityScheme, Reference]] = Field(default_factory=dict)
+    links: dict[str, Union[Link, Reference]] = Field(default_factory=dict)
+    callbacks: dict[str, Union[Callback, Reference]] = Field(default_factory=dict)
+    pathItems: dict[str, Union[PathItem, Reference]] = Field(default_factory=dict)  # v3.1

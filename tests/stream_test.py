@@ -3,11 +3,7 @@ import random
 import sys
 import string
 
-if sys.version_info >= (3, 9):
-    from typing import List, Annotated
-else:
-    from typing import List
-    from typing_extensions import Annotated
+from typing import Annotated
 
 from pathlib import Path
 
@@ -65,7 +61,7 @@ def file(request: Request, response: Response, content_length: int = Query()):
     return PlainTextResponse(content=b" " * content_length)
 
 
-@app.get("/files", operation_id="files", response_model=List[File])
+@app.get("/files", operation_id="files", response_model=list[File])
 def files(request: Request, response: Response, number: int = Query(), size: int = Query()):
     with Path("/dev/urandom").open("rb") as f:
         return [File(data=f.read(size)) for _ in range(number)]
@@ -73,7 +69,7 @@ def files(request: Request, response: Response, number: int = Query(), size: int
 
 @app.post("/request-streaming", operation_id="request_streaming", response_model=int)
 def request_streaming(
-    request: Request, response: Response, files: List[UploadFile], path: Annotated[str, Body()]
+    request: Request, response: Response, files: list[UploadFile], path: Annotated[str, Body()]
 ) -> int:
     r = 0
     for file in files:

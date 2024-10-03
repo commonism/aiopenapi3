@@ -2,7 +2,8 @@ import abc
 import collections
 import typing
 from contextlib import closing
-from typing import Dict, Tuple, Any, List, NamedTuple, Optional, Iterator, Union, cast
+from typing import Any, NamedTuple, Optional, Union, cast
+from collections.abc import Iterator
 
 import httpx
 import pydantic
@@ -55,12 +56,12 @@ class RequestParameter:
     def __init__(self, url: Union[yarl.URL, str]):
         self.url: str = str(url)
         self.auth: Optional["AuthTypes"] = None
-        self.cookies: Dict[str, str] = {}
+        self.cookies: dict[str, str] = {}
         #        self.path = {}
-        self.params: Dict[str, str] = {}
+        self.params: dict[str, str] = {}
         self.content: Optional["RequestContent"] = None
-        self.headers: Dict[str, str] = {}
-        self.data: Dict[str, str] = {}  # form-data
+        self.headers: dict[str, str] = {}
+        self.data: dict[str, str] = {}  # form-data
         self.files: Optional["RequestFiles"] = {}  # form-data files
         self.cert: Any = None
 
@@ -78,7 +79,7 @@ class RequestBase:
         result: httpx.Response
 
     class Vars(NamedTuple):
-        parameters: Optional[Dict[str, str]]
+        parameters: Optional[dict[str, str]]
         data: Optional[Any]
         context: Optional[Any]
         """
@@ -102,7 +103,7 @@ class RequestBase:
         method: "HTTPMethodType",
         path: str,
         operation: "OperationType",
-        servers: Optional[List["ServerType"]],
+        servers: Optional[list["ServerType"]],
     ):
         self.api: "OpenAPI" = api
         """
@@ -139,14 +140,14 @@ class RequestBase:
         RequestParameter
         """
 
-        self.servers: Optional[List["ServerType"]] = servers
+        self.servers: Optional[list["ServerType"]] = servers
         """
         Servers to use for this request
         """
 
     def __call__(
         self, *args, return_headers: bool = False, context=None, **kwargs
-    ) -> Union["JSON", Tuple["ResponseHeadersType", "JSON"]]:
+    ) -> Union["JSON", tuple["ResponseHeadersType", "JSON"]]:
         """
         :param args:
         :param return_headers:  if set return a tuple (header, body)
@@ -159,7 +160,7 @@ class RequestBase:
         return data
 
     @property
-    def _session_factory_default_args(self) -> Dict[str, Any]:
+    def _session_factory_default_args(self) -> dict[str, Any]:
         """
         this is the session factory default arguments,
         the arguments passed to httpx.Async/Client()
@@ -180,7 +181,7 @@ class RequestBase:
         return result
 
     @abc.abstractmethod
-    def _process_stream(self, result: httpx.Response) -> Tuple["ResponseHeadersType", Optional["SchemaType"]]:
+    def _process_stream(self, result: httpx.Response) -> tuple["ResponseHeadersType", Optional["SchemaType"]]:
         """
         process response headers
         lookup the schema for the stream
@@ -188,7 +189,7 @@ class RequestBase:
         ...
 
     @abc.abstractmethod
-    def _process_request(self, result: httpx.Response) -> Tuple["ResponseHeadersType", "ResponseDataType"]:
+    def _process_request(self, result: httpx.Response) -> tuple["ResponseHeadersType", "ResponseDataType"]:
         """
         process response headers
         lookup Model
@@ -288,7 +289,7 @@ class RequestBase:
 
     @property
     @abc.abstractmethod
-    def parameters(self) -> List["ParameterType"]:
+    def parameters(self) -> list["ParameterType"]:
         """
         :return: list of :class:`aiopenapi3.base.ParameterBase` which can be used to inspect the required/optional parameters of the requested Operation
         """
@@ -304,7 +305,7 @@ class AsyncRequestBase(RequestBase):
 
     async def __call__(  # type: ignore[override]
         self, *args, return_headers: bool = False, context: Any = None, **kwargs
-    ) -> Union["JSON", Tuple[Dict[str, str], "JSON"]]:
+    ) -> Union["JSON", tuple[dict[str, str], "JSON"]]:
         headers, data, result = await self.request(*args, context=context, **kwargs)  # type: ignore [misc]
         if return_headers:
             return headers, data
@@ -359,7 +360,7 @@ class OperationIndex:
     class OperationTag:
         def __init__(self, oi: "OperationIndex") -> None:
             self._oi = oi
-            self._operations: Dict[str, Tuple["HTTPMethodType", str, "OperationType", Optional[List["ServerType"]]]] = (
+            self._operations: dict[str, tuple["HTTPMethodType", str, "OperationType", Optional[list["ServerType"]]]] = (
                 dict()
             )
 
@@ -399,16 +400,16 @@ class OperationIndex:
         self._api: "OpenAPI" = api
         self._root: "RootType" = api._root
 
-        self._operations: Dict[str, Tuple["HTTPMethodType", str, "OperationType", Optional[List["ServerType"]]]] = (
+        self._operations: dict[str, tuple["HTTPMethodType", str, "OperationType", Optional[list["ServerType"]]]] = (
             dict()
         )
-        self._tags: Dict[str, "OperationIndex.OperationTag"] = collections.defaultdict(
+        self._tags: dict[str, "OperationIndex.OperationTag"] = collections.defaultdict(
             lambda: OperationIndex.OperationTag(self)
         )
         pi: "PathItemType"
         for path, pi in self._root.paths.items():
             op: "OperationType"
-            servers: Optional[List["ServerType"]]
+            servers: Optional[list["ServerType"]]
             if pi.ref:
                 pi = pi.ref._target
             for method in pi.model_fields_set & HTTP_METHODS:
@@ -450,7 +451,7 @@ class OperationIndex:
         else:
             raise KeyError(f"operationId {item} not found in tags or operations")
 
-    def __getitem__(self, item: Union[str, Tuple[str, "HTTPMethodType"]]) -> "RequestType":
+    def __getitem__(self, item: Union[str, tuple[str, "HTTPMethodType"]]) -> "RequestType":
         """
         index operator interface
         access operations by operationId or (path, method)

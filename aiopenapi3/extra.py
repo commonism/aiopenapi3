@@ -1,5 +1,5 @@
 import typing
-from typing import List, Union, Optional, Tuple, Dict
+from typing import Union, Optional
 import logging
 import re
 
@@ -24,7 +24,7 @@ class Reduce(Document, Init):
 
     def __init__(
         self,
-        *operations: List[Union[Tuple["PathMatchType", Optional[List["HTTPMethodMatchType"]]], "OperationIdMatchType"]],
+        *operations: list[Union[tuple["PathMatchType", Optional[list["HTTPMethodMatchType"]]], "OperationIdMatchType"]],
     ) -> None:
         """
 
@@ -35,7 +35,7 @@ class Reduce(Document, Init):
         super().__init__()
 
     def _reduced_paths(self, ctx: "Document.Context") -> dict:
-        reduced: Dict[str, Dict[str, "PathItemType"]] = {}
+        reduced: dict[str, dict[str, "PathItemType"]] = {}
         if "paths" not in ctx.document:
             return reduced
         keep_keys = {"summary", "description", "servers", "parameters"}

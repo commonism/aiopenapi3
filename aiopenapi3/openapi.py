@@ -1,17 +1,14 @@
 import sys
 import typing
 
-from typing import List, Dict, Set, Callable, Tuple, Any, Union, cast, Optional, Type, ForwardRef
+from typing import Callable, Any, Union, cast, Optional, ForwardRef
 import inspect
 import logging
 import copy
 import pickle
 import random
 
-if sys.version_info >= (3, 9):
-    import pathlib
-else:
-    import pathlib3x as pathlib
+import pathlib
 
 
 if sys.version_info >= (3, 10):
@@ -64,7 +61,7 @@ def has_components(y: Optional["RootType"]) -> TypeGuard[Union[v30.Root, v31.Roo
     return True
 
 
-def is_schema(v: Tuple[str, "SchemaType"]) -> TypeGuard["SchemaType"]:
+def is_schema(v: tuple[str, "SchemaType"]) -> TypeGuard["SchemaType"]:
     return isinstance(v[1], (v20.Schema, v30.Schema, v31.Schema))
 
 
@@ -99,7 +96,7 @@ class OpenAPI:
         url,
         session_factory: Callable[..., httpx.Client] = httpx.Client,
         loader: Optional[Loader] = None,
-        plugins: Optional[List[Plugin]] = None,
+        plugins: Optional[list[Plugin]] = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
@@ -122,7 +119,7 @@ class OpenAPI:
         url: str,
         session_factory: Callable[..., httpx.AsyncClient] = httpx.AsyncClient,
         loader: Optional[Loader] = None,
-        plugins: Optional[List[Plugin]] = None,
+        plugins: Optional[list[Plugin]] = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
@@ -151,7 +148,7 @@ class OpenAPI:
         path: Union[str, pathlib.Path, yarl.URL],
         session_factory: Callable[..., Union[httpx.AsyncClient, httpx.Client]] = httpx.AsyncClient,
         loader: Optional[Loader] = None,
-        plugins: Optional[List[Plugin]] = None,
+        plugins: Optional[list[Plugin]] = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
@@ -185,7 +182,7 @@ class OpenAPI:
         data: str,
         session_factory: Callable[..., Union[httpx.AsyncClient, httpx.Client]] = httpx.AsyncClient,
         loader: Optional[Loader] = None,
-        plugins: Optional[List[Plugin]] = None,
+        plugins: Optional[list[Plugin]] = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
@@ -204,7 +201,7 @@ class OpenAPI:
 
     @classmethod
     def _parse_obj(cls, document: "JSON") -> "RootType":
-        document = cast(Dict[str, Any], document)
+        document = cast(dict[str, Any], document)
         if (version := document.get("openapi", None)) is not None:
             v = list(map(int, version.split(".")))
             if v[0] == 3:
@@ -232,7 +229,7 @@ class OpenAPI:
         document: "JSON",
         session_factory: Callable[..., Union[httpx.Client, httpx.AsyncClient]] = httpx.AsyncClient,
         loader: Optional[Loader] = None,
-        plugins: Optional[List[Plugin]] = None,
+        plugins: Optional[list[Plugin]] = None,
         use_operation_tags: bool = True,
     ) -> None:
         """
@@ -257,7 +254,7 @@ class OpenAPI:
         """
 
         self._createRequest: Callable[
-            ["OpenAPI", str, str, "OperationType", Optional[List["ServerType"]]], "RequestBase"
+            ["OpenAPI", str, str, "OperationType", Optional[list["ServerType"]]], "RequestBase"
         ]
         """
         creates the Async/Request for the protocol required
@@ -268,23 +265,23 @@ class OpenAPI:
         Maximum Content-Length in Responses - default to 8 MBytes
         """
 
-        self._security: Dict[str, Tuple[str]] = dict()
+        self._security: dict[str, tuple[str]] = dict()
         """
         authorization informations
         e.g. {"BasicAuth": ("user","secret")}
         """
 
-        self._documents: Dict[yarl.URL, "RootType"] = dict()
+        self._documents: dict[yarl.URL, "RootType"] = dict()
         """
         the related documents
         """
 
-        self._server_variables: Dict[str, str] = dict()
+        self._server_variables: dict[str, str] = dict()
         """
         server variable mapping
         """
 
-        self._server_select: Callable[[List["ServerType"]], "ServerType"] = random.choice
+        self._server_select: Callable[[list["ServerType"]], "ServerType"] = random.choice
 
         self._init_plugins(plugins)
         """
@@ -445,7 +442,7 @@ class OpenAPI:
         )
 
     @classmethod
-    def _process_schema_attributes(cls, schema: "SchemaType", processed: Set[int]) -> Dict[int, "SchemaType"]:
+    def _process_schema_attributes(cls, schema: "SchemaType", processed: set[int]) -> dict[int, "SchemaType"]:
         """Process attributes of a schema and filter out the processed ones."""
         combined_attributes = cls._get_combined_attributes(schema)
         return {
@@ -457,7 +454,7 @@ class OpenAPI:
         }
 
     @classmethod
-    def _iterate_schemas(cls, schemas: Dict[int, "SchemaType"], next_set: Set[int], processed: Set[int]) -> Set[int]:
+    def _iterate_schemas(cls, schemas: dict[int, "SchemaType"], next_set: set[int], processed: set[int]) -> set[int]:
         """Iteratively collect all schemas related to the starting set."""
         while next_set:
             processed.update(next_set)
@@ -469,15 +466,15 @@ class OpenAPI:
             processed.update(next_set)
         return processed
 
-    def _init_schema_types_collect(self, only_required: bool) -> Dict[str, "SchemaType"]:
-        byname: Dict[str, "SchemaType"] = dict()
+    def _init_schema_types_collect(self, only_required: bool) -> dict[str, "SchemaType"]:
+        byname: dict[str, "SchemaType"] = dict()
 
-        def is_schema(v: Tuple[str, "SchemaType"]) -> bool:
+        def is_schema(v: tuple[str, "SchemaType"]) -> bool:
             return isinstance(v[1], (v20.Schema, v30.Schema, v31.Schema))
 
         op: Operation
         if isinstance(self._root, v20.Root):
-            documents = cast(List[v20.Root], self._documents.values())
+            documents = cast(list[v20.Root], self._documents.values())
             # Schema
             if only_required is False:
                 for byid in map(lambda x: x.definitions, documents):
@@ -509,7 +506,7 @@ class OpenAPI:
 
         elif isinstance(self._root, (v30.Root, v31.Root)):
             # Schema
-            documents = cast(Union[List[v30.Root], List[v31.Root]], self._documents.values())
+            documents = cast(Union[list[v30.Root], list[v31.Root]], self._documents.values())
             components = [x.components for x in filter(has_components, documents) if x.components is not None]
             assert components is not None
             if only_required is False:
@@ -575,16 +572,16 @@ class OpenAPI:
         return byname
 
     def _init_schema_types(self, only_required: bool) -> None:
-        byname: Dict[str, "SchemaType"] = self._init_schema_types_collect(only_required)
-        byid: Dict[int, "SchemaType"] = {id(i): i for i in byname.values()}
-        data: Set[int] = set(byid.keys())
-        todo: Set[int] = self._iterate_schemas(byid, data, set())
-        types: Dict[str, Union[ForwardRef, Type[BaseModel], Type[int], Type[str], Type[float], Type[bool]]] = dict()
+        byname: dict[str, "SchemaType"] = self._init_schema_types_collect(only_required)
+        byid: dict[int, "SchemaType"] = {id(i): i for i in byname.values()}
+        data: set[int] = set(byid.keys())
+        todo: set[int] = self._iterate_schemas(byid, data, set())
+        types: dict[str, Union[ForwardRef, type[BaseModel], type[int], type[str], type[float], type[bool]]] = dict()
 
         """
         Due to Plugins (e.g. Cull/Reduce) byname may be incomplete
         """
-        resolved: List["SchemaType"] = list(
+        resolved: list["SchemaType"] = list(
             map(lambda x: byid[x]._target if isinstance(byid[x], ReferenceBase) else byid[x], todo | data)
         )
         self.plugins.init.resolved(initialized=self._root, resolved=resolved)
@@ -692,7 +689,7 @@ class OpenAPI:
         """
         return self._operationindex
 
-    def createRequest(self, operationId: Union[str, Tuple[str, "HTTPMethodType"]]) -> "RequestType":
+    def createRequest(self, operationId: Union[str, tuple[str, "HTTPMethodType"]]) -> "RequestType":
         """
         create a Request
 
@@ -818,7 +815,7 @@ class OpenAPI:
         return api
 
     @staticmethod
-    def cache_load(path: pathlib.Path, plugins: Optional[List[Plugin]] = None, session_factory=None) -> "OpenAPI":
+    def cache_load(path: pathlib.Path, plugins: Optional[list[Plugin]] = None, session_factory=None) -> "OpenAPI":
         """
         read a pickle api object from path and init the schema types
 

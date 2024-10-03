@@ -1,12 +1,8 @@
 import asyncio
 import os
 import dataclasses
-import sys
 
-if sys.version_info >= (3, 9):
-    from pathlib import Path
-else:
-    from pathlib3x import Path
+from pathlib import Path
 
 from yaml import safe_load
 import pytest

@@ -1,10 +1,6 @@
 import pytest
-import sys
 
-if sys.version_info >= (3, 9):
-    import pathlib
-else:
-    import pathlib3x as pathlib
+import pathlib
 
 import yarl
 

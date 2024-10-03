@@ -1,4 +1,4 @@
-from typing import Union, List, Any, Optional, Dict
+from typing import Union, Any, Optional
 
 from pydantic import Field, model_validator, PrivateAttr, ConfigDict
 
@@ -14,7 +14,7 @@ class Discriminator(ObjectExtended, DiscriminatorBase):
     """
 
     propertyName: str = Field(...)
-    mapping: Dict[str, str] = Field(default_factory=dict)
+    mapping: dict[str, str] = Field(default_factory=dict)
 
 
 class Schema(ObjectExtended, SchemaBase):
@@ -38,16 +38,16 @@ class Schema(ObjectExtended, SchemaBase):
     uniqueItems: Optional[bool] = Field(default=None)
     maxProperties: Optional[int] = Field(default=None)
     minProperties: Optional[int] = Field(default=None)
-    required: List[str] = Field(default_factory=list)
-    enum: Optional[List[Any]] = Field(default=None)
+    required: list[str] = Field(default_factory=list)
+    enum: Optional[list[Any]] = Field(default=None)
 
     type: Optional[str] = Field(default=None)
-    allOf: List[Union["Schema", Reference]] = Field(default_factory=list)
-    oneOf: List[Union["Schema", Reference]] = Field(default_factory=list)
-    anyOf: List[Union["Schema", Reference]] = Field(default_factory=list)
+    allOf: list[Union["Schema", Reference]] = Field(default_factory=list)
+    oneOf: list[Union["Schema", Reference]] = Field(default_factory=list)
+    anyOf: list[Union["Schema", Reference]] = Field(default_factory=list)
     not_: Optional[Union["Schema", Reference]] = Field(default=None, alias="not")
     items: Optional[Union["Schema", Reference]] = Field(default=None)
-    properties: Dict[str, Union["Schema", Reference]] = Field(default_factory=dict)
+    properties: dict[str, Union["Schema", Reference]] = Field(default_factory=dict)
     additionalProperties: Optional[Union[bool, "Schema", Reference]] = Field(default=None)
     description: Optional[str] = Field(default=None)
     format: Optional[str] = Field(default=None)

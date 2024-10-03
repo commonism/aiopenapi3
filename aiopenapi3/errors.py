@@ -1,5 +1,5 @@
 import typing
-from typing import List, Tuple, Dict, Optional
+from typing import Optional
 import dataclasses
 
 import httpx
@@ -72,7 +72,7 @@ class OperationIdDuplicationError(SpecError):
     """
 
     operationid: str
-    paths: List[Tuple[str, str, object, Optional[List["ServerType"]]]]
+    paths: list[tuple[str, str, object, Optional[list["ServerType"]]]]
 
 
 class ParameterFormatError(SpecError):
@@ -181,7 +181,7 @@ class HeadersMissingError(ResponseError):
     """the response is missing required header/s"""
 
     operation: "OperationType"
-    missing: Dict[str, "HeaderType"]
+    missing: dict[str, "HeaderType"]
     response: httpx.Response
 
     def __str__(self):

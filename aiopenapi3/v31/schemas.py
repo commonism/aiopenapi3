@@ -1,4 +1,4 @@
-from typing import Union, List, Any, Optional, Dict
+from typing import Union, Any, Optional
 
 from pydantic import Field, model_validator, PrivateAttr, ConfigDict
 
@@ -14,7 +14,7 @@ class Discriminator(ObjectExtended, DiscriminatorBase):
     """
 
     propertyName: str = Field(...)
-    mapping: Dict[str, str] = Field(default_factory=dict)
+    mapping: dict[str, str] = Field(default_factory=dict)
 
 
 class Schema(ObjectExtended, SchemaBase):
@@ -35,13 +35,13 @@ class Schema(ObjectExtended, SchemaBase):
     8.  The JSON Schema Core Vocabulary
     """
     schema_: Optional[str] = Field(default=None, alias="$schema")
-    vocabulary: Optional[Dict[str, bool]] = Field(default=None, alias="$vocabulary")
+    vocabulary: Optional[dict[str, bool]] = Field(default=None, alias="$vocabulary")
     id: Optional[str] = Field(default=None, alias="$id")
     anchor: Optional[str] = Field(default=None, alias="$anchor")
     dynamicAnchor: Optional[bool] = Field(default=None, alias="$dynamicAnchor")
     ref: Optional[str] = Field(default=None, alias="$ref")
     dynamicRef: Optional[str] = Field(default=None, alias="$dynamicRef")
-    defs: Optional[Dict[str, Any]] = Field(default=None, alias="$defs")
+    defs: Optional[dict[str, Any]] = Field(default=None, alias="$defs")
     comment: Optional[str] = Field(default=None, alias="$comment")
 
     """
@@ -51,9 +51,9 @@ class Schema(ObjectExtended, SchemaBase):
     """
     10.2.1. Keywords for Applying Subschemas With Logic
     """
-    allOf: List["Schema"] = Field(default_factory=list)
-    oneOf: List["Schema"] = Field(default_factory=list)
-    anyOf: List["Schema"] = Field(default_factory=list)
+    allOf: list["Schema"] = Field(default_factory=list)
+    oneOf: list["Schema"] = Field(default_factory=list)
+    anyOf: list["Schema"] = Field(default_factory=list)
     not_: Optional["Schema"] = Field(default=None, alias="not")
 
     """
@@ -62,20 +62,20 @@ class Schema(ObjectExtended, SchemaBase):
     if_: Optional["Schema"] = Field(default=None, alias="if")
     then_: Optional["Schema"] = Field(default=None, alias="then")
     else_: Optional["Schema"] = Field(default=None, alias="else")
-    dependentSchemas: Dict[str, "Schema"] = Field(default_factory=dict)
+    dependentSchemas: dict[str, "Schema"] = Field(default_factory=dict)
 
     """
     10.3.1. Keywords for Applying Subschemas to Arrays
     """
-    prefixItems: Optional[List["Schema"]] = Field(default=None)
-    items: Optional[Union["Schema", List["Schema"]]] = Field(default=None)
+    prefixItems: Optional[list["Schema"]] = Field(default=None)
+    items: Optional[Union["Schema", list["Schema"]]] = Field(default=None)
     contains: Optional["Schema"] = Field(default=None)
 
     """
     10.3.2. Keywords for Applying Subschemas to Objects
     """
-    properties: Dict[str, "Schema"] = Field(default_factory=dict)
-    patternProperties: Dict[str, "Schema"] = Field(default_factory=dict)
+    properties: dict[str, "Schema"] = Field(default_factory=dict)
+    patternProperties: dict[str, "Schema"] = Field(default_factory=dict)
     additionalProperties: Optional[Union[bool, "Schema"]] = Field(default=None)
     propertyNames: Optional["Schema"] = Field(default=None)
 
@@ -94,8 +94,8 @@ class Schema(ObjectExtended, SchemaBase):
     6.1.  Validation Keywords for Any Instance Type
     """
 
-    type: Optional[Union[str, List[str]]] = Field(default=None)
-    enum: Optional[List[Any]] = Field(default=None)
+    type: Optional[Union[str, list[str]]] = Field(default=None)
+    enum: Optional[list[Any]] = Field(default=None)
     const: Optional[str] = Field(default=None)
 
     """
@@ -128,8 +128,8 @@ class Schema(ObjectExtended, SchemaBase):
     """
     maxProperties: Optional[int] = Field(default=None)
     minProperties: Optional[int] = Field(default=None)
-    required: List[str] = Field(default_factory=list)
-    dependentRequired: Dict[str, str] = Field(default_factory=dict)  # FIXME
+    required: list[str] = Field(default_factory=list)
+    dependentRequired: dict[str, str] = Field(default_factory=dict)  # FIXME
 
     """
     7.  A Vocabulary for Semantic Content With "format"
