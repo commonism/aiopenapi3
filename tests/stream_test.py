@@ -1,6 +1,5 @@
 import asyncio
 import random
-import sys
 import string
 
 from typing import Annotated
@@ -31,10 +30,9 @@ def config(unused_tcp_port_factory):
     return c
 
 
-@pytest_asyncio.fixture(scope="session")
-async def server(event_loop, config):
-    policy = asyncio.get_event_loop_policy()
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+@pytest_asyncio.fixture(loop_scope="session")
+async def server(config):
+    event_loop = asyncio.get_event_loop()
     try:
         sd = asyncio.Event()
         task = event_loop.create_task(serve(app, config, shutdown_trigger=sd.wait))
@@ -42,11 +40,15 @@ async def server(event_loop, config):
     finally:
         sd.set()
         await task
-    asyncio.set_event_loop_policy(policy)
 
 
-@pytest_asyncio.fixture(scope="session")
-async def client(event_loop, server):
+@pytest.fixture(scope="session")
+def event_loop_policy():
+    return uvloop.EventLoopPolicy()
+
+
+@pytest_asyncio.fixture(loop_scope="session")
+async def client(server):
     api = await aiopenapi3.OpenAPI.load_async(f"http://{server.bind[0]}/openapi.json")
     return api
 
@@ -83,8 +85,8 @@ def request_streaming(
     return r + len(path)
 
 
-@pytest.mark.asyncio
-async def test_stream_data(event_loop, server, client):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_stream_data(server, client):
     cl = client._max_response_content_length
     req = client.createRequest("file")
     headers, schema_, session, result = await req.stream(parameters=dict(content_length=cl))
@@ -98,8 +100,8 @@ async def test_stream_data(event_loop, server, client):
     assert l == cl
 
 
-@pytest.mark.asyncio
-async def test_request(event_loop, server, client):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_request(server, client):
     import io
 
     data = [
@@ -111,8 +113,8 @@ async def test_request(event_loop, server, client):
     assert size == 24
 
 
-@pytest.mark.asyncio
-async def test_stream_array(event_loop, server, client):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_stream_array(server, client):
     import ijson
 
     req = client.createRequest("files")
@@ -147,9 +149,8 @@ async def test_stream_array(event_loop, server, client):
     coro.close()
 
 
-@pytest.mark.asyncio
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
-async def test_sync_stream(event_loop, server):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_sync_stream(server):
     client = await asyncio.to_thread(
         aiopenapi3.OpenAPI.load_sync,
         f"http://{server.bind[0]}/openapi.json",

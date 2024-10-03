@@ -85,7 +85,8 @@ filterwarnings = [
     "ignore:unclosed <ssl.SSLSocket:ResourceWarning",
     "ignore:unclosed <socket.socket fd=:ResourceWarning",
     "ignore:Ignoring Schema with additionalProperties and named properties:UserWarning",
-    "ignore:'flask.Markup' is deprecated and will be removed in Flask 2.4. Import 'markupsafe.Markup' instead.:DeprecationWarning"
+    "ignore:'flask.Markup' is deprecated and will be removed in Flask 2.4. Import 'markupsafe.Markup' instead.:DeprecationWarning",
+    "ignore:unclosed resource <TCPTransport:ResourceWarning"
 ]
 asyncio_mode = "strict"
 
