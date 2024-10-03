@@ -111,6 +111,7 @@ def test_operation_populated(openapi_version, petstore_expanded):
     assert type(con2.schema_._target) == openapi_version.schema
 
 
+@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
 def test_paths_security(httpx_mock, with_paths_security):
     api = OpenAPI(URLBASE, with_paths_security, session_factory=httpx.Client, use_operation_tags=False)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="user")
@@ -227,6 +228,7 @@ def test_paths_parameters_invalid(with_paths_parameters_invalid):
         OpenAPI(URLBASE, with_paths_parameters_invalid, session_factory=httpx.Client)
 
 
+@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
 def test_paths_parameters_oneOf(httpx_mock, with_paths_parameters_oneOf):
     api = OpenAPI(URLBASE, with_paths_parameters_oneOf, session_factory=httpx.Client)
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="test")
@@ -266,6 +268,7 @@ def test_paths_parameter_default(httpx_mock, with_paths_parameter_default):
     assert u.parts[3] == "path"
 
 
+@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
 def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="test")
     api = OpenAPI(URLBASE, with_paths_parameter_format, session_factory=httpx.Client)
@@ -389,6 +392,7 @@ def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
     return
 
 
+@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
 def test_paths_parameter_format_complex(httpx_mock, with_paths_parameter_format_complex):
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="test")
 
@@ -423,6 +427,7 @@ def test_paths_response_header(httpx_mock, with_paths_response_header):
     return
 
 
+@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
 def test_paths_response_content_type_octet(httpx_mock, with_paths_response_content_type_octet):
     CONTENT = b"\x00\x11"
     httpx_mock.add_response(headers={"Content-Type": "application/octet-stream", "X-required": "1"}, content=CONTENT)
@@ -437,6 +442,7 @@ def test_paths_response_content_type_octet(httpx_mock, with_paths_response_conte
     request = httpx_mock.get_requests()[-1]
 
 
+@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
 def test_paths_tags(httpx_mock, with_paths_tags):
     import copy
 
@@ -513,6 +519,7 @@ def test_paths_response_error(httpx_mock, with_paths_response_error):
         api._.test()
 
 
+@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
 def test_paths_request_calling(httpx_mock, with_paths_response_status_pattern_default):
     api = OpenAPI("/", with_paths_response_status_pattern_default, session_factory=httpx.Client)
 
@@ -560,6 +567,7 @@ def test_paths_servers(httpx_mock, with_paths_servers):
     return
 
 
+@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
 def test_paths_server_variables(httpx_mock, with_paths_server_variables):
     api = OpenAPI("http://example/openapi.yaml", with_paths_server_variables, session_factory=httpx.Client)
     assert api.url.host == "default"
