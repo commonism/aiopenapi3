@@ -12,7 +12,7 @@ if sys.version_info >= (3, 10):
 else:
     from typing_extensions import TypeGuard
 
-from typing import List, Optional, Union, Tuple, Dict, Annotated, Literal
+from typing import Optional, Union, Annotated, Literal
 from pydantic import BaseModel, TypeAdapter, Field, RootModel, ConfigDict
 import pydantic
 
@@ -74,6 +74,24 @@ import pydantic_core
 
 class ConfiguredRootModel(RootModel):
     model_config = dict(regex_engine="python-re")
+
+
+def is_basemodel(m) -> bool:
+    if inspect.isclass(m) and issubclass(m, pydantic.BaseModel):
+        return True
+    return False
+
+
+if sys.version_info < (3, 11):
+    # pyupgrade 311-plus will remove this
+    # https://github.com/asottile/pyupgrade/issues/967
+    def is_basemodel(m) -> bool:
+        if isinstance(m, typing.GenericAlias):
+            return False
+
+        if inspect.isclass(m) and issubclass(m, pydantic.BaseModel):
+            return True
+        return False
 
 
 @dataclasses.dataclass
@@ -179,7 +197,7 @@ class _ClassInfo:
                     additionalProperties:
                       type: string
                 """
-                v = Dict[str, Model.createAnnotation(schema.additionalProperties)]  # type: ignore[misc,index]
+                v = dict[str, Model.createAnnotation(schema.additionalProperties)]  # type: ignore[misc,index]
                 if Model.is_nullable(schema):
                     v = Optional[v]  # type: ignore[assignment]
                 self.root = v
@@ -237,7 +255,7 @@ class _ClassInfo:
             )
         elif len(r) == 1:
             m: type[BaseModel] = cast(type[BaseModel], r[0])
-            if not (inspect.isclass(m) and issubclass(m, pydantic.BaseModel)):
+            if not is_basemodel(m):
                 m = pydantic.create_model(type_name, __base__=(ConfiguredRootModel[m],), __module__=me.__name__)
         else:  # == 0
             assert len(r), r
@@ -543,15 +561,15 @@ class Model:  # (BaseModel):
                         )
 
                         if isinstance(schema.items, list):
-                            v = Tuple[tuple(Model.createAnnotation(i, fwdref=True) for i in schema.items)]
+                            v = tuple[tuple(Model.createAnnotation(i, fwdref=True) for i in schema.items)]
                         elif schema.items:
                             if isinstance(schema.items, ReferenceBase) and schema.items._target == schema:
                                 """
                                 self referencing array
                                 """
-                                v = List[schema.get_type(fwdref=True)]  # type: ignore[misc,index]
+                                v = list[schema.get_type(fwdref=True)]  # type: ignore[misc,index]
                             else:
-                                v = List[Model.createAnnotation(schema.items, fwdref=True)]  # type: ignore[misc,index]
+                                v = list[Model.createAnnotation(schema.items, fwdref=True)]  # type: ignore[misc,index]
                         elif schema.items is None:
                             continue
                         else:
