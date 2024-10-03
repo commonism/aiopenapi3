@@ -2,7 +2,6 @@ import sys
 import typing
 
 from typing import Callable, Any, Union, cast, Optional, ForwardRef
-import inspect
 import logging
 import copy
 import pickle
@@ -35,6 +34,8 @@ from .plugin import Plugin, Plugins
 from .base import RootBase, ReferenceBase, SchemaBase, OperationBase, DiscriminatorBase
 from .request import RequestBase
 from .v30.paths import Operation
+from .model import is_basemodel
+
 
 if typing.TYPE_CHECKING:
     from ._types import (
@@ -596,7 +597,7 @@ class OpenAPI:
 
         # print(f"{len(types)}")
         for name, schema in types.items():
-            if not (inspect.isclass(schema) and issubclass(schema, BaseModel)):
+            if not is_basemodel(schema):
                 # primitive types: str, int …
                 continue
             try:
