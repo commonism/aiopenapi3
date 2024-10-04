@@ -369,24 +369,30 @@ def test_schema_discriminated_union_invalid_array(with_schema_discriminated_unio
 def test_schema_discriminated_union_warnings(with_schema_discriminated_union_warning, openapi_version):
     from aiopenapi3.errors import DiscriminatorWarning
 
-    with (
-        pytest.warns(
-            DiscriminatorWarning,
-            match=r"Discriminated Union member key property enum mismatches property mapping \S+ \!= \S+",
-        ),
-        pytest.warns(DiscriminatorWarning, match=r"Discriminated Union member \S+ without const/enum key property \S+"),
+    s = copy.deepcopy(with_schema_discriminated_union_warning)
+    api = OpenAPI("/", s)
+
+    with pytest.warns(
+        DiscriminatorWarning,
+        match=r"Discriminated Union member key property enum mismatches property mapping \S+ \!= \S+",
     ):
-        api = OpenAPI("/", with_schema_discriminated_union_warning)
+        s = copy.deepcopy(with_schema_discriminated_union_warning)
+        s["components"]["schemas"]["B"]["properties"]["object_type"]["enum"] = ["f"]
+        api = OpenAPI("/", s)
+
+    with pytest.warns(
+        DiscriminatorWarning, match=r"Discriminated Union member \S+ without const/enum key property \S+"
+    ):
+        s = copy.deepcopy(with_schema_discriminated_union_warning)
+        del s["components"]["schemas"]["B"]["properties"]["object_type"]["enum"]
+        api = OpenAPI("/", s)
 
     if (openapi_version.major, openapi_version.minor, openapi_version.patch) >= (3, 1, 0):
         s = copy.deepcopy(with_schema_discriminated_union_warning)
-        del s["components"]["schemas"]["B"]["properties"]["object_type"]["enum"]
-        s["components"]["schemas"]["B"]["properties"]["object_type"]["enum"] = ["f"]
-        s["components"]["schemas"]["A"]["properties"]["object_type"]["enum"] = ["a"]
-        s["components"]["schemas"]["C"]["properties"]["object_type"]["const"] = "c"
+        s["components"]["schemas"]["C"]["properties"]["object_type"]["const"] = "f"
         with pytest.warns(
             DiscriminatorWarning,
-            match=r"Discriminated Union member key property enum mismatches property mapping \S+ \!= \S+",
+            match=r"Discriminated Union member key property const mismatches property mapping \S+ \!= \S+",
         ):
             api = OpenAPI("/", s)
 

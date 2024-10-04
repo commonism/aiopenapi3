@@ -12,6 +12,7 @@ components:
       properties:
         object_type:
           type: string
+          enum: ["a"]
         a:
           type: string
 
@@ -22,7 +23,7 @@ components:
       properties:
         object_type:
           type: string
-          enum: ["f"]
+          enum: ["b"]
         b:
           type: string
 
@@ -33,7 +34,7 @@ components:
       properties:
         object_type:
           type: string
-#          const: "f"
+          enum: ["c"]
         c:
           type: string
 

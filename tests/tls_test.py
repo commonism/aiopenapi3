@@ -82,11 +82,26 @@ async def server(config):
     try:
         sd = asyncio.Event()
         task = event_loop.create_task(serve(app, config, shutdown_trigger=sd.wait))
-        await asyncio.sleep(1)
         yield config
     finally:
         sd.set()
         await task
+
+
+@pytest_asyncio.fixture(loop_scope="session")
+async def wait_for_server(server):
+    for i in range(10):
+        try:
+            host, _, port = server.bind[0].rpartition(":")
+            r, w = await asyncio.open_connection(host=host, port=port)
+        except Exception as e:
+            await asyncio.sleep(0.1)
+        else:
+            await w.drain()
+            w.close()
+            await w.wait_closed()
+            break
+    return server
 
 
 @pytest.fixture(scope="session")
@@ -121,7 +136,7 @@ securitySchemes:
 
 
 @pytest_asyncio.fixture(loop_scope="session")
-async def client(server, certs):
+async def client(server, certs, wait_for_server):
     def self_signed(*args, **kwargs) -> httpx.AsyncClient:
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=certs["org"]["issuer"])
         if (cert := kwargs.get("cert", None)) is not None:
@@ -197,7 +212,7 @@ async def test_tls_optional(server, client, certs):
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_sync(server, certs):
+async def test_sync(server, certs, wait_for_server):
     def self_signed_(*args, **kwargs) -> httpx.Client:
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=certs["org"]["issuer"])
         if (cert := kwargs.get("cert", None)) is not None:
