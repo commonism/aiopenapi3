@@ -2,7 +2,6 @@ import asyncio
 import io
 import ssl
 from pathlib import Path
-import sys
 
 import httpx
 import pytest
@@ -77,10 +76,9 @@ def config(unused_tcp_port_factory, certs):
     return c
 
 
-@pytest_asyncio.fixture(scope="session")
-async def server(event_loop, config):
-    policy = asyncio.get_event_loop_policy()
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+@pytest_asyncio.fixture(loop_scope="session")
+async def server(config):
+    event_loop = asyncio.get_event_loop()
     try:
         sd = asyncio.Event()
         task = event_loop.create_task(serve(app, config, shutdown_trigger=sd.wait))
@@ -88,7 +86,27 @@ async def server(event_loop, config):
     finally:
         sd.set()
         await task
-    asyncio.set_event_loop_policy(policy)
+
+
+@pytest_asyncio.fixture(loop_scope="session")
+async def wait_for_server(server):
+    for i in range(10):
+        try:
+            host, _, port = server.bind[0].rpartition(":")
+            r, w = await asyncio.open_connection(host=host, port=port)
+        except Exception as e:
+            await asyncio.sleep(0.1)
+        else:
+            await w.drain()
+            w.close()
+            await w.wait_closed()
+            break
+    return server
+
+
+@pytest.fixture(scope="session")
+def event_loop_policy():
+    return uvloop.EventLoopPolicy()
 
 
 class MutualTLSSecurity(Document):
@@ -117,8 +135,8 @@ securitySchemes:
         return ctx
 
 
-@pytest_asyncio.fixture(scope="session")
-async def client(event_loop, server, certs):
+@pytest_asyncio.fixture(loop_scope="session")
+async def client(server, certs, wait_for_server):
     def self_signed(*args, **kwargs) -> httpx.AsyncClient:
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=certs["org"]["issuer"])
         if (cert := kwargs.get("cert", None)) is not None:
@@ -163,8 +181,8 @@ def optional_tls(request: Request, response: Response) -> str:
     return x509.subject.rfc4514_string()
 
 
-@pytest.mark.asyncio
-async def test_tls_required(event_loop, server, client, certs):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_tls_required(server, client, certs):
     with pytest.raises(ValueError, match=r"No security requirement satisfied \(accepts {tls}\)"):
         client.authenticate(None)
         await client._.required_tls_authentication()
@@ -178,8 +196,8 @@ async def test_tls_required(event_loop, server, client, certs):
     assert l is not None
 
 
-@pytest.mark.asyncio
-async def test_tls_optional(event_loop, server, client, certs):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_tls_optional(server, client, certs):
     client.authenticate(None)
     l = await client._.optional_tls_authentication()
     assert l is None
@@ -193,9 +211,8 @@ async def test_tls_optional(event_loop, server, client, certs):
         await client._.required_tls_authentication()
 
 
-@pytest.mark.asyncio
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
-async def test_sync(event_loop, server, certs):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_sync(server, certs, wait_for_server):
     def self_signed_(*args, **kwargs) -> httpx.Client:
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=certs["org"]["issuer"])
         if (cert := kwargs.get("cert", None)) is not None:
@@ -218,7 +235,7 @@ async def test_sync(event_loop, server, certs):
     assert l is not None
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_certificate_invalid(client):
     with pytest.raises(ValueError, match=r"Invalid parameter for SecurityScheme tls mutualTLS") as e:
         client.authenticate(tls="/tmp")

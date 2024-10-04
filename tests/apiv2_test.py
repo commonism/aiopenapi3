@@ -1,6 +1,5 @@
 import datetime
 import random
-import sys
 import asyncio
 import uuid
 from typing import ForwardRef
@@ -41,10 +40,14 @@ def config(unused_tcp_port_factory):
     return c
 
 
-@pytest_asyncio.fixture(scope="session")
-async def server(event_loop, config):
-    policy = asyncio.get_event_loop_policy()
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+@pytest.fixture(scope="session")
+def event_loop_policy():
+    return uvloop.EventLoopPolicy()
+
+
+@pytest_asyncio.fixture(loop_scope="session")
+async def server(config):
+    event_loop = asyncio.get_running_loop()
     try:
         sd = asyncio.Event()
         task = event_loop.create_task(serve(app, config, shutdown_trigger=sd.wait))
@@ -52,7 +55,6 @@ async def server(event_loop, config):
     finally:
         sd.set()
         await task
-    asyncio.set_event_loop_policy(policy)
 
 
 @pytest.fixture(scope="session", params=[2])
@@ -63,14 +65,15 @@ def version(request):
 from aiopenapi3.debug import DescriptionDocumentDumper
 
 
-@pytest_asyncio.fixture(scope="session")
-async def client(event_loop, server, version):
+@pytest_asyncio.fixture(loop_scope="session")
+async def client(server, version):
     url = f"http://{server.bind[0]}/{version}/openapi.json"
 
     api = await aiopenapi3.OpenAPI.load_async(url, plugins=[DescriptionDocumentDumper("/tmp/schema.yaml")])
     return api
 
 
+@pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.xfail()
 def test_Pet():
     import json
@@ -84,24 +87,23 @@ def test_Pet():
     assert t.model_json_schema() == data
 
 
-@pytest.mark.asyncio
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
-async def test_sync(event_loop, server, version):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_sync(server, version):
     url = f"http://{server.bind[0]}/{version}/openapi.json"
     api = await asyncio.to_thread(aiopenapi3.OpenAPI.load_sync, url)
     return api
 
 
-@pytest.mark.asyncio
-async def test_description_document(event_loop, server, version):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_description_document(server, version):
     url = f"http://{server.bind[0]}/{version}/openapi.json"
     api = await aiopenapi3.OpenAPI.load_async(url)
     return api
 
 
 @pytest.mark.xfail()
-@pytest.mark.asyncio
-async def test_model(event_loop, server, client):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_model(server, client):
     orig = client.components.schemas["WhiteCat"].model_dump(exclude_unset=True)
     crea = client.components.schemas["WhiteCat"].get_type().model_json_schema()
     assert orig == crea
@@ -150,16 +152,16 @@ def randomPet(client, name=None, cat=False):
         }
 
 
-@pytest.mark.asyncio
-async def test_Request(event_loop, server, client):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_Request(server, client):
     client._.createPet.data
     client._.createPet.parameters
     client._.createPet.args()
     client._.createPet.return_value()
 
 
-@pytest.mark.asyncio
-async def test_createPet(event_loop, server, client):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_createPet(server, client):
     data = {
         "pet": client.components.schemas["WhiteCat"]
         .model(
@@ -188,8 +190,8 @@ async def test_createPet(event_loop, server, client):
         cls()
 
 
-@pytest.mark.asyncio
-async def test_listPet(event_loop, server, client):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_listPet(server, client):
     r = await client._.createPet(data=randomPet(client, str(uuid.uuid4())))
     l = await client._.listPet(parameters={"limit": 1})
     assert len(l) > 0
@@ -198,8 +200,8 @@ async def test_listPet(event_loop, server, client):
     assert isinstance(l, client.components.schemas["HTTPValidationError"].get_type())
 
 
-@pytest.mark.asyncio
-async def test_getPet(event_loop, server, client):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_getPet(server, client):
     pet = await client._.createPet(data=randomPet(client, str(uuid.uuid4())))
     r = await client._.getPet(parameters={"petId": pet.identifier})
 
@@ -211,8 +213,8 @@ async def test_getPet(event_loop, server, client):
     assert type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
 
 
-@pytest.mark.asyncio
-async def test_deletePet(event_loop, server, client):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_deletePet(server, client):
     r = await client._.deletePet(parameters={"petId": uuid.uuid4(), "x-raise-nonexist": False})
     assert type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
 
@@ -224,8 +226,8 @@ async def test_deletePet(event_loop, server, client):
         await client._.deletePet(parameters={"petId": pet.identifier, "x-raise-nonexist": None})
 
 
-@pytest.mark.asyncio
-async def test_patchPet(event_loop, server, client):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_patchPet(server, client):
     Pet = client.components.schemas["Pet-Input"].get_type()
     Dog = typing.get_args(typing.get_args(Pet.model_fields["root"].annotation)[0])[1]
     pets = [

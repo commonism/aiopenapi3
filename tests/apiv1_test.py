@@ -1,6 +1,5 @@
 import asyncio
 import uuid
-import sys
 
 import pytest
 import pytest_asyncio
@@ -23,10 +22,9 @@ def config(unused_tcp_port_factory):
     return c
 
 
-@pytest_asyncio.fixture(scope="session")
-async def server(event_loop, config):
-    policy = asyncio.get_event_loop_policy()
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+@pytest_asyncio.fixture(loop_scope="session")
+async def server(config):
+    event_loop = asyncio.get_running_loop()
     try:
         sd = asyncio.Event()
         task = event_loop.create_task(serve(app, config, shutdown_trigger=sd.wait))
@@ -34,11 +32,15 @@ async def server(event_loop, config):
     finally:
         sd.set()
         await task
-    asyncio.set_event_loop_policy(policy)
 
 
-@pytest_asyncio.fixture(scope="session")
-async def client(event_loop, server):
+@pytest.fixture(scope="session")
+def event_loop_policy():
+    return uvloop.EventLoopPolicy()
+
+
+@pytest_asyncio.fixture(loop_scope="session")
+async def client(server):
     api = await asyncio.to_thread(aiopenapi3.OpenAPI.load_sync, f"http://{server.bind[0]}/v1/openapi.json")
     return api
 
@@ -47,9 +49,8 @@ def randomPet(name=None):
     return {"data": {"pet": {"name": str(name or uuid.uuid4()), "pet_type": "dog"}}, "return_headers": True}
 
 
-@pytest.mark.asyncio
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
-async def test_createPet(event_loop, server, client):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_createPet(server, client):
     h, r = await asyncio.to_thread(client._.createPet, **randomPet())
     assert type(r).model_json_schema() == client.components.schemas["Pet"].get_type().model_json_schema()
     assert h["X-Limit-Remain"] == 5
@@ -58,17 +59,15 @@ async def test_createPet(event_loop, server, client):
     assert type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
 
 
-@pytest.mark.asyncio
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
-async def test_listPet(event_loop, server, client):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_listPet(server, client):
     h, r = await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
     l = await asyncio.to_thread(client._.listPet)
     assert len(l) > 0
 
 
-@pytest.mark.asyncio
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
-async def test_getPet(event_loop, server, client):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_getPet(server, client):
     h, pet = await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
     r = await asyncio.to_thread(client._.getPet, parameters={"petId": pet.id})
     # FastAPI 0.101 Serialization changes
@@ -79,9 +78,8 @@ async def test_getPet(event_loop, server, client):
     assert type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
 
 
-@pytest.mark.asyncio
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires asyncio.to_thread")
-async def test_deletePet(event_loop, server, client):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_deletePet(server, client):
     r = await asyncio.to_thread(client._.deletePet, parameters={"petId": -1})
     print(r)
     assert type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()

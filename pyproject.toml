@@ -85,9 +85,11 @@ filterwarnings = [
     "ignore:unclosed <ssl.SSLSocket:ResourceWarning",
     "ignore:unclosed <socket.socket fd=:ResourceWarning",
     "ignore:Ignoring Schema with additionalProperties and named properties:UserWarning",
-    "ignore:'flask.Markup' is deprecated and will be removed in Flask 2.4. Import 'markupsafe.Markup' instead.:DeprecationWarning"
+    "ignore:'flask.Markup' is deprecated and will be removed in Flask 2.4. Import 'markupsafe.Markup' instead.:DeprecationWarning",
+    "ignore:unclosed resource <TCPTransport:ResourceWarning"
 ]
 asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "session"
 
 log_cli = "yes"
 log_cli_level = "DEBUG"
@@ -99,7 +101,7 @@ addopts = "--ignore-glob 'tests/my_*.py'"
 [tool.pdm.dev-dependencies]
 tests = [
     "pytest",
-    "pytest-asyncio==0.21.1",
+    "pytest-asyncio>=0.24.0",
     "pytest-httpx",
     "pytest-cov",
     "fastapi",

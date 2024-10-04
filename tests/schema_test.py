@@ -1,6 +1,5 @@
 import copy
 import typing
-import sys
 import uuid
 from unittest.mock import MagicMock, patch
 
@@ -103,7 +102,6 @@ def test_schema_string_pattern(with_schema_string_pattern):
         GUID.model_validate(str(uuid.uuid4()).replace("-", "@"))
 
 
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="typing")
 def test_schema_regex_engine(with_schema_regex_engine):
     api = OpenAPI("/", with_schema_regex_engine)
     Root = api.components.schemas["Root"].get_type()
@@ -371,20 +369,26 @@ def test_schema_discriminated_union_invalid_array(with_schema_discriminated_unio
 def test_schema_discriminated_union_warnings(with_schema_discriminated_union_warning, openapi_version):
     from aiopenapi3.errors import DiscriminatorWarning
 
-    with pytest.warns(
-        DiscriminatorWarning, match=r"Discriminated Union member \S+ without const/enum key property \S+"
-    ):
-        api = OpenAPI("/", with_schema_discriminated_union_warning)
+    s = copy.deepcopy(with_schema_discriminated_union_warning)
+    api = OpenAPI("/", s)
 
     with pytest.warns(
         DiscriminatorWarning,
         match=r"Discriminated Union member key property enum mismatches property mapping \S+ \!= \S+",
     ):
-        api = OpenAPI("/", with_schema_discriminated_union_warning)
+        s = copy.deepcopy(with_schema_discriminated_union_warning)
+        s["components"]["schemas"]["B"]["properties"]["object_type"]["enum"] = ["f"]
+        api = OpenAPI("/", s)
+
+    with pytest.warns(
+        DiscriminatorWarning, match=r"Discriminated Union member \S+ without const/enum key property \S+"
+    ):
+        s = copy.deepcopy(with_schema_discriminated_union_warning)
+        del s["components"]["schemas"]["B"]["properties"]["object_type"]["enum"]
+        api = OpenAPI("/", s)
 
     if (openapi_version.major, openapi_version.minor, openapi_version.patch) >= (3, 1, 0):
         s = copy.deepcopy(with_schema_discriminated_union_warning)
-        #        del s["components"]["schemas"]["C"]["properties"]["object_type"]["enum"]
         s["components"]["schemas"]["C"]["properties"]["object_type"]["const"] = "f"
         with pytest.warns(
             DiscriminatorWarning,
@@ -495,6 +499,7 @@ def test_schema_enum_array(with_schema_enum_array):
         api = OpenAPI("/", with_schema_enum_array)
 
 
+@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
 def test_schema_pathitems(httpx_mock, with_schema_pathitems):
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json={"foo": "bar"})
     api = OpenAPI("/", with_schema_pathitems, session_factory=httpx.Client)

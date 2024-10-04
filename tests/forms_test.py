@@ -269,9 +269,9 @@ def config(unused_tcp_port_factory):
     return c
 
 
-@pytest_asyncio.fixture(scope="session")
-async def server(event_loop, config, app):
-    policy = asyncio.get_event_loop_policy()
+@pytest_asyncio.fixture(loop_scope="session")
+async def server(config, app):
+    event_loop = asyncio.get_event_loop()
     try:
         sd = asyncio.Event()
         asgi = WsgiToAsgi(app)
@@ -281,7 +281,6 @@ async def server(event_loop, config, app):
         sd.set()
         del asgi
         await task
-    asyncio.set_event_loop_policy(policy)
 
 
 @pytest.fixture(scope="session", params=["application/x-www-form-urlencoded", "multipart/form-data"])
@@ -289,7 +288,7 @@ def form_type(request):
     return f"{request.param}"
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(loop_scope="session")
 async def client(server, form_type, with_paths_requestbody_formdata_wtforms):
     data = copy.deepcopy(with_paths_requestbody_formdata_wtforms)
     if form_type != "multipart/form-data":
@@ -303,13 +302,13 @@ async def client(server, form_type, with_paths_requestbody_formdata_wtforms):
 
 
 @pytest.mark.asyncio
-async def _test_service(event_loop, server, client):
+async def _test_service(server, client):
     while True:
         await asyncio.sleep(1)
 
 
-@pytest.mark.asyncio
-async def test_Test(event_loop, server, client, form_type):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_Test(server, client, form_type):
     cls = client._.test.operation.requestBody.content[form_type].schema_.get_type()
     data = cls(string="yes", number="5", file="test")
 
@@ -317,8 +316,8 @@ async def test_Test(event_loop, server, client, form_type):
     assert r == "ok"
 
 
-@pytest.mark.asyncio
-async def test_String(event_loop, server, client, form_type):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_String(server, client, form_type):
     cls = client._.string.operation.requestBody.content[form_type].schema_.get_type()
     data = cls(
         string="yes",
@@ -334,8 +333,8 @@ async def test_String(event_loop, server, client, form_type):
     assert r == "ok"
 
 
-@pytest.mark.asyncio
-async def test_DateTime(event_loop, server, client, form_type):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_DateTime(server, client, form_type):
     cls = client._.datetime.operation.requestBody.content[form_type].schema_.get_type()
     now = datetime.datetime.now()
 
@@ -347,8 +346,8 @@ async def test_DateTime(event_loop, server, client, form_type):
     assert r == "ok"
 
 
-@pytest.mark.asyncio
-async def test_Numbers(event_loop, server, client, form_type):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_Numbers(server, client, form_type):
     cls = client._.numbers.operation.requestBody.content[form_type].schema_.get_type()
 
     data = cls(
@@ -364,8 +363,8 @@ async def test_Numbers(event_loop, server, client, form_type):
     assert r == "ok"
 
 
-@pytest.mark.asyncio
-async def test_File(event_loop, server, client, form_type):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_File(server, client, form_type):
     cls = client._.file.operation.requestBody.content[form_type].schema_.get_type()
 
     data = cls(file=b"4711", files=[b"a", b"b"], xml=b"yes")
@@ -374,8 +373,8 @@ async def test_File(event_loop, server, client, form_type):
     assert r == "ok"
 
 
-@pytest.mark.asyncio
-async def test_Select(event_loop, server, client, form_type):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_Select(server, client, form_type):
     cls = client._.select.operation.requestBody.content[form_type].schema_.get_type()
 
     data = cls(radio="py", select="rb", selectmultiple=["c", "cpp"])
@@ -384,8 +383,8 @@ async def test_Select(event_loop, server, client, form_type):
     assert r == "ok"
 
 
-@pytest.mark.asyncio
-async def test_Control(event_loop, server, client, form_type):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_Control(server, client, form_type):
     cls = client._.control.operation.requestBody.content[form_type].schema_.get_type()
 
     data = cls(submit="yes", search="no")
@@ -394,8 +393,8 @@ async def test_Control(event_loop, server, client, form_type):
     assert r == "ok"
 
 
-@pytest.mark.asyncio
-async def test_Header(event_loop, server, client, form_type):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_Header(server, client, form_type):
     if form_type != "multipart/form-data":
         pytest.skip()
 
@@ -409,8 +408,8 @@ async def test_Header(event_loop, server, client, form_type):
     assert r == "ok"
 
 
-@pytest.mark.asyncio
-async def test_Graph(event_loop, server, client, form_type):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_Graph(server, client, form_type):
     if form_type != "multipart/form-data":
         pytest.skip()
 

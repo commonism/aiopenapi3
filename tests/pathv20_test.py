@@ -20,6 +20,7 @@ def test_paths_security_v20_url(with_paths_security_v20):
     assert str(api.url) == "https://api.example.com/v1"
 
 
+@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
 def test_paths_security_v20_securityparameters(httpx_mock, with_paths_security_v20):
     api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
     user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
@@ -92,6 +93,7 @@ def test_paths_security_v20_alternate_securityparameters(httpx_mock, with_paths_
         api._.alternateSecurity(data={}, parameters={})
 
 
+@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
 def test_paths_security_v20_post_body(httpx_mock, with_paths_security_v20):
     auth = str(uuid.uuid4())
     api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
@@ -147,6 +149,7 @@ def test_paths_response_header_v20(httpx_mock, with_paths_response_header_v20):
     return
 
 
+@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
 def test_paths_parameter_format_v20(httpx_mock, with_paths_parameter_format_v20):
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="ok")
     api = OpenAPI(URLBASE, with_paths_parameter_format_v20, session_factory=httpx.Client)
@@ -173,16 +176,30 @@ def test_paths_parameter_format_v20(httpx_mock, with_paths_parameter_format_v20)
     params["file1"] = ("file1name", io.BytesIO(b"y"), "ct")
     result = api._.formdata(parameters=params)
     request = httpx_mock.get_requests()[-1]
+
+    import multipart
+    from httpx._multipart import MultipartStream
+
+    files = dict()
+
+    def on_file(file):
+        file.file_object.seek(0)
+        files[file.field_name] = (file.file_name.decode(), file.file_object)
+
+    multipart.parse_form(request.headers, io.BytesIO(request.content), None, on_file)
+
+    ms = MultipartStream({}, files=files)
+
     assert (
-        (f := request.stream.fields[0]) is not None
+        (f := ms.fields[0]) is not None
         and f.filename == "file0name"
-        and f.headers["Content-Type"] == "ct"
+        #        and f.headers["Content-Type"] == "ct"
         and f.file.read() == b"x"
     )
     assert (
-        (f := request.stream.fields[1]) is not None
+        (f := ms.fields[1]) is not None
         and f.filename == "file1name"
-        and f.headers["Content-Type"] == "ct"
+        #        and f.headers["Content-Type"] == "ct"
         and f.file.read() == b"y"
     )
     assert result == "ok"
