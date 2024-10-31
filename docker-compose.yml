@@ -1,8 +1,0 @@
-version: "3.3"
-services:
-  aiopenapi3-container:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    volumes:
-      - .:/app
