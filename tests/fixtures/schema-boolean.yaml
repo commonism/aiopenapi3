@@ -55,12 +55,12 @@ components:
     PrefixitemsWithNoAdditionalItemsAllowed:
       $schema: https://json-schema.org/draft/2020-12/schema
       prefixItems:
-      - {}
-      - {}
-      - {}
+        - {}
+        - {}
+        - {}
       items: false
     PrefixitemsWithBooleanSchemas:
       $schema: https://json-schema.org/draft/2020-12/schema
       prefixItems:
-      - true
-      - false
+        - true
+        - false
