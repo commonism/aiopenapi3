@@ -7,51 +7,51 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python: ["3.9","3.10","3.11", "3.12", "3.13"]
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     env:
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python }}
     steps:
-    - uses: actions/checkout@master
-    - uses: pdm-project/setup-pdm@v4
-      with:
-        python-version: ${{ matrix.python }}
-        allow-python-prereleases: true
-        cache: true
-    - name: install deps
-      run: |
-        pdm use -f $PYTHON
-        pdm install -d
-    - name: Generate coverage report (default)
-      run: |
-        pdm run pytest --cov=aiopenapi3/ --cov-report=xml:./coverage/reports/coverage-default.xml tests/
-        pdm run pytest --cov=tests/      --cov-report=xml:./coverage/reports/coverage-default-tests.xml    tests/
-    - name: install optional deps
-      run: |
-        pdm install -G auth,socks
-    - name: Generate coverage report (options)
-      run: |
-        pdm run pytest --cov=aiopenapi3/ --cov-report=xml:./coverage/reports/coverage-optional.xml tests/
-        pdm run pytest --cov=tests/      --cov-report=xml:./coverage/reports/coverage-optional-tests.xml    tests/
-    - name: Upload coverage to Codecov (core)
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        directory: ./coverage/reports/
-        files: coverage-default.xml,coverage-optional.xml
-        env_vars: OS,PYTHON
-        fail_ci_if_error: false
-        flags: core
-        name: codecov-aiopenapi3
-        verbose: true
-    - name: Upload coverage to Codecov (tests)
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        directory: ./coverage/reports/
-        files: coverage-default-tests.xml,coverage-optional-tests.xml
-        env_vars: OS,PYTHON
-        fail_ci_if_error: false
-        flags: tests
-        name: codecov-aiopenapi3-tests
-        verbose: true
+      - uses: actions/checkout@master
+      - uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: ${{ matrix.python }}
+          allow-python-prereleases: true
+          cache: true
+      - name: install deps
+        run: |
+          pdm use -f $PYTHON
+          pdm install -d
+      - name: Generate coverage report (default)
+        run: |
+          pdm run pytest --cov=aiopenapi3/ --cov-report=xml:./coverage/reports/coverage-default.xml tests/
+          pdm run pytest --cov=tests/      --cov-report=xml:./coverage/reports/coverage-default-tests.xml    tests/
+      - name: install optional deps
+        run: |
+          pdm install -G auth,socks
+      - name: Generate coverage report (options)
+        run: |
+          pdm run pytest --cov=aiopenapi3/ --cov-report=xml:./coverage/reports/coverage-optional.xml tests/
+          pdm run pytest --cov=tests/      --cov-report=xml:./coverage/reports/coverage-optional-tests.xml    tests/
+      - name: Upload coverage to Codecov (core)
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ./coverage/reports/
+          files: coverage-default.xml,coverage-optional.xml
+          env_vars: OS,PYTHON
+          fail_ci_if_error: false
+          flags: core
+          name: codecov-aiopenapi3
+          verbose: true
+      - name: Upload coverage to Codecov (tests)
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ./coverage/reports/
+          files: coverage-default-tests.xml,coverage-optional-tests.xml
+          env_vars: OS,PYTHON
+          fail_ci_if_error: false
+          flags: tests
+          name: codecov-aiopenapi3-tests
+          verbose: true

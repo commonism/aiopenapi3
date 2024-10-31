@@ -8,8 +8,8 @@ components:
     AB:
       type: object
       oneOf:
-      - $ref: "#/components/schemas/A"
-      - $ref: "#/components/schemas/B"
+        - $ref: "#/components/schemas/A"
+        - $ref: "#/components/schemas/B"
       properties:
         id:
           type: integer

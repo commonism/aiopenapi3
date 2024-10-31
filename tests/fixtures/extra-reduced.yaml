@@ -11,7 +11,7 @@ components:
   schemas:
     A:
       type: object
-      additionalProperties: False
+      additionalProperties: false
       description: Additional information provided through arbitrary metadata.
       allOf:
         - $ref: "#/components/schemas/A0"

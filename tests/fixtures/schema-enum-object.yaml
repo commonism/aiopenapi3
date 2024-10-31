@@ -12,4 +12,4 @@ components:
           type: integer
       enum:
         - {id: 1}
-        - [1,2,3]
+        - [1, 2, 3]

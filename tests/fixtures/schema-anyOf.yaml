@@ -1,4 +1,3 @@
-
 openapi: 3.0.0
 info:
   version: 1.0.0
@@ -9,7 +8,7 @@ components:
     A:
       title: A
       type: object
-      additionalProperties: False
+      additionalProperties: false
       properties:
         type:
           enum: ["a"]
@@ -33,8 +32,8 @@ components:
       anyOf:
         - $ref: "#/components/schemas/A"
         - type: object
-          additionalProperties: False
-          nullable: True
+          additionalProperties: false
+          nullable: true
 
 
     OB:
@@ -42,13 +41,13 @@ components:
       anyOf:
         - $ref: "#/components/schemas/B"
         - type: object
-          additionalProperties: False
-          nullable: True
+          additionalProperties: false
+          nullable: true
 
     OL:
       title: OL
       anyOf:
         - $ref: "#/components/schemas/L"
         - type: object
-          additionalProperties: False
-          nullable: True
+          additionalProperties: false
+          nullable: true

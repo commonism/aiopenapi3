@@ -39,7 +39,7 @@ paths:
             type: string
             default: "path"
       operationId: default
-      responses: &resp
+      responses:
         '200':
           content:
             application/json:

@@ -20,13 +20,13 @@ components:
           oneOf:
             - type: string
               enum:
-              - "5"
+                - "5"
             - type: string
               enum:
-              - "4"
+                - "4"
             - type: object
-              additionalProperties: False
-              nullable: True
+              additionalProperties: false
+              nullable: true
 
     enumed:
       oneOf:

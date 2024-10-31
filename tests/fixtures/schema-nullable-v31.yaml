@@ -19,7 +19,7 @@ components:
         attr:
           $ref: '#/components/schemas/nullable'
       required:
-      - attr
+        - attr
 
     array:
       type: [array, "null"]

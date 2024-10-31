@@ -20,10 +20,10 @@ components:
           oneOf:
             - type: string
               enum:
-              - "5"
+                - "5"
             - type: string
               enum:
-              - "4"
+                - "4"
             - type: "null"
 
     enumed:

@@ -13,9 +13,9 @@ components:
     A:
       type: object
       anyOf:
-        - required: [ a ]
-        - required: [ b ]
-        - required: [ c ]
+        - required: [a]
+        - required: [b]
+        - required: [c]
       properties:
         a:
           type: boolean
@@ -28,9 +28,9 @@ components:
       type: object
       allOf:
         - anyOf:
-          - required: [ a ]
-          - required: [ b ]
-        - required: [ c ]
+            - required: [a]
+            - required: [b]
+        - required: [c]
       properties:
         a:
           type: boolean
@@ -43,9 +43,9 @@ components:
       type: object
       allOf:
         - oneOf:
-          - required: [ a ]
-          - required: [ b ]
-        - required: [ c ]
+            - required: [a]
+            - required: [b]
+        - required: [c]
       properties:
         a:
           type: boolean
@@ -58,9 +58,9 @@ components:
       type: object
       anyOf:
         - oneOf:
-          - required: [ a ]
-          - required: [ b ]
-        - required: [ c ]
+            - required: [a]
+            - required: [b]
+        - required: [c]
       properties:
         a:
           type: boolean

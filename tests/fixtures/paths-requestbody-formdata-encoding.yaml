@@ -130,12 +130,12 @@ paths:
                 profileImage:
                   type: string
                 profileImage2:
-                    type: object
-                    oneOf:
-                      - type: string
-                      - type: integer
-                      - type: boolean
-                      - type: object
+                  type: object
+                  oneOf:
+                    - type: string
+                    - type: integer
+                    - type: boolean
+                    - type: object
             encoding:
               historyMetadata:
                 # require XML Content-Type in utf-8 encoding
@@ -150,7 +150,7 @@ paths:
                       type: integer
               address:
                 style: form
-                explode: False
+                explode: false
 
 
   /survey:

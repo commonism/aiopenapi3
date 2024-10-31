@@ -6,4 +6,4 @@ info:
 components:
   schemas:
     Any:
-      type: ["string","number"]
+      type: ["string", "number"]

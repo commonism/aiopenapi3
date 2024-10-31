@@ -1,4 +1,3 @@
-
 openapi: 3.1.0
 info:
   version: 1.0.0
@@ -9,7 +8,7 @@ components:
     A:
       title: A
       type: object
-      additionalProperties: False
+      additionalProperties: false
       properties:
         type:
           const: "a"
@@ -29,7 +28,7 @@ components:
       title: AB
       oneOf:
         - type: object
-          additionalProperties: False
+          additionalProperties: false
           oneOf:
             - $ref: '#/components/schemas/A'
           discriminator:

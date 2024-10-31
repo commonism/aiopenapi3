@@ -18,8 +18,8 @@ components:
     # causing infinite recursion.
     Object:
       oneOf:
-      - $ref: "#/components/schemas/Object1"
-      - $ref: "#/components/schemas/Object2"
+        - $ref: "#/components/schemas/Object1"
+        - $ref: "#/components/schemas/Object2"
 
     # Abstract supertype
     ObjectBaseType:
@@ -42,10 +42,10 @@ components:
     Object1:
       # Inherit all constraints defined in the base type
       allOf:
-      - $ref: "#/components/schemas/ObjectBaseType"
+        - $ref: "#/components/schemas/ObjectBaseType"
       # Additionally require subtype-specific properties.
       required:
-      - subtypeProperties
+        - subtypeProperties
       # Disallow properties that are not defined here.
       additionalProperties: false
       properties:
@@ -57,14 +57,14 @@ components:
         # an OAS-compliant validator.
         type:
           enum:
-          - obj1
+            - obj1
         # Define subtype-specific properties
         subtypeProperties:
           type: object
           additionalProperties: false
           required:
-          - "property1a"
-          - "property1b"
+            - "property1a"
+            - "property1b"
           properties:
             property1a:
               type: "string"
@@ -74,21 +74,21 @@ components:
     Object2:
       # Same idea here...
       allOf:
-      - $ref: "#/components/schemas/ObjectBaseType"
+        - $ref: "#/components/schemas/ObjectBaseType"
       required:
-      - subtypeProperties
+        - subtypeProperties
       additionalProperties: false
       properties:
         id: {}
         type:
           enum:
-          - obj2
+            - obj2
         subtypeProperties:
           type: object
           additionalProperties: false
           required:
-          - "property2a"
-          - "property2b"
+            - "property2a"
+            - "property2b"
           properties:
             property2a:
               type: "string"

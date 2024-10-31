@@ -5,7 +5,7 @@ labels: [bug, unconfirmed]
 body:
   - type: markdown
     attributes:
-      value:  Thank you for taking the time to report a problem.
+      value: Thank you for taking the time to report a problem.
 
   - type: textarea
     id: description

@@ -17,7 +17,7 @@ components:
 
     B:
       type: object
-      additionalProperties: True
+      additionalProperties: true
       properties:
         data:
           type: object

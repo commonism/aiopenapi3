@@ -23,49 +23,49 @@ components:
           type: object
           additionalProperties: false
       required:
-      - retCode
-      - data
+        - retCode
+        - data
 
     AllOfResponse:
       type: object
       additionalProperties: false
       allOf:
-      - $ref: "#/components/schemas/Response"
+        - $ref: "#/components/schemas/Response"
       oneOf:
-      - type: object
-        additionalProperties: false
-        properties:
-          data:
-            type: object
-            additionalProperties: false
-            properties:
-              string:
-                type: string
-            required:
-            - string
+        - type: object
+          additionalProperties: false
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              properties:
+                string:
+                  type: string
+              required:
+                - string
 
     AuthenticatedRequest:
       type: object
-      additionalProperties: False
+      additionalProperties: false
       properties:
         token:
           type: string
         cmd:
           type: string
       required:
-      - token
-      - command
+        - token
+        - command
 
     ShutdownRequest:
       type: object
       additionalProperties: false
       allOf:
-      - $ref: "#/components/schemas/AuthenticatedRequest"
+        - $ref: "#/components/schemas/AuthenticatedRequest"
       properties:
         cmd:
           type: string
           enum:
-          - "shutdown"
+            - "shutdown"
           default: shutdown
         data:
           type: object
@@ -74,10 +74,10 @@ components:
             delay:
               type: integer
           required:
-          - delay
+            - delay
       required:
-      - data
-      - cmd
+        - data
+        - cmd
 
     Request:
       type: object
@@ -87,4 +87,4 @@ components:
         mapping:
           shutdown: "#/components/schemas/ShutdownRequest"
       oneOf:
-      - $ref: "#/components/schemas/ShutdownRequest"
+        - $ref: "#/components/schemas/ShutdownRequest"

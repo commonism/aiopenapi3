@@ -35,11 +35,11 @@ paths:
                 number:
                   type: integer
                 file:
-                    type: string
+                  type: string
                 files:
-                    type: array
-                    items:
-                        type: object
+                  type: array
+                  items:
+                    type: object
 
   /string:
     post:
@@ -191,7 +191,7 @@ paths:
                   type: string
             encoding:
               header:
-                explode: True
+                explode: true
                 headers:
                   X-HEADER:
                     required: true
@@ -217,4 +217,4 @@ paths:
                       type: string
             encoding:
               star:
-                explode: False
+                explode: false

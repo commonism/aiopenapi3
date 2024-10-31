@@ -5,18 +5,18 @@ info:
 paths:
   /example/{name}:
     parameters:
-    - in: path
-      name: name
-      required: true
-      schema:
-        type: string
-    get:
-      parameters:
       - in: path
-        name: different
+        name: name
         required: true
         schema:
           type: string
+    get:
+      parameters:
+        - in: path
+          name: different
+          required: true
+          schema:
+            type: string
       operationId: example
       responses:
         '200':

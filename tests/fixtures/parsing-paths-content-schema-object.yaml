@@ -27,4 +27,4 @@ paths:
           description: Checking example string
           content:
             'text/plain':
-                example: 'Hello'
+              example: 'Hello'

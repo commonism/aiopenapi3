@@ -21,8 +21,8 @@ components:
     Nullable:
       type: [string, "null"]
       enum:
-      - "a"
-      - null
+        - "a"
+        -
 
     Mixed:
       enum:
@@ -30,4 +30,4 @@ components:
         - good
         - "yes"
         - true
-        - null
+        -

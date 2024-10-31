@@ -41,5 +41,5 @@ components:
               type:
                 type: string
                 enum:
-                - raw
-                - ext4
+                  - raw
+                  - ext4

@@ -8,7 +8,7 @@ components:
     A:
       title: A
       type: object
-      additionalProperties: False
+      additionalProperties: false
       properties:
         object_type:
           type: string
@@ -19,7 +19,7 @@ components:
     B:
       title: B
       type: object
-      additionalProperties: False
+      additionalProperties: false
       properties:
         object_type:
           type: string
@@ -30,7 +30,7 @@ components:
     C:
       title: B
       type: object
-      additionalProperties: False
+      additionalProperties: false
       properties:
         object_type:
           type: string
@@ -41,7 +41,7 @@ components:
     ABC:
       title: AB
       type: object
-      additionalProperties: False
+      additionalProperties: false
       oneOf:
         - $ref: '#/components/schemas/A'
         - $ref: '#/components/schemas/B'
