@@ -1,14 +1,8 @@
 from datetime import timedelta
 import uuid
 
-import sys
 
-if sys.version_info >= (3, 9):
-    from typing import List, Optional, Literal, Union, Annotated
-else:
-    from typing import List, Optional, Union
-    from typing_extensions import Annotated, Literal
-
+from typing import Optional, Literal, Union, Annotated
 
 import pydantic
 from pydantic import BaseModel, RootModel, Field, ConfigDict
@@ -21,7 +15,7 @@ class PetBase(BaseModel):
     model_config = ConfigDict(extra="forbid")
     identifier: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
-    tags: List[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
 
 
 class BlackCat(PetBase):
@@ -62,7 +56,7 @@ class Pet(RootModel[Annotated[Union[Cat, Dog], Field(discriminator="pet_type")]]
 #    root: Annotated[Union[Cat, Dog], Field(discriminator="pet_type")]
 
 
-Pets = List[Pet]
+Pets = list[Pet]
 
 
 class Error(BaseModel):

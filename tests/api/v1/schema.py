@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, RootModel, Field
 
@@ -17,7 +17,7 @@ class Pet(PetBase):
 
 
 class Pets(RootModel):
-    root: List[Pet] = Field(..., description="list of pet")
+    root: list[Pet] = Field(..., description="list of pet")
 
 
 class Error(BaseModel):
