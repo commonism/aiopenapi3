@@ -34,7 +34,7 @@ from .plugin import Plugin, Plugins
 from .base import RootBase, ReferenceBase, SchemaBase, OperationBase, DiscriminatorBase
 from .request import RequestBase
 from .v30.paths import Operation
-from .model import is_basemodel
+from .model import is_basemodel, Model
 
 
 if typing.TYPE_CHECKING:
@@ -428,6 +428,7 @@ class OpenAPI:
     @staticmethod
     def _get_combined_attributes(schema):
         """Combine attributes from the schema."""
+        is_array = Model.is_type_any(schema) or Model.is_type(schema, "array")
         return (
             getattr(schema, "oneOf", [])  # Swagger compat
             + (
@@ -438,8 +439,9 @@ class OpenAPI:
             + getattr(schema, "anyOf", [])  # Swagger compat
             + schema.allOf
             + list(schema.properties.values())
-            + ([schema.items] if schema.type == "array" and schema.items and not isinstance(schema, list) else [])
-            + (schema.items if schema.type == "array" and schema.items and isinstance(schema, list) else [])
+            + ([schema.items] if is_array and schema.items is not None and not isinstance(schema, list) else [])
+            + (schema.items if is_array and schema.items is not None and isinstance(schema, list) else [])
+            + (getattr(schema, "prefixItems", []) or [] if is_array else [])
         )
 
     @classmethod

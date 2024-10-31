@@ -177,9 +177,9 @@ class _ClassInfo:
             self.root = v
         elif _type == "object":
             if (
-                schema.additionalProperties
-                and isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase))
-                and not schema.properties
+                not schema.properties
+                and schema.additionalProperties is not None
+                and not Model.booleanFalse(schema.additionalProperties)
             ):
                 """
                 https://swagger.io/docs/specification/data-models/dictionaries/
@@ -412,7 +412,7 @@ class Model:  # (BaseModel):
 
                     classinfo.properties["aio3_patternProperties"].default = property(mkx())
 
-                    if not schema.additionalProperties:
+                    if Model.booleanFalse(schema.additionalProperties):
 
                         def mkx():
                             def validate_patternProperties(self_):
@@ -473,21 +473,16 @@ class Model:  # (BaseModel):
         arbitrary_types_allowed_ = False
         extra_ = "allow"
 
-        if schema.additionalProperties is not None:
-            if isinstance(schema.additionalProperties, bool):
-                if not schema.additionalProperties:
-                    extra_ = "forbid"
-                else:
-                    arbitrary_types_allowed_ = True
-            elif isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase)):
-                """
-                we allow arbitrary types if additionalProperties has no properties
-                """
-                assert schema.additionalProperties.properties is not None
-                if len(schema.additionalProperties.properties) == 0:
-                    arbitrary_types_allowed_ = True
-            else:
-                raise TypeError(schema.additionalProperties)
+        if Model.booleanFalse(schema.additionalProperties):
+            extra_ = "forbid"
+        elif Model.booleanTrue(schema.additionalProperties) or (
+            isinstance(schema.additionalProperties, (SchemaBase, ReferenceBase))
+            and len(schema.additionalProperties.properties) == 0
+        ):
+            """
+            we allow arbitrary types if additionalProperties has no properties
+            """
+            arbitrary_types_allowed_ = True
 
         if getattr(schema, "patternProperties", None):
             extra_ = "allow"
@@ -670,6 +665,41 @@ class Model:  # (BaseModel):
     @staticmethod
     def is_type_any(schema: "SchemaType"):
         return schema.type is None
+
+    @staticmethod
+    def booleanTrue(schema: Optional[Union["SchemaType", bool]]) -> bool:
+        """
+        ACCEPT all?
+        :param schema:
+        :return: True if Schema is {} or True or None
+        """
+        if schema is None:
+            return True
+        if isinstance(schema, bool):
+            return schema is True
+        elif isinstance(schema, (SchemaBase, ReferenceBase)):
+            """matches Any - {}"""
+            return len(schema.model_fields_set) == 0
+        else:
+            raise ValueError(schema)
+
+    @staticmethod
+    def booleanFalse(schema: Optional[Union["SchemaType", bool]]) -> bool:
+        """
+        REJECT all?
+        :param schema:
+        :return: True if Schema is {'not':{}} or False
+        """
+
+        if schema is None:
+            return False
+        if isinstance(schema, bool):
+            return schema is False
+        elif isinstance(schema, (SchemaBase, ReferenceBase)):
+            """match {'not':{}}"""
+            return (v := getattr(schema, "not_", False)) and Model.booleanTrue(v)
+        else:
+            raise ValueError(schema)
 
     @staticmethod
     def createField(schema: "SchemaType", _type=None, args=None):

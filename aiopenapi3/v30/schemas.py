@@ -48,7 +48,7 @@ class Schema(ObjectExtended, SchemaBase):
     not_: Optional[Union["Schema", Reference]] = Field(default=None, alias="not")
     items: Optional[Union["Schema", Reference]] = Field(default=None)
     properties: dict[str, Union["Schema", Reference]] = Field(default_factory=dict)
-    additionalProperties: Optional[Union[bool, "Schema", Reference]] = Field(default=None)
+    additionalProperties: Optional[Union["Schema", Reference]] = Field(default=None)
     description: Optional[str] = Field(default=None)
     format: Optional[str] = Field(default=None)
     default: Optional[Any] = Field(default=None)
@@ -62,6 +62,16 @@ class Schema(ObjectExtended, SchemaBase):
     deprecated: Optional[bool] = Field(default=None)
 
     model_config = ConfigDict(extra="forbid")
+
+    @model_validator(mode="before")
+    @classmethod
+    def is_boolean_schema(cls, data: Any) -> Any:
+        if not isinstance(data, bool):
+            return data
+        if data:
+            return {}
+        else:
+            return {"not": {}}
 
     @model_validator(mode="after")
     @classmethod

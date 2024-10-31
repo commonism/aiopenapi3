@@ -35,7 +35,8 @@ class Root(ObjectExtended, RootBase):
     externalDocs: dict[Any, Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
-    def validate_Root(cls, r: "Root"):
+    @classmethod
+    def validate_Root(cls, r: "Root") -> "Self":
         assert r.paths or r.components or r.webhooks
         return r
 

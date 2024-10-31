@@ -741,3 +741,16 @@ def test_schema_allof_oneof_combined(with_schema_allof_oneof_combined):
         t.model_validate({"token": "1", "cmd": "invalid", "data": {"delay": 0}})
     with pytest.raises(ValidationError):
         t.model_validate({"token": "1", "cmd": "shutdown", "data": {"delay": "invalid"}})
+
+
+def test_schema_boolean(with_schema_boolean):
+    v = copy.deepcopy(with_schema_boolean)
+    if v["openapi"] == "3.0.3":
+        for i in [
+            "PrefixitemsWithNoAdditionalItemsAllowed",
+            "PrefixitemsWithBooleanSchemas",
+            "UnevaluatedItemsTrue",
+            "UnevaluatedPropertiesTrue",
+        ]:
+            del v["components"]["schemas"][i]
+    OpenAPI("/", v)

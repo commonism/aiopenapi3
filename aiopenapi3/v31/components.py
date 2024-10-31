@@ -20,7 +20,7 @@ class Components(ObjectExtended):
     .. _Components Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#components-object
     """
 
-    schemas: dict[str, Union[Schema, bool]] = Field(default_factory=dict)
+    schemas: dict[str, Union[Schema]] = Field(default_factory=dict)
     responses: dict[str, Union[Response, Reference]] = Field(default_factory=dict)
     parameters: dict[str, Union[Parameter, Reference]] = Field(default_factory=dict)
     examples: dict[str, Union[Example, Reference]] = Field(default_factory=dict)

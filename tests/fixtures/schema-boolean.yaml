@@ -1,0 +1,66 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Example
+  license:
+    name: MIT
+  description: |
+    https://github.com/swagger-api/swagger-parser/issues/1770
+servers:
+  - url: http://api.example.xyz/v1
+paths:
+  /person/display/{personId}:
+    get:
+      parameters:
+        - name: personId
+          in: path
+          required: true
+          description: The id of the person to retrieve
+          schema:
+            type: string
+      operationId: list
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BooleanTrue"
+components:
+  schemas:
+    BooleanTrue: true
+    ArrayWithTrueItems:
+      type: array
+      items: true
+    ObjectWithTrueProperty:
+      properties:
+        someProp: true
+    ObjectWithTrueAdditionalProperties:
+      additionalProperties: true
+    AllOfWithTrue:
+      allOf:
+        - true
+    AnyOfWithTrue:
+      anyOf:
+        - true
+    OneOfWithTrue:
+      oneOf:
+        - true
+    NotWithTrue:
+      not: true
+    UnevaluatedItemsTrue:
+      unevaluatedItems: true
+    UnevaluatedPropertiesTrue:
+      unevaluatedProperties: true
+    PrefixitemsWithNoAdditionalItemsAllowed:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      prefixItems:
+      - {}
+      - {}
+      - {}
+      items: false
+    PrefixitemsWithBooleanSchemas:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      prefixItems:
+      - true
+      - false
