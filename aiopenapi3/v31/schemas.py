@@ -76,7 +76,7 @@ class Schema(ObjectExtended, SchemaBase):
     """
     properties: dict[str, "Schema"] = Field(default_factory=dict)
     patternProperties: dict[str, "Schema"] = Field(default_factory=dict)
-    additionalProperties: Optional[Union[bool, "Schema"]] = Field(default=None)
+    additionalProperties: Optional["Schema"] = Field(default=None)
     propertyNames: Optional["Schema"] = Field(default=None)
 
     """
@@ -162,7 +162,18 @@ class Schema(ObjectExtended, SchemaBase):
     externalDocs: Optional[dict] = Field(default=None)  # 'ExternalDocs'
     example: Optional[Any] = Field(default=None)
 
+    @model_validator(mode="before")
+    @classmethod
+    def is_boolean_schema(cls, data: Any) -> Any:
+        if not isinstance(data, bool):
+            return data
+        if data:
+            return {}
+        else:
+            return {"not": {}}
+
     @model_validator(mode="after")
+    @classmethod
     def validate_Schema_number_type(cls, s: "Schema"):
         if s.type == "integer":
             for i in ["minimum", "maximum"]:
