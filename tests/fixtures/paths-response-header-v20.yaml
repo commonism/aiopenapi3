@@ -20,16 +20,16 @@ paths:
     get:
       operationId: get
       responses:
-       "200":
-         description: OK
-         schema:
-           type: string
-           enum:
-             - get
-         headers:
-          X-required:
+        "200":
+          description: OK
+          schema:
             type: string
-          X-optional:
-            type: array
-            items:
+            enum:
+              - get
+          headers:
+            X-required:
               type: string
+            X-optional:
+              type: array
+              items:
+                type: string

@@ -7,15 +7,15 @@ components:
   schemas:
     A:
       type: object
-      additionalProperties: False
-      required: [ a ]
+      additionalProperties: false
+      required: [a]
       properties:
         a:
           type: string
     AB:
       type: object
-      additionalProperties: False
-      required: [ b ]
+      additionalProperties: false
+      required: [b]
       properties:
         b:
           type: string

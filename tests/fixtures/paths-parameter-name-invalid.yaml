@@ -14,13 +14,13 @@ paths:
       - name: "Path:"
         in: path
         description: ""
-        required: True
+        required: true
         schema:
           type: string
       - name: ""
         in: path
         description: ""
-        required: True
+        required: true
         schema:
           type: string
     get:

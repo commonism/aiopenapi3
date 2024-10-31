@@ -15,7 +15,7 @@ paths:
       - name: Header
         in: header
         description: ""
-        required: True
+        required: true
         schema:
           type: array
           items:
@@ -27,7 +27,7 @@ paths:
         - name: Query
           in: query
           description: ""
-          required: True
+          required: true
           schema:
             type: string
       responses:
@@ -56,6 +56,6 @@ components:
     Cookie:
       name: Cookie
       in: cookie
-      required: True
+      required: true
       schema:
         type: string

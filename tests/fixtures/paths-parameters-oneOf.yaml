@@ -14,7 +14,7 @@ paths:
       - name: nullable_array
         in: query
         description: ""
-        required: False
+        required: false
         schema:
           oneOf:
             - type: array
@@ -24,7 +24,7 @@ paths:
       - name: nullable_object
         in: query
         description: ""
-        required: False
+        required: false
         schema:
           oneOf:
             - type: object

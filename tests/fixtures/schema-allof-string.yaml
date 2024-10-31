@@ -7,7 +7,7 @@ components:
   schemas:
     Enum:
       enum:
-      - valid
+        - valid
       type: string
     minLength:
       type: string
@@ -21,18 +21,18 @@ components:
       minLength: 5
     allOfEnum:
       allOf:
-      - $ref: '#/components/schemas/Enum'
+        - $ref: '#/components/schemas/Enum'
       description: single allOf
     allOfmixLength:
       allOf:
-      - $ref: '#/components/schemas/mixLength'
+        - $ref: '#/components/schemas/mixLength'
       description: single allOf
     allOfCombined:
       type: string
       maxLength: 5
       allOf:
-      - $ref: '#/components/schemas/minLength'
+        - $ref: '#/components/schemas/minLength'
     allOfMinMaxLength:
       allOf:
-      - $ref: '#/components/schemas/minLength'
-      - $ref: '#/components/schemas/maxLength'
+        - $ref: '#/components/schemas/minLength'
+        - $ref: '#/components/schemas/maxLength'

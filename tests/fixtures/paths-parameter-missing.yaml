@@ -31,7 +31,7 @@ paths:
           schema:
             type: string
       operationId: missing
-      responses: &resp
+      responses:
         '200':
           content:
             application/json:

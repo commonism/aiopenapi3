@@ -12,8 +12,8 @@ components:
       title: BlackCat
       type: object
       required:
-      - name
-      - black_name
+        - name
+        - black_name
       properties: &catproperties
         color:
           title: Color
@@ -42,8 +42,8 @@ components:
       title: WhiteCat
       type: object
       required:
-      - name
-      - white_name
+        - name
+        - white_name
       properties:
         <<: *catproperties
         color:
@@ -63,8 +63,8 @@ components:
           white: '#/components/schemas/WhiteCat'
         propertyName: color
       oneOf:
-      - $ref: '#/components/schemas/BlackCat'
-      - $ref: '#/components/schemas/WhiteCat'
+        - $ref: '#/components/schemas/BlackCat'
+        - $ref: '#/components/schemas/WhiteCat'
 
     Dog:
       properties:
@@ -88,8 +88,8 @@ components:
           title: Tags
           type: array
       required:
-      - name
-      - age
+        - name
+        - age
       title: Dog
       type: object
     Pet:
@@ -99,6 +99,6 @@ components:
           dog: '#/components/schemas/Dog'
         propertyName: pet_type
       oneOf:
-      - $ref: '#/components/schemas/Cat'
-      - $ref: '#/components/schemas/Dog'
+        - $ref: '#/components/schemas/Cat'
+        - $ref: '#/components/schemas/Dog'
       title: Pet

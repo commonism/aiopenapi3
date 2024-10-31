@@ -13,8 +13,8 @@ components:
 
     Object:
       type: object
-      additionalProperties: False
+      additionalProperties: false
       properties:
         v:
           type: string
-          pattern:  ^Passphrase:[ ^[ !#-~]+$
+          pattern: ^Passphrase:[ ^[ !#-~]+$

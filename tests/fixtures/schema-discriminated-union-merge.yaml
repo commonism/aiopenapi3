@@ -12,17 +12,16 @@ components:
           user: '#/components/schemas/UserContextVariable'
         propertyName: type
       oneOf:
-      - $ref: '#/components/schemas/UserContextVariable'
+        - $ref: '#/components/schemas/UserContextVariable'
       properties:
         type:
           description: Type of custom context variable.
           type: string
       required:
-      - type
+        - type
       type: object
     UserContextVariable:
-      description: A [user](https://developer.atlassian.com/cloud/jira/platform/jira-expressions-type-reference#user)
-        specified as an Atlassian account ID.
+      description: A [user](https://developer.atlassian.com/cloud/jira/platform/jira-expressions-type-reference#user) specified as an Atlassian account ID.
       properties:
         accountId:
           description: The account ID of the user.
@@ -31,6 +30,6 @@ components:
           description: Type of custom context variable.
           type: string
       required:
-      - accountId
-      - type
+        - accountId
+        - type
       type: object

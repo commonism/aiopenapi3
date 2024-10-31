@@ -36,10 +36,10 @@ paths:
     get:
       operationId: path
       responses:
-       "200":
-         description: OK
-         schema:
-           type: string
+        "200":
+          description: OK
+          schema:
+            type: string
 
   /query:
     get:
@@ -61,10 +61,10 @@ paths:
           default: "default"
       operationId: query
       responses:
-       "200":
-         description: OK
-         schema:
-           type: string
+        "200":
+          description: OK
+          schema:
+            type: string
 
   '/formdata':
     post:
