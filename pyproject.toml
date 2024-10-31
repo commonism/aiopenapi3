@@ -49,7 +49,7 @@ Repository = "https://github.com/commonism/aiopenapi3"
 
 [project.optional-dependencies]
 auth = [
-    "httpx-auth",
+    "httpx-auth>=0.21.0",
 ]
 socks = [
     "httpx-socks",

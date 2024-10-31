@@ -8,7 +8,7 @@ import httpx
 
 try:
     import httpx_auth
-    from httpx_auth.authentication import SupportMultiAuth
+    from httpx_auth import SupportMultiAuth
     import inspect
 except ImportError:
     httpx_auth = None
