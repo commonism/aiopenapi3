@@ -40,6 +40,21 @@ repos:
       - id: pyupgrade
         args: [--py39-plus, --keep-runtime-typing]
 
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: ["-d", "{extends: relaxed, rules: {empty-lines: disable, line-length: {max: 1500}}}", --strict, --format, parsable]
+
+  - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
+    rev: 0.2.3
+    hooks:
+      - id: yamlfmt
+        args: [--mapping, '2', --sequence, '4', --offset, '2', --preserve-quotes, --implicit_start, --width, '1500']
+        exclude: tests/fixtures/schema-enum.yaml
+
+
+
 ci:
   autofix_commit_msg: |
     [pre-commit.ci] auto fixes from pre-commit.ci hooks
