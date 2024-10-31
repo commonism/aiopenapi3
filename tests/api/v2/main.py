@@ -1,7 +1,7 @@
 import errno
 import uuid
 from typing import Optional, Union
-from typing_extensions import Annotated
+from typing import Annotated
 
 import starlette.status
 from fastapi import Body, Response, Header, APIRouter, Path
