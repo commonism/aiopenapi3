@@ -185,7 +185,7 @@ def test_paths_parameter_format_v20(httpx_mock, with_paths_parameter_format_v20)
         file.file_object.seek(0)
         files[file.field_name] = (file.file_name.decode(), file.file_object)
 
-    multipart.parse_form(request.headers, io.BytesIO(request.content), None, on_file)
+    python_multipart.parse_form(request.headers, io.BytesIO(request.content), None, on_file)
 
     ms = MultipartStream({}, files=files)
 
