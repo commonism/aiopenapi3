@@ -5,6 +5,8 @@ import urllib
 import yarl
 import httpx
 import pytest
+import python_multipart
+from httpx._multipart import MultipartStream
 
 from aiopenapi3 import OpenAPI
 
@@ -176,9 +178,6 @@ def test_paths_parameter_format_v20(httpx_mock, with_paths_parameter_format_v20)
     params["file1"] = ("file1name", io.BytesIO(b"y"), "ct")
     result = api._.formdata(parameters=params)
     request = httpx_mock.get_requests()[-1]
-
-    import multipart
-    from httpx._multipart import MultipartStream
 
     files = dict()
 
