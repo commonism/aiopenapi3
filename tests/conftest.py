@@ -441,6 +441,11 @@ def with_schema_additionalProperties_and_named_properties():
 
 
 @pytest.fixture
+def with_schema_boolean_v20():
+    yield _get_parsed_yaml("schema-boolean-v20.yaml")
+
+
+@pytest.fixture
 def with_schema_boolean(openapi_version):
     yield _get_parsed_yaml("schema-boolean.yaml", openapi_version)
 

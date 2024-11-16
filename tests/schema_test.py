@@ -754,3 +754,7 @@ def test_schema_boolean(with_schema_boolean):
         ]:
             del v["components"]["schemas"][i]
     OpenAPI("/", v)
+
+
+def test_schema_boolean_v20(with_schema_boolean_v20):
+    OpenAPI("/", with_schema_boolean_v20)
