@@ -667,7 +667,7 @@ class Model:  # (BaseModel):
         return schema.type is None
 
     @staticmethod
-    def booleanTrue(schema: Optional[Union["SchemaType", bool]]) -> bool:
+    def booleanTrue(schema: Optional["SchemaType"]) -> bool:
         """
         ACCEPT all?
         :param schema:
@@ -675,8 +675,6 @@ class Model:  # (BaseModel):
         """
         if schema is None:
             return True
-        if isinstance(schema, bool):
-            return schema is True
         elif isinstance(schema, (SchemaBase, ReferenceBase)):
             """matches Any - {}"""
             return len(schema.model_fields_set) == 0
@@ -684,7 +682,7 @@ class Model:  # (BaseModel):
             raise ValueError(schema)
 
     @staticmethod
-    def booleanFalse(schema: Optional[Union["SchemaType", bool]]) -> bool:
+    def booleanFalse(schema: Optional["SchemaType"]) -> bool:
         """
         REJECT all?
         :param schema:
@@ -693,8 +691,6 @@ class Model:  # (BaseModel):
 
         if schema is None:
             return False
-        if isinstance(schema, bool):
-            return schema is False
         elif isinstance(schema, (SchemaBase, ReferenceBase)):
             """match {'not':{}}"""
             return (v := getattr(schema, "not_", False)) and Model.booleanTrue(v)
