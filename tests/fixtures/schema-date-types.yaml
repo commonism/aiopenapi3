@@ -1,0 +1,18 @@
+openapi: "3.1.0"
+info:
+  version: 1.0.0
+  title: date-time
+
+components:
+  schemas:
+    Integer:
+      type: integer
+      format: date-time
+
+    Number:
+      type: number
+      format: date-time
+
+    String:
+      type: string
+      format: date-time

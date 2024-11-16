@@ -1,6 +1,7 @@
 import copy
 import typing
 import uuid
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 from pydantic.fields import FieldInfo
@@ -766,3 +767,26 @@ def test_schema_boolean_v20(with_schema_boolean_v20):
 
     with pytest.raises(ValidationError):
         B.model_validate({"b": 1})
+
+
+def test_schema_date_types(with_schema_date_types):
+    api = OpenAPI("/", with_schema_date_types)
+    Integer = api.components.schemas["Integer"].get_type()
+    Number = api.components.schemas["Number"].get_type()
+    String = api.components.schemas["String"].get_type()
+
+    from datetime import timezone
+
+    now = datetime.now(tz=timezone.utc)
+    ts = now.timestamp()
+    v = Integer.model_validate(c := int(ts))
+    assert isinstance(v.root, datetime)
+    assert v.model_dump() == c
+
+    v = Number.model_validate(ts)
+    assert isinstance(v.root, datetime)
+    assert v.model_dump() == ts
+
+    v = String.model_validate(str(ts))
+    assert isinstance(v.root, datetime)
+    assert v.model_dump_json()[1:-1] == now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
