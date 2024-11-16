@@ -1,6 +1,6 @@
 from typing import Union, Any, Optional
 
-from pydantic import Field, PrivateAttr
+from pydantic import Field, PrivateAttr, model_validator
 
 from .general import Reference
 from .xml import XML
@@ -40,13 +40,23 @@ class Schema(ObjectExtended, SchemaBase):
     items: Optional[Union[list[Union["Schema", Reference]], Union["Schema", Reference]]] = Field(default=None)
     allOf: list[Union["Schema", Reference]] = Field(default_factory=list)
     properties: dict[str, Union["Schema", Reference]] = Field(default_factory=dict)
-    additionalProperties: Optional[Union[bool, "Schema", Reference]] = Field(default=None)
+    additionalProperties: Optional[Union["Schema", Reference]] = Field(default=None)
 
     discriminator: Optional[str] = Field(default=None)  # 'Discriminator'
     readOnly: Optional[bool] = Field(default=None)
     xml: Optional[XML] = Field(default=None)  # 'XML'
     externalDocs: Optional[dict] = Field(default=None)  # 'ExternalDocs'
     example: Optional[Any] = Field(default=None)
+
+    @model_validator(mode="before")
+    @classmethod
+    def is_boolean_schema(cls, data: Any) -> Any:
+        if not isinstance(data, bool):
+            return data
+        if data:
+            return {}
+        else:
+            return {"not": {}}
 
     def __getstate__(self):
         return SchemaBase.__getstate__(self)
