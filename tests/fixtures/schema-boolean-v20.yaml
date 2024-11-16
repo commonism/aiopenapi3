@@ -15,3 +15,7 @@ definitions:
   A:
     type: object
     additionalProperties: true
+
+  B:
+    type: object
+    additionalProperties: false

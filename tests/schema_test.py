@@ -757,4 +757,12 @@ def test_schema_boolean(with_schema_boolean):
 
 
 def test_schema_boolean_v20(with_schema_boolean_v20):
-    OpenAPI("/", with_schema_boolean_v20)
+    api = OpenAPI("/", with_schema_boolean_v20)
+
+    A = api._root.definitions["A"].get_type()
+    B = api._root.definitions["B"].get_type()
+
+    A.model_validate({"a": 1})
+
+    with pytest.raises(ValidationError):
+        B.model_validate({"b": 1})
