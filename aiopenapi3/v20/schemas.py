@@ -40,7 +40,7 @@ class Schema(ObjectExtended, SchemaBase):
     items: Optional[Union[list[Union["Schema", Reference]], Union["Schema", Reference]]] = Field(default=None)
     allOf: list[Union["Schema", Reference]] = Field(default_factory=list)
     properties: dict[str, Union["Schema", Reference]] = Field(default_factory=dict)
-    additionalProperties: Optional[Union["Schema", Reference]] = Field(default=None)
+    additionalProperties: Optional[Union["Schema", Reference, "_Not"]] = Field(default=None)
 
     discriminator: Optional[str] = Field(default=None)  # 'Discriminator'
     readOnly: Optional[bool] = Field(default=None)
@@ -60,3 +60,7 @@ class Schema(ObjectExtended, SchemaBase):
 
     def __getstate__(self):
         return SchemaBase.__getstate__(self)
+
+
+class _Not(Schema):
+    not_: Optional["Schema"] = Field(alias="not")
