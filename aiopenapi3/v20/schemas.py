@@ -40,7 +40,7 @@ class Schema(ObjectExtended, SchemaBase):
     items: Optional[Union[list[Union["Schema", Reference]], Union["Schema", Reference]]] = Field(default=None)
     allOf: list[Union["Schema", Reference]] = Field(default_factory=list)
     properties: dict[str, Union["Schema", Reference]] = Field(default_factory=dict)
-    additionalProperties: Optional[Union["Schema", Reference, "_Not"]] = Field(default=None)
+    additionalProperties: Optional[Union["Schema", Reference, bool]] = Field(default=None)
 
     discriminator: Optional[str] = Field(default=None)  # 'Discriminator'
     readOnly: Optional[bool] = Field(default=None)
@@ -48,15 +48,15 @@ class Schema(ObjectExtended, SchemaBase):
     externalDocs: Optional[dict] = Field(default=None)  # 'ExternalDocs'
     example: Optional[Any] = Field(default=None)
 
-    @model_validator(mode="before")
+    @model_validator(mode="wrap")
     @classmethod
-    def is_boolean_schema(cls, data: Any) -> Any:
+    def is_boolean_schema(cls, data: Any, handler: "ValidatorFunctionWrapHandler", info: "ValidationInfo") -> Any:
         if not isinstance(data, bool):
-            return data
+            return handler(data)
         if data:
-            return {}
+            return handler(cls.model_validate({}))
         else:
-            return {"not": {}}
+            return handler(_Not.model_validate({"not": {}}))
 
     def __getstate__(self):
         return SchemaBase.__getstate__(self)
