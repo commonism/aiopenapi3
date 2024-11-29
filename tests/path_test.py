@@ -428,6 +428,18 @@ def test_paths_response_header(httpx_mock, with_paths_response_header):
 
 
 @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
+def test_paths_response_content_empty(httpx_mock, with_paths_response_content_empty_vXX):
+    httpx_mock.add_response(status_code=200)
+    api = OpenAPI(URLBASE, with_paths_response_content_empty_vXX, session_factory=httpx.Client)
+    h, b = api._.empty(return_headers=True)
+    assert b is None and h == {}
+
+    httpx_mock.add_response(status_code=200, headers={"X-required": "1"})
+    h, b = api._.headers(return_headers=True)
+    assert b is None and h["X-required"] == "1"
+
+
+@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
 def test_paths_response_content_type_octet(httpx_mock, with_paths_response_content_type_octet):
     CONTENT = b"\x00\x11"
     httpx_mock.add_response(headers={"Content-Type": "application/octet-stream", "X-required": "1"}, content=CONTENT)

@@ -272,6 +272,11 @@ def with_paths_response_header(openapi_version):
     yield _get_parsed_yaml("paths-response-header.yaml", openapi_version)
 
 
+@pytest.fixture(params=["", "-v20"], ids=["v3x", "v20"])
+def with_paths_response_content_empty_vXX(request):
+    return _get_parsed_yaml(f"paths-response-content-empty{request.param}.yaml")
+
+
 @pytest.fixture
 def with_paths_response_content_type_octet(openapi_version):
     yield _get_parsed_yaml("paths-response-content-type-octet.yaml", openapi_version)
