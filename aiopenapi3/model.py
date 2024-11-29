@@ -58,13 +58,16 @@ def generate_type_format_to_class():
 
     type_format_to_class["string"]["byte"] = Base64Str
 
-    from aiopenapi3.models import epoch
+    type_format_to_class["integer"][None] = int
 
-    type_format_to_class["number"]["date-time"] = epoch.Number
+    try:
+        from pydantic_extra_types import epoch
 
-    if "integer" not in type_format_to_class:
-        type_format_to_class["integer"][None] = int
-    type_format_to_class["integer"]["date-time"] = epoch.Integer
+        type_format_to_class["number"]["date-time"] = epoch.Number
+        type_format_to_class["integer"]["date-time"] = epoch.Integer
+
+    except ImportError:
+        pass
 
 
 def class_from_schema(s, _type):
