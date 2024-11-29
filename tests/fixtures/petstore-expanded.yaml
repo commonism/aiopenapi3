@@ -131,10 +131,13 @@ components:
         - type: object
           required:
             - id
+            - properties
           properties:
             id:
               type: integer
               format: int64
+            created:
+              type: integer
 
     NewPet:
       type: object
