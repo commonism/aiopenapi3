@@ -54,7 +54,9 @@ auth = [
 socks = [
     "httpx-socks",
 ]
-
+types =[
+    "pydantic-extra-types @ git+https://github.com/pydantic/pydantic-extra-types.git@3668b3af8ab378c56342c613672aa9415dab865b",
+]
 [project.scripts]
 aiopenapi3 = "aiopenapi3.cli:main"
 
@@ -118,6 +120,7 @@ tests = [
     "bootstrap-flask",
     "ijson",
     "python-multipart>=0.0.6",
+    "pydantic-extra-types @ git+https://github.com/pydantic/pydantic-extra-types.git@3668b3af8ab378c56342c613672aa9415dab865b"
 ]
 
 [tool.pdm]

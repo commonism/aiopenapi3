@@ -24,7 +24,7 @@ if typing.TYPE_CHECKING:
     from .base import DiscriminatorBase
     from ._types import SchemaType, ReferenceType, PrimitiveTypes, DiscriminatorType
 
-type_format_to_class: dict[str, dict[str, type]] = collections.defaultdict(dict)
+type_format_to_class: dict[str, dict[Optional[str], type]] = collections.defaultdict(dict)
 
 log = logging.getLogger("aiopenapi3.model")
 
@@ -58,11 +58,20 @@ def generate_type_format_to_class():
 
     type_format_to_class["string"]["byte"] = Base64Str
 
+    type_format_to_class["integer"][None] = int
+
+    try:
+        from pydantic_extra_types import epoch
+
+        type_format_to_class["number"]["date-time"] = epoch.Number
+        type_format_to_class["integer"]["date-time"] = epoch.Integer
+
+    except ImportError:
+        pass
+
 
 def class_from_schema(s, _type):
-    if _type == "integer":
-        return int
-    elif _type == "boolean":
+    if _type == "boolean":
         return bool
     a = type_format_to_class[_type]
     b = a.get(s.format, a[None])

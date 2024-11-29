@@ -65,15 +65,15 @@ def test_allOf_resolution(petstore_expanded):
         pass
     items = pet.model_fields
 
-    assert sorted(items.keys()) == ["id", "name", "tag"]
+    assert sorted(items.keys()) == ["created", "id", "name", "tag"]
 
     def is_nullable(x):
         # Optional[…] or | None
         return typing.get_origin(x.annotation) == typing.Union and type(None) in typing.get_args(x.annotation)
 
     assert sorted(map(lambda x: x[0], filter(lambda y: is_nullable(y[1]), items.items()))) == sorted(
-        ["tag"]
-    ), ref.schema()
+        ["created", "tag"]
+    ), ref.model_json_schema()
 
     def is_required(x):
         # not assign a default '= Field(default=…)' or '= …'
@@ -81,7 +81,7 @@ def test_allOf_resolution(petstore_expanded):
 
     assert sorted(map(lambda x: x[0], filter(lambda y: is_required(y[1]), items.items()))) == sorted(
         ["id", "name"]
-    ), ref.schema()
+    ), ref.model_json_schema()
 
     assert items["id"].annotation == int
     assert items["name"].annotation == str

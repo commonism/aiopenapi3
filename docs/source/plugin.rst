@@ -128,6 +128,16 @@ Using a Document plugin to modify the parsed description document to state the c
     api = OpenAPI.load_sync("https://try.gitea.io/swagger.v1.json", plugins=[ContentType()])
 
 
+Another example is adding the "format" specifier to an epoch timestamp to have it de-serialized as datetime instead of number/integer.
+
+.. code:: python
+
+    class EpochTimestamp(aiopenapi3.plugin.Document):
+        def parsed(self, ctx):
+            ctx.document["components"]["schemas"]["LogEvent"]["properties"]["timestamp"]["format"] = "date-time"
+            return ctx
+
+
 Message
 =======
 

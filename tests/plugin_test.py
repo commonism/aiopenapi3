@@ -1,7 +1,7 @@
-import httpx
-
+import datetime
 from pathlib import Path
 
+import httpx
 import yarl
 
 from aiopenapi3 import FileSystemLoader, OpenAPI
@@ -43,6 +43,7 @@ class OnDocument(Document):
                     },
                 }
             )
+            ctx.document["components"]["schemas"]["Pet"]["allOf"][1]["properties"]["created"]["format"] = "date-time"
         else:
             raise ValueError(f"unexpected url {ctx.url.path} expecting {self.url}")
 
@@ -57,7 +58,7 @@ class OnMessage(Message):
         return ctx
 
     def received(self, ctx):
-        ctx.received = """[{"id":1,"name":"theanimal", "weight": null}]"""
+        ctx.received = """[{"id":1,"name":"theanimal", "created":4711,"weight": null}]"""
         return ctx
 
     def parsed(self, ctx):
@@ -94,3 +95,4 @@ def test_Plugins(httpx_mock, with_plugin_base):
     assert item.id == 3
     assert item.weight == None  # default does not apply as it it unsed
     assert item.color == "red"  # default does not apply
+    assert item.created == datetime.datetime.fromtimestamp(4711, tz=datetime.timezone.utc)
