@@ -576,6 +576,9 @@ class Request(RequestBase):
             data = self.api.plugins.message.unmarshalled(
                 request=self, operationId=self.operation.operationId, unmarshalled=data
             ).unmarshalled
+
+            self._raise_on_error(result, rheaders, data)
+
             return rheaders, data
         else:
             """
@@ -583,6 +586,8 @@ class Request(RequestBase):
             e.g. application/octet-stream
             but we can't validate it since it's not json.
             """
+            self._raise_on_error(result, rheaders, ctx.received)
+
             return rheaders, ctx.received
 
 

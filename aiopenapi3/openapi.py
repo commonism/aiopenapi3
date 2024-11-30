@@ -232,6 +232,7 @@ class OpenAPI:
         loader: Optional[Loader] = None,
         plugins: Optional[list[Plugin]] = None,
         use_operation_tags: bool = True,
+        raise_on_error: bool = True,
     ) -> None:
         """
         Creates a new OpenAPI document from a loaded spec file.  This is
@@ -244,6 +245,7 @@ class OpenAPI:
         :param loader: the Loader for the description document(s)
         :param plugins: list of plugins
         :param use_operation_tags: honor tags
+        :param raise_on_error: raise an exception if the http status code indicates error
         """
         self._base_url: yarl.URL = yarl.URL(url)
 
@@ -264,6 +266,11 @@ class OpenAPI:
         self._max_response_content_length = 8 * (1024**2)
         """
         Maximum Content-Length in Responses - default to 8 MBytes
+        """
+
+        self._raise_on_error = raise_on_error
+        """
+        Raise for http status code 400-599
         """
 
         self._security: dict[str, tuple[str]] = dict()

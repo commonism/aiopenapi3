@@ -27,8 +27,7 @@ except:  # <= Python 3.10
 
 from .base import HTTP_METHODS, ReferenceBase
 from .version import __version__
-from .errors import RequestError, OperationIdDuplicationError
-
+from .errors import RequestError, OperationIdDuplicationError, HttpServerError, HttpClientError
 
 if typing.TYPE_CHECKING:
     from ._types import (
@@ -217,6 +216,14 @@ class RequestBase:
             files=self.req.files,
         )
         return req
+
+    def _raise_on_error(self, result: httpx.Response, headers: dict[str, str], data: Union[pydantic.BaseModel, bytes]):
+        if self.api._raise_on_error is False:
+            return
+        if 500 <= result.status_code <= 599:
+            raise HttpServerError(headers, data)
+        elif 400 <= result.status_code <= 499:
+            raise HttpClientError(headers, data)
 
     def request(
         self,

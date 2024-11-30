@@ -3,7 +3,7 @@ from typing import Optional
 import dataclasses
 
 import httpx
-
+import pydantic
 
 if typing.TYPE_CHECKING:
     from ._types import (
@@ -187,3 +187,25 @@ class HeadersMissingError(ResponseError):
     def __str__(self):
         return f"""<{self.__class__.__name__} {self.response.request.method} '{self.response.request.url.path}' ({self.operation.operationId})
         {self.missing}>"""
+
+
+class HTTPStatusIndicatedError(HTTPError):
+    """The HTTP Status is 4xx or 5xx"""
+
+    pass
+
+
+@dataclasses.dataclass(repr=False)
+class HttpClientError(HTTPStatusIndicatedError):
+    """response code 4xx"""
+
+    headers: dict[str, str]
+    data: pydantic.BaseModel
+
+
+@dataclasses.dataclass(repr=False)
+class HttpServerError(HTTPStatusIndicatedError):
+    """response code 5xx"""
+
+    headers: dict[str, str]
+    data: pydantic.BaseModel
