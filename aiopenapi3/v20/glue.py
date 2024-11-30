@@ -295,7 +295,7 @@ class Request(RequestBase):
         return headers, expected_response.schema_
 
     def _process_request(self, result: httpx.Response) -> tuple["ResponseHeadersType", "ResponseDataType"]:
-        rheaders: "ResponseHeadersType" = dict()
+        rheaders: "ResponseHeadersType"
         # spec enforces these are strings
         status_code = str(result.status_code)
         content_type = result.headers.get("Content-Type", None)
@@ -315,6 +315,10 @@ class Request(RequestBase):
         expected_response = self._process__status_code(result, status_code)
 
         rheaders = self._process__headers(result, headers, expected_response)
+
+        if expected_response.schema_ is None:
+            """Swagger treats no schema as a response without a body."""
+            return rheaders, None
 
         if status_code == "204":
             return rheaders, None
