@@ -577,7 +577,7 @@ class Request(RequestBase):
                 request=self, operationId=self.operation.operationId, unmarshalled=data
             ).unmarshalled
 
-            self._raise_on_error(result, rheaders, data)
+            self._raise_on_http_status(int(status_code), rheaders, data)
 
             return rheaders, data
         else:
@@ -586,7 +586,7 @@ class Request(RequestBase):
             e.g. application/octet-stream
             but we can't validate it since it's not json.
             """
-            self._raise_on_error(result, rheaders, ctx.received)
+            self._raise_on_http_status(result.status_code, rheaders, ctx.received)
 
             return rheaders, ctx.received
 

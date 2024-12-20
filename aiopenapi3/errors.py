@@ -189,23 +189,27 @@ class HeadersMissingError(ResponseError):
         {self.missing}>"""
 
 
+@dataclasses.dataclass(repr=False)
 class HTTPStatusIndicatedError(HTTPError):
     """The HTTP Status is 4xx or 5xx"""
 
-    pass
+    status_code: int
+    headers: dict[str, str]
+    data: pydantic.BaseModel
+
+    def __str__(self):
+        return f"""<{self.__class__.__name__} {self.status_code} {self.data} {self.headers}>"""
 
 
 @dataclasses.dataclass(repr=False)
 class HttpClientError(HTTPStatusIndicatedError):
     """response code 4xx"""
 
-    headers: dict[str, str]
-    data: pydantic.BaseModel
+    pass
 
 
 @dataclasses.dataclass(repr=False)
 class HttpServerError(HTTPStatusIndicatedError):
     """response code 5xx"""
 
-    headers: dict[str, str]
-    data: pydantic.BaseModel
+    pass

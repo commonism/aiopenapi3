@@ -217,13 +217,10 @@ class RequestBase:
         )
         return req
 
-    def _raise_on_error(self, result: httpx.Response, headers: dict[str, str], data: Union[pydantic.BaseModel, bytes]):
-        if self.api._raise_on_error is False:
-            return
-        if 500 <= result.status_code <= 599:
-            raise HttpServerError(headers, data)
-        elif 400 <= result.status_code <= 499:
-            raise HttpClientError(headers, data)
+    def _raise_on_http_status(self, status_code: int, headers: dict[str, str], data: Union[pydantic.BaseModel, bytes]):
+        for exc, (start, end) in self.api.raise_on_http_status:
+            if start <= status_code <= end:
+                raise exc(status_code, headers, data)
 
     def request(
         self,

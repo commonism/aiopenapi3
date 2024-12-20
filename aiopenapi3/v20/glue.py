@@ -350,11 +350,11 @@ class Request(RequestBase):
                 request=self, operationId=self.operation.operationId, unmarshalled=data
             ).unmarshalled
 
-            self._raise_on_error(result, rheaders, data)
+            self._raise_on_http_status(int(status_code), rheaders, data)
 
             return rheaders, data
         elif self.operation.produces and content_type in self.operation.produces:
-            self._raise_on_error(result, rheaders, ctx.received)
+            self._raise_on_http_status(result.status_code, rheaders, ctx.received)
             return rheaders, ctx.received
         else:
             raise ContentTypeError(

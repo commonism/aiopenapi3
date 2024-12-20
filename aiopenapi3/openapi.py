@@ -28,7 +28,7 @@ from . import v30
 from . import v31
 from . import log
 from .request import OperationIndex, HTTP_METHODS
-from .errors import ReferenceResolutionError
+from .errors import ReferenceResolutionError, HttpClientError, HttpServerError
 from .loader import Loader, NullLoader
 from .plugin import Plugin, Plugins
 from .base import RootBase, ReferenceBase, SchemaBase, OperationBase, DiscriminatorBase
@@ -232,7 +232,6 @@ class OpenAPI:
         loader: Optional[Loader] = None,
         plugins: Optional[list[Plugin]] = None,
         use_operation_tags: bool = True,
-        raise_on_error: bool = True,
     ) -> None:
         """
         Creates a new OpenAPI document from a loaded spec file.  This is
@@ -245,7 +244,6 @@ class OpenAPI:
         :param loader: the Loader for the description document(s)
         :param plugins: list of plugins
         :param use_operation_tags: honor tags
-        :param raise_on_error: raise an exception if the http status code indicates error
         """
         self._base_url: yarl.URL = yarl.URL(url)
 
@@ -268,9 +266,12 @@ class OpenAPI:
         Maximum Content-Length in Responses - default to 8 MBytes
         """
 
-        self._raise_on_error = raise_on_error
+        self.raise_on_http_status: list[tuple[type[Exception], tuple[int, int]]] = [
+            (HttpClientError, (400, 499)),
+            (HttpServerError, (500, 599)),
+        ]
         """
-        Raise for http status code 400-599
+        Raise for http status code
         """
 
         self._security: dict[str, tuple[str]] = dict()
