@@ -486,7 +486,8 @@ def test_paths_tags(httpx_mock, with_paths_tags):
 
 
 def test_paths_response_status_pattern_default(httpx_mock, with_paths_response_status_pattern_default):
-    api = OpenAPI("/", with_paths_response_status_pattern_default, session_factory=httpx.Client, raise_on_error=False)
+    api = OpenAPI("/", with_paths_response_status_pattern_default, session_factory=httpx.Client)
+    api.raise_on_http_status = []
 
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=201, json="created")
     r = api._.test()
@@ -511,7 +512,7 @@ def test_paths_response_status_pattern_default(httpx_mock, with_paths_response_s
         api._.test()
 
 
-def test_paths_response_error(httpx_mock, with_paths_response_error_vXX):
+def test_paths_response_error(mocker, httpx_mock, with_paths_response_error_vXX):
     from aiopenapi3 import ResponseSchemaError, ContentTypeError, HTTPStatusError, ResponseDecodingError
 
     api = OpenAPI("/", with_paths_response_error_vXX, session_factory=httpx.Client)
@@ -545,7 +546,7 @@ def test_paths_response_error(httpx_mock, with_paths_response_error_vXX):
         api._.test()
 
     httpx_mock.add_response(headers={"Content-Type": "application/json", "X-required": "1"}, status_code=437, json="ok")
-    api._raise_on_error = False
+    mocker.patch.object(api, "raise_on_http_status", return_value=[], autospec=True)
     api._.test()
 
 
