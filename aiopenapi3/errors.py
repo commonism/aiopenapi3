@@ -202,14 +202,14 @@ class HTTPStatusIndicatedError(HTTPError):
 
 
 @dataclasses.dataclass(repr=False)
-class HttpClientError(HTTPStatusIndicatedError):
+class HTTPClientError(HTTPStatusIndicatedError):
     """response code 4xx"""
 
     pass
 
 
 @dataclasses.dataclass(repr=False)
-class HttpServerError(HTTPStatusIndicatedError):
+class HTTPServerError(HTTPStatusIndicatedError):
     """response code 5xx"""
 
     pass

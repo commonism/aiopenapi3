@@ -28,7 +28,7 @@ from . import v30
 from . import v31
 from . import log
 from .request import OperationIndex, HTTP_METHODS
-from .errors import ReferenceResolutionError, HttpClientError, HttpServerError
+from .errors import ReferenceResolutionError, HTTPClientError, HTTPServerError
 from .loader import Loader, NullLoader
 from .plugin import Plugin, Plugins
 from .base import RootBase, ReferenceBase, SchemaBase, OperationBase, DiscriminatorBase
@@ -267,8 +267,8 @@ class OpenAPI:
         """
 
         self.raise_on_http_status: list[tuple[type[Exception], tuple[int, int]]] = [
-            (HttpClientError, (400, 499)),
-            (HttpServerError, (500, 599)),
+            (HTTPClientError, (400, 499)),
+            (HTTPServerError, (500, 599)),
         ]
         """
         Raise for http status code

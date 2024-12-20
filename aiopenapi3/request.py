@@ -27,7 +27,7 @@ except:  # <= Python 3.10
 
 from .base import HTTP_METHODS, ReferenceBase
 from .version import __version__
-from .errors import RequestError, OperationIdDuplicationError, HttpServerError, HttpClientError
+from .errors import RequestError, OperationIdDuplicationError, HTTPServerError, HTTPClientError
 
 if typing.TYPE_CHECKING:
     from ._types import (

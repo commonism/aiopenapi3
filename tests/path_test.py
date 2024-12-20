@@ -16,8 +16,8 @@ from aiopenapi3.errors import (
     OperationParameterValidationError,
     OperationIdDuplicationError,
     HeadersMissingError,
-    HttpClientError,
-    HttpServerError,
+    HTTPClientError,
+    HTTPServerError,
 )
 
 URLBASE = "/"
@@ -538,11 +538,11 @@ def test_paths_response_error(mocker, httpx_mock, with_paths_response_error_vXX)
         api._.test()
 
     httpx_mock.add_response(headers={"Content-Type": "application/json", "X-required": "1"}, status_code=437, json="ok")
-    with pytest.raises(HttpClientError):
+    with pytest.raises(HTTPClientError):
         api._.test()
 
     httpx_mock.add_response(headers={"Content-Type": "application/json", "X-required": "1"}, status_code=537, json="ok")
-    with pytest.raises(HttpServerError):
+    with pytest.raises(HTTPServerError):
         api._.test()
 
     httpx_mock.add_response(headers={"Content-Type": "application/json", "X-required": "1"}, status_code=437, json="ok")

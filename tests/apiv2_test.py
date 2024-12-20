@@ -180,9 +180,11 @@ async def test_createPet(server, client):
     r = await client._.createPet(data=data)
     assert isinstance(r, client.components.schemas["Cat"].get_type())
 
-    r = await client._.createPet(data=randomPet(client, name=r.root.name))
+    with pytest.raises(aiopenapi3.errors.HTTPClientError) as e:
+        await client._.createPet(data=randomPet(client, name=r.root.name))
+
     Error = client.components.schemas["Error"].get_type()
-    assert isinstance(r, Error)
+    assert isinstance(e.value.data, Error)
     # type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
 
     with pytest.raises(pydantic.ValidationError):
@@ -196,8 +198,11 @@ async def test_listPet(server, client):
     l = await client._.listPet(parameters={"limit": 1})
     assert len(l) > 0
 
-    l = await client._.listPet(parameters={"limit": None})
-    assert isinstance(l, client.components.schemas["HTTPValidationError"].get_type())
+    with pytest.raises(aiopenapi3.errors.HTTPClientError) as e:
+        await client._.listPet(parameters={"limit": None})
+
+    Error = client.components.schemas["HTTPValidationError"].get_type()
+    assert isinstance(e.value.data, Error)
 
 
 @pytest.mark.asyncio(loop_scope="session")
@@ -209,21 +214,26 @@ async def test_getPet(server, client):
     #   https://github.com/tiangolo/fastapi/pull/10011
     #    assert type(r.root).model_json_schema() == type(pet.root).model_json_schema()
 
-    r = await client._.getPet(parameters={"petId": "-1"})
-    assert type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
+    with pytest.raises(aiopenapi3.errors.HTTPClientError) as e:
+        await client._.getPet(parameters={"petId": "-1"})
+
+    assert type(e.value.data).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
 
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_deletePet(server, client):
-    r = await client._.deletePet(parameters={"petId": uuid.uuid4(), "x-raise-nonexist": False})
-    assert type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
+
+    with pytest.raises(aiopenapi3.errors.HTTPClientError) as e:
+        await client._.deletePet(parameters={"petId": str(uuid.uuid4()), "x-raise-nonexist": True})
+
+    assert type(e.value.data).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
 
     await client._.createPet(data=randomPet(client, str(uuid.uuid4())))
     zoo = await client._.listPet(parameters={"limit": 1})
     for pet in zoo:
         while hasattr(pet, "root"):
             pet = pet.root
-        await client._.deletePet(parameters={"petId": pet.identifier, "x-raise-nonexist": None})
+        await client._.deletePet(parameters={"petId": pet.identifier, "x-raise-nonexist": False})
 
 
 @pytest.mark.asyncio(loop_scope="session")

@@ -57,9 +57,9 @@ def listPet(limit: Optional[int] = None) -> schema.Pets:
 
 @router.get("/pets/{petId}", operation_id="getPet", response_model=schema.Pet, responses={404: {"model": schema.Error}})
 def getPet(pet_id: str = Path(..., alias="petId")) -> schema.Pets:
-    for k, v in ZOO.items():
-        if pet_id == v.identifier:
-            return v
+    for k, pet in ZOO.items():
+        if pet_id == pet.identifier:
+            return pet
     else:
         return JSONResponse(
             status_code=starlette.status.HTTP_404_NOT_FOUND,
@@ -73,10 +73,10 @@ def getPet(pet_id: str = Path(..., alias="petId")) -> schema.Pets:
 def deletePet(
     response: Response,
     x_raise_nonexist: Annotated[Union[bool, None], Header()],
-    pet_id: uuid.UUID = Path(..., alias="petId"),
+    pet_id: str = Path(..., alias="petId"),
 ) -> None:
-    for k, v in ZOO.items():
-        if pet_id == v.identifier:
+    for k, pet in ZOO.items():
+        if pet_id == pet.identifier:
             del ZOO[k]
             response.status_code = starlette.status.HTTP_204_NO_CONTENT
             return response
