@@ -12,6 +12,8 @@ from . import schema
 
 from fastapi_versioning import versioned_api_route
 
+from pydantic import RootModel
+
 router = APIRouter(route_class=versioned_api_route(2))
 
 ZOO = dict()
