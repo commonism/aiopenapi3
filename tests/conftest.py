@@ -518,9 +518,9 @@ def with_paths_server_variables(openapi_version):
     yield _get_parsed_yaml("paths-server-variables.yaml", openapi_version)
 
 
-@pytest.fixture
-def with_paths_response_error():
-    yield _get_parsed_yaml("paths-response-error.yaml")
+@pytest.fixture(params=["", "-v20"], ids=["v3x", "v20"])
+def with_paths_response_error_vXX(request):
+    return _get_parsed_yaml(f"paths-response-error{request.param}.yaml")
 
 
 @pytest.fixture

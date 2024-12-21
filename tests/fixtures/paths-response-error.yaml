@@ -20,3 +20,27 @@ paths:
               schema:
                 type: string
                 const: ok
+        "437":
+          description: "client error"
+          content:
+            application/json:
+              schema:
+                type: string
+                const: ok
+          headers:
+            X-required:
+              schema:
+                type: string
+              required: true
+        "537":
+          description: "server error"
+          content:
+            application/json:
+              schema:
+                type: string
+                const: ok
+          headers:
+            X-required:
+              schema:
+                type: string
+              required: true

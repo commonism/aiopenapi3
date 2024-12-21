@@ -7,7 +7,7 @@ API
 General
 =======
 .. autoclass:: aiopenapi3.OpenAPI
-    :members: authenticate, createRequest, load_async, load_file, load_sync, loads, clone, cache_load, cache_store, _
+    :members: authenticate, createRequest, load_async, load_file, load_sync, loads, clone, cache_load, cache_store, _, raise_on_http_status
 
 
 Requests
@@ -266,7 +266,7 @@ Exceptions
 
 There is different types of Exceptions used depending on the subsystem/failure.
 
-.. inheritance-diagram:: aiopenapi3.errors.SpecError aiopenapi3.errors.ReferenceResolutionError aiopenapi3.errors.OperationParameterValidationError aiopenapi3.errors.ParameterFormatError aiopenapi3.errors.HTTPError aiopenapi3.errors.RequestError aiopenapi3.errors.ResponseError aiopenapi3.errors.ContentTypeError aiopenapi3.errors.HTTPStatusError aiopenapi3.errors.ResponseDecodingError aiopenapi3.errors.ResponseSchemaError aiopenapi3.errors.ContentLengthExceededError aiopenapi3.errors.HeadersMissingError
+.. inheritance-diagram:: aiopenapi3.errors.SpecError aiopenapi3.errors.ReferenceResolutionError aiopenapi3.errors.OperationParameterValidationError aiopenapi3.errors.ParameterFormatError aiopenapi3.errors.HTTPError aiopenapi3.errors.RequestError aiopenapi3.errors.ResponseError aiopenapi3.errors.ContentTypeError aiopenapi3.errors.HTTPStatusError aiopenapi3.errors.ResponseDecodingError aiopenapi3.errors.ResponseSchemaError aiopenapi3.errors.ContentLengthExceededError aiopenapi3.errors.HeadersMissingError aiopenapi3.errors.HTTPStatusIndicatedError aiopenapi3.errors.HTTPClientError aiopenapi3.errors.HTTPServerError
     :top-classes: aiopenapi3.errors.BaseError
     :parts: -2
 
@@ -348,6 +348,24 @@ document.
     :undoc-members:
 
 .. autoexception:: HeadersMissingError
+    :members:
+    :undoc-members:
+
+HTTP Status
+-----------
+.. inheritance-diagram:: aiopenapi3.errors.HTTPStatusIndicatedError aiopenapi3.errors.HTTPClientError aiopenapi3.errors.HTTPServerError
+   :top-classes: aiopenapi3.errors.HTTPStatusIndicatedError
+   :parts: -2
+
+.. autoexception:: HTTPStatusIndicatedError
+    :members:
+    :undoc-members:
+
+.. autoexception:: HTTPClientError
+    :members:
+    :undoc-members:
+
+.. autoexception:: HTTPServerError
     :members:
     :undoc-members:
 

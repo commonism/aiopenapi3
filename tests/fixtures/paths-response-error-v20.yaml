@@ -1,0 +1,46 @@
+swagger: "2.0"
+info:
+  title: with response headers
+  description: with response headers
+  version: 1.0.0
+host: api.example.com
+basePath: /v1
+schemes:
+  - https
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+definitions: {}
+
+paths:
+  /test:
+    get:
+      operationId: test
+      responses:
+        "200":
+          description: "ok"
+          schema:
+            type: string
+            enum: ["ok"]
+
+        "437":
+          description: "client error"
+          schema:
+            type: string
+            enum: ["ok"]
+
+          headers:
+            X-required:
+              type: string
+
+        "537":
+          description: "server error"
+          schema:
+            type: string
+            enum: ["ok"]
+          headers:
+            X-required:
+              type: string

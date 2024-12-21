@@ -27,8 +27,7 @@ except:  # <= Python 3.10
 
 from .base import HTTP_METHODS, ReferenceBase
 from .version import __version__
-from .errors import RequestError, OperationIdDuplicationError
-
+from .errors import RequestError, OperationIdDuplicationError, HTTPServerError, HTTPClientError
 
 if typing.TYPE_CHECKING:
     from ._types import (
@@ -217,6 +216,11 @@ class RequestBase:
             files=self.req.files,
         )
         return req
+
+    def _raise_on_http_status(self, status_code: int, headers: dict[str, str], data: Union[pydantic.BaseModel, bytes]):
+        for exc, (start, end) in self.api.raise_on_http_status:
+            if start <= status_code <= end:
+                raise exc(status_code, headers, data)
 
     def request(
         self,

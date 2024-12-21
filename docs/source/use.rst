@@ -188,6 +188,14 @@ And …
 
     api._.repoDelete(parameters={"owner":user.login, "repo":"rtd"})
 
+
+Request Errors
+--------------
+
+Starting version 0.8.0 aiopenapi3 :ref:`raises <api:HTTP Status>` HTTPClientError for 400 <= http_code <= 499 and HTTPServerError for 500 to 599.
+
+This is customizable via :obj:`aiopenapi3.OpenAPI.raise_on_http_status`.
+
 async
 =====
 Difference when using asyncio - await.
