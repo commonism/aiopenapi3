@@ -92,6 +92,7 @@ def api():
     api = OpenAPI.load_sync(
         url, plugins=[OnDocument(), OnMessage()], session_factory=session_factory, use_operation_tags=False
     )
+    api.raise_on_http_status = []
     api.authenticate(api_key="special-key")
     return api
 

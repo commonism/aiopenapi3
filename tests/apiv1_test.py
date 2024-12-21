@@ -55,8 +55,9 @@ async def test_createPet(server, client):
     assert type(r).model_json_schema() == client.components.schemas["Pet"].get_type().model_json_schema()
     assert h["X-Limit-Remain"] == 5
 
-    r = await asyncio.to_thread(client._.createPet, data={"pet": {"name": r.name}})
-    assert type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
+    with pytest.raises(aiopenapi3.errors.HTTPClientError) as e:
+        await asyncio.to_thread(client._.createPet, data={"pet": {"name": r.name}})
+    assert type(e.value.data).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
 
 
 @pytest.mark.asyncio(loop_scope="session")
@@ -74,15 +75,18 @@ async def test_getPet(server, client):
     # assert type(r).model_json_schema() == type(pet).model_json_schema()
     assert r.id == pet.id
 
-    r = await asyncio.to_thread(client._.getPet, parameters={"petId": -1})
-    assert type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
+    with pytest.raises(aiopenapi3.errors.HTTPClientError) as e:
+        await asyncio.to_thread(client._.getPet, parameters={"petId": -1})
+
+    assert type(e.value.data).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
 
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_deletePet(server, client):
-    r = await asyncio.to_thread(client._.deletePet, parameters={"petId": -1})
-    print(r)
-    assert type(r).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
+    with pytest.raises(aiopenapi3.errors.HTTPClientError) as e:
+        await asyncio.to_thread(client._.deletePet, parameters={"petId": -1})
+
+    assert type(e.value.data).model_json_schema() == client.components.schemas["Error"].get_type().model_json_schema()
 
     await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
     zoo = await asyncio.to_thread(client._.listPet)

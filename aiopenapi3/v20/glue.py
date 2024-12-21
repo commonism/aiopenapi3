@@ -17,6 +17,7 @@ from ..base import SchemaBase, ParameterBase, ReferenceBase
 from ..request import RequestBase, AsyncRequestBase
 from ..errors import HTTPStatusError, ContentTypeError, ResponseSchemaError, ResponseDecodingError, HeadersMissingError
 
+
 from .parameter import Parameter
 from .root import Root
 
@@ -348,9 +349,13 @@ class Request(RequestBase):
             data = self.api.plugins.message.unmarshalled(
                 request=self, operationId=self.operation.operationId, unmarshalled=data
             ).unmarshalled
+
+            self._raise_on_http_status(int(status_code), rheaders, data)
+
             return rheaders, data
         elif self.operation.produces and content_type in self.operation.produces:
-            return rheaders, result.content
+            self._raise_on_http_status(result.status_code, rheaders, ctx.received)
+            return rheaders, ctx.received
         else:
             raise ContentTypeError(
                 self.operation,

@@ -7,8 +7,8 @@ import httpx
 import pytest
 
 
-def test_response_error(httpx_mock, with_paths_response_error):
-    api = OpenAPI("/", with_paths_response_error, session_factory=httpx.Client)
+def test_response_error(httpx_mock, with_paths_response_error_vXX):
+    api = OpenAPI("/", with_paths_response_error_vXX, session_factory=httpx.Client)
 
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=200, json="ok")
     r = api._.test()
@@ -35,7 +35,7 @@ def test_response_error(httpx_mock, with_paths_response_error):
     str(e.value)
 
 
-def test_request_error(with_paths_response_error):
+def test_request_error(with_paths_response_error_vXX):
     class Client(httpx.Client):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, transport=RaisingTransport(), **kwargs)
@@ -44,7 +44,7 @@ def test_request_error(with_paths_response_error):
         def handle_request(self, request):
             raise httpx.TimeoutException(message="timeout")
 
-    api = OpenAPI("/", with_paths_response_error, session_factory=Client)
+    api = OpenAPI("/", with_paths_response_error_vXX, session_factory=Client)
 
     with pytest.raises(RequestError) as e:
         api._.test()

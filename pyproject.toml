@@ -107,6 +107,7 @@ tests = [
     "pytest-asyncio>=0.24.0",
     "pytest-httpx",
     "pytest-cov",
+    "pytest-mock",
     "fastapi",
     "fastapi-versioning",
     "uvloop == 0.21.0b1; python_version >= '3.13'",
