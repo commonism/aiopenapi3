@@ -396,3 +396,21 @@ Code below will eleminate all schemas not required to serve the operations ident
 .. autoclass:: Reduce
     :members: __init__
 .. autoclass:: Cull
+
+
+Cookies
+-------
+
+This plugin extracts cookies from responses and adds them to requests.
+It does not satisfy security or parameter requirements defined in the description document.
+
+.. code:: python
+
+    api = OpenAPI.load_sync(
+        "http://127.0.0.1/api.yaml",
+        plugins=[
+            Cookies()
+        ],
+    )
+
+.. autoclass:: Cookies

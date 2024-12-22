@@ -3,10 +3,10 @@ from typing import Union, Optional
 import logging
 import re
 
-from .plugin import Document, Init
+from ..plugin import Document, Init
 
 if typing.TYPE_CHECKING:
-    from ._types import HTTPMethodMatchType, PathItemType
+    from .._types import HTTPMethodMatchType, PathItemType
 
     PathMatchType = Union[re.Pattern, str]
     OperationIdMatchType = Union[re.Pattern, str]
