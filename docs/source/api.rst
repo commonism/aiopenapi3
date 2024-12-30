@@ -401,15 +401,18 @@ Code below will eleminate all schemas not required to serve the operations ident
 Cookies
 -------
 
-This plugin extracts cookies from responses and adds them to requests.
-It does not satisfy security or parameter requirements defined in the description document.
+This plugin deals with cookies from responses and adds in requests based on a policy.
+
+There are two policies:
+* securitySchemes - only cookies whose name is in the securitySchemes are used. To match authentication requirements credentials are set via OpenAPI.authenticate(name=value)
+* jar - all cookies are used, basically like a browser would do. Cookies not mentioned in securitySchemes are set besides OpenAPI.authenticate() to allow using them without adjusting the description document.
 
 .. code:: python
 
     api = OpenAPI.load_sync(
         "http://127.0.0.1/api.yaml",
         plugins=[
-            Cookies()
+            Cookies(policy="jar")
         ],
     )
 

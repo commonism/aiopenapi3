@@ -1,0 +1,41 @@
+openapi: 3.0.3
+info:
+  title: ''
+  version: 0.0.0
+servers:
+  - url: http://127.0.0.1/api
+
+security:
+  - cookieAuth: []
+
+paths:
+  /set-cookie:
+    get:
+      operationId: set_cookie
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: ''
+      security: []
+
+  /require-cookie:
+    get:
+      operationId: require_cookie
+      description: ''
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: ''
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: Session

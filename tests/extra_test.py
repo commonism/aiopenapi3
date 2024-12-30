@@ -199,3 +199,39 @@ def test_reduced(with_extra_reduced, httpx_mock, compressor):
     assert "A1" in api.components.schemas
     assert "A" in api.components.responses
     assert "A" in api.components.requestBodies
+
+
+from aiopenapi3.extra import Cookies
+
+
+@pytest.mark.parametrize("cookie", [dict(policy="jar"), dict(policy="securitySchemes")], ids=["jar", "securityScheme"])
+def test_cookies(httpx_mock, with_extra_cookie, cookie):
+
+    api = OpenAPI(
+        "http://127.0.0.1/api.yaml",
+        with_extra_cookie,
+        session_factory=httpx.Client,
+        plugins=[Cookies(**cookie)],
+    )
+
+    httpx_mock.add_response(
+        url="http://127.0.0.1/api/set-cookie",
+        headers=[("Set-Cookie", "Session=value"), ("Set-Cookie", "a=b")],
+        json='"ok"',
+    )
+    api._.set_cookie()
+
+    if cookie["policy"] == "jar":
+        httpx_mock.add_response(
+            url="http://127.0.0.1/api/require-cookie", match_headers={"Cookie": "Session=value; a=b"}, json='"ok"'
+        )
+    else:
+        httpx_mock.add_response(
+            url="http://127.0.0.1/api/require-cookie", match_headers={"Cookie": "Session=value"}, json='"ok"'
+        )
+    api._.require_cookie()
+
+    req = httpx_mock.get_requests()[-1]
+
+    if cookie["policy"] == "securitySchemes":
+        assert req.headers.get_list("cookie") == ["Session=value"]

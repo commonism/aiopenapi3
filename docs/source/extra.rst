@@ -22,5 +22,3 @@ As an example for additional steps based on the `Microsoft Graph API <https://gi
 Cookies
 =======
 To assist in dealing with cookie requirements of some APIs, :class:`aiopenapi3.extra.Cookies` can be used.
-As the plugin adds the cookie directly to the outgoing request before sending,
-cookie parameter or authentication security requirements specified in the description document can not be met.

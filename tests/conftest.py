@@ -381,6 +381,11 @@ def with_extra_reduced():
 
 
 @pytest.fixture
+def with_extra_cookie(openapi_version):
+    yield _get_parsed_yaml("extra-cookie.yaml", openapi_version)
+
+
+@pytest.fixture
 def with_schema_self_recursion(openapi_version):
     yield _get_parsed_yaml("schema-self-recursion.yaml", openapi_version)
 
