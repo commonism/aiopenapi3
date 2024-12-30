@@ -71,7 +71,7 @@ class Cookies(aiopenapi3.plugin.Message, aiopenapi3.plugin.Init):
 
         for cookie in cookies:
             if not self.cookiejar._policy.set_ok(cookie, request):
-                continue
+                continue  # pragma: no cover
 
             if (ss := self.schemes.get(cookie.name)) is not None:
                 self.api.authenticate(**{ss: cookie.value})
