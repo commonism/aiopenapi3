@@ -424,6 +424,7 @@ class Request(RequestBase):
                 assert media.schema_
                 raise TypeError((type(data_), media.schema_.get_type()))
 
+            # sending is unset here
             ctx = self.api.plugins.message.sending(
                 request=self,
                 operationId=self.operation.operationId,
@@ -431,7 +432,6 @@ class Request(RequestBase):
                 headers=self.req.headers,
                 cookies=self.req.cookies,
             )
-            self.req.content = ctx.sending
             self.req.headers = ctx.headers
             self.req.cookies = ctx.cookies
 
