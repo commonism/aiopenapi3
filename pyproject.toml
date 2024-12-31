@@ -6,7 +6,7 @@ authors = [
 ]
 dependencies = [
     "PyYaml",
-    "pydantic",
+    "pydantic!=2.10.*",
     "email-validator",
     "yarl",
     "httpx",
@@ -55,7 +55,7 @@ socks = [
     "httpx-socks",
 ]
 types =[
-    "pydantic-extra-types @ git+https://github.com/pydantic/pydantic-extra-types.git@3668b3af8ab378c56342c613672aa9415dab865b",
+    "pydantic-extra-types>=2.10.1",
 ]
 [project.scripts]
 aiopenapi3 = "aiopenapi3.cli:main"
