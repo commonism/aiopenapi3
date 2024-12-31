@@ -239,9 +239,4 @@ def test_cookies(httpx_mock, with_extra_cookie, cookie):
 
 def test_cookies_policy(with_extra_cookie):
     with pytest.raises(ValueError, match="policy … is not a valid policy"):
-        OpenAPI(
-            "http://127.0.0.1/api.yaml",
-            with_extra_cookie,
-            session_factory=httpx.Client,
-            plugins=[Cookies(policy="…")],
-        )
+        Cookies(policy="…")

@@ -21,11 +21,9 @@ class Cookies(aiopenapi3.plugin.Message, aiopenapi3.plugin.Init):
             self.ctx = ctx
 
         def add_unredirected_header(self, key: str, value: str) -> None:
-            if key.lower() == "cookie":
-                name, _, value = value.partition("=")
-                self.ctx.cookies[name] = value
-            else:
-                self.ctx.headers[key] = value
+            assert key.lower() == "cookie"
+            name, _, value = value.partition("=")
+            self.ctx.cookies[name] = value
 
     class _Response:
         """
@@ -45,22 +43,23 @@ class Cookies(aiopenapi3.plugin.Message, aiopenapi3.plugin.Init):
     def __init__(
         self, cookiejar: http.cookiejar.CookieJar = None, policy: Literal["jar", "securitySchemes"] = "jar"
     ) -> None:
-        self.cookiejar = cookiejar or http.cookiejar.CookieJar()
-        self.policy = policy
-        self.schemes: dict[str, str] = None
+        self.cookiejar: http.cookiejar.CookieJar = cookiejar or http.cookiejar.CookieJar()
+        self.policy: Literal["jar", "securitySchemes"] = policy
+        self.schemes: dict[str, str] = dict()
+
+        if policy not in ["jar", "securitySchemes"]:
+            raise ValueError(f"policy {self.policy} is not a valid policy")
+
         super().__init__()
 
     def initialized(self, ctx: "aiopenapi3.plugin.Init.Context") -> "aiopenapi3.plugin.Init.Context":
-        if self.policy in ["securitySchemes", "jar"]:
-            self.schemes = {
-                v.root.name: k
-                for k, v in filter(
-                    lambda x: (x[1].root.type.lower(), x[1].root.in_) == ("apikey", "cookie"),
-                    self.api.components.securitySchemes.items(),
-                )
-            }
-        else:
-            raise ValueError(f"policy {self.policy} is not a valid policy")
+        self.schemes = {
+            v.root.name: k
+            for k, v in filter(
+                lambda x: (x[1].root.type.lower(), x[1].root.in_) == ("apikey", "cookie"),
+                self.api.components.securitySchemes.items(),
+            )
+        }
         return ctx
 
     def received(self, ctx: "aiopenapi3.plugin.Message.Context") -> "aiopenapi3.plugin.Message.Context":
