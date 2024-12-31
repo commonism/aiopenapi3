@@ -43,6 +43,16 @@ class Cookies(aiopenapi3.plugin.Message, aiopenapi3.plugin.Init):
     def __init__(
         self, cookiejar: http.cookiejar.CookieJar = None, policy: Literal["jar", "securitySchemes"] = "jar"
     ) -> None:
+        """
+
+        :param cookiejar: a cookiejar.CookieJar instance
+        :param policy: There are two policies:
+
+            * securitySchemes - only cookies whose name is in the securitySchemes are used. To match authentication \
+            requirements credentials are set via OpenAPI.authenticate(name=value)
+            * jar - all cookies are used, basically like a browser would do. Cookies not mentioned in securitySchemes \
+            are set besides OpenAPI.authenticate() to allow using them without adjusting the description document.
+        """
         self.cookiejar: http.cookiejar.CookieJar = cookiejar or http.cookiejar.CookieJar()
         self.policy: Literal["jar", "securitySchemes"] = policy
         self.schemes: dict[str, str] = dict()
