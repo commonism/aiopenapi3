@@ -599,25 +599,31 @@ class Request(RequestBase):
 
         if content_type.lower() == "application/json":
             data = ctx.received
+            expected_type = getattr(expected_media.schema_, "_target", expected_media.schema_)
+
             try:
                 data = json.loads(data)
             except json.decoder.JSONDecodeError:
                 raise ResponseDecodingError(self.operation, data, result)
-            data = self.api.plugins.message.parsed(
+            ctx = self.api.plugins.message.parsed(
                 request=self,
                 operationId=self.operation.operationId,
+                headers=headers,
                 parsed=data,
-                expected_type=getattr(expected_media.schema_, "_target", expected_media.schema_),
+                expected_type=expected_type,
                 status_code=status_code,
-            ).parsed
+            )
 
-            if expected_media.schema_ is None:
-                raise ResponseSchemaError(self.operation, expected_media, expected_media.schema_, result, None)
+            data = ctx.parsed
+            expected_type = ctx.expected_type
+
+            if expected_type is None:
+                raise ResponseSchemaError(self.operation, expected_media, expected_type, result, None)
 
             try:
-                data = expected_media.schema_.model(data)
+                data = expected_type.model(data)
             except pydantic.ValidationError as e:
-                raise ResponseSchemaError(self.operation, expected_media, expected_media.schema_, result, e)
+                raise ResponseSchemaError(self.operation, expected_media, expected_type, result, e)
 
             data = self.api.plugins.message.unmarshalled(
                 request=self, operationId=self.operation.operationId, unmarshalled=data
