@@ -172,7 +172,7 @@ class Request(RequestBase):
                 self.req.headers[ss.name] = value
 
             if ss.in_ == "cookie":
-                self.req.cookies = {ss.name: value}
+                self.req.cookies[ss.name] = value
 
     def _prepare_secschemes_extra(self, scheme: str, value: Union[str, Sequence[str]]) -> None:
         assert (
@@ -251,7 +251,7 @@ class Request(RequestBase):
                 auths.append(auth(value, ss.name))
 
             if ss.in_ == "cookie":
-                self.req.cookies = {ss.name: value}
+                self.req.cookies[ss.name] = value
 
         for auth in auths:
             if self.req.auth and isinstance(self.req.auth, SupportMultiAuth):
@@ -341,10 +341,15 @@ class Request(RequestBase):
 
         if not self.operation.requestBody:
             ctx = self.api.plugins.message.sending(
-                request=self, operationId=self.operation.operationId, sending=None, headers=self.req.headers
+                request=self,
+                operationId=self.operation.operationId,
+                sending=None,
+                headers=self.req.headers,
+                cookies=self.req.cookies,
             )
             self.req.content = ctx.sending
             self.req.headers = ctx.headers
+            self.req.cookies = ctx.cookies
             return
 
         if data_ is None and self.operation.requestBody.required:
@@ -364,10 +369,15 @@ class Request(RequestBase):
             data: bytes = data.encode()  # type: ignore[union-attr]
             self.req.headers["Content-Type"] = "application/json"
             ctx = self.api.plugins.message.sending(
-                request=self, operationId=self.operation.operationId, sending=data, headers=self.req.headers
+                request=self,
+                operationId=self.operation.operationId,
+                sending=data,
+                headers=self.req.headers,
+                cookies=self.req.cookies,
             )
             self.req.content = ctx.sending
             self.req.headers = ctx.headers
+            self.req.cookies = ctx.cookies
         elif (ct := "multipart/form-data") in self.operation.requestBody.content:
             """
             https://swagger.io/docs/specification/describing-request-body/multipart-requests/
@@ -413,6 +423,18 @@ class Request(RequestBase):
             else:
                 assert media.schema_
                 raise TypeError((type(data_), media.schema_.get_type()))
+
+            # sending is unset here
+            ctx = self.api.plugins.message.sending(
+                request=self,
+                operationId=self.operation.operationId,
+                sending=None,
+                headers=self.req.headers,
+                cookies=self.req.cookies,
+            )
+            self.req.headers = ctx.headers
+            self.req.cookies = ctx.cookies
+
         elif (ct := "application/x-www-form-urlencoded") in self.operation.requestBody.content:
             self.req.headers["Content-Type"] = ct
             media: aiopenapi3.v30.media.MediaType = self.operation.requestBody.content[ct]
@@ -424,6 +446,18 @@ class Request(RequestBase):
             params = parameters_from_urlencoded(data_, media)
             content = urllib.parse.urlencode(params, doseq=True)
             self.req.content = content
+
+            ctx = self.api.plugins.message.sending(
+                request=self,
+                operationId=self.operation.operationId,
+                sending=self.req.content,
+                headers=self.req.headers,
+                cookies=self.req.cookies,
+            )
+            self.req.content = ctx.sending
+            self.req.headers = ctx.headers
+            self.req.cookies = ctx.cookies
+
         elif (ct := "application/octet-stream") in self.operation.requestBody.content:
             self.req.headers["Content-Type"] = ct
             value: "RequestFileParameter"
@@ -434,6 +468,18 @@ class Request(RequestBase):
                 self.req.content = data_
             else:
                 raise TypeError(data_)
+
+            ctx = self.api.plugins.message.sending(
+                request=self,
+                operationId=self.operation.operationId,
+                sending=self.req.content,
+                headers=self.req.headers,
+                cookies=self.req.cookies,
+            )
+            self.req.content = ctx.sending
+            self.req.headers = ctx.headers
+            self.req.cookies = ctx.cookies
+
         else:
             raise NotImplementedError(self.operation.requestBody.content)
 
