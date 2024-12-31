@@ -69,7 +69,8 @@ packages = [
     "aiopenapi3",
     "aiopenapi3.v20",
     "aiopenapi3.v30",
-    "aiopenapi3.v31"
+    "aiopenapi3.v31",
+    "aiopenapi3.extra"
 ]
 
 [tool.setuptools.dynamic]

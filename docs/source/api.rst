@@ -378,6 +378,11 @@ Cull & Reduce
 Reduce & Cull are Plugins limiting the models built to the minimum required to match the requirements of the supplied Operations
 Code below will eleminate all schemas not required to serve the operations identified by the pattern/string match and http methods associated.
 
+.. currentmodule:: aiopenapi3.extra
+.. autoclass:: Reduce
+    :members: __init__
+.. autoclass:: Cull
+
 .. code:: python
 
     api = OpenAPI.load_sync(
@@ -392,10 +397,11 @@ Code below will eleminate all schemas not required to serve the operations ident
         ],
     )
 
-.. currentmodule:: aiopenapi3.extra
-.. autoclass:: Reduce
-    :members: __init__
-.. autoclass:: Cull
+
+
+.. inheritance-diagram:: aiopenapi3.plugin.Init aiopenapi3.plugin.Document aiopenapi3.extra.Cull aiopenapi3.extra.Reduce
+   :top-classes: aiopenapi3.plugin.Plugin
+   :parts: -2
 
 
 Cookies
@@ -403,9 +409,8 @@ Cookies
 
 This plugin deals with cookies from responses and adds in requests based on a policy.
 
-There are two policies:
-* securitySchemes - only cookies whose name is in the securitySchemes are used. To match authentication requirements credentials are set via OpenAPI.authenticate(name=value)
-* jar - all cookies are used, basically like a browser would do. Cookies not mentioned in securitySchemes are set besides OpenAPI.authenticate() to allow using them without adjusting the description document.
+.. autoclass:: Cookies
+    :members: __init__
 
 .. code:: python
 
@@ -416,4 +421,6 @@ There are two policies:
         ],
     )
 
-.. autoclass:: Cookies
+.. inheritance-diagram:: aiopenapi3.plugin.Plugin aiopenapi3.plugin.Init aiopenapi3.plugin.Message aiopenapi3.extra.cookies.Cookies
+   :top-classes: aiopenapi3.plugin.Plugin
+   :parts: -2
