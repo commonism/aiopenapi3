@@ -14,9 +14,9 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v3
-      - uses: pdm-project/setup-pdm@v4
+      - uses: astral-sh/setup-uv@v5
       - name: Publish package distributions to test.PyPI
-        run: pdm publish --repository testpypi
+        run: uv publish --index testpypi
 
   pypi-publish:
     name: upload release to PyPI
@@ -26,6 +26,6 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v3
-      - uses: pdm-project/setup-pdm@v4
+      - uses: astral-sh/setup-uv@v5
       - name: Publish package distributions to PyPI
-        run: pdm publish
+        run: uv publish
