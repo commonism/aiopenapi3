@@ -13,7 +13,7 @@ jobs:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - name: Publish package distributions to test.PyPI
         run: uv publish --index testpypi
@@ -25,7 +25,7 @@ jobs:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - name: Publish package distributions to PyPI
         run: uv publish
