@@ -35,7 +35,7 @@ jobs:
           uv run pytest --cov=. --cov-report=xml:./coverage/coverage-extra.xml tests/
 
       - name: Upload coverage to Codecov (core)
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           directory: coverage
@@ -47,7 +47,7 @@ jobs:
           verbose: true
 
       - name: Upload coverage to Codecov (extra)
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           directory: coverage
