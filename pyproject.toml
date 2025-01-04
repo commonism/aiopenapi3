@@ -102,8 +102,8 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
 addopts = "--ignore-glob 'tests/my_*.py'"
 
-[tool.pdm.dev-dependencies]
-tests = [
+[tool.uv]
+dev-dependencies = [
     "pytest",
     "pytest-asyncio>=0.24.0",
     "pytest-httpx",
@@ -111,8 +111,7 @@ tests = [
     "pytest-mock",
     "fastapi",
     "fastapi-versioning",
-    "uvloop == 0.21.0b1; python_version >= '3.13'",
-    "uvloop; python_version < '3.13'",
+    "uvloop",
     "flask",
     "flask_wtf",
     "wtforms",
@@ -122,19 +121,18 @@ tests = [
     "bootstrap-flask",
     "ijson",
     "python-multipart>=0.0.6",
-    "pydantic-extra-types @ git+https://github.com/pydantic/pydantic-extra-types.git@3668b3af8ab378c56342c613672aa9415dab865b"
+    "pydantic-extra-types>=2.10.1"
 ]
 
-[tool.pdm]
-plugins = [
-    "pdm-autoexport"
-]
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple/"
+publish-url = "https://pypi.org/legacy/"
 
-[[tool.pdm.autoexport]]
-filename = "requirements.txt"
-groups = ["default"]
-without-hashes = "true"
-
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
 
 [tool.mypy]
 allow_redefinition = true
