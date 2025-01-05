@@ -35,7 +35,6 @@ types = [
 dev = [
     { name = "asgiref" },
     { name = "bootstrap-flask" },
-    { name = "coverage" },
     { name = "fastapi" },
     { name = "fastapi-versioning" },
     { name = "flask" },
@@ -73,7 +72,6 @@ requires-dist = [
 dev = [
     { name = "asgiref" },
     { name = "bootstrap-flask" },
-    { name = "coverage" },
     { name = "fastapi" },
     { name = "fastapi-versioning" },
     { name = "flask" },
@@ -620,7 +618,7 @@ name = "importlib-metadata"
 version = "8.5.0"
 source = { registry = "https://pypi.org/simple/" }
 dependencies = [
-    { name = "zipp", marker = "python_full_version < '3.13'" },
+    { name = "zipp" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/cd/12/33e59336dca5be0c398a7482335911a33aa0e20776128f038019f1a95f1b/importlib_metadata-8.5.0.tar.gz", hash = "sha256:71522656f0abace1d072b9e5481a48f07c138e00f079c38c8f883823f9c26bd7", size = 55304 }
 wheels = [
@@ -1252,8 +1250,8 @@ name = "taskgroup"
 version = "0.2.2"
 source = { registry = "https://pypi.org/simple/" }
 dependencies = [
-    { name = "exceptiongroup", marker = "python_full_version < '3.13'" },
-    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+    { name = "exceptiongroup" },
+    { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/f0/8d/e218e0160cc1b692e6e0e5ba34e8865dbb171efeb5fc9a704544b3020605/taskgroup-0.2.2.tar.gz", hash = "sha256:078483ac3e78f2e3f973e2edbf6941374fbea81b9c5d0a96f51d297717f4752d", size = 11504 }
 wheels = [

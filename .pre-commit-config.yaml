@@ -53,7 +53,14 @@ repos:
         args: [--mapping, '2', --sequence, '4', --offset, '2', --preserve-quotes, --implicit_start, --width, '1500']
         exclude: tests/fixtures/schema-enum.yaml
 
-
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    # uv version.
+    rev: 0.5.14
+    hooks:
+      # Update the uv lockfile
+      - id: uv-lock
+      - id: uv-export
+        args: ["--no-dev", "--no-hashes", "--no-editable", "-o", "requirements.txt"]
 
 ci:
   autofix_commit_msg: |
