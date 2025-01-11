@@ -141,6 +141,7 @@ async def client(server, certs, wait_for_server):
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=certs["org"]["issuer"])
         if (cert := kwargs.get("cert", None)) is not None:
             ctx.load_cert_chain(certfile=cert[0], keyfile=cert[1])
+            kwargs.pop("cert")
         return httpx.AsyncClient(*args, verify=ctx, **kwargs)
 
     api = await aiopenapi3.OpenAPI.load_async(
@@ -217,6 +218,7 @@ async def test_sync(server, certs, wait_for_server):
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=certs["org"]["issuer"])
         if (cert := kwargs.get("cert", None)) is not None:
             ctx.load_cert_chain(certfile=cert[0], keyfile=cert[1])
+            kwargs.pop("cert")
         return httpx.Client(*args, verify=ctx, **kwargs)
 
     client = await asyncio.to_thread(
