@@ -161,7 +161,7 @@ def test_schema_type_string_format_byte_base64(with_schema_type_string_format_by
     api = OpenAPI("/", with_schema_type_string_format_byte_base64)
     b64 = api.components.schemas["Base64Property"].get_type()
     RAW = "test"
-    B64 = {"data": "dGVzdA==\n"}
+    B64 = {"data": "dGVzdA=="}
     v = b64.model_validate(B64)
     assert v.model_dump() == B64
     assert v.data == RAW
