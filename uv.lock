@@ -3,7 +3,7 @@ requires-python = ">=3.9"
 
 [[package]]
 name = "aiopenapi3"
-version = "0.8.0a1"
+version = "0.8.0a3"
 source = { editable = "." }
 dependencies = [
     { name = "email-validator" },

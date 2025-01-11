@@ -73,6 +73,9 @@ packages = [
     "aiopenapi3.extra"
 ]
 
+# https://github.com/astral-sh/uv/issues/9513#issuecomment-2519527822
+license-files = []
+
 [tool.setuptools.dynamic]
 version = {attr = "aiopenapi3.version.__version__"}
 
