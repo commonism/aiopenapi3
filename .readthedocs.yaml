@@ -14,8 +14,8 @@ build:
     - graphviz
   jobs:
     post_create_environment:
-      - pip install pdm
-      - pdm export -dG tests -o requirements-tests.txt
+      - pip install uv
+      - uv export --no-hashes --all-packages --output-file requirements-tests.txt
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
