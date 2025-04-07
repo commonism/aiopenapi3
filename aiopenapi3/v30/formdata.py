@@ -126,7 +126,7 @@ def encode_content(data: bytes, codec: str) -> bytes:
 
 
 def encode_multipart_parameters(
-    fields: list[tuple[str, str, Union[str, bytes], dict[str, str], "SchemaType"]]
+    fields: list[tuple[str, str, Union[str, bytes], dict[str, str], "SchemaType"]],
 ) -> MIMEMultipart:
     """
     As shown in
