@@ -199,7 +199,7 @@ def main(argv=None):
         def prepare_arg(value):
             if value:
                 if value[0] == "@":
-                    with Path(value[1:]).open("rt") as f:
+                    with Path(value[1:]).expanduser().open("rt") as f:
                         data = json.load(f)
                 else:
                     data = json.loads(value)
