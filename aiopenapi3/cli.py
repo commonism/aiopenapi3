@@ -191,6 +191,7 @@ def main(argv=None):
     cmd.add_argument("-p", "--parameters")
     cmd.add_argument("-d", "--data")
     cmd.add_argument("-f", "--format")
+    cmd.add_argument("-t", "--timeout", type=int, default=15)
 
     def cmd_call(args: argparse.Namespace) -> None:
         loader = loader_prepare(args, session_factory)
@@ -311,7 +312,9 @@ def main(argv=None):
         tracemalloc.start()
 
     def session_factory(*args_, **kwargs) -> httpx.Client:
-        return httpx.Client(*args_, verify=args.disable_ssl_validation is False, **kwargs)
+        return httpx.Client(
+            *args_, verify=args.disable_ssl_validation is False, timeout=httpx.Timeout(args.timeout), **kwargs
+        )
 
     if args.func:
         args.func(args)
