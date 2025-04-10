@@ -82,7 +82,7 @@ import pydantic_core
 
 
 class ConfiguredRootModel(RootModel):
-    model_config = dict(regex_engine="python-re")
+    model_config = ConfigDict(regex_engine="python-re")
 
 
 def is_basemodel(m) -> bool:
@@ -244,7 +244,7 @@ class _ClassInfo:
                 m = pydantic.create_model(
                     self.name,
                     __module__=me.__name__,
-                    model_config=self.config,
+                    __config__=self.config,
                     **self.fields,
                 )
             else:
