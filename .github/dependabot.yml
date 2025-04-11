@@ -4,14 +4,9 @@
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
+enable-beta-ecosystems: true
 updates:
-  # Python requirements.txt setup.cfg
   - package-ecosystem: "uv"
     directory: "/"
     schedule:
       interval: "weekly"
-
-    groups:
-      all:
-        patterns:
-          - "*"
