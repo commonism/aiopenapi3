@@ -4,7 +4,7 @@
   "extends": [
     "config:recommended",
     "group:allNonMajor"
-  ]
+  ],
   "packageRules": [
     {
       "matchManagers": ["pep621"]
