@@ -14,7 +14,7 @@ idna==3.10
 jmespath==1.0.1
 more-itertools==10.5.0
 multidict==6.1.0
-propcache==0.2.1
+propcache==0.3.1
 pydantic==2.10.5
 pydantic-core==2.27.2
 pyyaml==6.0.2
