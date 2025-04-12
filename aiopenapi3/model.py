@@ -18,7 +18,7 @@ import pydantic
 
 from .base import ReferenceBase, SchemaBase
 from . import me
-from .pydanticv2 import field_class_to_schema
+from .pydanticv2 import field_class_to_schema, create_model
 
 if typing.TYPE_CHECKING:
     from .base import DiscriminatorBase
@@ -241,7 +241,7 @@ class _ClassInfo:
             m = self.root
         else:
             if self.type_ == "object":
-                m = pydantic.create_model(
+                m = create_model(
                     self.name,
                     __module__=me.__name__,
                     __config__=self.config,
@@ -259,13 +259,11 @@ class _ClassInfo:
 
         if len(r) > 1:
             ru: object = Union[tuple(r)]
-            m: type[RootModel] = pydantic.create_model(
-                type_name, __base__=(ConfiguredRootModel[ru],), __module__=me.__name__
-            )
+            m: type[RootModel] = create_model(type_name, __base__=(ConfiguredRootModel[ru],), __module__=me.__name__)
         elif len(r) == 1:
             m: type[BaseModel] = cast(type[BaseModel], r[0])
             if not is_basemodel(m):
-                m = pydantic.create_model(type_name, __base__=(ConfiguredRootModel[m],), __module__=me.__name__)
+                m = create_model(type_name, __base__=(ConfiguredRootModel[m],), __module__=me.__name__)
         else:  # == 0
             assert len(r), r
         return m
