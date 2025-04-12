@@ -57,7 +57,7 @@ requires-dist = [
     { name = "httpx-socks", marker = "extra == 'socks'" },
     { name = "jmespath" },
     { name = "more-itertools" },
-    { name = "pydantic", specifier = ">=2.10.5" },
+    { name = "pydantic" },
     { name = "pydantic-extra-types", marker = "extra == 'types'", specifier = ">=2.10.1" },
     { name = "pyyaml" },
     { name = "typing-extensions", marker = "python_full_version < '3.10'" },
