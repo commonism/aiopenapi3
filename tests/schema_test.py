@@ -52,7 +52,7 @@ def test_schema_without_properties(httpx_mock):
     # the schema without properties did get its own named type defined
     assert type(result.no_properties).__name__ == "has_no_properties"
     # and it has no fields
-    assert len(result.no_properties.model_fields) == 0
+    assert len(type(result.no_properties).model_fields) == 0
 
 
 def test_schema_anyof(with_schema_oneOf_properties):
