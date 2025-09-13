@@ -1,11 +1,11 @@
 import sys
 import logging.config
 import os
-from typing import Any, Optional
+from typing import Any
 
 from pathlib import Path
 
-handlers: Optional[list[str]] = None
+handlers: list[str] | None = None
 
 
 def init(force: bool = False) -> None:

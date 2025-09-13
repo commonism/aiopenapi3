@@ -1,6 +1,6 @@
 import enum
 import typing
-from typing import Union, Optional, Any
+from typing import Union, Any
 
 from pydantic import Field
 
@@ -23,19 +23,19 @@ class ParameterBase(ObjectExtended, _ParameterBase):
     .. _Parameter Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#parameterObject
     """
 
-    description: Optional[str] = Field(default=None)
-    required: Optional[bool] = Field(default=None)
-    deprecated: Optional[bool] = Field(default=None)
-    allowEmptyValue: Optional[bool] = Field(default=None)
+    description: str | None = Field(default=None)
+    required: bool | None = Field(default=None)
+    deprecated: bool | None = Field(default=None)
+    allowEmptyValue: bool | None = Field(default=None)
 
-    style: Optional[str] = Field(default=None)
-    explode: Optional[bool] = Field(default=None)
-    allowReserved: Optional[bool] = Field(default=None)
-    schema_: Optional[Schema] = Field(default=None, alias="schema")
-    example: Optional[Any] = Field(default=None)
+    style: str | None = Field(default=None)
+    explode: bool | None = Field(default=None)
+    allowReserved: bool | None = Field(default=None)
+    schema_: Schema | None = Field(default=None, alias="schema")
+    example: Any | None = Field(default=None)
     examples: dict[str, Union["Example", Reference]] = Field(default_factory=dict)
 
-    content: Optional[dict[str, "MediaType"]] = None
+    content: dict[str, "MediaType"] | None = None
 
 
 class _In(str, enum.Enum):

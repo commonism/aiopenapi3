@@ -1,4 +1,4 @@
-from typing import Optional, Union, Annotated, Literal
+from typing import Union, Annotated, Literal
 
 from pydantic import Field, RootModel
 
@@ -8,7 +8,7 @@ from ..base import ObjectExtended
 class _SecuritySchemes:
     class _SecurityScheme(ObjectExtended):
         type: Literal["basic", "apiKey", "oauth2"]
-        description: Optional[str] = Field(default=None)
+        description: str | None = Field(default=None)
 
         def validate_authentication_value(self, value):
             pass

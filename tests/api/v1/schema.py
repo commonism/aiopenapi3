@@ -1,11 +1,9 @@
-from typing import Optional
-
 from pydantic import BaseModel, RootModel, Field
 
 
 class PetBase(BaseModel):
     name: str
-    tag: Optional[str] = Field(default=None)
+    tag: str | None = Field(default=None)
 
 
 class PetCreate(PetBase):

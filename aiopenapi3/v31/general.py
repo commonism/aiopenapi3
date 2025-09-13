@@ -1,5 +1,5 @@
 import typing
-from typing import Optional, Union, Any
+from typing import Union, Any
 
 from pydantic import Field, AnyUrl, PrivateAttr, ConfigDict
 
@@ -20,7 +20,7 @@ class ExternalDocumentation(ObjectExtended):
     """
 
     url: AnyUrl = Field(...)
-    description: Optional[str] = Field(default=None)
+    description: str | None = Field(default=None)
 
 
 class Reference(ObjectBase, ReferenceBase):
@@ -31,8 +31,8 @@ class Reference(ObjectBase, ReferenceBase):
     """
 
     ref: str = Field(alias="$ref")
-    summary: Optional[str] = Field(default=None)
-    description: Optional[str] = Field(default=None)
+    summary: str | None = Field(default=None)
+    description: str | None = Field(default=None)
 
     _target: Union["Schema", "Parameter", "Reference", "PathItem"] = PrivateAttr(default=None)
 

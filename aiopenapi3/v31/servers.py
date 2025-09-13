@@ -1,5 +1,4 @@
 import re
-from typing import Optional
 
 from pydantic import Field, model_validator
 
@@ -13,9 +12,9 @@ class ServerVariable(ObjectExtended):
     .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#server-variable-object
     """
 
-    enum: Optional[list[str]] = Field(default=None)
-    default: Optional[str] = Field(...)
-    description: Optional[str] = Field(default=None)
+    enum: list[str] | None = Field(default=None)
+    default: str | None = Field(...)
+    description: str | None = Field(default=None)
 
     @model_validator(mode="after")
     def validate_ServerVariable(cls, s: "ServerVariable"):
@@ -33,7 +32,7 @@ class Server(ObjectExtended):
     """
 
     url: str = Field(...)
-    description: Optional[str] = Field(default=None)
+    description: str | None = Field(default=None)
     variables: dict[str, ServerVariable] = Field(default_factory=dict)
 
     @model_validator(mode="after")
@@ -50,7 +49,7 @@ class Server(ObjectExtended):
 
     def createUrl(self, variables: dict[str, str]) -> str:
         self.validate_parameter_enum(variables)
-        vars: dict[str, Optional[str]] = dict(map(lambda x: (x[0], x[1].default), self.variables.items()))
+        vars: dict[str, str | None] = dict(map(lambda x: (x[0], x[1].default), self.variables.items()))
         vars.update(variables)
         url: str = self.url.format(**vars)
         return url

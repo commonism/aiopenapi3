@@ -1,7 +1,7 @@
-import sys
 import typing
 
-from typing import Callable, Any, Union, cast, Optional, ForwardRef
+from typing import Any, Union, cast, Optional, ForwardRef
+from collections.abc import Callable
 import logging
 import copy
 import pickle
@@ -10,10 +10,7 @@ import random
 import pathlib
 
 
-if sys.version_info >= (3, 10):
-    from typing import TypeGuard
-else:
-    from typing_extensions import TypeGuard
+from typing import TypeGuard
 
 
 import httpx
@@ -51,7 +48,7 @@ if typing.TYPE_CHECKING:
     )
 
 
-def has_components(y: Optional["RootType"]) -> TypeGuard[Union[v30.Root, v31.Root]]:
+def has_components(y: Optional["RootType"]) -> TypeGuard[v30.Root | v31.Root]:
     #    return all([typing.cast("RootType", y), typing.cast("RootType", y).components])
     #    return isinstance(y, (v30.Root, v31.Root))
     #    return all([y, y.components])
@@ -96,8 +93,8 @@ class OpenAPI:
         cls,
         url,
         session_factory: Callable[..., httpx.Client] = httpx.Client,
-        loader: Optional[Loader] = None,
-        plugins: Optional[list[Plugin]] = None,
+        loader: Loader | None = None,
+        plugins: list[Plugin] | None = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
@@ -119,8 +116,8 @@ class OpenAPI:
         cls,
         url: str,
         session_factory: Callable[..., httpx.AsyncClient] = httpx.AsyncClient,
-        loader: Optional[Loader] = None,
-        plugins: Optional[list[Plugin]] = None,
+        loader: Loader | None = None,
+        plugins: list[Plugin] | None = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
@@ -146,10 +143,10 @@ class OpenAPI:
     def load_file(
         cls,
         url: str,
-        path: Union[str, pathlib.Path, yarl.URL],
-        session_factory: Callable[..., Union[httpx.AsyncClient, httpx.Client]] = httpx.AsyncClient,
-        loader: Optional[Loader] = None,
-        plugins: Optional[list[Plugin]] = None,
+        path: str | pathlib.Path | yarl.URL,
+        session_factory: Callable[..., httpx.AsyncClient | httpx.Client] = httpx.AsyncClient,
+        loader: Loader | None = None,
+        plugins: list[Plugin] | None = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
@@ -181,9 +178,9 @@ class OpenAPI:
         cls,
         url: str,
         data: str,
-        session_factory: Callable[..., Union[httpx.AsyncClient, httpx.Client]] = httpx.AsyncClient,
-        loader: Optional[Loader] = None,
-        plugins: Optional[list[Plugin]] = None,
+        session_factory: Callable[..., httpx.AsyncClient | httpx.Client] = httpx.AsyncClient,
+        loader: Loader | None = None,
+        plugins: list[Plugin] | None = None,
         use_operation_tags: bool = False,
     ) -> "OpenAPI":
         """
@@ -228,9 +225,9 @@ class OpenAPI:
         self,
         url: str,
         document: "JSON",
-        session_factory: Callable[..., Union[httpx.Client, httpx.AsyncClient]] = httpx.AsyncClient,
-        loader: Optional[Loader] = None,
-        plugins: Optional[list[Plugin]] = None,
+        session_factory: Callable[..., httpx.Client | httpx.AsyncClient] = httpx.AsyncClient,
+        loader: Loader | None = None,
+        plugins: list[Plugin] | None = None,
         use_operation_tags: bool = True,
     ) -> None:
         """
@@ -247,16 +244,14 @@ class OpenAPI:
         """
         self._base_url: yarl.URL = yarl.URL(url)
 
-        self._session_factory: Callable[..., Union[httpx.Client, httpx.AsyncClient]] = session_factory
+        self._session_factory: Callable[..., httpx.Client | httpx.AsyncClient] = session_factory
 
-        self.loader: Optional[Loader] = loader
+        self.loader: Loader | None = loader
         """
         Loader - loading referenced documents
         """
 
-        self._createRequest: Callable[
-            ["OpenAPI", str, str, "OperationType", Optional[list["ServerType"]]], "RequestBase"
-        ]
+        self._createRequest: Callable[["OpenAPI", str, str, "OperationType", list["ServerType"] | None], "RequestBase"]
         """
         creates the Async/Request for the protocol required
         """
@@ -587,7 +582,7 @@ class OpenAPI:
         byid: dict[int, "SchemaType"] = {id(i): i for i in byname.values()}
         data: set[int] = set(byid.keys())
         todo: set[int] = self._iterate_schemas(byid, data, set())
-        types: dict[str, Union[ForwardRef, type[BaseModel], type[int], type[str], type[float], type[bool]]] = dict()
+        types: dict[str, ForwardRef | type[BaseModel] | type[int] | type[str] | type[float] | type[bool]] = dict()
 
         """
         Due to Plugins (e.g. Cull/Reduce) byname may be incomplete
@@ -700,7 +695,7 @@ class OpenAPI:
         """
         return self._operationindex
 
-    def createRequest(self, operationId: Union[str, tuple[str, "HTTPMethodType"]]) -> "RequestType":
+    def createRequest(self, operationId: str | tuple[str, "HTTPMethodType"]) -> "RequestType":
         """
         create a Request
 
@@ -813,7 +808,7 @@ class OpenAPI:
         api.loader = self.loader
         return api
 
-    def clone(self, baseurl: Optional[yarl.URL] = None) -> "OpenAPI":
+    def clone(self, baseurl: yarl.URL | None = None) -> "OpenAPI":
         """
         shallwo copy the api object
         optional set a base url
@@ -826,7 +821,7 @@ class OpenAPI:
         return api
 
     @staticmethod
-    def cache_load(path: pathlib.Path, plugins: Optional[list[Plugin]] = None, session_factory=None) -> "OpenAPI":
+    def cache_load(path: pathlib.Path, plugins: list[Plugin] | None = None, session_factory=None) -> "OpenAPI":
         """
         read a pickle api object from path and init the schema types
 

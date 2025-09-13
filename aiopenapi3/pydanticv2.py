@@ -41,7 +41,8 @@ field_class_to_schema: tuple[tuple[Any, dict[str, Any]], ...] = tuple(
 
 from pydantic import ConfigDict, BaseModel, PydanticUserError
 from pydantic.main import ModelT
-from typing import Callable, cast, Optional, Union
+from typing import cast
+from collections.abc import Callable
 import sys
 import types
 
@@ -50,14 +51,14 @@ def create_model(  # noqa: C901
     model_name: str,
     /,
     *,
-    __config__: Optional[ConfigDict] = None,
-    __doc__: Optional[str] = None,
-    __base__: Union[type[ModelT], tuple[type[ModelT], ...], None] = None,
-    __module__: Optional[str] = None,
-    __validators__: Optional[dict[str, Callable[..., Any]]] = None,
-    __cls_kwargs__: Optional[dict[str, Any]] = None,
+    __config__: ConfigDict | None = None,
+    __doc__: str | None = None,
+    __base__: type[ModelT] | tuple[type[ModelT], ...] | None = None,
+    __module__: str | None = None,
+    __validators__: dict[str, Callable[..., Any]] | None = None,
+    __cls_kwargs__: dict[str, Any] | None = None,
     # TODO PEP 747: replace `Any` by the TypeForm:
-    **field_definitions: Union[Any, tuple[str, Any]],
+    **field_definitions: Any | tuple[str, Any],
 ) -> type[ModelT]:
     """
     unfortunate this is required, but …

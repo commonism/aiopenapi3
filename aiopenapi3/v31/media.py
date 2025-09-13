@@ -1,4 +1,4 @@
-from typing import Union, Optional, Any
+from typing import Any
 
 from pydantic import Field
 
@@ -17,11 +17,11 @@ class Encoding(ObjectExtended):
     .. _Encoding: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#encodingObject
     """
 
-    contentType: Optional[str] = Field(default=None)
-    headers: dict[str, Union[Header, Reference]] = Field(default_factory=dict)
-    style: Optional[str] = Field(default=None)
-    explode: Optional[bool] = Field(default=None)
-    allowReserved: Optional[bool] = Field(default=None)
+    contentType: str | None = Field(default=None)
+    headers: dict[str, Header | Reference] = Field(default_factory=dict)
+    style: str | None = Field(default=None)
+    explode: bool | None = Field(default=None)
+    allowReserved: bool | None = Field(default=None)
 
 
 class MediaType(ObjectExtended):
@@ -32,7 +32,7 @@ class MediaType(ObjectExtended):
     .. _MediaType: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#media-type-object
     """
 
-    schema_: Optional[Schema] = Field(default=None, alias="schema")
-    example: Optional[Any] = Field(default=None)  # 'any' type
-    examples: dict[str, Union[Example, Reference]] = Field(default_factory=dict)
+    schema_: Schema | None = Field(default=None, alias="schema")
+    example: Any | None = Field(default=None)  # 'any' type
+    examples: dict[str, Example | Reference] = Field(default_factory=dict)
     encoding: dict[str, Encoding] = Field(default_factory=dict)

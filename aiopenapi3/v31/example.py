@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Any
 
 from pydantic import Field
 
@@ -13,7 +13,7 @@ class Example(ObjectExtended):
     .. _Example Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#exampleObject
     """
 
-    summary: Optional[str] = Field(default=None)
-    description: Optional[str] = Field(default=None)
-    value: Optional[Any] = Field(default=None)
-    externalValue: Optional[str] = Field(default=None)
+    summary: str | None = Field(default=None)
+    description: str | None = Field(default=None)
+    value: Any | None = Field(default=None)
+    externalValue: str | None = Field(default=None)

@@ -14,39 +14,39 @@ class Schema(ObjectExtended, SchemaBase):
     https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md##schema-object
     """
 
-    ref: Optional[str] = Field(default=None, alias="$ref")
-    format: Optional[str] = Field(default=None)
-    title: Optional[str] = Field(default=None)
-    description: Optional[str] = Field(default=None)
-    default: Optional[Any] = Field(default=None)
+    ref: str | None = Field(default=None, alias="$ref")
+    format: str | None = Field(default=None)
+    title: str | None = Field(default=None)
+    description: str | None = Field(default=None)
+    default: Any | None = Field(default=None)
 
-    multipleOf: Optional[int] = Field(default=None)
-    maximum: Optional[float] = Field(default=None)  # FIXME Field(discriminator='type') would be better
-    exclusiveMaximum: Optional[bool] = Field(default=None)
-    minimum: Optional[float] = Field(default=None)
-    exclusiveMinimum: Optional[bool] = Field(default=None)
-    maxLength: Optional[int] = Field(default=None)
-    minLength: Optional[int] = Field(default=None)
-    pattern: Optional[str] = Field(default=None)
-    maxItems: Optional[int] = Field(default=None)
-    minItems: Optional[int] = Field(default=None)
-    uniqueItems: Optional[bool] = Field(default=None)
-    maxProperties: Optional[int] = Field(default=None)
-    minProperties: Optional[int] = Field(default=None)
+    multipleOf: int | None = Field(default=None)
+    maximum: float | None = Field(default=None)  # FIXME Field(discriminator='type') would be better
+    exclusiveMaximum: bool | None = Field(default=None)
+    minimum: float | None = Field(default=None)
+    exclusiveMinimum: bool | None = Field(default=None)
+    maxLength: int | None = Field(default=None)
+    minLength: int | None = Field(default=None)
+    pattern: str | None = Field(default=None)
+    maxItems: int | None = Field(default=None)
+    minItems: int | None = Field(default=None)
+    uniqueItems: bool | None = Field(default=None)
+    maxProperties: int | None = Field(default=None)
+    minProperties: int | None = Field(default=None)
     required: list[str] = Field(default_factory=list)
-    enum: Optional[list[Any]] = Field(default=None)
-    type: Optional[str] = Field(default=None)
+    enum: list[Any] | None = Field(default=None)
+    type: str | None = Field(default=None)
 
-    items: Optional[Union[list[Union["Schema", Reference]], Union["Schema", Reference]]] = Field(default=None)
+    items: list[Union["Schema", Reference]] | Union["Schema", Reference] | None = Field(default=None)
     allOf: list[Union["Schema", Reference]] = Field(default_factory=list)
     properties: dict[str, Union["Schema", Reference]] = Field(default_factory=dict)
-    additionalProperties: Optional[Union["Schema", Reference, bool]] = Field(default=None)
+    additionalProperties: Union["Schema", Reference, bool] | None = Field(default=None)
 
-    discriminator: Optional[str] = Field(default=None)  # 'Discriminator'
-    readOnly: Optional[bool] = Field(default=None)
-    xml: Optional[XML] = Field(default=None)  # 'XML'
-    externalDocs: Optional[dict] = Field(default=None)  # 'ExternalDocs'
-    example: Optional[Any] = Field(default=None)
+    discriminator: str | None = Field(default=None)  # 'Discriminator'
+    readOnly: bool | None = Field(default=None)
+    xml: XML | None = Field(default=None)  # 'XML'
+    externalDocs: dict | None = Field(default=None)  # 'ExternalDocs'
+    example: Any | None = Field(default=None)
 
     @model_validator(mode="wrap")
     @classmethod

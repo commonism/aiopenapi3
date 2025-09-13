@@ -1,5 +1,5 @@
 import typing
-from typing import Optional, Union, Any
+from typing import Union, Any
 
 from pydantic import Field, PrivateAttr, ConfigDict
 
@@ -21,7 +21,7 @@ class ExternalDocumentation(ObjectExtended):
     """
 
     url: str = Field(...)
-    description: Optional[str] = Field(default=None)
+    description: str | None = Field(default=None)
 
 
 class Reference(ObjectBase, ReferenceBase):

@@ -1,5 +1,4 @@
 import errno
-from typing import Optional
 
 import starlette.status
 from fastapi import FastAPI, APIRouter, Body, Response, Path
@@ -59,7 +58,7 @@ def createPet(
 
 
 @router.get("/pet", operation_id="listPet", response_model=Pets)
-def listPet(limit: Optional[int] = None) -> Pets:
+def listPet(limit: int | None = None) -> Pets:
     return list(ZOO.values())
 
 

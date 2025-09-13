@@ -72,7 +72,7 @@ class OperationIdDuplicationError(SpecError):
     """
 
     operationid: str
-    paths: list[tuple[str, str, object, Optional[list["ServerType"]]]]
+    paths: list[tuple[str, str, object, list["ServerType"] | None]]
 
 
 class ParameterFormatError(SpecError):
@@ -129,7 +129,7 @@ class ContentTypeError(ResponseError):
     """The content-type is unexpected"""
 
     operation: "OperationType"
-    content_type: Optional[str]
+    content_type: str | None
     message: str
     response: httpx.Response
 
@@ -169,7 +169,7 @@ class ResponseSchemaError(ResponseError):
     expectation: "ExpectedType"
     schema: Optional["SchemaType"]
     response: httpx.Response
-    exception: Optional[Exception]
+    exception: Exception | None
 
     def __str__(self):
         return f"""<{self.__class__.__name__} {self.response.request.method} '{self.response.request.url.path}' ({self.operation.operationId})

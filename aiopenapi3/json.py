@@ -1,4 +1,3 @@
-from typing import Union
 import urllib.parse
 
 from yarl import URL
@@ -25,7 +24,7 @@ class JSONPointer:
 
 class JSONReference:
     @staticmethod
-    def split(url: Union[str, URL]) -> tuple[str, str]:
+    def split(url: str | URL) -> tuple[str, str]:
         """
         split the url into path and fragment
         """

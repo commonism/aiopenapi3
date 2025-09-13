@@ -1,12 +1,8 @@
 import dataclasses
 from typing import TYPE_CHECKING, Any, Optional
 import abc
-import sys
 
-if sys.version_info >= (3, 10):
-    from typing import TypeGuard
-else:
-    from typing_extensions import TypeGuard
+from typing import TypeGuard
 
 
 from pydantic import BaseModel
@@ -48,11 +44,11 @@ class Init(Plugin):
     class Context:
         initialized: Optional["OpenAPI"] = None
         """available in :func:`~aiopenapi3.plugin.Init.initialized`"""
-        schemas: Optional[dict[str, "SchemaBase"]] = None
+        schemas: dict[str, "SchemaBase"] | None = None
         """available in :func:`~aiopenapi3.plugin.Init.schemas`"""
-        resolved: Optional[list["SchemaBase"]] = None
+        resolved: list["SchemaBase"] | None = None
         """available in :func:`~aiopenapi3.plugin.Init.schemas`"""
-        paths: Optional[dict[str, "PathItemBase"]] = None
+        paths: dict[str, "PathItemBase"] | None = None
         """available in :func:`~aiopenapi3.plugin.Init.paths`"""
 
     def schemas(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
@@ -110,25 +106,25 @@ class Message(Plugin):
         """available :func:`~aiopenapi3.plugin.Message.marshalled` :func:`~aiopenapi3.plugin.Message.sending`
         :func:`~aiopenapi3.plugin.Message.received` :func:`~aiopenapi3.plugin.Message.parsed`
         :func:`~aiopenapi3.plugin.Message.unmarshalled`"""
-        marshalled: Optional[dict[str, Any]] = None
+        marshalled: dict[str, Any] | None = None
         """available :func:`~aiopenapi3.plugin.Message.marshalled` """
-        sending: Optional[str] = None
+        sending: str | None = None
         """available :func:`~aiopenapi3.plugin.Message.sending` """
-        received: Optional[bytes] = None
+        received: bytes | None = None
         """available :func:`~aiopenapi3.plugin.Message.received` """
         headers: "httpx.Headers" = None
         """available :func:`~aiopenapi3.plugin.Message.sending` :func:`~aiopenapi3.plugin.Message.received` """
         cookies: dict[str, str] = None
         """available :func:`~aiopenapi3.plugin.Message.sending` """
-        status_code: Optional[str] = None
+        status_code: str | None = None
         """available :func:`~aiopenapi3.plugin.Message.received` """
-        content_type: Optional[str] = None
+        content_type: str | None = None
         """available :func:`~aiopenapi3.plugin.Message.received` """
-        parsed: Optional[dict[str, Any]] = None
+        parsed: dict[str, Any] | None = None
         """available :func:`~aiopenapi3.plugin.Message.parsed` """
-        expected_type: Optional[type] = None
+        expected_type: type | None = None
         """available :func:`~aiopenapi3.plugin.Message.parsed` """
-        unmarshalled: Optional[BaseModel] = None
+        unmarshalled: BaseModel | None = None
         """available :func:`~aiopenapi3.plugin.Message.unmarshalled` """
 
     def marshalled(self, ctx: "Message.Context") -> "Message.Context":  # pragma: no cover
@@ -208,7 +204,7 @@ class Plugins:
         self._message = self._get_domain("message", plugins)
 
     def _get_domain(self, name: str, plugins: list[Plugin]) -> "Domain":
-        domain: Optional[type[Plugin]]
+        domain: type[Plugin] | None
         if (domain := self._domains.get(name)) is None:
             raise ValueError(name)  # noqa
 
