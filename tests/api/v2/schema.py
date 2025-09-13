@@ -2,7 +2,7 @@ from datetime import timedelta
 import uuid
 
 
-from typing import Optional, Literal, Union, Annotated
+from typing import Literal, Union, Annotated
 
 import pydantic
 from pydantic import BaseModel, RootModel, Field, ConfigDict
@@ -13,7 +13,7 @@ from pydantic_core import PydanticUndefined as Undefined
 
 class PetBase(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    identifier: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()))
+    identifier: str | None = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     tags: list[str] = Field(default_factory=list)
 

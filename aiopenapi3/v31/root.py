@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union
+from typing import Any
 
 from pydantic import Field, model_validator
 
@@ -24,13 +24,13 @@ class Root(ObjectExtended, RootBase):
 
     openapi: str = Field(...)
     info: Info = Field(...)
-    jsonSchemaDialect: Optional[str] = Field(default=None)  # FIXME should be URI
-    servers: Optional[list[Server]] = Field(default_factory=list)
+    jsonSchemaDialect: str | None = Field(default=None)  # FIXME should be URI
+    servers: list[Server] | None = Field(default_factory=list)
     #    paths: Dict[str, PathItem] = Field(default_factory=dict)
     paths: Paths = Field(default_factory=dict)
-    webhooks: dict[str, Union[PathItem, Reference]] = Field(default_factory=dict)
-    components: Optional[Components] = Field(default_factory=Components)
-    security: Optional[list[SecurityRequirement]] = Field(default_factory=list)
+    webhooks: dict[str, PathItem | Reference] = Field(default_factory=dict)
+    components: Components | None = Field(default_factory=Components)
+    security: list[SecurityRequirement] | None = Field(default_factory=list)
     tags: list[Tag] = Field(default_factory=list)
     externalDocs: dict[Any, Any] = Field(default_factory=dict)
 

@@ -7,10 +7,7 @@ import sys
 from typing import Any, cast, TypeVar
 import typing
 
-if sys.version_info >= (3, 10):
-    from typing import TypeGuard
-else:
-    from typing_extensions import TypeGuard
+from typing import TypeGuard
 
 from typing import Optional, Union, Annotated, Literal
 from pydantic import BaseModel, TypeAdapter, Field, RootModel, ConfigDict
@@ -24,7 +21,7 @@ if typing.TYPE_CHECKING:
     from .base import DiscriminatorBase
     from ._types import SchemaType, ReferenceType, PrimitiveTypes, DiscriminatorType
 
-type_format_to_class: dict[str, dict[Optional[str], type]] = collections.defaultdict(dict)
+type_format_to_class: dict[str, dict[str | None, type]] = collections.defaultdict(dict)
 
 log = logging.getLogger("aiopenapi3.model")
 
@@ -135,7 +132,7 @@ class _ClassInfo:
             return
 
         if Model.is_type(schema, "object") or Model.is_type_any(schema):
-            f: Union[SchemaBase, ReferenceBase]
+            f: SchemaBase | ReferenceBase
             assert schema.properties is not None
             for name, f in schema.properties.items():
                 if (
@@ -236,7 +233,7 @@ class _ClassInfo:
             raise ValueError()
         return
 
-    def model(self) -> Union[type[BaseModel], type[None]]:
+    def model(self) -> type[BaseModel] | type[None]:
         if self.root:
             m = self.root
         else:
@@ -253,7 +250,7 @@ class _ClassInfo:
 
     @classmethod
     def collapse(cls, type_name, items: list["_ClassInfo"]) -> type[BaseModel]:
-        r: list[Union[type[BaseModel], type[None]]]
+        r: list[type[BaseModel] | type[None]]
 
         r = [i.model() for i in items]
 
@@ -287,9 +284,9 @@ class Model:  # (BaseModel):
     def from_schema(
         cls,
         schema: "SchemaType",
-        schemanames: Optional[list[str]] = None,
-        discriminators: Optional[list["DiscriminatorType"]] = None,
-        extra: Optional[list["SchemaType"]] = None,
+        schemanames: list[str] | None = None,
+        discriminators: list["DiscriminatorType"] | None = None,
+        extra: list["SchemaType"] | None = None,
     ) -> type[BaseModel]:
         if schemanames is None:
             schemanames = []
@@ -313,7 +310,7 @@ class Model:  # (BaseModel):
         _type: str,
         schemanames: list[str],
         discriminators: list["DiscriminatorType"],
-        extra: Optional[list["SchemaType"]],
+        extra: list["SchemaType"] | None,
     ) -> _ClassInfo:
         from . import v20, v30, v31
 
@@ -504,7 +501,7 @@ class Model:  # (BaseModel):
 
     @staticmethod
     def createAnnotation(
-        schema: Optional[Union["SchemaType", "ReferenceType"]], _type: Optional[str] = None, fwdref: bool = False
+        schema: Union["SchemaType", "ReferenceType"] | None, _type: str | None = None, fwdref: bool = False
     ) -> type:
         if schema is None:
             return BaseModel
@@ -662,7 +659,7 @@ class Model:  # (BaseModel):
         return isinstance(schema.type, str) and schema.type == type_ or Model.or_type(schema, type_, l=None)
 
     @staticmethod
-    def or_type(schema: "SchemaType", type_: str, l: Optional[int] = 2) -> bool:
+    def or_type(schema: "SchemaType", type_: str, l: int | None = 2) -> bool:
         return isinstance((t := schema.type), list) and (l is None or len(t) == l) and type_ in t
 
     @staticmethod

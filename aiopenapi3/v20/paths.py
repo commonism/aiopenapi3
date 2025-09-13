@@ -1,4 +1,4 @@
-from typing import Union, Optional, Any
+from typing import Any
 
 from pydantic import Field, model_validator
 
@@ -18,9 +18,9 @@ class Response(ObjectExtended):
     """
 
     description: str = Field(...)
-    schema_: Optional[Schema] = Field(default=None, alias="schema")
+    schema_: Schema | None = Field(default=None, alias="schema")
     headers: dict[str, Header] = Field(default_factory=dict)
-    examples: Optional[dict[str, Any]] = Field(default=None)
+    examples: dict[str, Any] | None = Field(default=None)
 
 
 class Operation(ObjectExtended, OperationBase):
@@ -30,18 +30,18 @@ class Operation(ObjectExtended, OperationBase):
     .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#operation-object
     """
 
-    tags: Optional[list[str]] = Field(default=None)
-    summary: Optional[str] = Field(default=None)
-    description: Optional[str] = Field(default=None)
-    externalDocs: Optional[ExternalDocumentation] = Field(default=None)
-    operationId: Optional[str] = Field(default=None)
+    tags: list[str] | None = Field(default=None)
+    summary: str | None = Field(default=None)
+    description: str | None = Field(default=None)
+    externalDocs: ExternalDocumentation | None = Field(default=None)
+    operationId: str | None = Field(default=None)
     consumes: list[str] = Field(default_factory=list)
     produces: list[str] = Field(default_factory=list)
-    parameters: list[Union[Parameter, Reference]] = Field(default_factory=list)
-    responses: dict[str, Union[Reference, Response]] = Field(default_factory=dict)
+    parameters: list[Parameter | Reference] = Field(default_factory=list)
+    responses: dict[str, Reference | Response] = Field(default_factory=dict)
     schemes: list[str] = Field(default_factory=list)
-    deprecated: Optional[bool] = Field(default=None)
-    security: Optional[list[SecurityRequirement]] = Field(default=None)
+    deprecated: bool | None = Field(default=None)
+    security: list[SecurityRequirement] | None = Field(default=None)
 
 
 class PathItem(ObjectExtended, PathItemBase):
@@ -52,15 +52,15 @@ class PathItem(ObjectExtended, PathItemBase):
     .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#path-item-object
     """
 
-    ref: Optional[str] = Field(default=None, alias="$ref")
-    get: Optional[Operation] = Field(default=None)
-    put: Optional[Operation] = Field(default=None)
-    post: Optional[Operation] = Field(default=None)
-    delete: Optional[Operation] = Field(default=None)
-    options: Optional[Operation] = Field(default=None)
-    head: Optional[Operation] = Field(default=None)
-    patch: Optional[Operation] = Field(default=None)
-    parameters: list[Union[Parameter, Reference]] = Field(default_factory=list)
+    ref: str | None = Field(default=None, alias="$ref")
+    get: Operation | None = Field(default=None)
+    put: Operation | None = Field(default=None)
+    post: Operation | None = Field(default=None)
+    delete: Operation | None = Field(default=None)
+    options: Operation | None = Field(default=None)
+    head: Operation | None = Field(default=None)
+    patch: Operation | None = Field(default=None)
+    parameters: list[Parameter | Reference] = Field(default_factory=list)
 
 
 class Paths(PathsBase):

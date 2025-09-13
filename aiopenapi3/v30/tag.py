@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import Field
 
 from ..base import ObjectExtended
@@ -15,5 +13,5 @@ class Tag(ObjectExtended):
     """
 
     name: str = Field(...)
-    description: Optional[str] = Field(default=None)
-    externalDocs: Optional[ExternalDocumentation] = Field(default=None)
+    description: str | None = Field(default=None)
+    externalDocs: ExternalDocumentation | None = Field(default=None)

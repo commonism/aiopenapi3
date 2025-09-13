@@ -1,5 +1,5 @@
 import typing
-from typing import Optional, Any, Union
+from typing import Any, Union
 
 from pydantic import Field, ConfigDict, PrivateAttr
 
@@ -19,7 +19,7 @@ class ExternalDocumentation(ObjectExtended):
     .. _External Documentation Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#external-documentation-object
     """
 
-    description: Optional[str] = Field(default=None)
+    description: str | None = Field(default=None)
     url: str = Field(...)
 
 

@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import Field, validator
 
 from .general import Reference, ExternalDocumentation
@@ -21,8 +19,8 @@ class Root(ObjectExtended, RootBase):
 
     swagger: str = Field(...)
     info: Info = Field(...)
-    host: Optional[str] = Field(default=None)
-    basePath: Optional[str] = Field(default=None)
+    host: str | None = Field(default=None)
+    basePath: str | None = Field(default=None)
     schemes: list[str] = Field(default_factory=list)
     consumes: list[str] = Field(default_factory=list)
     produces: list[str] = Field(default_factory=list)
@@ -31,9 +29,9 @@ class Root(ObjectExtended, RootBase):
     parameters: dict[str, Parameter] = Field(default_factory=dict)
     responses: dict[str, Response] = Field(default_factory=dict)
     securityDefinitions: dict[str, SecurityScheme] = Field(default_factory=dict)
-    security: Optional[list[SecurityRequirement]] = Field(default=None)
+    security: list[SecurityRequirement] | None = Field(default=None)
     tags: list[Tag] = Field(default_factory=list)
-    externalDocs: Optional[ExternalDocumentation] = Field(default=None)
+    externalDocs: ExternalDocumentation | None = Field(default=None)
 
     def _resolve_references(self, api):
         RootBase.resolve(api, self, self, PathItem, Reference)

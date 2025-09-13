@@ -1,20 +1,16 @@
 import typing
 import warnings
-from typing import Optional, Any, ForwardRef, Union, cast
+from typing import Any, ForwardRef, Union, cast
 from collections.abc import Sequence
 
 import re
 import builtins
 import keyword
 import uuid
-import sys
 
 from pathlib import Path
 
-if sys.version_info >= (3, 10):
-    from typing import TypeGuard
-else:
-    from typing_extensions import TypeGuard
+from typing import TypeGuard
 
 from pydantic import RootModel, BaseModel, TypeAdapter, Field, AnyUrl, model_validator, PrivateAttr, ConfigDict
 
@@ -37,7 +33,7 @@ class ObjectBase(BaseModel):
 
 
 class ObjectExtended(ObjectBase):
-    extensions: Optional[Any] = Field(default=None)
+    extensions: Any | None = Field(default=None)
 
     @model_validator(mode="before")
     def validate_ObjectExtended_extensions(cls, values):
@@ -395,9 +391,9 @@ class SchemaBase(BaseModel):
 
     def set_type(
         self,
-        names: Optional[list[str]] = None,
-        discriminators: Optional[Sequence[DiscriminatorBase]] = None,
-        extra: Optional[list["SchemaBase"]] = None,
+        names: list[str] | None = None,
+        discriminators: Sequence[DiscriminatorBase] | None = None,
+        extra: list["SchemaBase"] | None = None,
     ) -> type[BaseModel]:
         from .model import Model
 
@@ -418,11 +414,11 @@ class SchemaBase(BaseModel):
 
     def get_type(
         self,
-        names: Optional[list[str]] = None,
-        discriminators: Optional[Sequence[DiscriminatorBase]] = None,
-        extra: Optional[list["SchemaBase"]] = None,
+        names: list[str] | None = None,
+        discriminators: Sequence[DiscriminatorBase] | None = None,
+        extra: list["SchemaBase"] | None = None,
         fwdref: bool = False,
-    ) -> Union[type[BaseModel], type[TypeAdapter], ForwardRef]:
+    ) -> type[BaseModel] | type[TypeAdapter] | ForwardRef:
         if fwdref:
             if "module" in ForwardRef.__init__.__code__.co_varnames:
                 # FIXME Python < 3.9 compat
@@ -436,7 +432,7 @@ class SchemaBase(BaseModel):
         else:
             return self.set_type(names, discriminators, extra)
 
-    def model(self, data: "JSON") -> Union[BaseModel, list[BaseModel]]:
+    def model(self, data: "JSON") -> BaseModel | list[BaseModel]:
         """
         Generates a model representing this schema from the given data.
 

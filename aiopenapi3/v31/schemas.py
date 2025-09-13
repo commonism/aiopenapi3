@@ -34,15 +34,15 @@ class Schema(ObjectExtended, SchemaBase):
     """
     8.  The JSON Schema Core Vocabulary
     """
-    schema_: Optional[str] = Field(default=None, alias="$schema")
-    vocabulary: Optional[dict[str, bool]] = Field(default=None, alias="$vocabulary")
-    id: Optional[str] = Field(default=None, alias="$id")
-    anchor: Optional[str] = Field(default=None, alias="$anchor")
-    dynamicAnchor: Optional[bool] = Field(default=None, alias="$dynamicAnchor")
-    ref: Optional[str] = Field(default=None, alias="$ref")
-    dynamicRef: Optional[str] = Field(default=None, alias="$dynamicRef")
-    defs: Optional[dict[str, Any]] = Field(default=None, alias="$defs")
-    comment: Optional[str] = Field(default=None, alias="$comment")
+    schema_: str | None = Field(default=None, alias="$schema")
+    vocabulary: dict[str, bool] | None = Field(default=None, alias="$vocabulary")
+    id: str | None = Field(default=None, alias="$id")
+    anchor: str | None = Field(default=None, alias="$anchor")
+    dynamicAnchor: bool | None = Field(default=None, alias="$dynamicAnchor")
+    ref: str | None = Field(default=None, alias="$ref")
+    dynamicRef: str | None = Field(default=None, alias="$dynamicRef")
+    defs: dict[str, Any] | None = Field(default=None, alias="$defs")
+    comment: str | None = Field(default=None, alias="$comment")
 
     """
     10. A Vocabulary for Applying Subschemas
@@ -67,8 +67,8 @@ class Schema(ObjectExtended, SchemaBase):
     """
     10.3.1. Keywords for Applying Subschemas to Arrays
     """
-    prefixItems: Optional[list["Schema"]] = Field(default=None)
-    items: Optional[Union["Schema", list["Schema"]]] = Field(default=None)
+    prefixItems: list["Schema"] | None = Field(default=None)
+    items: Union["Schema", list["Schema"]] | None = Field(default=None)
     contains: Optional["Schema"] = Field(default=None)
 
     """
@@ -94,73 +94,73 @@ class Schema(ObjectExtended, SchemaBase):
     6.1.  Validation Keywords for Any Instance Type
     """
 
-    type: Optional[Union[str, list[str]]] = Field(default=None)
-    enum: Optional[list[Any]] = Field(default=None)
-    const: Optional[str] = Field(default=None)
+    type: str | list[str] | None = Field(default=None)
+    enum: list[Any] | None = Field(default=None)
+    const: str | None = Field(default=None)
 
     """
     6.2.  Validation Keywords for Numeric Instances (number and integer)
     """
-    multipleOf: Optional[int] = Field(default=None)
-    maximum: Optional[float] = Field(default=None)  # FIXME Field(discriminator='type') would be better
-    exclusiveMaximum: Optional[int] = Field(default=None)
-    minimum: Optional[float] = Field(default=None)
-    exclusiveMinimum: Optional[int] = Field(default=None)
+    multipleOf: int | None = Field(default=None)
+    maximum: float | None = Field(default=None)  # FIXME Field(discriminator='type') would be better
+    exclusiveMaximum: int | None = Field(default=None)
+    minimum: float | None = Field(default=None)
+    exclusiveMinimum: int | None = Field(default=None)
 
     """
     6.3.  Validation Keywords for Strings
     """
-    maxLength: Optional[int] = Field(default=None)
-    minLength: Optional[int] = Field(default=None)
-    pattern: Optional[str] = Field(default=None)
+    maxLength: int | None = Field(default=None)
+    minLength: int | None = Field(default=None)
+    pattern: str | None = Field(default=None)
 
     """
     6.4.  Validation Keywords for Arrays
     """
-    maxItems: Optional[int] = Field(default=None)
-    minItems: Optional[int] = Field(default=None)
-    uniqueItems: Optional[bool] = Field(default=None)
-    maxContains: Optional[int] = Field(default=None)
-    minContains: Optional[int] = Field(default=None)
+    maxItems: int | None = Field(default=None)
+    minItems: int | None = Field(default=None)
+    uniqueItems: bool | None = Field(default=None)
+    maxContains: int | None = Field(default=None)
+    minContains: int | None = Field(default=None)
 
     """
     6.5.  Validation Keywords for Objects
     """
-    maxProperties: Optional[int] = Field(default=None)
-    minProperties: Optional[int] = Field(default=None)
+    maxProperties: int | None = Field(default=None)
+    minProperties: int | None = Field(default=None)
     required: list[str] = Field(default_factory=list)
     dependentRequired: dict[str, str] = Field(default_factory=dict)  # FIXME
 
     """
     7.  A Vocabulary for Semantic Content With "format"
     """
-    format: Optional[str] = Field(default=None)
+    format: str | None = Field(default=None)
 
     """
     8.  A Vocabulary for the Contents of String-Encoded Data
     """
-    contentEncoding: Optional[str] = Field(default=None)
-    contentMediaType: Optional[str] = Field(default=None)
-    contentSchema: Optional[str] = Field(default=None)
+    contentEncoding: str | None = Field(default=None)
+    contentMediaType: str | None = Field(default=None)
+    contentSchema: str | None = Field(default=None)
 
     """
     9.  A Vocabulary for Basic Meta-Data Annotations
     """
-    title: Optional[str] = Field(default=None)
-    description: Optional[str] = Field(default=None)
-    default: Optional[Any] = Field(default=None)
-    deprecated: Optional[bool] = Field(default=None)
-    readOnly: Optional[bool] = Field(default=None)
-    writeOnly: Optional[bool] = Field(default=None)
-    examples: Optional[Any] = Field(default=None)
+    title: str | None = Field(default=None)
+    description: str | None = Field(default=None)
+    default: Any | None = Field(default=None)
+    deprecated: bool | None = Field(default=None)
+    readOnly: bool | None = Field(default=None)
+    writeOnly: bool | None = Field(default=None)
+    examples: Any | None = Field(default=None)
 
     """
     The OpenAPI Specification's base vocabulary is comprised of the following keywords:
     """
-    discriminator: Optional[Discriminator] = Field(default=None)  # 'Discriminator'
-    xml: Optional[XML] = Field(default=None)  # 'XML'
-    externalDocs: Optional[dict] = Field(default=None)  # 'ExternalDocs'
-    example: Optional[Any] = Field(default=None)
+    discriminator: Discriminator | None = Field(default=None)  # 'Discriminator'
+    xml: XML | None = Field(default=None)  # 'XML'
+    externalDocs: dict | None = Field(default=None)  # 'ExternalDocs'
+    example: Any | None = Field(default=None)
 
     @model_validator(mode="before")
     @classmethod

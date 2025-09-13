@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import Field, EmailStr, model_validator
 
 from aiopenapi3.base import ObjectExtended
@@ -25,8 +23,8 @@ class License(ObjectExtended):
     """
 
     name: str = Field(...)
-    identifier: Optional[str] = Field(default=None)
-    url: Optional[str] = Field(default=None)
+    identifier: str | None = Field(default=None)
+    url: str | None = Field(default=None)
 
     @model_validator(mode="after")
     @classmethod
@@ -46,9 +44,9 @@ class Info(ObjectExtended):
     """
 
     title: str = Field(...)
-    summary: Optional[str] = Field(default=None)
-    description: Optional[str] = Field(default=None)
-    termsOfService: Optional[str] = Field(default=None)
-    contact: Optional[Contact] = Field(default=None)
-    license: Optional[License] = Field(default=None)
+    summary: str | None = Field(default=None)
+    description: str | None = Field(default=None)
+    termsOfService: str | None = Field(default=None)
+    contact: Contact | None = Field(default=None)
+    license: License | None = Field(default=None)
     version: str = Field(...)

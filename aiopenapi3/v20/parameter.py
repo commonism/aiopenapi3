@@ -1,6 +1,6 @@
 import io
 import enum
-from typing import Union, Optional, Any
+from typing import Optional, Any
 
 from pydantic import Field
 
@@ -58,22 +58,22 @@ class Items(ObjectExtended, _ParameterCodec):
     """
 
     type: str = Field(...)
-    format: Optional[str] = Field(default=None)
+    format: str | None = Field(default=None)
     items: Optional["Items"] = Field(default=None)
-    collectionFormat: Optional[str] = Field(default=None)
+    collectionFormat: str | None = Field(default=None)
     default: Any = Field(default=None)
-    maximum: Optional[int] = Field(default=None)
-    exclusiveMaximum: Optional[bool] = Field(default=None)
-    minimum: Optional[int] = Field(default=None)
-    exclusiveMinimum: Optional[bool] = Field(default=None)
-    maxLength: Optional[int] = Field(default=None)
-    minLength: Optional[int] = Field(default=None)
-    pattern: Optional[str] = Field(default=None)
-    maxItems: Optional[int] = Field(default=None)
-    minItems: Optional[int] = Field(default=None)
-    uniqueItems: Optional[bool] = Field(default=None)
-    enum: Optional[Any] = Field(default=None)
-    multipleOf: Optional[int] = Field(default=None)
+    maximum: int | None = Field(default=None)
+    exclusiveMaximum: bool | None = Field(default=None)
+    minimum: int | None = Field(default=None)
+    exclusiveMinimum: bool | None = Field(default=None)
+    maxLength: int | None = Field(default=None)
+    minLength: int | None = Field(default=None)
+    pattern: str | None = Field(default=None)
+    maxItems: int | None = Field(default=None)
+    minItems: int | None = Field(default=None)
+    uniqueItems: bool | None = Field(default=None)
+    enum: Any | None = Field(default=None)
+    multipleOf: int | None = Field(default=None)
 
     def _encode(self, name, value):
         if self.type == "array":
@@ -104,29 +104,29 @@ class Parameter(ObjectExtended, _ParameterCodec, ParameterBase):
     name: str = Field()
     in_: _In = Field(alias="in")
 
-    description: Optional[str] = Field(default=None)
-    required: Optional[bool] = Field(default=None)
+    description: str | None = Field(default=None)
+    required: bool | None = Field(default=None)
 
-    schema_: Optional[Union[Schema, Reference]] = Field(default=None, alias="schema")
+    schema_: Schema | Reference | None = Field(default=None, alias="schema")
 
-    type: Optional[str] = Field(default=None)
-    format: Optional[str] = Field(default=None)
-    allowEmptyValue: Optional[bool] = Field(default=None)
-    items: Optional[Union[Items, Empty]] = Field(default=None)
-    collectionFormat: Optional[str] = Field(default=None)
+    type: str | None = Field(default=None)
+    format: str | None = Field(default=None)
+    allowEmptyValue: bool | None = Field(default=None)
+    items: Items | Empty | None = Field(default=None)
+    collectionFormat: str | None = Field(default=None)
     default: Any = Field(default=None)
-    maximum: Optional[int] = Field(default=None)
-    exclusiveMaximum: Optional[bool] = Field(default=None)
-    minimum: Optional[int] = Field(default=None)
-    exclusiveMinimum: Optional[bool] = Field(default=None)
-    maxLength: Optional[int] = Field(default=None)
-    minLength: Optional[int] = Field(default=None)
-    pattern: Optional[str] = Field(default=None)
-    maxItems: Optional[int] = Field(default=None)
-    minItems: Optional[int] = Field(default=None)
-    uniqueItems: Optional[bool] = Field(default=None)
-    enum: Optional[Any] = Field(default=None)
-    multipleOf: Optional[int] = Field(default=None)
+    maximum: int | None = Field(default=None)
+    exclusiveMaximum: bool | None = Field(default=None)
+    minimum: int | None = Field(default=None)
+    exclusiveMinimum: bool | None = Field(default=None)
+    maxLength: int | None = Field(default=None)
+    minLength: int | None = Field(default=None)
+    pattern: str | None = Field(default=None)
+    maxItems: int | None = Field(default=None)
+    minItems: int | None = Field(default=None)
+    uniqueItems: bool | None = Field(default=None)
+    enum: Any | None = Field(default=None)
+    multipleOf: int | None = Field(default=None)
 
 
 class Header(ObjectExtended, _ParameterCodec):
@@ -134,25 +134,25 @@ class Header(ObjectExtended, _ParameterCodec):
     https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#headers-object
     """
 
-    description: Optional[str] = Field(default=None)
+    description: str | None = Field(default=None)
 
     type: str = Field(...)
-    format: Optional[str] = Field(default=None)
-    items: Optional[Items] = Field(default=None)
-    collectionFormat: Optional[str] = Field(default=None)
+    format: str | None = Field(default=None)
+    items: Items | None = Field(default=None)
+    collectionFormat: str | None = Field(default=None)
     default: Any = Field(default=None)
-    maximum: Optional[int] = Field(default=None)
-    exclusiveMaximum: Optional[bool] = Field(default=None)
-    minimum: Optional[int] = Field(default=None)
-    exclusiveMinimum: Optional[bool] = Field(default=None)
-    maxLength: Optional[int] = Field(default=None)
-    minLength: Optional[int] = Field(default=None)
-    pattern: Optional[str] = Field(default=None)
-    maxItems: Optional[int] = Field(default=None)
-    minItems: Optional[int] = Field(default=None)
-    uniqueItems: Optional[bool] = Field(default=None)
-    enum: Optional[Any] = Field(default=None)
-    multipleOf: Optional[int] = Field(default=None)
+    maximum: int | None = Field(default=None)
+    exclusiveMaximum: bool | None = Field(default=None)
+    minimum: int | None = Field(default=None)
+    exclusiveMinimum: bool | None = Field(default=None)
+    maxLength: int | None = Field(default=None)
+    minLength: int | None = Field(default=None)
+    pattern: str | None = Field(default=None)
+    maxItems: int | None = Field(default=None)
+    minItems: int | None = Field(default=None)
+    uniqueItems: bool | None = Field(default=None)
+    enum: Any | None = Field(default=None)
+    multipleOf: int | None = Field(default=None)
 
     # private storage for an associated Schema so we can create types from this Header & Header.items
     _schema: Any

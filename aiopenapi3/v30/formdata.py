@@ -1,6 +1,6 @@
 import base64
 import quopri
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from email.mime import multipart, nonmultipart
 from email.message import _unquotevalue, Message
 import collections
@@ -126,7 +126,7 @@ def encode_content(data: bytes, codec: str) -> bytes:
 
 
 def encode_multipart_parameters(
-    fields: list[tuple[str, str, Union[str, bytes], dict[str, str], "SchemaType"]],
+    fields: list[tuple[str, str, str | bytes, dict[str, str], "SchemaType"]],
 ) -> MIMEMultipart:
     """
     As shown in
@@ -136,7 +136,7 @@ def encode_multipart_parameters(
     :return:
     """
     m = MIMEMultipart()
-    data: Union[str, bytes]
+    data: str | bytes
     for field, ct, value, headers, schema in fields:
         type, subtype, params = decode_content_type(ct)
 

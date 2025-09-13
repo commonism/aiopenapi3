@@ -1,6 +1,5 @@
 import errno
 import uuid
-from typing import Optional, Union
 from typing import Annotated
 
 import starlette.status
@@ -53,7 +52,7 @@ def createPet(
 
 
 @router.get("/pet", operation_id="listPet", response_model=schema.Pets)
-def listPet(limit: Optional[int] = None) -> schema.Pets:
+def listPet(limit: int | None = None) -> schema.Pets:
     return list(ZOO.values())
 
 
@@ -74,7 +73,7 @@ def getPet(pet_id: str = Path(..., alias="petId")) -> schema.Pets:
 )
 def deletePet(
     response: Response,
-    x_raise_nonexist: Annotated[Union[bool, None], Header()],
+    x_raise_nonexist: Annotated[bool | None, Header()],
     pet_id: str = Path(..., alias="petId"),
 ) -> None:
     for k, pet in ZOO.items():

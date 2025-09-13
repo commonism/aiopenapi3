@@ -4,7 +4,7 @@ import decimal
 import typing
 import uuid
 import json
-from typing import Union, Optional, Any
+from typing import Union, Any
 from collections.abc import MutableMapping
 
 from pydantic import BaseModel, Field, model_validator
@@ -289,16 +289,16 @@ class ParameterBase(ObjectExtended, ParameterBase_):
     .. _Parameter Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#external-documentation-object
     """
 
-    description: Optional[str] = Field(default=None)
-    required: Optional[bool] = Field(default=None)
-    deprecated: Optional[bool] = Field(default=None)
-    allowEmptyValue: Optional[bool] = Field(default=None)
+    description: str | None = Field(default=None)
+    required: bool | None = Field(default=None)
+    deprecated: bool | None = Field(default=None)
+    allowEmptyValue: bool | None = Field(default=None)
 
-    style: Optional[str] = Field(default=None)
-    explode: Optional[bool] = Field(default=None)
-    allowReserved: Optional[bool] = Field(default=None)
-    schema_: Optional[Union[Schema, Reference]] = Field(default=None, alias="schema")
-    example: Optional[Any] = Field(default=None)
+    style: str | None = Field(default=None)
+    explode: bool | None = Field(default=None)
+    allowReserved: bool | None = Field(default=None)
+    schema_: Schema | Reference | None = Field(default=None, alias="schema")
+    example: Any | None = Field(default=None)
     examples: dict[str, Union["Example", Reference]] = Field(default_factory=dict)
 
     content: dict[str, "MediaType"] = Field(default_factory=dict)
@@ -324,12 +324,12 @@ class Parameter(ParameterBase, _ParameterCodec):
 def encode_parameter(
     name: str,
     value: object,
-    style: Optional[str],
-    explode: Optional[bool],
-    allowReserved: Optional[bool],
+    style: str | None,
+    explode: bool | None,
+    allowReserved: bool | None,
     in_: str,
     schema_: Schema,
-) -> Union[str, bytes]:
+) -> str | bytes:
     p = Parameter(name=name, style=style, explode=explode, allowReserved=allowReserved, **{"in": in_, "schema": None})
     p.schema_ = schema_
     r = p._encode(name, value)[name]

@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import Field
 
 from ..base import ObjectExtended
@@ -25,7 +23,7 @@ class License(ObjectExtended):
     """
 
     name: str = Field(...)
-    url: Optional[str] = Field(default=None)
+    url: str | None = Field(default=None)
 
 
 class Info(ObjectExtended):
@@ -36,8 +34,8 @@ class Info(ObjectExtended):
     """
 
     title: str = Field(...)
-    description: Optional[str] = Field(default=None)
-    termsOfService: Optional[str] = Field(default=None)
-    license: Optional[License] = Field(default=None)
-    contact: Optional[Contact] = Field(default=None)
+    description: str | None = Field(default=None)
+    termsOfService: str | None = Field(default=None)
+    license: License | None = Field(default=None)
+    contact: Contact | None = Field(default=None)
     version: str = Field(...)

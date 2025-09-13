@@ -2,12 +2,8 @@ import typing
 from typing import Union, cast, Optional
 from collections.abc import Sequence
 import json
-import sys
 
-if sys.version_info >= (3, 10):
-    from typing import TypeGuard
-else:
-    from typing_extensions import TypeGuard
+from typing import TypeGuard
 
 
 import httpx
@@ -122,13 +118,13 @@ class Request(RequestBase):
                 f"No security requirement satisfied (accepts {options} given {{{' and '.join(sorted(self.security.keys()))}}})"
             )
 
-    def _prepare_secschemes(self, scheme: str, value: Union[str, Sequence[str]]) -> None:
+    def _prepare_secschemes(self, scheme: str, value: str | Sequence[str]) -> None:
         if httpx_auth is not None:
             self._prepare_secschemes_extra(scheme, value)
         else:
             self._prepare_secschemes_default(scheme, value)
 
-    def _prepare_secschemes_default(self, scheme: str, value: Union[str, Sequence[str]]) -> None:
+    def _prepare_secschemes_default(self, scheme: str, value: str | Sequence[str]) -> None:
         assert scheme in self.root.securityDefinitions and self.root.securityDefinitions[scheme] is not None
         ss = self.root.securityDefinitions[scheme].root
 
@@ -146,7 +142,7 @@ class Request(RequestBase):
                 # apiKey in query header data
                 self.req.headers[ss.name] = value
 
-    def _prepare_secschemes_extra(self, scheme: str, value: Union[str, Sequence[str]]) -> None:
+    def _prepare_secschemes_extra(self, scheme: str, value: str | Sequence[str]) -> None:
         assert scheme in self.root.securityDefinitions and self.root.securityDefinitions[scheme] is not None
         ss = self.root.securityDefinitions[scheme].root
 
@@ -366,7 +362,7 @@ class Request(RequestBase):
 
 
 class AsyncRequest(Request, AsyncRequestBase):
-    def _prepare_secschemes(self, scheme: str, value: Union[str, Sequence[str]]):
+    def _prepare_secschemes(self, scheme: str, value: str | Sequence[str]):
         """
         httpx_auth does not support async yet
         https://github.com/Colin-b/httpx_auth/pull/48

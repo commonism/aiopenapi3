@@ -53,7 +53,7 @@ if TYPE_CHECKING:
 
 
 class Request(RequestBase):
-    root: Union[v30Root, v31Root]
+    root: v30Root | v31Root
 
     @property
     def security(self):
@@ -123,7 +123,7 @@ class Request(RequestBase):
                 f"No security requirement satisfied (accepts {options} given {{{' and '.join(sorted(self.security.keys()))}}}"
             )
 
-    def _prepare_secschemes(self, scheme: str, value: Union[str, Sequence[str]]) -> None:
+    def _prepare_secschemes(self, scheme: str, value: str | Sequence[str]) -> None:
         assert (
             self.root.components
             and self.root.components.securitySchemes
@@ -135,7 +135,7 @@ class Request(RequestBase):
         else:
             self._prepare_secschemes_default(scheme, value)
 
-    def _prepare_secschemes_default(self, scheme: str, value: Union[str, Sequence[str]]) -> None:
+    def _prepare_secschemes_default(self, scheme: str, value: str | Sequence[str]) -> None:
         assert (
             self.root.components
             and self.root.components.securitySchemes
@@ -174,7 +174,7 @@ class Request(RequestBase):
             if ss.in_ == "cookie":
                 self.req.cookies[ss.name] = value
 
-    def _prepare_secschemes_extra(self, scheme: str, value: Union[str, Sequence[str]]) -> None:
+    def _prepare_secschemes_extra(self, scheme: str, value: str | Sequence[str]) -> None:
         assert (
             self.root.components
             and self.root.components.securitySchemes
@@ -528,7 +528,7 @@ class Request(RequestBase):
         return rheaders
 
     def _process__content_type(
-        self, result: httpx.Response, expected_response: "v3xResponseType", content_type: Optional[str]
+        self, result: httpx.Response, expected_response: "v3xResponseType", content_type: str | None
     ) -> tuple[str, "v3xMediaTypeType"]:
         if content_type:
             """

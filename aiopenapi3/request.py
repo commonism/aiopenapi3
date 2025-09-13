@@ -52,7 +52,7 @@ if typing.TYPE_CHECKING:
 
 
 class RequestParameter:
-    def __init__(self, url: Union[yarl.URL, str]):
+    def __init__(self, url: yarl.URL | str):
         self.url: str = str(url)
         self.auth: Optional["AuthTypes"] = None
         self.cookies: dict[str, str] = {}
@@ -78,9 +78,9 @@ class RequestBase:
         result: httpx.Response
 
     class Vars(NamedTuple):
-        parameters: Optional[dict[str, str]]
-        data: Optional[Any]
-        context: Optional[Any]
+        parameters: dict[str, str] | None
+        data: Any | None
+        context: Any | None
         """
         call provided context data for use in :func:`aiopenapi3.plugin.Message`
         """
@@ -102,7 +102,7 @@ class RequestBase:
         method: "HTTPMethodType",
         path: str,
         operation: "OperationType",
-        servers: Optional[list["ServerType"]],
+        servers: list["ServerType"] | None,
     ):
         self.api: "OpenAPI" = api
         """
@@ -139,7 +139,7 @@ class RequestBase:
         RequestParameter
         """
 
-        self.servers: Optional[list["ServerType"]] = servers
+        self.servers: list["ServerType"] | None = servers
         """
         Servers to use for this request
         """
@@ -198,7 +198,7 @@ class RequestBase:
     @abc.abstractmethod
     def _prepare(self, data: Optional["RequestData"], parameters: Optional["RequestParameters"]) -> None: ...
 
-    def _build_req(self, session: Union[httpx.Client, httpx.AsyncClient]) -> httpx.Request:
+    def _build_req(self, session: httpx.Client | httpx.AsyncClient) -> httpx.Request:
         url: yarl.URL = self.api.url
 
         if self.servers:
@@ -217,7 +217,7 @@ class RequestBase:
         )
         return req
 
-    def _raise_on_http_status(self, status_code: int, headers: dict[str, str], data: Union[pydantic.BaseModel, bytes]):
+    def _raise_on_http_status(self, status_code: int, headers: dict[str, str], data: pydantic.BaseModel | bytes):
         for exc, (start, end) in self.api.raise_on_http_status:
             if start <= status_code <= end:
                 raise exc(status_code, headers, data)
@@ -364,7 +364,7 @@ class OperationIndex:
     class OperationTag:
         def __init__(self, oi: "OperationIndex") -> None:
             self._oi = oi
-            self._operations: dict[str, tuple["HTTPMethodType", str, "OperationType", Optional[list["ServerType"]]]] = (
+            self._operations: dict[str, tuple["HTTPMethodType", str, "OperationType", list["ServerType"] | None]] = (
                 dict()
             )
 
@@ -404,16 +404,14 @@ class OperationIndex:
         self._api: "OpenAPI" = api
         self._root: "RootType" = api._root
 
-        self._operations: dict[str, tuple["HTTPMethodType", str, "OperationType", Optional[list["ServerType"]]]] = (
-            dict()
-        )
+        self._operations: dict[str, tuple["HTTPMethodType", str, "OperationType", list["ServerType"] | None]] = dict()
         self._tags: dict[str, "OperationIndex.OperationTag"] = collections.defaultdict(
             lambda: OperationIndex.OperationTag(self)
         )
         pi: "PathItemType"
         for path, pi in self._root.paths.items():
             op: "OperationType"
-            servers: Optional[list["ServerType"]]
+            servers: list["ServerType"] | None
             if pi.ref:
                 pi = pi.ref._target
             for method in pi.model_fields_set & HTTP_METHODS:
@@ -455,7 +453,7 @@ class OperationIndex:
         else:
             raise KeyError(f"operationId {item} not found in tags or operations")
 
-    def __getitem__(self, item: Union[str, tuple[str, "HTTPMethodType"]]) -> "RequestType":
+    def __getitem__(self, item: str | tuple[str, "HTTPMethodType"]) -> "RequestType":
         """
         index operator interface
         access operations by operationId or (path, method)

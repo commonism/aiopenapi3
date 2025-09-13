@@ -1,4 +1,4 @@
-from typing import Union, Optional, Any
+from typing import Union, Any
 
 from pydantic import Field, model_validator, RootModel, ConfigDict
 
@@ -18,9 +18,9 @@ class RequestBody(ObjectExtended):
     .. _RequestBody: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#requestBodyObject
     """
 
-    description: Optional[str] = Field(default=None)
+    description: str | None = Field(default=None)
     content: dict[str, MediaType] = Field(...)
-    required: Optional[bool] = Field(default=False)
+    required: bool | None = Field(default=False)
 
 
 class Link(ObjectExtended):
@@ -30,12 +30,12 @@ class Link(ObjectExtended):
     .. _Link Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#link-object
     """
 
-    operationRef: Optional[str] = Field(default=None)
-    operationId: Optional[str] = Field(default=None)
-    parameters: Optional[dict[str, Union[str, Any, "RuntimeExpression"]]] = Field(default=None)
-    requestBody: Optional[Union[Any, "RuntimeExpression"]] = Field(default=None)
-    description: Optional[str] = Field(default=None)
-    server: Optional[Server] = Field(default=None)
+    operationRef: str | None = Field(default=None)
+    operationId: str | None = Field(default=None)
+    parameters: dict[str, Union[str, Any, "RuntimeExpression"]] | None = Field(default=None)
+    requestBody: Union[Any, "RuntimeExpression"] | None = Field(default=None)
+    description: str | None = Field(default=None)
+    server: Server | None = Field(default=None)
 
     @model_validator(mode="after")
     def validate_Link_operation(cls, l: '__types["Link"]'):  # type: ignore[name-defined]
@@ -57,9 +57,9 @@ class Response(ObjectExtended):
     """
 
     description: str = Field(...)
-    headers: dict[str, Union[Header, Reference]] = Field(default_factory=dict)
+    headers: dict[str, Header | Reference] = Field(default_factory=dict)
     content: dict[str, MediaType] = Field(default_factory=dict)
-    links: dict[str, Union[Link, Reference]] = Field(default_factory=dict)
+    links: dict[str, Link | Reference] = Field(default_factory=dict)
 
 
 class Operation(ObjectExtended, OperationBase):
@@ -69,18 +69,18 @@ class Operation(ObjectExtended, OperationBase):
     .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#operationObject
     """
 
-    tags: Optional[list[str]] = Field(default=None)
-    summary: Optional[str] = Field(default=None)
-    description: Optional[str] = Field(default=None)
-    externalDocs: Optional[ExternalDocumentation] = Field(default=None)
-    operationId: Optional[str] = Field(default=None)
-    parameters: list[Union[Parameter, Reference]] = Field(default_factory=list)
-    requestBody: Optional[Union[RequestBody, Reference]] = Field(default=None)
-    responses: dict[str, Union[Response, Reference]] = Field(default_factory=dict)
+    tags: list[str] | None = Field(default=None)
+    summary: str | None = Field(default=None)
+    description: str | None = Field(default=None)
+    externalDocs: ExternalDocumentation | None = Field(default=None)
+    operationId: str | None = Field(default=None)
+    parameters: list[Parameter | Reference] = Field(default_factory=list)
+    requestBody: RequestBody | Reference | None = Field(default=None)
+    responses: dict[str, Response | Reference] = Field(default_factory=dict)
     callbacks: dict[str, Union["Callback", Reference]] = Field(default_factory=dict)
-    deprecated: Optional[bool] = Field(default=None)
-    security: Optional[list[SecurityRequirement]] = Field(default=None)
-    servers: Optional[list[Server]] = Field(default=None)
+    deprecated: bool | None = Field(default=None)
+    security: list[SecurityRequirement] | None = Field(default=None)
+    servers: list[Server] | None = Field(default=None)
 
 
 class PathItem(ObjectExtended, PathItemBase):
@@ -91,19 +91,19 @@ class PathItem(ObjectExtended, PathItemBase):
     .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#pathItemObject
     """
 
-    ref: Optional[str] = Field(default=None, alias="$ref")
-    summary: Optional[str] = Field(default=None)
-    description: Optional[str] = Field(default=None)
-    get: Optional[Operation] = Field(default=None)
-    put: Optional[Operation] = Field(default=None)
-    post: Optional[Operation] = Field(default=None)
-    delete: Optional[Operation] = Field(default=None)
-    options: Optional[Operation] = Field(default=None)
-    head: Optional[Operation] = Field(default=None)
-    patch: Optional[Operation] = Field(default=None)
-    trace: Optional[Operation] = Field(default=None)
-    servers: Optional[list[Server]] = Field(default=None)
-    parameters: list[Union[Parameter, Reference]] = Field(default_factory=list)
+    ref: str | None = Field(default=None, alias="$ref")
+    summary: str | None = Field(default=None)
+    description: str | None = Field(default=None)
+    get: Operation | None = Field(default=None)
+    put: Operation | None = Field(default=None)
+    post: Operation | None = Field(default=None)
+    delete: Operation | None = Field(default=None)
+    options: Operation | None = Field(default=None)
+    head: Operation | None = Field(default=None)
+    patch: Operation | None = Field(default=None)
+    trace: Operation | None = Field(default=None)
+    servers: list[Server] | None = Field(default=None)
+    parameters: list[Parameter | Reference] = Field(default_factory=list)
 
 
 class Paths(PathsBase):

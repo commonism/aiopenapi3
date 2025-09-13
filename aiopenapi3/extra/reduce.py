@@ -1,5 +1,5 @@
 import typing
-from typing import Union, Optional
+from typing import Union
 import logging
 import re
 
@@ -24,7 +24,7 @@ class Reduce(Document, Init):
 
     def __init__(
         self,
-        *operations: list[Union[tuple["PathMatchType", Optional[list["HTTPMethodMatchType"]]], "OperationIdMatchType"]],
+        *operations: list[Union[tuple["PathMatchType", list["HTTPMethodMatchType"] | None], "OperationIdMatchType"]],
     ) -> None:
         """
 
