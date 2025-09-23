@@ -152,10 +152,19 @@ class OpenAPI:
         """
         Create an OpenAPI object from a description document file.
 
-        from pathlib import Path
-        import aiopenapi3
+        .. code-block:: python
 
-        api = aiopenapi3.OpenAPI.load_file("/",pathlib.Path("schema.yaml"), loader=aiopenapi3.FileSystemLoader(pathlib.Path("/tmp")), session_factory=httpx.Client)
+            from pathlib import Path
+            import aiopenapi3
+            import httpx
+
+            loader = aiopenapi3.FileSystemLoader(pathlib.Path("<root>"))
+            api = aiopenapi3.OpenAPI.load_file(
+                url="<live-url>",
+                path=pathlib.Path("<path-relative-to-root>"),
+                loader=loader,
+                session_factory=httpx.Client
+                )
 
 
         :param url: the fictive url of the description document
