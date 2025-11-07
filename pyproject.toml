@@ -64,16 +64,13 @@ requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = [
-    "aiopenapi3",
-    "aiopenapi3.v20",
-    "aiopenapi3.v30",
-    "aiopenapi3.v31",
-    "aiopenapi3.extra"
-]
-
 # https://github.com/astral-sh/uv/issues/9513#issuecomment-2519527822
 license-files = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["aiopenapi3*"]
+namespaces = false
 
 [tool.setuptools.dynamic]
 version = {attr = "aiopenapi3.version.__version__"}
