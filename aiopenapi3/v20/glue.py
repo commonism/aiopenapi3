@@ -291,7 +291,7 @@ class Request(RequestBase):
         headers = self._process__headers(result, result.headers, expected_response)
         return headers, expected_response.schema_
 
-    def _process_request(self, result: httpx.Response) -> tuple["ResponseHeadersType", "ResponseDataType"]:
+    def _process_request(self, result: httpx.Response) -> tuple["ResponseHeadersType", Optional["ResponseDataType"]]:
         rheaders: "ResponseHeadersType"
         # spec enforces these are strings
         status_code = str(result.status_code)
@@ -306,7 +306,7 @@ class Request(RequestBase):
             content_type=content_type,
         )
         status_code = ctx.status_code
-        content_type = ctx.content_type
+        content_type = ctx.content_type.lower().partition(";")[0] if ctx.content_type is not None else None
         headers = ctx.headers
 
         expected_response = self._process__status_code(result, status_code)
@@ -320,7 +320,15 @@ class Request(RequestBase):
         if status_code == "204":
             return rheaders, None
 
-        if content_type and content_type.lower().partition(";")[0] == "application/json":
+        if content_type not in (produces := (self.operation.produces or self.api._root.produces)):
+            raise ContentTypeError(
+                self.operation,
+                content_type,
+                f"Unexpected Content-Type {content_type} returned for operation {self.operation.operationId} (expected {produces})",
+                result,
+            )
+
+        if content_type == "application/json":
             data = ctx.received.decode()
             try:
                 data = json.loads(data)
@@ -349,16 +357,15 @@ class Request(RequestBase):
             self._raise_on_http_status(int(status_code), rheaders, data)
 
             return rheaders, data
-        elif self.operation.produces and content_type in self.operation.produces:
+        else:
+            """
+            We have received a valid (i.e. expected) content type,
+            e.g. application/octet-stream
+            but we can't validate it since it's not json.
+            """
+
             self._raise_on_http_status(result.status_code, rheaders, ctx.received)
             return rheaders, ctx.received
-        else:
-            raise ContentTypeError(
-                self.operation,
-                content_type,
-                f"Unexpected Content-Type {content_type} returned for operation {self.operation.operationId} (expected application/json)",
-                result,
-            )
 
 
 class AsyncRequest(Request, AsyncRequestBase):
