@@ -111,3 +111,14 @@ paths:
           description: OK
           schema:
             type: string
+
+  '/file':
+    get:
+      operationId: getfile
+      produces:
+        - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file

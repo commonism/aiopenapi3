@@ -212,6 +212,13 @@ def test_paths_parameter_format_v20(httpx_mock, with_paths_parameter_format_v20)
     return
 
 
+def test_paths_response_file(httpx_mock, with_paths_parameter_format_v20):
+    httpx_mock.add_response(headers={"Content-Type": "application/octet-stream"}, content=b"\x00")
+    api = OpenAPI(URLBASE, with_paths_parameter_format_v20, session_factory=httpx.Client)
+    f = api._.getfile()
+    assert f == b"\x00"
+
+
 def test_paths_stream(httpx_mock, with_paths_parameter_format_v20):
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="ok")
     api = OpenAPI(URLBASE, with_paths_parameter_format_v20, session_factory=httpx.Client)

@@ -57,6 +57,8 @@ def generate_type_format_to_class():
 
     type_format_to_class["integer"][None] = int
 
+    assert type_format_to_class["string"]["binary"] == bytes
+
     try:
         from pydantic_extra_types import epoch
 
@@ -439,6 +441,18 @@ class Model:  # (BaseModel):
                     for i in schema.allOf:
                         classinfo.createAnnotations(i, discriminators, schemanames, fwdref=True)
                         classinfo.createFields(i)
+        elif _type == "file":
+            """
+            An additional primitive data type "file" is used by the Parameter Object and the Response Object to set the parameter type or the response as being a file.
+
+            https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#data-types
+
+            type:string format:binary is bytes in pydantic validation
+            """
+            assert isinstance(schema, v20.Schema)
+            schema_ = v20.Schema(type="string", format="binary")
+            _t = Model.createAnnotation(schema_, _type="string")
+            classinfo.root = Annotated[_t, Model.createField(schema_, _type="string", args=None)]
         else:
             raise ValueError(_type)
 
