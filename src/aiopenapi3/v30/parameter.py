@@ -316,9 +316,11 @@ class Parameter(ParameterBase, _ParameterCodec):
     in_: _In = Field(alias="in")  # TODO must be one of ["query","header","path","cookie"]
 
     @model_validator(mode="after")
-    def validate_Parameter(cls, p: "ParameterBase"):
-        assert p.in_ != "path" or p.required is True, "Parameter '%s' must be required since it is in the path" % p.name
-        return p
+    def validate_Parameter(self):
+        assert self.in_ != "path" or self.required is True, (
+            "Parameter '%s' must be required since it is in the path" % self.name
+        )
+        return self
 
 
 def encode_parameter(
