@@ -1,10 +1,10 @@
 repos:
   - repo: https://github.com/hadialqattan/pycln
-    rev: v2.5.0 # Possible releases: https://github.com/hadialqattan/pycln/releases
+    rev: v2.6.0 # Possible releases: https://github.com/hadialqattan/pycln/releases
     hooks:
       - id: pycln
   - repo: 'https://github.com/psf/black'
-    rev: 25.1.0
+    rev: 25.11.0
     hooks:
       - id: black
         args:
@@ -35,7 +35,7 @@ repos:
           - "--ignore=E203,W503"
           - "--select=W504"
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.20.0
+    rev: v3.21.1
     hooks:
       - id: pyupgrade
         args: [--py39-plus, --keep-runtime-typing]
@@ -55,7 +55,7 @@ repos:
 
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.
-    rev: 0.8.13
+    rev: 0.9.8
     hooks:
       # Update the uv lockfile
       - id: uv-lock
