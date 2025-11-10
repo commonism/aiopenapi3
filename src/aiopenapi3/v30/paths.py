@@ -38,15 +38,14 @@ class Link(ObjectExtended):
     server: Server | None = Field(default=None)
 
     @model_validator(mode="after")
-    @classmethod
-    def validate_Link_operation(cls, l: '__types["Link"]'):  # noqa: F821
-        assert not (l.operationId is not None and l.operationRef is not None), (
-            "operationId and operationRef are mutually exclusive, only one of them is allowed"
-        )
-        assert not (l.operationId == l.operationRef is None), (
-            "operationId and operationRef are mutually exclusive, one of them must be specified"
-        )
-        return l
+    def validate_Link_operation(self):  # type: ignore[name-defined]
+        assert not (
+            self.operationId != None and self.operationRef != None
+        ), "operationId and operationRef are mutually exclusive, only one of them is allowed"
+        assert not (
+            self.operationId == self.operationRef == None
+        ), "operationId and operationRef are mutually exclusive, one of them must be specified"
+        return self
 
 
 class Response(ObjectExtended):

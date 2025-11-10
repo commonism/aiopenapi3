@@ -27,13 +27,12 @@ class License(ObjectExtended):
     url: str | None = Field(default=None)
 
     @model_validator(mode="after")
-    @classmethod
-    def validate_License(cls, l: "License"):
+    def validate_License(self):
         """
         A URL to the license used for the API. This MUST be in the form of a URL. The url field is mutually exclusive of the identifier field.
         """
-        assert not all([getattr(l, i, None) is not None for i in ["identifier", "url"]])
-        return l
+        assert not all([getattr(self, i, None) is not None for i in ["identifier", "url"]])
+        return self
 
 
 class Info(ObjectExtended):
