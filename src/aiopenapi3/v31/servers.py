@@ -17,11 +17,11 @@ class ServerVariable(ObjectExtended):
     description: str | None = Field(default=None)
 
     @model_validator(mode="after")
-    def validate_ServerVariable(cls, s: "ServerVariable"):
-        assert isinstance(s.enum, (list, None.__class__))
+    def validate_ServerVariable(self):
+        assert isinstance(self.enum, (list, None.__class__))
         # default value must be in enum
-        assert s.default is None or s.default in (s.enum or [s.default])
-        return s
+        assert self.default is None or self.default in (self.enum or [self.default])
+        return self
 
 
 class Server(ObjectExtended):
