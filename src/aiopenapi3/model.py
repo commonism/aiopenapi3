@@ -113,6 +113,7 @@ class _ClassInfo:
     type_: str
 
     root: Any = None
+    anno: pydantic.Field = None
     config: dict[str, Any] = dataclasses.field(default_factory=dict)
     properties: dict[str, _PropertyInfo] = dataclasses.field(
         default_factory=lambda: collections.defaultdict(lambda: _ClassInfo._PropertyInfo())
@@ -257,10 +258,17 @@ class _ClassInfo:
         r = [i.model() for i in items]
 
         if len(r) > 1:
-            ru: object = Union[tuple(r)]
+            # Annotations are collected, last element has all of them
+            #            ru: object = Annotated[Union[tuple(r)], items[-1].anno]
+            v = list()
+            for i in range(len(items)):
+                v.append(Annotated[r[i], items[i].anno])
+            ru = Annotated[Union[tuple(v)], Field(default=None)]
             m: type[RootModel] = create_model(type_name, __base__=(ConfiguredRootModel[ru],), __module__=me.__name__)
         elif len(r) == 1:
             m: type[BaseModel] = cast(type[BaseModel], r[0])
+            if items[0].anno:
+                m = Annotated[m, items[0].anno]
             if not is_basemodel(m):
                 m = create_model(type_name, __base__=(ConfiguredRootModel[m],), __module__=me.__name__)
         else:  # == 0
@@ -299,7 +307,8 @@ class Model:  # (BaseModel):
         r: list[_ClassInfo] = list()
 
         for _type in Model.types(schema):
-            r.append(Model.createClassInfo(schema, _type, schemanames, discriminators, extra))
+            args = dict()
+            r.append(Model.createClassInfo(schema, _type, schemanames, discriminators, extra, args))
 
         m = _ClassInfo.collapse(schema._get_identity("L8"), r)
 
@@ -313,6 +322,7 @@ class Model:  # (BaseModel):
         schemanames: list[str],
         discriminators: list["DiscriminatorType"],
         extra: list["SchemaType"] | None,
+        args: dict[str, Any] = None,
     ) -> _ClassInfo:
         from . import v20, v30, v31
 
@@ -326,9 +336,8 @@ class Model:  # (BaseModel):
             for primitive types the anyOf/oneOf is taken care of in Model.createAnnotation
             """
             if typing.get_origin(_t := Model.createAnnotation(schema, _type=_type)) != Literal:
-                classinfo.root = Annotated[_t, Model.createField(schema, _type=_type, args=None)]
-            else:
-                classinfo.root = _t
+                classinfo.anno = Model.createField(schema, _type=_type, args=args)
+            classinfo.root = _t
         elif _type == "array":
             """anyOf/oneOf is taken care in in createAnnotation"""
             classinfo.root = Model.createAnnotation(schema, _type="array")
@@ -355,9 +364,8 @@ class Model:  # (BaseModel):
                     if _type in Model.types(i)
                 )
                 if schema.discriminator and schema.discriminator.mapping:
-                    classinfo.root = Annotated[
-                        Union[t], Field(discriminator=Model.nameof(schema.discriminator.propertyName))
-                    ]
+                    classinfo.root = Union[t]
+                    classinfo.anno = Field(discriminator=Model.nameof(schema.discriminator.propertyName))
                 else:
                     if len(t):
                         classinfo.root = Union[t]
@@ -373,9 +381,8 @@ class Model:  # (BaseModel):
                     if _type in Model.types(i)
                 )
                 if schema.discriminator and schema.discriminator.mapping:
-                    classinfo.root = Annotated[
-                        Union[t], Field(discriminator=Model.nameof(schema.discriminator.propertyName))
-                    ]
+                    classinfo.root = Union[t]
+                    classinfo.anno = Field(discriminator=Model.nameof(schema.discriminator.propertyName))
                 else:
                     if len(t):
                         classinfo.root = Union[t]
@@ -451,8 +458,8 @@ class Model:  # (BaseModel):
             """
             assert isinstance(schema, v20.Schema)
             schema_ = v20.Schema(type="string", format="binary")
-            _t = Model.createAnnotation(schema_, _type="string")
-            classinfo.root = Annotated[_t, Model.createField(schema_, _type="string", args=None)]
+            classinfo.root = Model.createAnnotation(schema_, _type="string")
+            classinfo.anno = Model.createField(schema_, _type="string", args=None)
         else:
             raise ValueError(_type)
 
@@ -716,7 +723,7 @@ class Model:  # (BaseModel):
             raise ValueError(schema)
 
     @staticmethod
-    def createField(schema: "SchemaType", _type=None, args=None):
+    def createField(schema: "SchemaType", _type=None, args=None) -> Field:
         if args is None:
             args = dict(default=getattr(schema, "default", None))
 
