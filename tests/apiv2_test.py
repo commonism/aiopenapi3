@@ -125,9 +125,9 @@ async def test_model(server, client):
 
 def randomPet(client, name=None, cat=False):
     if name:
-        Pet = client.components.schemas["Pet-Input"].get_type()
+        Pet = client.components.schemas["Pet"].get_type()
         if not cat:
-            Dog = typing.get_args(typing.get_args(Pet.model_fields["root"].annotation)[0])[1]
+            Dog = typing.get_args(Pet.model_fields["root"].annotation)[1]
             dog = Dog(
                 name=name,
                 age=datetime.timedelta(seconds=random.randint(1, 2**32)),
@@ -135,8 +135,8 @@ def randomPet(client, name=None, cat=False):
             )
             pet = Pet(dog)
         else:
-            Cat = typing.get_args(typing.get_args(Pet.model_fields["root"].annotation)[0])[0]
-            WhiteCat = typing.get_args(typing.get_args(Cat.model_fields["root"].annotation)[0])[1]
+            Cat = typing.get_args(Pet.model_fields["root"].annotation)[0]
+            WhiteCat = typing.get_args(Cat.model_fields["root"].annotation)[1]
             wc = WhiteCat(pet_type="cat", color="white", name="whitey", white_name="white")
             cat = Cat(wc)
             pet = Pet(cat)
@@ -236,8 +236,8 @@ async def test_deletePet(server, client):
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_patchPet(server, client):
-    Pet = client.components.schemas["Pet-Input"].get_type()
-    Dog = typing.get_args(typing.get_args(Pet.model_fields["root"].annotation)[0])[1]
+    Pet = client.components.schemas["Pet"].get_type()
+    Dog = typing.get_args(Pet.model_fields["root"].annotation)[1]
     pets = [
         Pet(
             Dog.model_construct(
