@@ -6,11 +6,12 @@ authors = [
 ]
 dependencies = [
     "PyYaml",
-    "pydantic == 2.11.9",
+    "pydantic @ git+https://github.com/pydantic/pydantic.git",
     "email-validator",
     "yarl",
     "httpx",
     "more-itertools",
+    'typing_extensions; python_version<"3.10"',
     "jmespath",
 ]
 requires-python = ">=3.10"
@@ -102,6 +103,7 @@ filterwarnings = [
     "ignore:'flask.Markup' is deprecated and will be removed in Flask 2.4. Import 'markupsafe.Markup' instead.:DeprecationWarning",
     "ignore:unclosed resource <TCPTransport:ResourceWarning",
     "ignore:co_lnotab is deprecated, use co_lines instead:DeprecationWarning",
+#    "ignore::pydantic.warnings.UnsupportedFieldAttributeWarning",
 ]
 asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "session"
