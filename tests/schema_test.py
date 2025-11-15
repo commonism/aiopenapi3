@@ -653,6 +653,8 @@ def test_schema_type_validators(with_schema_type_validators):
     v = t.model_validate("10")
     with pytest.raises(ValidationError):
         v = t.model_validate("9")
+    v = t()
+    assert v.root == 10
 
     t = (m := api.components.schemas["Number"]).get_type()
     v = t.model_validate("10.")

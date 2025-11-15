@@ -297,8 +297,14 @@ class Model:  # (BaseModel):
 
         r: list[_ClassInfo] = list()
 
-        for _type in Model.types(schema):
-            args = dict()
+        types: list[str] = list(Model.types(schema))
+        multi: bool = len(types) > 1
+        for _type in types:
+            args = dict() if multi else None
+            """
+            for schema with multiple types, the default value needs to be attached to the RootModel
+            providing empty args creates a FieldInfo without a default value for the subtypes
+            """
             r.append(Model.createClassInfo(schema, _type, schemanames, discriminators, extra, args))
 
         m = _ClassInfo.collapse(schema, r)
@@ -360,7 +366,6 @@ class Model:  # (BaseModel):
                     classinfo.root = Annotated[
                         Union[t], Field(discriminator=Model.nameof(schema.discriminator.propertyName))
                     ]
-
                 else:
                     if len(t):
                         classinfo.root = Union[t]
@@ -612,7 +617,7 @@ class Model:  # (BaseModel):
         return rr
 
     @staticmethod
-    def types(schema: "SchemaType"):
+    def types(schema: "SchemaType") -> typing.Generator[str, None, None]:
         if isinstance(schema.type, str):
             yield schema.type
             if getattr(schema, "nullable", False):
