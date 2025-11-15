@@ -22,3 +22,4 @@ components:
       minLength: 5
       maximum: 10
       minimum: 10
+      default: 10

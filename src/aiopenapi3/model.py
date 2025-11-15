@@ -250,13 +250,13 @@ class _ClassInfo:
         return m
 
     @classmethod
-    def collapse(cls, type_name, items: list["_ClassInfo"]) -> type[BaseModel]:
+    def collapse(cls, schema: "SchemaType", items: list["_ClassInfo"]) -> type[BaseModel]:
         r: list[type[BaseModel] | type[None]]
-
         r = [i.model() for i in items]
+        type_name = schema._get_identity("L8")
 
         if len(r) > 1:
-            ru = Annotated[Union[tuple(r)], Field(default=None)]
+            ru = Annotated[Union[tuple(r)], Field(default=getattr(schema, "default", None))]
             m: type[RootModel] = create_model(type_name, __base__=(ConfiguredRootModel[ru],), __module__=me.__name__)
         elif len(r) == 1:
             m: type[BaseModel] = cast(type[BaseModel], r[0])
@@ -301,7 +301,7 @@ class Model:  # (BaseModel):
             args = dict()
             r.append(Model.createClassInfo(schema, _type, schemanames, discriminators, extra, args))
 
-        m = _ClassInfo.collapse(schema._get_identity("L8"), r)
+        m = _ClassInfo.collapse(schema, r)
 
         return cast(type[BaseModel], m)
 
