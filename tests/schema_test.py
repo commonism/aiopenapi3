@@ -678,6 +678,9 @@ def test_schema_type_validators(with_schema_type_validators):
     with pytest.raises(ValidationError):
         v = t.model_validate("invalid")
 
+    v = t()
+    assert v.root == 10
+
 
 def test_schema_allof_string(with_schema_allof_string):
     api = OpenAPI("/", with_schema_allof_string)
