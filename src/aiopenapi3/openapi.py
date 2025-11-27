@@ -627,6 +627,16 @@ class OpenAPI:
             for j in b._model_types:
                 types[j.__name__] = j
 
+        # as previous .get_type() may have created new models, we need to reindex
+        for name, schema in list(types.items()):
+            if not is_basemodel(schema):
+                continue
+            thes = byname.get(name, None)
+            if thes is not None:
+                for v in byid[id(thes)]._model_types:
+                    if v.__name__ not in types:
+                        types[v.__name__] = v
+
         # print(f"{len(types)}")
         for name, schema in types.items():
             if not is_basemodel(schema):
@@ -637,6 +647,7 @@ class OpenAPI:
                 thes = byname.get(name, None)
                 if thes is not None:
                     for v in byid[id(thes)]._model_types:
+                        assert v.__name__ in types, v.__name__
                         v.model_rebuild(_types_namespace={"__types": types})
             except Exception as e:
                 raise e

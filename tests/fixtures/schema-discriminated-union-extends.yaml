@@ -1,0 +1,42 @@
+openapi: 3.1.0
+
+info:
+  title: title collision
+  version: 2.2.7
+
+servers:
+  - url: /
+
+paths: {}
+
+
+components:
+  schemas:
+    A:
+      type: object
+      additionalProperties: false
+      properties:
+        a:
+          type: integer
+    B:
+      type: object
+      additionalProperties: false
+      properties:
+        b:
+          type: integer
+
+    AB:
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          const: ""
+      oneOf:
+        - $ref: "#/components/schemas/A"
+        - $ref: "#/components/schemas/B"
+      discriminator:
+        propertyName: type
+        mapping:
+          A: "#/components/schemas/A"
+          B: "#/components/schemas/B"
