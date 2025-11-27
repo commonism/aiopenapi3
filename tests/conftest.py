@@ -566,3 +566,8 @@ def with_schema_anyOf():
 @pytest.fixture
 def with_schema_title_name_collision():
     yield _get_parsed_yaml("schema-title-name-collision.yaml")
+
+
+@pytest.fixture
+def with_schema_discriminated_union_extends():
+    yield _get_parsed_yaml("schema-discriminated-union-extends.yaml")
