@@ -1,0 +1,29 @@
+openapi: 3.1.0
+
+info:
+  title: title collision
+  version: 2.2.7
+
+servers:
+  - url: /
+
+paths: {}
+
+
+components:
+  schemas:
+    B:
+      type: object
+      title: B
+      properties:
+        a:
+          title: A
+          type: string
+    A:
+      type: object
+      properties:
+        id:
+          type: integer
+
+    C:
+      $ref: '#/components/schemas/A'
