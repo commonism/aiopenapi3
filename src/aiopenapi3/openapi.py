@@ -495,7 +495,9 @@ class OpenAPI:
                 for byid in map(lambda x: x.definitions, documents):
                     assert byid is not None and isinstance(byid, dict)
                     for name, schema in filter(is_schema, byid.items()):
-                        byname[schema._get_identity(name=name)] = schema
+                        n = schema._get_identity(name=name)
+                        # assert byname.get(n, None) in [None, schema]
+                        byname[n] = schema
 
                 # PathItems
                 for path, obj in (self.paths or dict()).items():
@@ -508,6 +510,7 @@ class OpenAPI:
                             if isinstance(response, (v20.paths.Response)):
                                 if isinstance(response.schema_, (v20.Schema, v31.Schema)):
                                     name = response.schema_._get_identity("PI", f"{path}.{m}.{r}")
+                                    # assert byname.get(name, None) in [None, response.schema_]
                                     byname[name] = response.schema_
                             else:
                                 raise TypeError(f"{type(response)} at {path}")
@@ -517,7 +520,9 @@ class OpenAPI:
                 assert byid is not None and isinstance(byid, dict)
                 for name, response in filter(is_schema, byid.items()):
                     assert response.schema_
-                    byname[response.schema_._get_identity(name=name)] = response.schema_
+                    n = response.schema_._get_identity(name=name)
+                    # assert byname.get(name, None) in [None, response.schema_]
+                    byname[n] = response.schema_
 
         elif isinstance(self._root, (v30.Root, v31.Root)):
             # Schema
@@ -528,7 +533,9 @@ class OpenAPI:
                 for byid in map(lambda x: x.schemas, components):
                     assert byid is not None and isinstance(byid, dict)
                     for name, schema in filter(is_schema, byid.items()):
-                        byname[schema._get_identity(name=name)] = schema
+                        n = schema._get_identity(name=name)
+                        # assert byname.get(n, None) in [None, schema]
+                        byname[n] = schema
 
             # PathItems
             for path, obj in (self.paths or dict()).items():
@@ -541,8 +548,9 @@ class OpenAPI:
                                 schema = parameter.schema_._target
                             else:
                                 schema = parameter.schema_
-                            assert schema is not None
+                            # assert schema is not None
                             name = schema._get_identity("I2", f"{path}.{m}.{parameter.name}")
+                            # assert byname.get(name, None) in [None, schema]
                             byname[name] = schema
                         else:
                             for key, mto in parameter.content.items():
@@ -550,15 +558,18 @@ class OpenAPI:
                                     schema = mto.schema_._target
                                 else:
                                     schema = mto.schema_
-                                assert schema is not None
+                                # assert schema is not None
                                 name = schema._get_identity("I2", f"{path}.{m}.{parameter.name}.{key}")
+                                # assert byname.get(name, None) in [None, schema]
                                 byname[name] = schema
 
                     if op.requestBody:
                         for mt, mto in op.requestBody.content.items():
                             if mto.schema_ is None:
                                 continue
-                            byname[mto.schema_._get_identity("B")] = mto.schema_
+                            n = mto.schema_._get_identity("B")
+                            # assert byname.get(n, None) in [None, getattr(mto.schema_, "_target", mto.schema_)]
+                            byname[n] = mto.schema_
 
                     for r, response in op.responses.items():
                         if isinstance(response, ReferenceBase):
@@ -569,6 +580,9 @@ class OpenAPI:
                                 if mto.schema_ is None:
                                     continue
                                 name = mto.schema_._get_identity("I2", f"{path}.{m}.{r}.{mt}")
+                                # assert (v := byname.get(name, None)) in [None, mto.schema_] or type(v) != type(
+                                #    mto.schema_
+                                # ), (name, v, mto.schema_)
                                 byname[name] = mto.schema_
                         else:
                             raise TypeError(f"{type(response)} at {path}")
@@ -581,7 +595,9 @@ class OpenAPI:
                         for mt, mto in response.content.items():
                             if mto.schema_ is None:
                                 continue
-                            byname[mto.schema_._get_identity("R")] = mto.schema_
+                            n = mto.schema_._get_identity("R")
+                            # assert byname.get(n, None) in [None, mto.schema_]
+                            byname[n] = mto.schema_
 
         byname = self.plugins.init.schemas(initialized=self._root, schemas=byname).schemas
         return byname
@@ -605,9 +621,11 @@ class OpenAPI:
         for i in todo | data:
             b = byid[i]
             name = b._get_identity("X")
-            types[name] = b.get_type()
-            for idx, j in enumerate(b._model_types):
-                types[f"{name}.c{idx}"] = j
+            t = b.get_type()
+            # assert (v := byname.get(name, None)) in [None, b], (name, b, v)
+            types[name] = t
+            for j in b._model_types:
+                types[j.__name__] = j
 
         # print(f"{len(types)}")
         for name, schema in types.items():

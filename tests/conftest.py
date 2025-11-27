@@ -561,3 +561,8 @@ def with_schema_oneOf_mixed():
 @pytest.fixture
 def with_schema_anyOf():
     yield _get_parsed_yaml("schema-anyOf.yaml")
+
+
+@pytest.fixture
+def with_schema_title_name_collision():
+    yield _get_parsed_yaml("schema-title-name-collision.yaml")

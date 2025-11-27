@@ -366,8 +366,6 @@ class SchemaBase(BaseModel):
 
     def _get_identity(self, prefix="XLS", name=None):
         if self._identity is None:
-            if name is None:
-                name = self.title
             if name:
                 n = re.sub(r"\W", "_", name, flags=re.ASCII)
             else:
