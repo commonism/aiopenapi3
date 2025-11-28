@@ -32,8 +32,12 @@ def log_response(response):
     request = response.request
     print(f"Response event hook: {request.method} {request.url} - Status {response.status_code}")
     data = request.read()
-    if data:
-        print(json.dumps(json.loads(data.decode()), indent=4))
+    if request.headers.get("content-type", "") == "application/json":
+        try:
+            if data := request.read():
+                print(json.dumps(json.loads(data.decode()), indent=4))
+        except Exception as e:
+            print(e)
 
 
 async def log_response_async(response):
