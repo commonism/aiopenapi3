@@ -37,7 +37,7 @@ propcache==0.4.1
     # via yarl
 pydantic==2.11.9
     # via aiopenapi3
-pydantic-core==2.33.2
+pydantic-core==2.41.5
     # via pydantic
 pyyaml==6.0.3
     # via aiopenapi3
