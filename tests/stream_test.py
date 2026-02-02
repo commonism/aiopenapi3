@@ -19,7 +19,6 @@ import pytest_asyncio
 
 import aiopenapi3
 
-
 app = FastAPI(version="1.0.0", title="TLS tests", servers=[{"url": "/", "description": "Default, relative server"}])
 
 

@@ -400,11 +400,11 @@ class Request(RequestBase):
                         alias = fh = content_type = None
                         headers: dict[str, str] = {}
                         if len(value) == 4:
-                            (alias, fh, content_type, headers) = cast(tuple[str, Any, str, dict[str, str]], value)
+                            alias, fh, content_type, headers = cast(tuple[str, Any, str, dict[str, str]], value)
                         elif len(value) == 3:
-                            (alias, fh, content_type) = cast(tuple[str, Any, str], value)
+                            alias, fh, content_type = cast(tuple[str, Any, str], value)
                         elif len(value) == 2:
-                            (alias, fh) = cast(tuple[str, Any], value)
+                            alias, fh = cast(tuple[str, Any], value)
                         elif len(value) == 1:
                             fh = cast(Any, value)
 

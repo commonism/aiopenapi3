@@ -7,7 +7,6 @@ import collections
 
 from .parameter import encode_parameter
 
-
 if TYPE_CHECKING:
     from pydantic import BaseModel
     from .._types import MediaTypeType, SchemaType

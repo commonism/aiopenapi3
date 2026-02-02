@@ -13,7 +13,6 @@ from .errors import (
     RequestError,
 )
 
-
 __all__ = [
     "__version__",
     "OpenAPI",

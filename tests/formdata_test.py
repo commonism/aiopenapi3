@@ -54,15 +54,13 @@ def test_formdata_encoding(httpx_mock, with_paths_requestbody_formdata_encoding)
 
     content = request.content.decode()
 
-    msg = email.message_from_string(
-        f"""\
+    msg = email.message_from_string(f"""\
 MIME-Version: 1.0
 Content-Type: {request.headers["content-type"]}
 
 {content}
 
-"""
-    )
+""")
     assert msg.defects == [] and msg.is_multipart()
 
     r = dict()

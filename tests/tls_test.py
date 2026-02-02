@@ -117,15 +117,11 @@ class MutualTLSSecurity(Document):
     def parsed(self, ctx: "Document.Context") -> "Document.Context":
         import yaml
 
-        ctx.document["components"] = yaml.safe_load(
-            io.StringIO(
-                """
+        ctx.document["components"] = yaml.safe_load(io.StringIO("""
 securitySchemes:
     tls:
         type: mutualTLS
-"""
-            )
-        )
+"""))
 
         # /tls - mutual tls authentication
         ctx.document["paths"]["/required-tls-authentication"]["get"]["security"] = [{"tls": []}]

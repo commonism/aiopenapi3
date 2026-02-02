@@ -33,7 +33,6 @@ from .request import RequestBase
 from .v30.paths import Operation
 from .model import is_basemodel, Model
 
-
 if typing.TYPE_CHECKING:
     from ._types import (
         RootType,

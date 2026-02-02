@@ -11,7 +11,6 @@ import yarl
 
 from aiopenapi3.errors import ContentLengthExceededError
 
-
 try:
     from contextlib import aclosing
 except:  # <= Python 3.10
@@ -369,7 +368,7 @@ class OperationIndex:
             )
 
         def __getattr__(self, item) -> RequestBase:
-            (method, path, op, servers) = self._operations[item]
+            method, path, op, servers = self._operations[item]
             return self._oi._api._createRequest(self._oi._api, method, path, op, servers)
 
     class Iter:
@@ -448,7 +447,7 @@ class OperationIndex:
         if self._use_operation_tags and item in self._tags:
             return self._tags[item]
         elif item in self._operations:
-            (method, path, op, servers) = self._operations[item]
+            method, path, op, servers = self._operations[item]
             return self._api._createRequest(self._api, method, path, op, servers)
         else:
             raise KeyError(f"operationId {item} not found in tags or operations")

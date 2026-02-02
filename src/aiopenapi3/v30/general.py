@@ -6,7 +6,6 @@ from pydantic import Field, PrivateAttr, ConfigDict
 
 from ..base import ObjectExtended, ObjectBase, ReferenceBase
 
-
 if typing.TYPE_CHECKING:
     from .schemas import Schema
     from .parameter import Parameter
