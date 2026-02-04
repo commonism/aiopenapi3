@@ -71,6 +71,21 @@ namespaces = false
 [tool.setuptools.dynamic]
 version = {attr = "aiopenapi3.version.__version__"}
 
+[tool.ruff]
+line-length = 120
+indent-width = 4
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+ignore = ["E741","F841"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = false
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
 [tool.black]
 line-length = 120
 
