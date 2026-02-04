@@ -688,7 +688,7 @@ class OpenAPI:
         :param args: None to remove all credentials / reset the authorizations
         :param kwargs: scheme=value
         """
-        if len(args) == 1 and args[0] == None:
+        if len(args) == 1 and args[0] is None:
             self._security = dict()
 
         schemes = frozenset(kwargs.keys())

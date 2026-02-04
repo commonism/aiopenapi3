@@ -80,7 +80,7 @@ def parameters_from_urlencoded(data: "BaseModel", media: "MediaTypeType"):
         v = getattr(data, k)
 
         assert media.encoding is not None
-        if (e := media.encoding.get(k, None)) != None:
+        if (e := media.encoding.get(k, None)) is not None:
             assert e
             explode = e.explode
             allowReserved = e.allowReserved
