@@ -2,7 +2,7 @@ from pathlib import Path
 import httpx
 
 from aiopenapi3 import OpenAPI
-from aiopenapi3.v30.formdata import encode_multipart_parameters
+from aiopenapi3.v30.formdata import encode_multipart_parameters, MultipartParameter
 
 
 def test_encode_formdata():
@@ -13,12 +13,12 @@ def test_encode_formdata():
 
     schema = Schema()
     ITEMS = [
-        ("text", "text/plain", "bar", dict(), schema),
-        ("text", "text/plain", "bar", {"X-HEAD": "text"}, schema),
-        ("audio", "audio/wav", b"jd", dict(), schema),
-        ("image", "image/png", b"jd", dict(), schema),
-        ("data", "application/octet-stream", data, dict(), schema),
-        ("rbh", "application/octet-stream", data, {"X-HEAD": "rbh"}, schema),
+        MultipartParameter("text", "text/plain", "bar", dict(), schema),
+        MultipartParameter("text", "text/plain", "bar", {"X-HEAD": "text"}, schema),
+        MultipartParameter("audio", "audio/wav", b"jd", dict(), schema),
+        MultipartParameter("image", "image/png", b"jd", dict(), schema),
+        MultipartParameter("data", "application/octet-stream", data, dict(), schema),
+        MultipartParameter("mph", "application/octet-stream", data, {"X-HEAD": "mph"}, schema),
     ]
 
     for i in ITEMS:
