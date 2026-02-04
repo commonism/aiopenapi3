@@ -1,6 +1,6 @@
 import base64
 import quopri
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 from email.mime import multipart, nonmultipart
 from email.message import Message
 import collections
@@ -29,8 +29,18 @@ class MIMEMultipart(multipart.MIMEMultipart):
         pass
 
 
-def parameters_from_multipart(data, media, rbq):
-    params = list()
+class MultipartParameter(NamedTuple):
+    field: str
+    content_type: str
+    value: str | bytes
+    headers: dict[str, str]
+    schema: "SchemaType"
+
+
+def parameters_from_multipart(
+    data: "BaseModel", media: "MediaTypeType", mph: dict[str, str]
+) -> list[MultipartParameter]:
+    params: list[MultipartParameter] = list()
     for k in data.model_fields_set:
         v = getattr(data, k)
         ct = "text/plain"
@@ -51,7 +61,7 @@ def parameters_from_multipart(data, media, rbq):
             style = e.style or "form"
             explode = e.explode if e.explode is not None else (True if style == "form" else False)
             allowReserved = e.allowReserved or False
-            headers = {name: rbq[name] for name in e.headers.keys() if name in rbq}
+            headers = {name: mph[name] for name in e.headers.keys() if name in mph}
         else:
             allowReserved = False
             style = "form"
@@ -66,15 +76,15 @@ def parameters_from_multipart(data, media, rbq):
         if isinstance(v, list):
             for i in v:
                 r = encode_parameter(k, i, style, explode, allowReserved, "query", m.items)
-                params.append((k, ct, r, headers, m.items))
+                params.append(MultipartParameter(k, ct, r, headers, m.items))
         else:
             r = encode_parameter(k, v, style, explode, allowReserved, "query", m)
-            params.append((k, ct, r, headers, m))
+            params.append(MultipartParameter(k, ct, r, headers, m))
     return params
 
 
-def parameters_from_urlencoded(data: "BaseModel", media: "MediaTypeType"):
-    params = collections.defaultdict(list)
+def parameters_from_urlencoded(data: "BaseModel", media: "MediaTypeType") -> dict[str, list[str]]:
+    params: dict[str, list[str]] = collections.defaultdict(list)
     k: str
     for k in data.model_fields_set:
         v = getattr(data, k)
@@ -126,7 +136,7 @@ def encode_content(data: bytes, codec: str) -> bytes:
 
 
 def encode_multipart_parameters(
-    fields: list[tuple[str, str, str | bytes, dict[str, str], "SchemaType"]],
+    fields: list[MultipartParameter],
 ) -> MIMEMultipart:
     """
     As shown in
@@ -137,42 +147,42 @@ def encode_multipart_parameters(
     """
     m = MIMEMultipart()
     data: str | bytes
-    for field, ct, value, headers, schema in fields:
-        type, subtype, params = decode_content_type(ct)
-
+    for f in fields:
+        type, subtype, params = decode_content_type(f.content_type)
         if type in ["image", "audio", "application"]:
             v: bytes
-            if isinstance(value, bytes):
-                v = value
+            if isinstance(f.value, bytes):
+                v = f.value
             else:
-                v = value.encode()
+                v = f.value.encode()
 
             codec = "base64"
 
-            if hasattr(schema, "contentEncoding"):
+            if hasattr(f.schema, "contentEncoding"):
                 """OpenAPI 3.1"""
-                if schema.contentEncoding:
-                    codec = schema.contentEncoding
-                    headers["Content-Encoding"] = codec
+                if f.schema.contentEncoding:
+                    codec = f.schema.contentEncoding
+                    f.headers["Content-Encoding"] = codec
             else:
                 """OpenAPI 3.0"""
+                pass
 
             data = encode_content(v, codec)
 
             """
             email.message_from_… uses content-transfer-encoding
             """
-            headers["Content-Transfer-Encoding"] = codec
+            f.headers["Content-Transfer-Encoding"] = codec
 
         elif type in ["text", "rfc822"]:
-            data = value
+            data = f.value
         else:
             type, subtype = "text", "plain"
-            data = value
+            data = f.value
 
-        env = MIMEFormdata(field, type, subtype)
+        env = MIMEFormdata(f.field, type, subtype)
 
-        for header, value in headers.items():
+        for header, value in f.headers.items():
             env.add_header(header, value)
 
         for k, p in params:
@@ -185,8 +195,15 @@ def encode_multipart_parameters(
     return m
 
 
-def decode_content_type(value: str) -> tuple[str, str, list[tuple[str, str]]]:
+class ContentType(NamedTuple):
+    type: str
+    subtype: str
+    params: list[tuple[str, str]]
+
+
+def decode_content_type(value: str) -> ContentType:
     """
+    from email.message import _unquotevalue
     msg = Message._get_params_preserve({"content-type": value}, header="content-type", failobj=None)
     ct, *params = list(map(lambda x: (x[0], _unquotevalue(x[1])) if x[0].lower() == x[0] else x, msg))
     """
@@ -195,4 +212,4 @@ def decode_content_type(value: str) -> tuple[str, str, list[tuple[str, str]]]:
     ct, *params = m.get_params()
 
     type_, _, subtype = ct[0].partition("/")
-    return type_, subtype, params
+    return ContentType(type_, subtype, params)
