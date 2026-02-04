@@ -4,25 +4,13 @@ import typing
 from contextlib import closing
 from typing import Any, NamedTuple, Optional, Union, cast
 from collections.abc import Iterator
+from contextlib import aclosing
 
 import httpx
 import pydantic
 import yarl
 
 from aiopenapi3.errors import ContentLengthExceededError
-
-
-try:
-    from contextlib import aclosing
-except:  # <= Python 3.10
-    from contextlib import asynccontextmanager
-
-    @asynccontextmanager
-    async def aclosing(thing):
-        try:
-            yield thing
-        finally:
-            await thing.aclose()
 
 
 from .base import HTTP_METHODS, ReferenceBase

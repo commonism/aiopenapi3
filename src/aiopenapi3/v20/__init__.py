@@ -1,5 +1,3 @@
-import pydantic_core
-
 from .glue import Request, AsyncRequest
 
 from .general import ExternalDocumentation, Reference
@@ -41,3 +39,25 @@ def __init():
 
 
 __init()
+
+__all__ = [
+    "Request",
+    "AsyncRequest",
+    "ExternalDocumentation",
+    "Reference",
+    "Contact",
+    "License",
+    "Info",
+    "Parameter",
+    "Header",
+    "Response",
+    "Operation",
+    "PathItem",
+    "Paths",
+    "Root",
+    "Schema",
+    "SecurityScheme",
+    "SecurityRequirement",
+    "Tag",
+    "XML",
+]

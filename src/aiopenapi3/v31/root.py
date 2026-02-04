@@ -36,7 +36,7 @@ class Root(ObjectExtended, RootBase):
 
     @model_validator(mode="after")
     @classmethod
-    def validate_Root(cls, r: "Root") -> "Self":
+    def validate_Root(cls, r: "Root") -> "Self":  # noqa: F821
         assert r.paths or r.components or r.webhooks
         return r
 

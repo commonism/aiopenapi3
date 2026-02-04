@@ -56,7 +56,7 @@ def generate_type_format_to_class():
 
     type_format_to_class["integer"][None] = int
 
-    assert type_format_to_class["string"]["binary"] == bytes
+    assert type_format_to_class["string"]["binary"] is bytes
 
     try:
         from pydantic_extra_types import epoch
@@ -632,7 +632,6 @@ class Model:  # (BaseModel):
                 allOf / anyOf / oneOf do not need to be of type object
                 but the type of their children can be used to limit the type of the parent
                 """
-                totalOf: list["SchemaType"]
                 allOf, anyOf, oneOf = (
                     set(SCHEMA_TYPES),
                     set(SCHEMA_TYPES),

@@ -26,7 +26,7 @@ def test_ref_resolution(openapi_version, petstore_expanded):
 
     ref = petstore_expanded_spec.paths["/pets"].get.responses["default"].content["application/json"].schema_
 
-    assert type(ref._target) == openapi_version.schema
+    assert type(ref._target) is openapi_version.schema
     assert ref.type == "object"
     assert len(ref.properties) == 2
     assert "code" in ref.properties
@@ -50,10 +50,10 @@ def test_allOf_resolution(petstore_expanded):
     ref = petstore_expanded_spec.paths["/pets"].get.responses["200"].content["application/json"].schema_.get_type()
 
     # RootModel[List[ForwardRef('__types["Pet"]')]]
-    assert type(ref) == ModelMetaclass
+    assert type(ref) is ModelMetaclass
 
     assert issubclass(ref, RootModel)
-    assert typing.get_origin(ref.model_fields["root"].annotation) == list
+    assert typing.get_origin(ref.model_fields["root"].annotation) is list
 
     pet = typing.get_args(ref.model_fields["root"].annotation)[0]
     if isinstance(pet, ForwardRef):
@@ -81,8 +81,8 @@ def test_allOf_resolution(petstore_expanded):
         ref.model_json_schema()
     )
 
-    assert items["id"].annotation == int
-    assert items["name"].annotation == str
+    assert items["id"].annotation is int
+    assert items["name"].annotation is str
     assert items["tag"].annotation == typing.Optional[str]
 
     r = ref.model_validate([dict(id=1, name="dog"), dict(id=2, name="cat", tag="x")])

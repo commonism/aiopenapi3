@@ -1,5 +1,3 @@
-import pydantic_core
-
 from .components import Components
 from .example import Example
 from .general import ExternalDocumentation, Reference

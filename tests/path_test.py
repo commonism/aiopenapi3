@@ -105,7 +105,7 @@ def test_operation_populated(openapi_version, petstore_expanded):
     assert con1.schema_ is not None
     assert con1.schema_.type == "array"
     # we're not going to test that the ref resolved correctly here - that's a separate test
-    assert type(con1.schema_.items._target) == openapi_version.schema
+    assert type(con1.schema_.items._target) is openapi_version.schema
 
     resp2 = op.responses["default"]
     assert resp2.description == "unexpected error"
@@ -114,7 +114,7 @@ def test_operation_populated(openapi_version, petstore_expanded):
     con2 = resp2.content["application/json"]
     assert con2.schema_ is not None
     # again, test ref resolution elsewhere
-    assert type(con2.schema_._target) == openapi_version.schema
+    assert type(con2.schema_._target) is openapi_version.schema
 
 
 @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
@@ -166,7 +166,7 @@ def test_paths_security(httpx_mock, with_paths_security):
 
     try:
         pass
-    except:
+    except Exception:
         api.authenticate(None, digestAuth=(auth, auth))
         api._.api_v1_auth_login_create(data={}, parameters={})
         request = httpx_mock.get_requests()[-1]
