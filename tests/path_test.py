@@ -77,7 +77,7 @@ def test_operation_populated(openapi_version, petstore_expanded):
     assert param1.name == "tags"
     assert param1.in_ == "query"
     assert param1.description == "tags to filter by"
-    assert param1.required == False
+    assert not param1.required
     assert param1.style == "form"
     assert param1.schema_ is not None
     assert param1.schema_.type == "array"
@@ -87,7 +87,7 @@ def test_operation_populated(openapi_version, petstore_expanded):
     assert param2.name == "limit"
     assert param2.in_ == "query"
     assert param2.description == "maximum number of results to return"
-    assert param2.required == False
+    assert not param2.required
     assert param2.schema_ is not None
     assert param2.schema_.type == "integer"
     assert param2.schema_.format == "int32"
