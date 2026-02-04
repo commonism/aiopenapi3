@@ -3,7 +3,6 @@ import typing
 import uuid
 from datetime import datetime
 
-from pydantic.fields import FieldInfo
 
 from pathlib import Path
 
@@ -122,7 +121,7 @@ def test_schema_regex_engine(with_schema_regex_engine):
 
     with pytest.raises(pydantic_core._pydantic_core.SchemaError, match="error: unclosed character class$"):
         t = Root.model_fields["root"]
-        assert t.annotation == str
+        assert t.annotation is str
         assert isinstance(t.metadata[0].pattern, str)
         pattern = t.metadata[0].pattern
         from typing import Annotated

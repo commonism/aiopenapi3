@@ -39,12 +39,12 @@ class Link(ObjectExtended):
 
     @model_validator(mode="after")
     def validate_Link_operation(self):  # type: ignore[name-defined]
-        assert not (
-            self.operationId != None and self.operationRef != None
-        ), "operationId and operationRef are mutually exclusive, only one of them is allowed"
-        assert not (
-            self.operationId == self.operationRef == None
-        ), "operationId and operationRef are mutually exclusive, one of them must be specified"
+        assert not (self.operationId is not None and self.operationRef is not None), (
+            "operationId and operationRef are mutually exclusive, only one of them is allowed"
+        )
+        assert not (self.operationId == self.operationRef is None), (
+            "operationId and operationRef are mutually exclusive, one of them must be specified"
+        )
         return self
 
 
