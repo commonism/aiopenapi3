@@ -1,4 +1,4 @@
-from pydantic import Field, validator
+from pydantic import Field
 
 from .general import Reference, ExternalDocumentation
 from .info import Info

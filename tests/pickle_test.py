@@ -7,9 +7,6 @@ import pickle
 import copy
 
 
-import pytest
-
-
 from aiopenapi3 import OpenAPI
 
 URLBASE = "/"

@@ -2,13 +2,12 @@ import asyncio
 import copy
 import datetime
 import decimal
-import time
 
 import aiopenapi3
 
-from flask import Flask, render_template_string, redirect, url_for, Blueprint, abort
+from flask import Flask, render_template_string, Blueprint, abort
 from flask_bootstrap import Bootstrap4 as Bootstrap
-from flask_wtf import FlaskForm, CSRFProtect
+from flask_wtf import FlaskForm
 from wtforms.fields import (
     BooleanField,
     DateField,
@@ -44,7 +43,6 @@ from asgiref.wsgi import WsgiToAsgi
 import pytest
 import pytest_asyncio
 
-import uvloop
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 

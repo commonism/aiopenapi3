@@ -4,8 +4,6 @@ from pydantic import Field
 
 from ..base import ObjectExtended
 
-from .general import Reference
-
 
 class Example(ObjectExtended):
     """

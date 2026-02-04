@@ -28,7 +28,7 @@ from .request import OperationIndex, HTTP_METHODS
 from .errors import ReferenceResolutionError, HTTPClientError, HTTPServerError
 from .loader import Loader, NullLoader
 from .plugin import Plugin, Plugins
-from .base import RootBase, ReferenceBase, SchemaBase, OperationBase, DiscriminatorBase
+from .base import RootBase, ReferenceBase, SchemaBase, DiscriminatorBase
 from .request import RequestBase
 from .v30.paths import Operation
 from .model import is_basemodel, Model
@@ -41,7 +41,6 @@ if typing.TYPE_CHECKING:
         PathItemType,
         SchemaType,
         OperationType,
-        ReferenceType,
         RequestType,
         HTTPMethodType,
         ServerType,
@@ -136,7 +135,7 @@ class OpenAPI:
     @classmethod
     def _load_response(cls, url, resp, session_factory, loader, plugins, tags):
         if resp.is_redirect:
-            raise ValueError(f'Redirect to {resp.headers.get("Location","")}')
+            raise ValueError(f"Redirect to {resp.headers.get('Location', '')}")
         return cls.loads(url, resp.text, session_factory, loader, plugins, tags)
 
     @classmethod

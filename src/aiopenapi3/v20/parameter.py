@@ -6,7 +6,7 @@ from pydantic import Field
 
 from .general import Reference
 from .schemas import Schema
-from ..base import ObjectExtended, ObjectBase, ParameterBase
+from ..base import ObjectExtended, ParameterBase
 from ..errors import ParameterFormatError
 
 

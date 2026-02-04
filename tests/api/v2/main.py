@@ -5,13 +5,11 @@ from typing import Annotated
 import starlette.status
 from fastapi import Body, Response, Header, APIRouter, Path
 from fastapi.responses import JSONResponse
-from fastapi_versioning import version
 
 from . import schema
 
 from fastapi_versioning import versioned_api_route
 
-from pydantic import RootModel
 
 router = APIRouter(route_class=versioned_api_route(2))
 

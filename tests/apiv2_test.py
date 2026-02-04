@@ -24,7 +24,6 @@ from api.v2.schema import Dog as _Dog
 
 # pytest.skip(allow_module_level=True)
 
-from fastapi.exceptions import RequestValidationError
 from fastapi.responses import PlainTextResponse
 
 
@@ -76,7 +75,6 @@ async def client(server, version):
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.xfail()
 def test_Pet():
-    import json
 
     data = _Dog.model_json_schema()
     #    print(json.dumps(data, indent=True))

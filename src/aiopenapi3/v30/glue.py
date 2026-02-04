@@ -1,5 +1,5 @@
 import io
-from typing import Union, cast, TYPE_CHECKING, Optional, cast, Any
+from typing import Union, TYPE_CHECKING, Optional, cast, Any
 from collections.abc import Sequence
 import json
 import urllib.parse
@@ -25,7 +25,6 @@ import pydantic
 # import pydantic.json
 
 import aiopenapi3.v30.media
-from ..base import SchemaBase, ParameterBase
 from ..request import RequestBase, AsyncRequestBase
 from ..errors import HTTPStatusError, ContentTypeError, ResponseDecodingError, ResponseSchemaError, HeadersMissingError
 from .formdata import parameters_from_multipart, parameters_from_urlencoded, encode_multipart_parameters
@@ -39,7 +38,6 @@ if TYPE_CHECKING:
         RequestParameters,
         RequestData,
         ParameterType,
-        RequestFilesParameter,
         RequestFileParameter,
         ResponseHeadersType,
         ResponseDataType,

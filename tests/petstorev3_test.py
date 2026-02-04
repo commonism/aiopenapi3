@@ -8,8 +8,6 @@ from aiopenapi3.plugin import Document, Message
 from aiopenapi3.v20 import Reference
 
 
-from pydantic import ValidationError
-
 try:
     import httpx_auth
 except:

@@ -1,11 +1,7 @@
-from docutils.parsers.rst import directives
-from sphinx import addnodes
-from sphinx.directives import ObjectDescription
-from sphinx.domains import Domain, Index
+from sphinx.domains import Domain
 from sphinx.roles import XRefRole
-from sphinx.util.nodes import make_refnode
 
-from docutils import nodes, utils
+from docutils import nodes
 
 
 def resolve_url(env, name):

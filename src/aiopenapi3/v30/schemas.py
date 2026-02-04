@@ -1,6 +1,6 @@
 from typing import Union, Any
 
-from pydantic import Field, model_validator, PrivateAttr, ConfigDict
+from pydantic import Field, model_validator, ConfigDict
 
 from ..base import ObjectExtended, SchemaBase, DiscriminatorBase
 from .general import Reference

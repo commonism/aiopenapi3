@@ -9,7 +9,6 @@ from typing import TypeGuard
 import httpx
 import pydantic
 
-from ..base import SchemaBase, ParameterBase, ReferenceBase
 from ..request import RequestBase, AsyncRequestBase
 from ..errors import HTTPStatusError, ContentTypeError, ResponseSchemaError, ResponseDecodingError, HeadersMissingError
 
@@ -24,8 +23,6 @@ except ImportError:
 
 if typing.TYPE_CHECKING:
     from .._types import (
-        ParameterType,
-        ReferenceType,
         RequestParameters,
         RequestData,
         ResponseHeadersType,

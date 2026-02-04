@@ -4,11 +4,9 @@ import uuid
 
 from typing import Literal, Union, Annotated
 
-import pydantic
 from pydantic import BaseModel, RootModel, Field, ConfigDict
 
 # from pydantic.fields import Undefined
-from pydantic_core import PydanticUndefined as Undefined
 
 
 class PetBase(BaseModel):

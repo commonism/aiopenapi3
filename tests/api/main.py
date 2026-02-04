@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import FastAPI
-from fastapi_versioning import VersionedFastAPI, version
+from fastapi_versioning import VersionedFastAPI
 
 from api.v1.main import router as v1
 from api.v2.main import router as v2

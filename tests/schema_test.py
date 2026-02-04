@@ -2,7 +2,6 @@ import copy
 import typing
 import uuid
 from datetime import datetime
-from unittest.mock import MagicMock, patch
 
 from pydantic.fields import FieldInfo
 
@@ -232,7 +231,8 @@ def _test_schema_with_additionalProperties(api):
     assert issubclass(Translation, pydantic.RootModel)
     t = Translation({"en": "yes", "fr": "qui"})
 
-    import errno, os
+    import errno
+    import os
 
     data = {v: {"code": k, "text": os.strerror(k)} for k, v in errno.errorcode.items()}
 
