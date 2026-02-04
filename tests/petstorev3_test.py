@@ -10,7 +10,7 @@ from aiopenapi3.v20 import Reference
 
 try:
     import httpx_auth
-except:
+except ImportError:
     httpx_auth = None
 
 

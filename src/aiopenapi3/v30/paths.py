@@ -39,7 +39,7 @@ class Link(ObjectExtended):
 
     @model_validator(mode="after")
     @classmethod
-    def validate_Link_operation(cls, l: '__types["Link"]'):  # type: ignore[name-defined]
+    def validate_Link_operation(cls, l: '__types["Link"]'):  # noqa: F821
         assert not (l.operationId is not None and l.operationRef is not None), (
             "operationId and operationRef are mutually exclusive, only one of them is allowed"
         )

@@ -122,7 +122,7 @@ def test_schema_regex_engine(with_schema_regex_engine):
 
     with pytest.raises(pydantic_core._pydantic_core.SchemaError, match="error: unclosed character class$"):
         annotations = typing.get_args(Root.model_fields["root"].annotation)
-        assert len(annotations) == 2 and annotations[0] == str and isinstance(annotations[1], FieldInfo), annotations
+        assert len(annotations) == 2 and annotations[0] is str and isinstance(annotations[1], FieldInfo), annotations
         metadata = annotations[1].metadata
         assert len(metadata) == 1, metadata
         pattern = metadata[0].pattern

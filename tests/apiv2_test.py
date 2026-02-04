@@ -268,7 +268,7 @@ def test_allOf_resolution(openapi_version, petstore_expanded):
 
     #    assert type(ref) == ModelMetaclass
 
-    assert typing.get_origin(ref.__fields__["__root__"].outer_type_) == list
+    assert typing.get_origin(ref.__fields__["__root__"].outer_type_) is list
 
     # outer_type may be ForwardRef
     if isinstance(typing.get_args(ref.__fields__["__root__"].outer_type_)[0], ForwardRef):
@@ -287,6 +287,6 @@ def test_allOf_resolution(openapi_version, petstore_expanded):
 
     assert sorted(map(lambda x: x.name, items.values())) == ["id", "name", "tag"]
 
-    assert items["id"].outer_type_ == int
-    assert items["name"].outer_type_ == str
-    assert items["tag"].outer_type_ == str
+    assert items["id"].outer_type_ is int
+    assert items["name"].outer_type_ is str
+    assert items["tag"].outer_type_ is str

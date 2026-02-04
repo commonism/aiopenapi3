@@ -1,7 +1,5 @@
 from .glue import Request, AsyncRequest
 
-import pydantic_core
-
 from .components import Components
 from .example import Example
 from .general import ExternalDocumentation, Reference
@@ -58,3 +56,38 @@ def __init():
 
 
 __init()
+
+__all__ = [
+    "Request",
+    "AsyncRequest",
+    "Components",
+    "Example",
+    "ExternalDocumentation",
+    "Reference",
+    "Contact",
+    "License",
+    "Info",
+    "Encoding",
+    "MediaType",
+    "Parameter",
+    "Header",
+    "RequestBody",
+    "Link",
+    "Response",
+    "Operation",
+    "PathItem",
+    "Paths",
+    "Callback",
+    "RuntimeExpression",
+    "Root",
+    "Discriminator",
+    "Schema",
+    "OAuthFlow",
+    "OAuthFlows",
+    "SecurityScheme",
+    "SecurityRequirement",
+    "ServerVariable",
+    "Server",
+    "Tag",
+    "XML",
+]
