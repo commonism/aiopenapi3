@@ -35,7 +35,7 @@ class Root(ObjectExtended, RootBase):
     externalDocs: dict[Any, Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
-    def validate_Root(self) -> "Self":
+    def validate_Root(self) -> "Self":  # noqa: F821
         assert self.paths or self.components or self.webhooks
         return self
 
