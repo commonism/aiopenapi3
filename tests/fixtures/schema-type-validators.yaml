@@ -9,6 +9,7 @@ components:
       type: integer
       maximum: 10
       minimum: 10
+      default: 10
     Number:
       type: number
       maximum: 10
@@ -22,3 +23,4 @@ components:
       minLength: 5
       maximum: 10
       minimum: 10
+      default: 10

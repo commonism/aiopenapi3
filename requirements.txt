@@ -35,9 +35,9 @@ multidict==6.7.0
     # via yarl
 propcache==0.4.1
     # via yarl
-pydantic==2.11.9
+pydantic @ git+https://github.com/pydantic/pydantic.git@c42224acb31dd9f374124a74809332246e595194
     # via aiopenapi3
-pydantic-core==2.33.2
+pydantic-core @ git+https://github.com/pydantic/pydantic.git@c42224acb31dd9f374124a74809332246e595194#subdirectory=pydantic-core
     # via pydantic
 pyyaml==6.0.3
     # via aiopenapi3

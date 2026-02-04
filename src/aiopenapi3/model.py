@@ -250,13 +250,13 @@ class _ClassInfo:
         return m
 
     @classmethod
-    def collapse(cls, type_name, items: list["_ClassInfo"]) -> type[BaseModel]:
+    def collapse(cls, schema: "SchemaType", items: list["_ClassInfo"]) -> type[BaseModel]:
         r: list[type[BaseModel] | type[None]]
-
         r = [i.model() for i in items]
+        type_name = schema._get_identity("L8")
 
         if len(r) > 1:
-            ru: object = Union[tuple(r)]
+            ru = Annotated[Union[tuple(r)], Field(default=getattr(schema, "default", None))]
             m: type[RootModel] = create_model(type_name, __base__=(ConfiguredRootModel[ru],), __module__=me.__name__)
         elif len(r) == 1:
             m: type[BaseModel] = cast(type[BaseModel], r[0])
@@ -297,10 +297,17 @@ class Model:  # (BaseModel):
 
         r: list[_ClassInfo] = list()
 
-        for _type in Model.types(schema):
-            r.append(Model.createClassInfo(schema, _type, schemanames, discriminators, extra))
+        types: list[str] = list(Model.types(schema))
+        multi: bool = len(types) > 1
+        for _type in types:
+            args = dict() if multi else None
+            """
+            for schema with multiple types, the default value needs to be attached to the RootModel
+            providing empty args creates a FieldInfo without a default value for the subtypes
+            """
+            r.append(Model.createClassInfo(schema, _type, schemanames, discriminators, extra, args))
 
-        m = _ClassInfo.collapse(schema._get_identity("L8"), r)
+        m = _ClassInfo.collapse(schema, r)
 
         return cast(type[BaseModel], m)
 
@@ -312,6 +319,7 @@ class Model:  # (BaseModel):
         schemanames: list[str],
         discriminators: list["DiscriminatorType"],
         extra: list["SchemaType"] | None,
+        args: dict[str, Any] = None,
     ) -> _ClassInfo:
         from . import v20, v30, v31
 
@@ -325,9 +333,10 @@ class Model:  # (BaseModel):
             for primitive types the anyOf/oneOf is taken care of in Model.createAnnotation
             """
             if typing.get_origin(_t := Model.createAnnotation(schema, _type=_type)) != Literal:
-                classinfo.root = Annotated[_t, Model.createField(schema, _type=_type, args=None)]
+                classinfo.root = Annotated[_t, Model.createField(schema, _type=_type, args=args)]
             else:
                 classinfo.root = _t
+
         elif _type == "array":
             """anyOf/oneOf is taken care in in createAnnotation"""
             classinfo.root = Model.createAnnotation(schema, _type="array")
@@ -608,7 +617,7 @@ class Model:  # (BaseModel):
         return rr
 
     @staticmethod
-    def types(schema: "SchemaType"):
+    def types(schema: "SchemaType") -> typing.Generator[str, None, None]:
         if isinstance(schema.type, str):
             yield schema.type
             if getattr(schema, "nullable", False):
@@ -713,7 +722,7 @@ class Model:  # (BaseModel):
             raise ValueError(schema)
 
     @staticmethod
-    def createField(schema: "SchemaType", _type=None, args=None):
+    def createField(schema: "SchemaType", _type=None, args=None) -> Field:
         if args is None:
             args = dict(default=getattr(schema, "default", None))
 

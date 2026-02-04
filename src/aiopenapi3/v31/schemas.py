@@ -172,13 +172,12 @@ class Schema(ObjectExtended, SchemaBase):
             return {"not": {}}
 
     @model_validator(mode="after")
-    @classmethod
-    def validate_Schema_number_type(cls, s: "Schema"):
-        if s.type == "integer":
+    def validate_Schema_number_type(self):
+        if self.type == "integer":
             for i in ["minimum", "maximum"]:
-                if (v := getattr(s, i, None)) is not None and not isinstance(v, int):
-                    setattr(s, i, int(v))
-        return s
+                if (v := getattr(self, i, None)) is not None and not isinstance(v, int):
+                    setattr(self, i, int(v))
+        return self
 
     def __getstate__(self):
         return SchemaBase.__getstate__(self)
