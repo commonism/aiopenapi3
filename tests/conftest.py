@@ -3,7 +3,6 @@ import dataclasses
 
 from pathlib import Path
 
-from yaml import safe_load
 import pytest
 
 import aiopenapi3
@@ -447,7 +446,7 @@ def with_schema_additionalProperties_v20():
 
 @pytest.fixture
 def with_schema_additionalProperties_and_named_properties():
-    yield _get_parsed_yaml("schema-additionalProperties-and-named-properties" ".yaml")
+    yield _get_parsed_yaml("schema-additionalProperties-and-named-properties.yaml")
 
 
 @pytest.fixture
@@ -555,7 +554,7 @@ def with_schema_oneOf_properties():
 
 @pytest.fixture
 def with_schema_oneOf_mixed():
-    yield _get_parsed_yaml(f"schema-oneOf-mixed.yaml")
+    yield _get_parsed_yaml("schema-oneOf-mixed.yaml")
 
 
 @pytest.fixture

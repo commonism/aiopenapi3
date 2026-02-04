@@ -165,7 +165,7 @@ def test_paths_security(httpx_mock, with_paths_security):
     assert request.headers["Authorization"].split(" ")[1] == base64.b64encode((auth + ":" + auth).encode()).decode()
 
     try:
-        import httpx_auth
+        pass
     except:
         api.authenticate(None, digestAuth=(auth, auth))
         api._.api_v1_auth_login_create(data={}, parameters={})
@@ -349,7 +349,7 @@ def test_paths_parameter_format(httpx_mock, with_paths_parameter_format):
         request = httpx_mock.get_requests()[-1]
         u = yarl.URL(str(request.url))
         expected = dict(
-            list(map(lambda x: (f'object{"".join("[inner]" for _ in range(x))}[size]', depth - x), range(depth)))
+            list(map(lambda x: (f"object{''.join('[inner]' for _ in range(x))}[size]", depth - x), range(depth)))
         )
         # 'object[size]=3&object[inner][size]=2&object[inner][inner][size]=1'
         assert all(u.query[k] == str(v) for k, v in expected.items())
@@ -469,8 +469,6 @@ def test_paths_tags(httpx_mock, with_paths_tags):
     b = api._.users.list()
     r = frozenset(api._)
     assert frozenset(["items.list", "objects.list", "users.list"]) == r
-
-    from aiopenapi3.errors import SpecError
 
     with pytest.raises(OperationIdDuplicationError, match="list"):
         OpenAPI(URLBASE, with_paths_tags, session_factory=httpx.Client, use_operation_tags=False)

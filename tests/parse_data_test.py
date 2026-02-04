@@ -4,7 +4,6 @@ import pathlib
 
 import yarl
 
-import aiopenapi3.loader
 from aiopenapi3 import FileSystemLoader, OpenAPI
 
 URLBASE = yarl.URL("http://127.1.1.1/open5gs/")
@@ -27,9 +26,11 @@ class TestParseData:
         "test_data_open5gs": [
             ("dir", "file"),
             "tests/data/open5gs/",
-            lambda x: x.is_file()
-            and x.suffix in (".json", ".yaml")
-            and x.name.split("_")[0] not in ("TS29520", "TS29509", "TS29544", "TS29517"),
+            lambda x: (
+                x.is_file()
+                and x.suffix in (".json", ".yaml")
+                and x.name.split("_")[0] not in ("TS29520", "TS29509", "TS29544", "TS29517")
+            ),
         ],
     }
 

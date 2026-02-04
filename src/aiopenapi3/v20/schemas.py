@@ -1,6 +1,6 @@
 from typing import Union, Any, Optional
 
-from pydantic import Field, PrivateAttr, model_validator
+from pydantic import Field, model_validator
 
 from .general import Reference
 from .xml import XML

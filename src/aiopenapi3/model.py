@@ -10,7 +10,7 @@ import typing
 from typing import TypeGuard
 
 from typing import Optional, Union, Annotated, Literal
-from pydantic import BaseModel, TypeAdapter, Field, RootModel, ConfigDict
+from pydantic import BaseModel, Field, RootModel, ConfigDict
 import pydantic
 
 from .base import ReferenceBase, SchemaBase
@@ -18,8 +18,7 @@ from . import me
 from .pydanticv2 import field_class_to_schema, create_model
 
 if typing.TYPE_CHECKING:
-    from .base import DiscriminatorBase
-    from ._types import SchemaType, ReferenceType, PrimitiveTypes, DiscriminatorType
+    from ._types import SchemaType, ReferenceType, DiscriminatorType
 
 type_format_to_class: dict[str, dict[str | None, type]] = collections.defaultdict(dict)
 
@@ -486,7 +485,6 @@ class Model:  # (BaseModel):
           * pydantic type identification does not work reliable due to missing rejects,
 
         """
-        from . import v20, v30, v31
 
         arbitrary_types_allowed_ = False
         extra_ = "allow"

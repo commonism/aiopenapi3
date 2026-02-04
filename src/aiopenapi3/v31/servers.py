@@ -38,7 +38,7 @@ class Server(ObjectExtended):
     @model_validator(mode="after")
     def validate_server_url_parameters(self) -> "Server":
         if (p := frozenset(re.findall(r"\{([^\}]+)\}", self.url))) != (r := frozenset(self.variables.keys())):
-            raise ValueError(f"Missing Server Variables {sorted(p-r)} in {self.url}")
+            raise ValueError(f"Missing Server Variables {sorted(p - r)} in {self.url}")
         return self
 
     def validate_parameter_enum(self, parameters: dict[str, str]):

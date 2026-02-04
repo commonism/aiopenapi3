@@ -2,7 +2,7 @@ import base64
 import quopri
 from typing import TYPE_CHECKING
 from email.mime import multipart, nonmultipart
-from email.message import _unquotevalue, Message
+from email.message import Message
 import collections
 
 from .parameter import encode_parameter

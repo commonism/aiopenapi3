@@ -3,12 +3,9 @@ import shlex
 from pathlib import Path
 import json
 
-import pytest
 
 from aiopenapi3.cli import main
 import aiopenapi3.log
-
-import pydantic
 
 
 def test_validate_cli():

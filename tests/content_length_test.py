@@ -4,7 +4,6 @@ import random
 import uvloop
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
-import pydantic
 from fastapi import FastAPI, Request, Response, Query
 from fastapi.responses import PlainTextResponse
 

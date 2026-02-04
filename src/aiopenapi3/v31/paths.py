@@ -1,8 +1,8 @@
 from typing import Union, Any
 
-from pydantic import Field, model_validator, RootModel, ConfigDict
+from pydantic import Field, model_validator, RootModel
 
-from ..base import ObjectBase, ObjectExtended, PathsBase, OperationBase, PathItemBase
+from ..base import ObjectExtended, PathsBase, OperationBase, PathItemBase
 from .general import ExternalDocumentation
 from .general import Reference
 from .media import MediaType
@@ -39,12 +39,12 @@ class Link(ObjectExtended):
 
     @model_validator(mode="after")
     def validate_Link_operation(cls, l: '__types["Link"]'):  # type: ignore[name-defined]
-        assert not (
-            l.operationId != None and l.operationRef != None
-        ), "operationId and operationRef are mutually exclusive, only one of them is allowed"
-        assert not (
-            l.operationId == l.operationRef == None
-        ), "operationId and operationRef are mutually exclusive, one of them must be specified"
+        assert not (l.operationId != None and l.operationRef != None), (
+            "operationId and operationRef are mutually exclusive, only one of them is allowed"
+        )
+        assert not (l.operationId == l.operationRef == None), (
+            "operationId and operationRef are mutually exclusive, one of them must be specified"
+        )
         return l
 
 

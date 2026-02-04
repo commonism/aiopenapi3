@@ -7,7 +7,6 @@ import pydantic
 
 if typing.TYPE_CHECKING:
     from ._types import (
-        OperationType,
         SchemaType,
         RequestType,
         RequestData,

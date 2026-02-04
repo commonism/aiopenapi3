@@ -4,13 +4,11 @@ Tests parsing specs
 
 import uuid
 
-import yaml
-
 
 import pytest
 
 from pydantic import ValidationError
-from aiopenapi3 import OpenAPI, SpecError, ReferenceResolutionError, FileSystemLoader
+from aiopenapi3 import OpenAPI, ReferenceResolutionError
 from aiopenapi3.errors import OperationParameterValidationError, OperationIdDuplicationError
 
 URLBASE = "/"

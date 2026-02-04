@@ -19,7 +19,7 @@ for i in ["orjson", "simdjson", "ujson", "json"]:
 
 assert json is not None
 
-from pathlib import Path
+from pathlib import Path  # noqa:E402
 
 from .plugin import Plugins
 
@@ -96,7 +96,7 @@ class YAML12Loader(yaml.SafeLoader):
         go on to serialise as json which doesn't have the advanced types
         of yaml, and leads to incompatibilities down the track.
         """
-        if not "yaml_implicit_resolvers" in cls.__dict__:
+        if "yaml_implicit_resolvers" not in cls.__dict__:
             cls.yaml_implicit_resolvers = cls.yaml_implicit_resolvers.copy()
 
         for first_letter, mappings in cls.yaml_implicit_resolvers.items():

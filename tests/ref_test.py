@@ -11,12 +11,10 @@ from typing import ForwardRef
 
 import typing
 
-import pytest
 from aiopenapi3 import OpenAPI
 
 from pydantic._internal._model_construction import ModelMetaclass
 
-import pydantic._internal._fields
 from pydantic import RootModel
 
 
@@ -79,9 +77,9 @@ def test_allOf_resolution(petstore_expanded):
         # not assign a default '= Field(default=…)' or '= …'
         return x.default == pydantic_core.PydanticUndefined
 
-    assert sorted(map(lambda x: x[0], filter(lambda y: is_required(y[1]), items.items()))) == sorted(
-        ["id", "name"]
-    ), ref.model_json_schema()
+    assert sorted(map(lambda x: x[0], filter(lambda y: is_required(y[1]), items.items()))) == sorted(["id", "name"]), (
+        ref.model_json_schema()
+    )
 
     assert items["id"].annotation == int
     assert items["name"].annotation == str

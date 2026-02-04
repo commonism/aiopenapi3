@@ -6,9 +6,6 @@ from aiopenapi3.plugin import Document, Message
 from aiopenapi3.v20 import Reference
 
 
-from pydantic import ValidationError
-
-
 def log_request(request):
     print(f"Request event hook: {request.method} {request.url} - Waiting for response")
 
