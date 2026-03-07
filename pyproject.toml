@@ -105,6 +105,7 @@ filterwarnings = [
     "ignore:unclosed resource <TCPTransport:ResourceWarning",
     "ignore:co_lnotab is deprecated, use co_lines instead:DeprecationWarning",
     "ignore:'asyncio.AbstractEventLoopPolicy' is deprecated and slated for removal in Python 3.16:DeprecationWarning",
+    "ignore:'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16:DeprecationWarning"
 #    "ignore::pydantic.warnings.UnsupportedFieldAttributeWarning",
 ]
 asyncio_mode = "strict"
