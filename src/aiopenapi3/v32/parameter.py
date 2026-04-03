@@ -1,0 +1,61 @@
+import enum
+import typing
+from typing import Union, Any
+
+from pydantic import Field
+
+from ..base import ObjectExtended, ParameterBase as _ParameterBase
+
+from .example import Example
+from .general import Reference
+from .schemas import Schema
+
+from ..v30.parameter import _ParameterCodec
+
+if typing.TYPE_CHECKING:
+    from .paths import MediaType
+
+
+class ParameterBase(ObjectExtended, _ParameterBase):
+    """
+    A `Parameter Object`_ defines a single operation parameter.
+
+    .. _Parameter Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#parameterObject
+    """
+
+    description: str | None = Field(default=None)
+    required: bool | None = Field(default=None)
+    deprecated: bool | None = Field(default=None)
+    allowEmptyValue: bool | None = Field(default=None)
+
+    style: str | None = Field(default=None)
+    explode: bool | None = Field(default=None)
+    allowReserved: bool | None = Field(default=None)
+    schema_: Schema | None = Field(default=None, alias="schema")
+    example: Any | None = Field(default=None)
+    examples: dict[str, Union["Example", Reference]] = Field(default_factory=dict)
+
+    content: dict[str, "MediaType"] | None = None
+
+
+class _In(str, enum.Enum):
+    query = "query"
+    header = "header"
+    path = "path"
+    cookie = "cookie"
+
+
+class Parameter(ParameterBase, _ParameterCodec):
+    name: str = Field()
+    in_: _In = Field(alias="in")
+
+
+class Header(ParameterBase, _ParameterCodec):
+    """
+
+    .. _HeaderObject: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#headerObject
+    """
+
+    def _codec(self):
+        schema = self.schema_ or self.content.get("application/json").schema_
+        return schema, "simple", False
