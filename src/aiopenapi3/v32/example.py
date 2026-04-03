@@ -7,13 +7,18 @@ from ..base import ObjectExtended
 
 class Example(ObjectExtended):
     """
-    A `Example Object`_ holds a reusable set of different aspects of the OAS
-    spec.
+    4.19 Example Object
 
-    .. _Example Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#exampleObject
+    An object grouping an internal or external example value with basic summary and description metadata.
+    The examples can show either data suitable for schema validation, or serialized data as required by the
+    containing Media Type Object, Parameter Object, or Header Object.
+
+    .. _here: https://spec.openapis.org/oas/v3.2.0.html#example-object
     """
 
     summary: str | None = Field(default=None)
     description: str | None = Field(default=None)
-    value: Any | None = Field(default=None)
+    dataValue: Any | None = Field(default=None)
+    serializedValue: str | None = Field(default=None)
     externalValue: str | None = Field(default=None)
+    value: Any | None = Field(default=None)

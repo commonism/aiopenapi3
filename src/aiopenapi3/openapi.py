@@ -23,6 +23,7 @@ from .json import JSONReference
 from . import v20
 from . import v30
 from . import v31
+from . import v32
 from . import log
 from .request import OperationIndex, HTTP_METHODS
 from .errors import ReferenceResolutionError, HTTPClientError, HTTPServerError
@@ -215,6 +216,8 @@ class OpenAPI:
                     return v30.Root.model_validate(document)
                 elif v[1] == 1:
                     return v31.Root.model_validate(document)
+                elif v[1] == 2:
+                    return v32.Root.model_validate(document)
                 else:
                     raise ValueError(f"openapi version 3.{v[1]} not supported")
             else:
@@ -337,7 +340,7 @@ class OpenAPI:
         ) or (type(session_factory) is type and issubclass(session_factory, httpx.AsyncClient)):
             if isinstance(self._root, v20.Root):
                 self._createRequest = v20.AsyncRequest
-            elif isinstance(self._root, (v30.Root, v31.Root)):
+            elif isinstance(self._root, (v30.Root, v31.Root, v32.Root)):
                 self._createRequest = v30.AsyncRequest
             else:
                 raise ValueError(self._root)
@@ -392,7 +395,7 @@ class OpenAPI:
                             if isinstance(response.schema_, (v20.Schema,)):
                                 response.schema_._get_identity("OP", f"{path}.{m}.{r}")
 
-        elif isinstance(self._root, (v30.Root, v31.Root)):
+        elif isinstance(self._root, (v30.Root, v31.Root, v32.Root)):
             allschemas = [
                 x.components.schemas
                 for x in filter(has_components, self._documents.values())
@@ -428,6 +431,8 @@ class OpenAPI:
                     self._root.paths = v30.Paths(paths={}, extensions={})
                 elif isinstance(self._root, v31.Root):
                     self._root.paths = v31.Paths(paths={}, extensions={})
+                elif isinstance(self._root, v32.Root):
+                    self._root.paths = v32.Paths(paths={}, extensions={})
                 else:
                     raise ValueError(self._root)
         else:

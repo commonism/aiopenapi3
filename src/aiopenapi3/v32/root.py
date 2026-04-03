@@ -1,5 +1,6 @@
 from typing import Any
 
+import pydantic
 from pydantic import Field, model_validator
 
 from ..base import ObjectExtended, RootBase
@@ -16,17 +17,18 @@ from .tag import Tag
 
 class Root(ObjectExtended, RootBase):
     """
-    This class represents the root of the OpenAPI schema document, as defined
-    in `the spec`_
+    4.1 OpenAPI Object
 
-    .. _the spec: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#openapi-object
+    This is the root object of the `OpenAPI Description`_
+
+    .. _OpenAPI Description: https://spec.openapis.org/oas/v3.2.0.html#openapi-object
     """
 
     openapi: str = Field(...)
+    sself: pydantic.AnyHttpUrl | None = None
     info: Info = Field(...)
-    jsonSchemaDialect: str | None = Field(default=None)  # FIXME should be URI
+    jsonSchemaDialect: pydantic.AnyHttpUrl | None = Field(default=None)
     servers: list[Server] | None = Field(default_factory=list)
-    #    paths: Dict[str, PathItem] = Field(default_factory=dict)
     paths: Paths = Field(default_factory=dict)
     webhooks: dict[str, PathItem | Reference] = Field(default_factory=dict)
     components: Components | None = Field(default_factory=Components)

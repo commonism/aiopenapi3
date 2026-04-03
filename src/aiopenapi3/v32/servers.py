@@ -7,13 +7,15 @@ from ..base import ObjectExtended
 
 class ServerVariable(ObjectExtended):
     """
-    A ServerVariable object as defined `here`_.
+    4.6 Server Variable Object
+    An object representing a Server Variable for server URL template substitution.
 
-    .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#server-variable-object
+    As described `here`_
+    .. _here: https://spec.openapis.org/oas/v3.2.0.html#server-variable-object
     """
 
     enum: list[str] | None = Field(default=None)
-    default: str | None = Field(...)
+    default: str
     description: str | None = Field(default=None)
 
     @model_validator(mode="after")
@@ -26,13 +28,16 @@ class ServerVariable(ObjectExtended):
 
 class Server(ObjectExtended):
     """
-    The Server object, as described `here`_
+    4.5 Server Object
+    An object representing a Server.
 
-    .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#server-object
+    As described `here`_
+    .. _here: https://spec.openapis.org/oas/v3.2.0.html#server-object
     """
 
     url: str = Field(...)
     description: str | None = Field(default=None)
+    name: str | None = Field(default=None)
     variables: dict[str, ServerVariable] = Field(default_factory=dict)
 
     @model_validator(mode="after")

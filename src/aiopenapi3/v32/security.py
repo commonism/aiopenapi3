@@ -14,6 +14,7 @@ class OAuthFlow(ObjectExtended):
     """
 
     authorizationUrl: str | None = Field(default=None)
+    deviceAuthorizationUrl: str | None = Field(default=None)
     tokenUrl: str | None = Field(default=None)
     refreshUrl: str | None = Field(default=None)
     scopes: dict[str, str] = Field(default_factory=dict)
@@ -21,21 +22,24 @@ class OAuthFlow(ObjectExtended):
 
 class OAuthFlows(ObjectExtended):
     """
+    4.28 OAuth Flows Object
     Allows configuration of the supported OAuth Flows.
 
-    .. here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#oauth-flows-object
+    .. here: https://spec.openapis.org/oas/v3.2.0.html#oauth-flows-object
     """
 
     implicit: OAuthFlow | None = Field(default=None)
     password: OAuthFlow | None = Field(default=None)
     clientCredentials: OAuthFlow | None = Field(default=None)
     authorizationCode: OAuthFlow | None = Field(default=None)
+    deviceAuthorization: OAuthFlow | None = Field(default=None)
 
 
 class _SecuritySchemes:
     class _SecurityScheme(ObjectExtended):
         type: Literal["apiKey", "http", "mutualTLS", "oauth2", "openIdConnect"]
         description: str | None = Field(default=None)
+        deprecated: bool | None = Field(default=None)
 
         def validate_authentication_value(self, value):
             pass
@@ -65,6 +69,7 @@ class _SecuritySchemes:
     class oauth2(_SecurityScheme):
         type: Literal["oauth2"]
         flows: OAuthFlows
+        oauth2MetadataUrl: str | None = Field(default=None)
 
     class openIdConnect(_SecurityScheme):
         type: Literal["openIdConnect"]
@@ -86,9 +91,10 @@ class SecurityScheme(
     ]
 ):
     """
-    A `Security Scheme`_ defines a security scheme that can be used by the operations.
+    4.27 Security Scheme Object
+    Defines a security scheme that can be used by the operations.
 
-    .. _Security Scheme: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#security-scheme-object
+    .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#security-scheme-object
     """
 
     pass
@@ -96,9 +102,11 @@ class SecurityScheme(
 
 class SecurityRequirement(RootModel[dict[str, list[str]]]):
     """
-    A `SecurityRequirement`_ object describes security schemes for API access.
+    4.30 Security Requirement Object
 
-    .. _SecurityRequirement: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#securityRequirementObject
+    Lists the required security schemes to execute this operation.
+
+    .. _here: https://spec.openapis.org/oas/v3.2.0.html#security-requirement-object
     """
 
     pass
