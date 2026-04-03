@@ -8,14 +8,18 @@ from .general import Reference
 from .parameter import Header, Parameter
 from .schemas import Schema
 from .security import SecurityScheme
+from .media import MediaType
 
 
 class Components(ObjectExtended):
     """
-    A `Components Object`_ holds a reusable set of different aspects of the OAS
-    spec.
+    4.7 Components Object
+    Holds a set of reusable objects for different aspects of the OAS.
+    All objects defined within the Components Object will have no effect on the API unless they are explicitly
+    referenced from outside the Components Object.
 
-    .. _Components Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#components-object
+    As described `here`_
+    .. _Components Object: https://spec.openapis.org/oas/v3.2.0.html#components-object
     """
 
     schemas: dict[str, Schema] = Field(default_factory=dict)
@@ -27,4 +31,5 @@ class Components(ObjectExtended):
     securitySchemes: dict[str, SecurityScheme | Reference] = Field(default_factory=dict)
     links: dict[str, Link | Reference] = Field(default_factory=dict)
     callbacks: dict[str, Callback | Reference] = Field(default_factory=dict)
-    pathItems: dict[str, PathItem | Reference] = Field(default_factory=dict)  # v3.1
+    pathItems: dict[str, PathItem | Reference] = Field(default_factory=dict)
+    mediaTypes: dict[str, MediaType | Reference] = Field(default_factory=dict)

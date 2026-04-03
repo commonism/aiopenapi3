@@ -8,30 +8,34 @@ from .xml import XML
 
 class Discriminator(ObjectExtended, DiscriminatorBase):
     """
+    4.25 Discriminator Object
+    When request bodies or response payloads may be one of a number of different schemas, these should use the
+    JSON Schema anyOf or oneOf keywords to describe the possible schemas (see Composition and Inheritance).
 
-    .. here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#discriminator-object
+    .. here: https://spec.openapis.org/oas/v3.2.0.html#discriminator-object
     """
 
     propertyName: str = Field(...)
     mapping: dict[str, str] = Field(default_factory=dict)
+    defaultMapping: str | None = Field(default=None)
 
 
 class Schema(ObjectExtended, SchemaBase):
     """
-    The `Schema Object`_ allows the definition of input and output data types.
+    8. The JSON Schema Core Vocabulary
 
-    .. _Schema Object: https://datatracker.ietf.org/doc/html/draft-bhutton-json-schema-validation-00#section-6
+    .. _here: https://www.ietf.org/archive/id/draft-bhutton-json-schema-01.html#section-8
     """
 
     model_config = ConfigDict(extra="allow")
 
     """
     JSON Schema: A Media Type for Describing JSON Documents
-    https://json-schema.org/draft/2020-12/json-schema-core.html
+    https://www.ietf.org/archive/id/draft-bhutton-json-schema-01.html#section-8
     """
 
     """
-    8.  The JSON Schema Core Vocabulary
+    8. The JSON Schema Core Vocabulary
     """
     schema_: str | None = Field(default=None, alias="$schema")
     vocabulary: dict[str, bool] | None = Field(default=None, alias="$vocabulary")
@@ -51,8 +55,8 @@ class Schema(ObjectExtended, SchemaBase):
     10.2.1. Keywords for Applying Subschemas With Logic
     """
     allOf: list["Schema"] = Field(default_factory=list)
-    oneOf: list["Schema"] = Field(default_factory=list)
     anyOf: list["Schema"] = Field(default_factory=list)
+    oneOf: list["Schema"] = Field(default_factory=list)
     not_: Optional["Schema"] = Field(default=None, alias="not")
 
     """
@@ -86,7 +90,7 @@ class Schema(ObjectExtended, SchemaBase):
 
     """
     JSON Schema Validation: A Vocabulary for Structural Validation of JSON
-    https://json-schema.org/draft/2020-12/json-schema-validation.html
+    https://www.ietf.org/archive/id/draft-bhutton-json-schema-validation-01.html#section-6.1.1
     """
 
     """

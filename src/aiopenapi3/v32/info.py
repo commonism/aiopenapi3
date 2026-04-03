@@ -5,9 +5,13 @@ from aiopenapi3.base import ObjectExtended
 
 class Contact(ObjectExtended):
     """
-    Contact object belonging to an Info object, as described `here`_
+    4.3 Contact Object
 
-    .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#contactObject
+    Contact information for the exposed API.
+
+    As described `here`_
+
+    .. _here: https://spec.openapis.org/oas/v3.2.0.html#contact-object
     """
 
     email: EmailStr = Field(default=None)
@@ -17,9 +21,13 @@ class Contact(ObjectExtended):
 
 class License(ObjectExtended):
     """
-    License object belonging to an Info object, as described `here`_
+    4.4 License Object
 
-    .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#license-object
+    License information for the exposed API.
+
+    As described `here`_
+
+    .. _here: https://spec.openapis.org/oas/v3.2.0.html#license-object
     """
 
     name: str = Field(...)
@@ -37,9 +45,13 @@ class License(ObjectExtended):
 
 class Info(ObjectExtended):
     """
-    An OpenAPI Info object, as defined in `the spec`_.
+    4.2 Info Object
 
-    .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#info-object
+    The object provides metadata about the API. The metadata MAY be used by the clients if needed,
+    and MAY be presented in editing or documentation generation tools for convenience.
+
+    As described `here`_
+    .. _here: https://spec.openapis.org/oas/v3.2.0.html#info-object
     """
 
     title: str = Field(...)

@@ -13,9 +13,10 @@ from .security import SecurityRequirement
 
 class RequestBody(ObjectExtended):
     """
-    A `RequestBody`_ object describes a single request body.
+    4.13 Request Body Object
+    Describes a single request body.
 
-    .. _RequestBody: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#requestBodyObject
+    .. _here: https://spec.openapis.org/oas/v3.2.0.html#request-body-object
     """
 
     description: str | None = Field(default=None)
@@ -25,9 +26,10 @@ class RequestBody(ObjectExtended):
 
 class Link(ObjectExtended):
     """
-    A `Link Object`_ describes a single Link from an API Operation Response to an API Operation Request
+    4.20 Link Object
+    The Link Object represents a possible design-time link for a response.
 
-    .. _Link Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#link-object
+    .. _here: https://spec.openapis.org/oas/v3.2.0.html#link-object
     """
 
     operationRef: str | None = Field(default=None)
@@ -50,13 +52,15 @@ class Link(ObjectExtended):
 
 class Response(ObjectExtended):
     """
-    A `Response Object`_ describes a single response from an API Operation,
-    including design-time, static links to operations based on the response.
+    4.17 Response Object
+    Describes a single response from an API operation, including design-time, static links to operations
+    based on the response.
 
-    .. _Response Object: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#responseObject
+    .. _here: https://spec.openapis.org/oas/v3.2.0.html#response-object
     """
 
-    description: str = Field(...)
+    summary: str | None = Field(default=None)
+    description: str | None = Field(default=None)
     headers: dict[str, Header | Reference] = Field(default_factory=dict)
     content: dict[str, MediaType] = Field(default_factory=dict)
     links: dict[str, Link | Reference] = Field(default_factory=dict)
@@ -64,9 +68,11 @@ class Response(ObjectExtended):
 
 class Operation(ObjectExtended, OperationBase):
     """
-    An Operation object as defined `here`_
+    4.10 Operation Object
+    Describes a single API operation on a path.
 
-    .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#operationObject
+    As described `here`_
+    .. _here: https://spec.openapis.org/oas/v3.2.0.html#operation-object
     """
 
     tags: list[str] | None = Field(default=None)
@@ -85,10 +91,13 @@ class Operation(ObjectExtended, OperationBase):
 
 class PathItem(ObjectExtended, PathItemBase):
     """
-    A Path Item, as defined `here`_.
-    Describes the operations available on a single path.
+    4.9 Path Item Object
+    Describes the operations available on a single path. A Path Item MAY be empty, due to ACL constraints.
+    The path itself is still exposed to the documentation viewer but they will not know which operations and
+    parameters are available.
 
-    .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#pathItemObject
+    As described `here`_
+    .. _here: https://spec.openapis.org/oas/v3.2.0.html#path-item-object
     """
 
     ref: str | None = Field(default=None, alias="$ref")
@@ -102,11 +111,23 @@ class PathItem(ObjectExtended, PathItemBase):
     head: Operation | None = Field(default=None)
     patch: Operation | None = Field(default=None)
     trace: Operation | None = Field(default=None)
+    query: Operation | None = Field(default=None)
+    additionalOperations: dict[str, Operation] | None = Field(default_factory=dict)
     servers: list[Server] | None = Field(default=None)
     parameters: list[Parameter | Reference] = Field(default_factory=list)
 
 
 class Paths(PathsBase):
+    """
+    4.8 Paths Object
+    Holds the relative paths to the individual endpoints and their operations. The path is appended to the URL from the
+    Server Object in order to construct the full URL.
+    The Paths Object MAY be empty, due to Access Control List (ACL) constraints.
+
+    As described `here`_
+    .. _here: https://spec.openapis.org/oas/v3.2.0.html#paths-object
+    """
+
     paths: dict[str, PathItem]
 
     @model_validator(mode="before")
@@ -124,21 +145,33 @@ class Paths(PathsBase):
 
 class Callback(RootModel):
     """
-    A map of possible out-of band callbacks related to the parent operation.
+    4.18 Callback Object
 
-    .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#callback-object
+    A map of possible out-of band callbacks related to the parent operation.
+    Each value in the map is a Path Item Object that describes a set of requests that may be initiated by
+    the API provider and the expected responses.
+
+    .. _here: https://spec.openapis.org/oas/v3.2.0.html#callback-object
 
     This object MAY be extended with Specification Extensions.
     """
 
-    root: dict[str, PathItem]
+    """
+    4.18.2 Key Expression
+    The key that identifies the Path Item Object is a runtime expression that can be evaluated in the context of a
+    runtime HTTP request/response to identify the URL to be used for the callback request.
+    """
+    root: dict["RuntimeExpression", PathItem]
 
 
 class RuntimeExpression(RootModel):
     """
+    4.20.3 Runtime Expressions
+    Runtime expressions allow defining values based on information that will only be available within the HTTP message
+    in an actual API call. This mechanism is used by Link Objects and Callback Objects.
 
 
-    .. Runtime Expression: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#runtimeExpression
+    .. _here: https://spec.openapis.org/oas/v3.2.0.html#runtime-expressions
     """
 
     root: str

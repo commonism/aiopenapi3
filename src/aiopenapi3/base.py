@@ -21,7 +21,7 @@ if typing.TYPE_CHECKING:
     from aiopenapi3 import OpenAPI
     from ._types import SchemaType, JSON, PathItemType, ParameterType, ReferenceType, DiscriminatorType
 
-HTTP_METHODS = frozenset(["get", "delete", "head", "post", "put", "patch", "trace"])
+HTTP_METHODS = frozenset(["get", "delete", "head", "post", "put", "patch", "trace", "query"])
 
 
 class ObjectBase(BaseModel):
