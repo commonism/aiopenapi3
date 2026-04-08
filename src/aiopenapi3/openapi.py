@@ -310,8 +310,12 @@ class OpenAPI:
         Document Plugins get called via OpenAPI.load… - this is processed already
         """
         self._root = self._parse_obj(document)
+        if isinstance(self._root, v32.Root) and self._root.self_:
+            docref = yarl.URL(str(self._root.self_))
+        else:
+            docref = self._base_url
 
-        self._documents[self._base_url] = self._root
+        self._documents[docref] = self._root
 
         self._init_session_factory(session_factory)
         self._init_references()
@@ -331,7 +335,7 @@ class OpenAPI:
         ):
             if isinstance(self._root, v20.Root):
                 self._createRequest = v20.Request
-            elif isinstance(self._root, (v30.Root, v31.Root)):
+            elif isinstance(self._root, (v30.Root, v31.Root, v32.Root)):
                 self._createRequest = v30.Request
             else:
                 raise ValueError(self._root)
@@ -680,7 +684,7 @@ class OpenAPI:
 
             r = yarl.URL.build(scheme=scheme, host=host, port=port, path=path)
             return r
-        elif isinstance(self._root, (v30.Root, v31.Root)):
+        elif isinstance(self._root, (v30.Root, v31.Root, v32.Root)):
             assert self._root.servers
             server: "ServerType" = self._server_select(self._root.servers)
             return self._base_url.join(yarl.URL(server.createUrl(self._server_variables)))
@@ -766,11 +770,14 @@ class OpenAPI:
                 if pathitem.ref:
                     pathitem = pathitem.ref._target
 
-                operation = getattr(pathitem, method)
+                if method in HTTP_METHODS:
+                    operation = getattr(pathitem, method)
+                else:  # v32
+                    operation = pathitem.additionalOperations.get(method, None)
                 assert operation is not None
                 if isinstance(self._root, v20.Root):
                     servers = None
-                elif isinstance(self._root, (v30.Root, v31.Root)):
+                elif isinstance(self._root, (v30.Root, v31.Root, v32.Root)):
                     servers = operation.servers or pathitem.servers or self.servers
                 else:
                     raise TypeError(self._root)
