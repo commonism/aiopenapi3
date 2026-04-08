@@ -31,6 +31,7 @@ While aiopenapi3 supports some of the more exotic features of the Swagger/OpenAP
   * Swagger 2.0
   * OpenAPI 3.0
   * OpenAPI 3.1
+  * OpenAPI 3.2
 
 * multi file description documents
 * recursive schemas
@@ -42,6 +43,7 @@ While aiopenapi3 supports some of the more exotic features of the Swagger/OpenAP
 * :ref:`advanced:Forms`
 * :ref:`advanced:mutualTLS` authentication
 * :ref:`Request <advanced:Request Streaming>` and :ref:`Response <advanced:Response Streaming>` streaming to reduce memory usage
+* :ref:`Sequential Media Types <advanced:Sequential Media Types>`
 * Culling :ref:`extra:Large Description Documents`
 
 some aspects of the specifications are implemented loose

@@ -570,3 +570,23 @@ def with_schema_title_name_collision():
 @pytest.fixture
 def with_schema_discriminated_union_extends():
     yield _get_parsed_yaml("schema-discriminated-union-extends.yaml")
+
+
+@pytest.fixture
+def with_schema_v32():
+    yield _get_parsed_yaml("schema-v32.yaml")
+
+
+@pytest.fixture
+def with_path_query():
+    yield _get_parsed_yaml("paths-query.yaml")
+
+
+@pytest.fixture
+def with_path_additionalOperations():
+    yield _get_parsed_yaml("paths-additionalOperations.yaml")
+
+
+@pytest.fixture
+def with_schema_itemSchema():
+    yield _get_parsed_yaml("schema-itemSchema.yaml")

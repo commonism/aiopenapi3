@@ -320,6 +320,50 @@ The main difference in the async use of the streaming is await & async for.
     session.close()
 
 
+Sequential Media Types
+^^^^^^^^^^^^^^^^^^^^^^
+`Sequential Media Types <https://spec.openapis.org/oas/latest#sequential-media-types>`_ as defined in OpenAPI 3.2 allow
+streaming encoded objects using itemSchema.
+
+
+:meth:`~aiopenapi3.request.RequestBase.events` is a Generator/contextmanager returning an headers and the Iterator
+streaming the events.
+
+    * :class:`aiopenapi3.request.AsyncRequestBase.events`
+    * :class:`aiopenapi3.request.AsyncRequestBase.EventIterator`
+
+.. rubric:: asyncio
+
+.. code:: python
+
+    req = api.createRequest("json_seq")
+    async with req.events() as (headers, events):
+        async for event in events:
+            print(event)
+
+
+    * :class:`aiopenapi3.request.RequestBase.events`
+    * :class:`aiopenapi3.request.RequestBase.EventIterator`
+
+
+.. rubric:: sync
+
+.. code:: python
+
+    req = api.createRequest("json_seq")
+    with req.events() as (headers, events):
+        for event in events:
+            print(event)
+
+
+aiopenapi3 supports sequential events for the following content types:
+
+  * application/json-seq e.g. '\x1E{…}\n
+  * application/jsonl e.g. '{…}\n'
+  * application/x-ndjson e.g. '{…}\n'
+  * text/event-stream e.g. '[{…},'
+
+
 Non-JSON Content
 ^^^^^^^^^^^^^^^^
 In case the content is not a model (application/octet-stream), the data can be read iteratively and written/processed.

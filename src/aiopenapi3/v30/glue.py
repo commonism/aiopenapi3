@@ -274,9 +274,9 @@ class Request(RequestBase):
         provided = provided or dict()
         possible = {_.name: _ for _ in self.operation.parameters + self.root.paths[self.path].parameters}
 
-        from .. import v30, v31
+        from .. import v30, v31, v32
 
-        assert isinstance(self.operation, (v30.Operation, v31.Operation))
+        assert isinstance(self.operation, (v30.Operation, v31.Operation, v32.Operation))
 
         if self.operation.requestBody:
             rbq: dict[str, str] = dict()  # requestBody Parameters
@@ -338,9 +338,9 @@ class Request(RequestBase):
         return mph
 
     def _prepare_body(self, data_: Optional["RequestData"], mph: dict[str, str]) -> None:
-        from .. import v30, v31
+        from .. import v30, v31, v32
 
-        assert isinstance(self.operation, (v30.Operation, v31.Operation))
+        assert isinstance(self.operation, (v30.Operation, v31.Operation, v32.Operation))
 
         if not self.operation.requestBody:
             ctx = self.api.plugins.message.sending(
@@ -571,6 +571,17 @@ class Request(RequestBase):
 
         return headers, expected_media.schema_
 
+    def _process_events(self, result: httpx.Response) -> tuple["ResponseHeadersType", Optional["SchemaType"], str]:
+        status_code = str(result.status_code)
+        content_type = result.headers.get("Content-Type", None)
+
+        expected_response = self._process__status_code(result, status_code)
+        content_type, expected_media = self._process__content_type(result, expected_response, content_type)
+
+        headers = self._process__headers(result, result.headers, expected_response)
+
+        return headers, expected_media.itemSchema, content_type
+
     def _process_request(self, result: httpx.Response) -> tuple["ResponseHeadersType", "ResponseDataType"]:
         rheaders = dict()
         # spec enforces these are strings
@@ -634,25 +645,6 @@ class Request(RequestBase):
             self._raise_on_http_status(int(status_code), rheaders, data)
 
             return rheaders, data
-        elif ct == "application/jsonl":
-            """https://jsonlines.org/"""
-            pass
-        elif ct == "application/x-ndjson":
-            """https://github.com/ndjson/ndjson-spec"""
-            pass
-        elif ct == "application/json-seq":
-            """
-            JSON Text Sequence
-            https://datatracker.ietf.org/doc/html/rfc7464
-            """
-            pass
-        elif ct == "text/event-stream":
-            """
-            Server-Sent Events (SSE)
-            https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events
-            """
-            pass
-
         else:
             """
             We have received a valid (i.e. expected) content type,
