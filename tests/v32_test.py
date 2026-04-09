@@ -57,25 +57,28 @@ async def test_MediaType(httpx_mock, with_schema_itemSchema):
         url="https://example.org/api/text_events", headers={"Content-Type": "text/event-stream"}, content=ct
     )
 
+    import aiopenapi3.v30
+
+    req: aiopenapi3.v30.glue.AsyncRequest
     req = api.createRequest("json_seq")
-    async with req.events() as (headers, events):
-        async for event in events:
-            print(event)
+    async with req.sequence() as sequence:
+        async for obj in sequence:
+            print(obj)
 
     req = api.createRequest("jsonl")
-    async with req.events() as (headers, events):
-        async for event in events:
-            print(event)
+    async with req.sequence() as sequence:
+        async for obj in sequence:
+            print(obj)
 
     req = api.createRequest("ndjson")
-    async with req.events() as (headers, events):
-        async for event in events:
-            print(event)
+    async with req.sequence() as sequence:
+        async for obj in sequence:
+            print(obj)
 
     req = api.createRequest("text_events")
-    async with req.events() as (headers, events):
-        async for event in events:
-            print(event)
+    async with req.sequence() as sequence:
+        async for obj in sequence:
+            print(obj)
 
     # prefixEncoding
     # itemEncoding
@@ -101,9 +104,10 @@ def test_MediaType_itemSchema_sync(httpx_mock, with_schema_itemSchema):
     )
 
     req = api.createRequest("json_seq")
-    with req.events() as (headers, events):
-        for event in events:
-            print(event)
+    with req.sequence() as sequence:
+        print(sequence.headers)
+        for obj in sequence:
+            print(obj)
 
 
 def test_Parameter():

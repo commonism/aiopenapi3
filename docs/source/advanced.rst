@@ -326,10 +326,10 @@ Sequential Media Types
 streaming encoded objects using itemSchema.
 
 
-:meth:`~aiopenapi3.request.RequestBase.events` is a Generator/contextmanager returning an headers and the Iterator
-streaming the events.
+:meth:`~aiopenapi3.request.RequestBase.sequence` is a Generator/contextmanager returning an headers and the Iterator
+streaming the sequence.
 
-    * :class:`aiopenapi3.request.AsyncRequestBase.events`
+    * :class:`aiopenapi3.request.AsyncRequestBase.sequence`
     * :class:`aiopenapi3.request.AsyncRequestBase.EventIterator`
 
 .. rubric:: asyncio
@@ -337,12 +337,12 @@ streaming the events.
 .. code:: python
 
     req = api.createRequest("json_seq")
-    async with req.events() as (headers, events):
-        async for event in events:
+    async with req.sequence() as (headers, sequence):
+        async for event in sequence:
             print(event)
 
 
-    * :class:`aiopenapi3.request.RequestBase.events`
+    * :class:`aiopenapi3.request.RequestBase.sequence`
     * :class:`aiopenapi3.request.RequestBase.EventIterator`
 
 
@@ -351,17 +351,17 @@ streaming the events.
 .. code:: python
 
     req = api.createRequest("json_seq")
-    with req.events() as (headers, events):
-        for event in events:
+    with req.sequence() as (headers, sequence):
+        for event in sequence:
             print(event)
 
 
-aiopenapi3 supports sequential events for the following content types:
+aiopenapi3 supports sequential media for the following content types:
 
-  * application/json-seq e.g. '\x1E{…}\n
-  * application/jsonl e.g. '{…}\n'
-  * application/x-ndjson e.g. '{…}\n'
-  * text/event-stream e.g. '[{…},'
+  * application/json-seq e.g. '\x1E{…}\n via jsonseq
+  * application/jsonl e.g. '{…}\n' http.Response.iter_lines http.Response.aiter_lines
+  * application/x-ndjson e.g. '{…}\n' http.Response.iter_lines http.Response.aiter_lines
+  * text/event-stream e.g. '[{…},' via ijson
 
 
 Non-JSON Content

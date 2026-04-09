@@ -571,7 +571,7 @@ class Request(RequestBase):
 
         return headers, expected_media.schema_
 
-    def _process_events(self, result: httpx.Response) -> tuple["ResponseHeadersType", Optional["SchemaType"], str]:
+    def _process_sequence(self, result: httpx.Response) -> tuple["ResponseHeadersType", Optional["SchemaType"], str]:
         status_code = str(result.status_code)
         content_type = result.headers.get("Content-Type", None)
 
