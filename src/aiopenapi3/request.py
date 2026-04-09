@@ -5,7 +5,7 @@ import typing
 import json
 import logging
 from contextlib import closing
-from typing import Any, NamedTuple, Optional, Union, cast
+from typing import Any, NamedTuple, Optional, Union, cast, override
 from collections.abc import AsyncIterator, AsyncGenerator, Generator
 from collections.abc import Iterator
 from contextlib import aclosing
@@ -66,8 +66,9 @@ class RequestBase:
         session: httpx.Client
         result: httpx.Response
 
-    class EventIterator:
-        def __init__(self, stream: Iterator["JSON"], model: pydantic.BaseModel) -> None:
+    class Sequencer:
+        def __init__(self, headers: "ResponseHeadersType", stream: Iterator["JSON"], model: pydantic.BaseModel) -> None:
+            self.headers: ResponseHeadersType = headers
             self.stream: Iterator["JSON"] = stream
             self.model = model
 
@@ -205,7 +206,7 @@ class RequestBase:
         ...
 
     @abc.abstractmethod
-    def _process_events(self, result: httpx.Response) -> tuple["ResponseHeadersType", "ResponseDataType", Any]:
+    def _process_sequence(self, result: httpx.Response) -> tuple["ResponseHeadersType", "ResponseDataType", Any]:
         """
         process response headers
         lookup Model
@@ -301,17 +302,17 @@ class RequestBase:
         return RequestBase.StreamResponse(headers, schema_, session, result)
 
     @contextlib.contextmanager
-    def events(  # type: ignore[override]
+    def sequence(  # type: ignore[override]
         self,
         data: Optional["RequestData"] = None,
         parameters: Optional["RequestParameters"] = None,
         context: Any = None,
-    ) -> Generator[tuple["ResponseHeadersType", "RequestBase.EventIterator"], None, None]:
+    ) -> Generator["RequestBase.Sequencer", None, None]:
         self.vars = RequestBase.Vars(parameters, data, context)
         self._prepare(data, parameters)
         session: httpx.Client = self.api._session_factory(**self._session_factory_default_args)
         result = self._send(session, data, parameters)
-        headers, schema_, content_type = self._process_events(result)
+        headers, schema_, content_type = self._process_sequence(result)
 
         if content_type in ["application/jsonl", "application/x-ndjson"]:
             """
@@ -367,7 +368,7 @@ class RequestBase:
         try:
             """__enter__"""
             stream = iter_json(result)
-            yield headers, RequestBase.EventIterator(stream, schema_.get_type())
+            yield RequestBase.Sequencer(headers, stream, schema_.get_type())
         finally:
             """__exit__"""
             if not result.is_closed:
@@ -397,8 +398,12 @@ class AsyncRequestBase(RequestBase):
         session: httpx.AsyncClient
         result: httpx.Response
 
-    class EventIterator:
-        def __init__(self, stream: AsyncIterator["JSON"], model: pydantic.BaseModel) -> None:
+    @override
+    class Sequencer:
+        def __init__(
+            self, headers: "ResponseHeadersType", stream: AsyncIterator["JSON"], model: pydantic.BaseModel
+        ) -> None:
+            self.headers: "ResponseHeadersType" = headers
             self.stream: AsyncIterator["JSON"] = stream
             self.model = model
 
@@ -465,17 +470,17 @@ class AsyncRequestBase(RequestBase):
         return AsyncRequestBase.StreamResponse(headers, schema_, session, result)
 
     @contextlib.asynccontextmanager
-    async def events(  # type: ignore[override]
+    async def sequence(  # type: ignore[override]
         self,
         data: Optional["RequestData"] = None,
         parameters: Optional["RequestParameters"] = None,
         context: Any = None,
-    ) -> AsyncGenerator[tuple["ResponseHeadersType", "AsyncRequestBase.EventIterator"], None]:
+    ) -> AsyncGenerator["AsyncRequestBase.Sequencer", None]:
         self.vars = RequestBase.Vars(parameters, data, context)
         self._prepare(data, parameters)
         session = self.api._session_factory(**self._session_factory_default_args)
         result = await self._send(session, data, parameters)
-        headers, schema_, content_type = self._process_events(result)
+        headers, schema_, content_type = self._process_sequence(result)
 
         if content_type in ["application/jsonl", "application/x-ndjson"]:
             """
@@ -533,7 +538,7 @@ class AsyncRequestBase(RequestBase):
         try:
             """__aenter__"""
             stream = aiter_json(result)
-            yield headers, AsyncRequestBase.EventIterator(stream, schema_.get_type())
+            yield AsyncRequestBase.Sequencer(headers, stream, schema_.get_type())
         finally:
             """__aexit__"""
             if not result.is_closed:
