@@ -329,7 +329,7 @@ class Request(RequestBase):
                 # as such we need to collect all the path parameters before
                 # applying them to the format string.
                 path_parameters.update(values)
-            elif spec.in_ == "query":
+            elif spec.in_ in ["query", "querystring"]:
                 self.req.params.update(values)
             elif spec.in_ == "cookie":
                 self.req.cookies.update(values)

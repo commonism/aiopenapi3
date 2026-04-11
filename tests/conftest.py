@@ -590,3 +590,8 @@ def with_path_additionalOperations():
 @pytest.fixture
 def with_schema_itemSchema():
     yield _get_parsed_yaml("schema-itemSchema.yaml")
+
+
+@pytest.fixture
+def with_paths_parameter_querystring():
+    yield _get_parsed_yaml("paths-parameter-querystring.yaml")
