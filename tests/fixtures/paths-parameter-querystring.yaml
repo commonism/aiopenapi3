@@ -1,0 +1,108 @@
+openapi: 3.2.0
+info:
+  title: ''
+  version: 0.0.0
+servers:
+  - url: http://127.0.0.1/api
+
+security:
+  - {}
+
+paths:
+  /qs0:
+    parameters:
+      - $ref: "#/components/parameters/qs0"
+    get:
+      operationId: qs0
+      responses:
+        '204': {}
+  /json:
+    parameters:
+      - $ref: "#/components/parameters/json"
+    get:
+      operationId: json
+      responses:
+        '204': {}
+
+  /selector:
+    parameters:
+      - $ref: "#/components/parameters/selector"
+    get:
+      operationId: selector
+      responses:
+        '204': {}
+
+
+components:
+  parameters:
+    qs0:
+      name: qs0
+      in: querystring
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            properties:
+              foo:
+                type: string
+              bar:
+                type: boolean
+          examples:
+            spacesAndPluses:
+              description: Note handling of spaces and "+" per media type.
+              dataValue:
+                foo: a + b
+                bar: true
+              serializedValue: foo=a+%2B+b&bar=true
+      examples:
+        spacesAndPluses:
+          description: |
+            Note that no additional percent encoding is done, as this
+            media type is URI query string-ready by definition.
+          dataValue:
+            foo: a + b
+            bar: true
+          serializedValue: foo=a+%2B+b&bar=true
+
+    json:
+      in: querystring
+      name: json
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              numbers:
+                type: array
+                items:
+                  type: integer
+              flag:
+                type: [boolean, "null"]
+          examples:
+            TwoNoFlag:
+              description: Serialize with minimized whitespace
+              dataValue:
+                numbers:
+                  - 1
+                  - 2
+                flag: null
+              serializedValue: '{"numbers":[1,2],"flag":null}'
+      examples:
+        TwoNoFlag:
+          dataValue:
+            numbers:
+              - 1
+              - 2
+            flag: null
+          serializedValue: "%7B%22numbers%22%3A%5B1%2C2%5D%2C%22flag%22%3Anull%7D"
+    selector:
+      in: querystring
+      name: selector
+      content:
+        application/jsonpath:
+          schema:
+            type: string
+          example: $.a.b[1:1]
+      examples:
+        Selector:
+          serializedValue: "%24.a.b%5B1%3A1%5D"

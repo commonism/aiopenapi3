@@ -54,7 +54,11 @@ repos:
     hooks:
       - id: yamlfmt
         args: [--mapping, '2', --sequence, '4', --offset, '2', --preserve-quotes, --implicit_start, --width, '1500']
-        exclude: tests/fixtures/schema-enum.yaml
+        exclude: |
+          (?x)(
+            ^tests/fixtures/schema-enum.yaml|
+            ^tests/fixtures/paths-parameter-querystring.yaml
+          )
 
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.

@@ -633,3 +633,42 @@ def test_paths_server_variables_missing(with_paths_server_variables):
     dd["servers"][0]["url"] = "https://{missing}/test"
     with pytest.raises(ValueError, match=r"Missing Server Variables \[\'missing\'\]"):
         OpenAPI("http://example/openapi.yaml", dd, session_factory=httpx.Client)
+
+
+@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
+def test_paths_parameter_querystring(httpx_mock, with_paths_parameter_querystring):
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=204)
+    api = OpenAPI("/", with_paths_parameter_querystring, session_factory=httpx.Client)
+
+    def querymatch(a, b):
+        assert dict(yarl.URL(f"http://example.org/?{a}").query) == dict(yarl.URL(f"http://example.org/?{b}").query)
+        return True
+
+    # qs0
+    param = api._.qs0.parameters[0]._target
+    t = param.content["application/x-www-form-urlencoded"].schema_.get_type()
+    ex = param.examples["spacesAndPluses"]
+    obj = t.model_validate(ex.dataValue)
+    api._.qs0(parameters={"qs0": obj})
+    req = httpx_mock.get_requests()[-1]
+    assert querymatch(req.url.query.decode(), ex.serializedValue)
+
+    # json
+    param = api._.json.parameters[0]._target
+    t = param.content["application/json"].schema_.get_type()
+    ex = param.examples["TwoNoFlag"]
+    obj = t.model_validate(ex.dataValue)
+    api._.json(parameters={"json": obj})
+    req = httpx_mock.get_requests()[-1]
+    assert querymatch(req.url.query.decode(), ex.serializedValue)
+    assert req.url.query.decode() == ex.serializedValue + "="
+
+    # selector
+    param = api._.selector.parameters[0]._target
+    t = (c := param.content["application/jsonpath"]).schema_.get_type()
+    ex = param.examples["Selector"]
+    obj = t.model_validate_strings(c.example)
+    api._.selector(parameters={"selector": obj})
+    req = httpx_mock.get_requests()[-1]
+    assert querymatch(req.url.query.decode(), ex.serializedValue)
+    assert req.url.query.decode() == ex.serializedValue + "="

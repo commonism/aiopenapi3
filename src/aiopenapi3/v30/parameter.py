@@ -41,6 +41,10 @@ class _ParameterCodec:
             style = self.style or "form"
             assert style in frozenset(["form"])
             explode = self.explode if self.explode is not None else (False if style != "form" else True)
+        elif self.in_ == "querystring":
+            style = "querystring"
+            explode = None
+            return next(iter(self.content.values())).schema_, style, explode
         else:
             raise ParameterFormatError(self)
 
@@ -258,6 +262,24 @@ class _ParameterCodec:
             return dict(_flatten_dict(d, key))
 
         values = {k: v for k, v in flatten_dict(values, name).items()}
+        return values
+
+    def _encode__querystring(self, name: str, type_: str, value, schema: "v3xSchemaType", explode: bool):
+        print(name, type_, value, schema, explode)
+        values = dict()
+        ct = next(iter(self.content.keys()))
+        media = self.content[ct]
+        if ct == "application/x-www-form-urlencoded":
+            from .formdata import parameters_from_urlencoded
+
+            values = parameters_from_urlencoded(value, media)
+        else:  # ct == "application/json":
+            if isinstance(value, BaseModel):
+                values[value.model_dump_json()] = None
+            elif isinstance(value, str):
+                values[value] = ""
+            else:
+                values[str(value)] = ""
         return values
 
     def _decode(self, value):
