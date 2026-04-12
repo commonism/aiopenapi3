@@ -1,0 +1,134 @@
+openapi: 3.2.0
+info:
+  version: 1.0.0
+  title: itemSchema
+
+servers:
+  - url: ./
+    name: prod
+    description: The production API on this device
+
+components:
+  schemas:
+    LogEntry:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        level:
+          type: integer
+          minimum: 0
+        message:
+          type: string
+    Log:
+      type: array
+      items:
+        $ref: "#/components/schemas/LogEntry"
+      maxItems: 100
+  examples:
+    LogJSONSeq:
+      summary: Log entries in application/json-seq
+      # JSON Text Sequences require an unprintable character
+      # that cannot be escaped in a YAML string, and therefore
+      # must be placed in an external document shown below
+      externalValue: examples/log.json-seq
+    LogJSONPerLine:
+      summary: Log entries in application/jsonl or application/x-ndjson
+      description: JSONL and NDJSON are identical for this example
+      # Note that the value must be written as a string with newlines,
+      # as JSONL and NDJSON are not valid YAML
+      value: |
+        {"timestamp": "1985-04-12T23:20:50.52Z", "level": 1, "message": "Hi!"}
+        {"timestamp": "1985-04-12T23:20:51.37Z", "level": 1, "message": "Bye!"}
+  responses:
+    LogStream:
+      description: |
+        A stream of JSON-format log messages that can be read
+        for as long as the application is running, and is available
+        in any of the sequential JSON media types.
+      content:
+        application/json-seq:
+          itemSchema:
+            $ref: "#/components/schemas/LogEntry"
+          examples:
+            JSON-SEQ:
+              $ref: "#/components/examples/LogJSONSeq"
+        application/jsonl:
+          itemSchema:
+            $ref: "#/components/schemas/LogEntry"
+          examples:
+            JSONL:
+              $ref: "#/components/examples/LogJSONPerLine"
+        application/x-ndjson:
+          itemSchema:
+            $ref: "#/components/schemas/LogEntry"
+          examples:
+            NDJSON:
+              $ref: "#/components/examples/LogJSONPerLine"
+    LogExcerpt:
+      description: |
+        A response consisting of no more than 100 log records,
+        generally as a result of a query of the historical log,
+        available in any of the sequential JSON media types.
+      content:
+        application/json-seq:
+          schema:
+            $ref: "#/components/schemas/Log"
+          examples:
+            JSON-SEQ:
+              $ref: "#/components/examples/LogJSONSeq"
+        application/jsonl:
+          schema:
+            $ref: "#/components/schemas/Log"
+          examples:
+            JSONL:
+              $ref: "#/components/examples/LogJSONPerLine"
+        application/x-ndjson:
+          schema:
+            $ref: "#/components/schemas/Log"
+          examples:
+            NDJSON:
+              $ref: "#/components/examples/LogJSONPerLine"
+
+
+paths:
+  /json_seq:
+    get:
+      operationId: json_seq
+      responses:
+        "200":
+          content:
+            application/json-seq:
+              itemSchema:
+                $ref: "#/components/schemas/LogEntry"
+
+  /jsonl:
+    get:
+      operationId: jsonl
+      responses:
+        "200":
+          content:
+            application/jsonl:
+              itemSchema:
+                $ref: "#/components/responses/LogEntry"
+
+  /ndjson:
+    get:
+      operationId: ndjson
+      responses:
+        "200":
+          content:
+            application/x-ndjson:
+              itemSchema:
+                $ref: "#/components/schemas/LogEntry"
+
+  /text_events:
+    get:
+      operationId: text_events
+      responses:
+        "200":
+          content:
+            text/event-stream:
+              itemSchema:
+                $ref: "#/components/schemas/LogEntry"
