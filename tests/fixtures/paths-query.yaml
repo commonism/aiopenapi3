@@ -1,0 +1,13 @@
+openapi: 3.2.0
+info:
+  title: query Example
+  version: 1.0.0
+paths:
+  /query:
+    query:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
