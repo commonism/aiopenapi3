@@ -5,7 +5,7 @@ import typing
 import json
 import logging
 from contextlib import closing
-from typing import Any, NamedTuple, Optional, Union, cast, override
+from typing import Any, NamedTuple, Optional, Union, cast
 from collections.abc import AsyncIterator, AsyncGenerator, Generator
 from collections.abc import Iterator
 from contextlib import aclosing
@@ -399,7 +399,6 @@ class AsyncRequestBase(RequestBase):
         session: httpx.AsyncClient
         result: httpx.Response
 
-    @override
     class Sequencer:
         def __init__(
             self, headers: "ResponseHeadersType", stream: AsyncIterator["JSON"], model: pydantic.BaseModel
