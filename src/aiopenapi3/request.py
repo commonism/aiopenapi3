@@ -39,6 +39,7 @@ if typing.TYPE_CHECKING:
         ResponseDataType,
         ResponseHeadersType,
         HTTPMethodType,
+        TagType,
     )
     from aiopenapi3 import OpenAPI
 
@@ -552,10 +553,14 @@ class OperationIndex:
             self._operations: dict[str, tuple["HTTPMethodType", str, "OperationType", list["ServerType"] | None]] = (
                 dict()
             )
+            self._tags: dict[str, "OperationIndex.OperationTag"] = dict()
 
         def __getattr__(self, item) -> RequestBase:
-            (method, path, op, servers) = self._operations[item]
-            return self._oi._api._createRequest(self._oi._api, method, path, op, servers)
+            if item in self._operations:
+                (method, path, op, servers) = self._operations[item]
+                return self._oi._api._createRequest(self._oi._api, method, path, op, servers)
+            else:
+                return self._tags[item]
 
     class Iter:
         def __init__(self, spec: "OpenAPI", use_operation_tags: bool):
@@ -620,11 +625,30 @@ class OperationIndex:
                 else:
                     servers = None
                 item = (method, path, op, servers)
+
                 if use_operation_tags and op.tags:
                     for tag in op.tags:
-                        if (other := self._tags[tag]._operations.get(operationId, None)) is not None:
+                        tree: list[str] = list()
+                        t: str | None = tag
+                        v: TagType | None
+                        while t:
+                            tree.append(t)
+                            if (v := self.tag(t)) is None:
+                                break
+                            t = getattr(v, "parent", None)
+                            if t in tree:
+                                break
+
+                        x = self
+                        for t in tree[::-1]:
+                            if t not in x._tags:
+                                x._tags[t] = OperationIndex.OperationTag(self)
+                            x = x._tags[t]
+
+                        if (other := x._operations.get(operationId, None)) is not None:
                             raise OperationIdDuplicationError(operationId, [item, other])
-                        self._tags[tag]._operations[operationId] = item
+                        x._operations[operationId] = item
+
                 else:
                     if (other := self._operations.get(operationId, None)) is not None:
                         raise OperationIdDuplicationError(operationId, [item, other])
@@ -685,3 +709,11 @@ class OperationIndex:
 
     def __setstate__(self, values):
         self.__dict__.update(values)
+
+    def tag(self, name: str):
+        for tag in self._api._root.tags:
+            if tag.name == name:
+                break
+        else:
+            return None
+        return tag

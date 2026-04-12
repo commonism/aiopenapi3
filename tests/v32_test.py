@@ -171,5 +171,7 @@ def test_Server_name():
     pass
 
 
-def test_Tag():
-    pass
+def test_Tag(httpx_mock, with_schema_tags_v32):
+    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=204)
+    api = OpenAPI("https://example.org/api/", with_schema_tags_v32, session_factory=httpx.Client)
+    api._.external.partner.x()
