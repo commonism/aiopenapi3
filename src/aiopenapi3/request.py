@@ -563,11 +563,11 @@ class OperationIndex:
                 return self._tags[item]
 
     class Iter:
-        def __init__(self, spec: "OpenAPI", use_operation_tags: bool):
+        def __init__(self, api: "OpenAPI", use_operation_tags: bool):
             self.operations = []
             self.r: Iterator[int]
             pi: "PathItemType"
-            for path, pi in spec.paths.items():
+            for path, pi in api.paths.items():
                 op: "OperationType"
                 if pi.ref:
                     #                    pi = pi.ref._target
@@ -579,7 +579,12 @@ class OperationIndex:
                         continue
                     if use_operation_tags and op.tags:
                         for tag in op.tags:
-                            self.operations.append(f"{tag}.{op.operationId}")
+                            tags = list()
+                            while tag:
+                                tags.append(tag)
+                                tag = api._operationindex.tag(tag)
+                                tag = getattr(tag, "parent", None)
+                            self.operations.append(f"{'.'.join(tags[::-1])}.{op.operationId}")
                     else:
                         self.operations.append(op.operationId)
 
@@ -588,7 +593,13 @@ class OperationIndex:
                         for method, op in pi.additionalOperations.items():
                             if use_operation_tags and op.tags:
                                 for tag in op.tags:
-                                    self.operations.append(f"{tag}.{op.operationId}")
+                                    tags = list()
+                                    while tag:
+                                        tags.append(tag)
+                                        tag = api._operationindex.tag(tag)
+                                        tag = getattr(tag, "parent", None)
+
+                                    self.operations.append(f"{'.'.join(tags[::-1])}.{op.operationId}")
                             else:
                                 self.operations.append(op.operationId)
 
@@ -702,7 +713,7 @@ class OperationIndex:
         return getattr(self, item) if isinstance(item, str) else self._api.createRequest(item)
 
     def __iter__(self) -> Iter:
-        return self.Iter(self._root, self._use_operation_tags)
+        return self.Iter(self._api, self._use_operation_tags)
 
     def __getstate__(self):
         return self.__dict__

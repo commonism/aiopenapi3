@@ -1,0 +1,35 @@
+openapi: 3.2.0
+info:
+  version: 1.0.0
+  title: 4.22.2 Tag Object Example
+
+servers:
+  - url: v32
+    name: prod
+    description: The production API on this device
+
+
+tags:
+  - name: account-updates
+    summary: Account Updates
+    description: Account update operations
+    kind: nav
+
+  - name: partner
+    summary: Partner
+    description: Operations available to the partners network
+    parent: external
+    kind: audience
+
+  - name: external
+    summary: External
+    description: Operations available to external consumers
+    kind: audience
+
+paths:
+  /x:
+    get:
+      operationId: x
+      tags: [partner]
+      responses:
+        '204': {}
