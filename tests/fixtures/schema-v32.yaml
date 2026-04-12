@@ -1,0 +1,52 @@
+openapi: 3.2.0
+info:
+  version: 1.0.0
+  title: serializedValue https://quobix.com/articles/openapi-3.2/
+
+$self: http://example.org/
+
+servers:
+  - url: v32
+    name: prod
+    description: The production API on this device
+
+
+components:
+  schemas:
+    String:
+      properties:
+        string:
+          type: string
+
+paths:
+  /filter:
+    get:
+      operationId: filter
+      parameters:
+        - name: X-Filter-Options
+          in: header
+          style: simple
+          explode: false
+          schema:
+            type: object
+            properties:
+              include:
+                type: array
+                items:
+                  type: string
+              exclude:
+                type: array
+                items:
+                  type: string
+          examples:
+            filter_header:
+              summary: Complex filter in header
+              description: Shows how objects are serialized in headers
+              dataValue:
+                include:
+                  - posts
+                  - comments
+                exclude:
+                  - draft
+                  - deleted
+              serializedValue: "include,posts,comments,exclude,draft,deleted"
