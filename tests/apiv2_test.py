@@ -11,7 +11,6 @@ import pydantic
 import pytest
 import pytest_asyncio
 
-import uvloop
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
@@ -37,11 +36,6 @@ def config(unused_tcp_port_factory):
     c = Config()
     c.bind = [f"localhost:{unused_tcp_port_factory()}"]
     return c
-
-
-@pytest.fixture(scope="session")
-def event_loop_policy():
-    return uvloop.EventLoopPolicy()
 
 
 @pytest_asyncio.fixture(loop_scope="session")

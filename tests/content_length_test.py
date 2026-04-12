@@ -1,7 +1,6 @@
 import asyncio
 import random
 
-import uvloop
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 from fastapi import FastAPI, Request, Response, Query
@@ -34,11 +33,6 @@ async def server(config):
     finally:
         sd.set()
         await task
-
-
-@pytest.fixture(scope="session")
-def event_loop_policy():
-    return uvloop.EventLoopPolicy()
 
 
 @pytest_asyncio.fixture(loop_scope="session")

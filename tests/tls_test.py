@@ -7,7 +7,6 @@ import httpx
 import pytest
 import pytest_asyncio
 
-import uvloop
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
@@ -102,11 +101,6 @@ async def wait_for_server(server):
             await w.wait_closed()
             break
     return server
-
-
-@pytest.fixture(scope="session")
-def event_loop_policy():
-    return uvloop.EventLoopPolicy()
 
 
 class MutualTLSSecurity(Document):
