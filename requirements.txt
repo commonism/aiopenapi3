@@ -27,7 +27,11 @@ idna==3.11
     #   email-validator
     #   httpx
     #   yarl
+ijson==3.5.0
+    # via aiopenapi3
 jmespath==1.1.0
+    # via aiopenapi3
+jsonseq==1.0.0
     # via aiopenapi3
 more-itertools==10.8.0
     # via aiopenapi3

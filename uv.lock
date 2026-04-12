@@ -8,7 +8,9 @@ source = { editable = "." }
 dependencies = [
     { name = "email-validator" },
     { name = "httpx" },
+    { name = "ijson" },
     { name = "jmespath" },
+    { name = "jsonseq" },
     { name = "more-itertools" },
     { name = "pydantic" },
     { name = "pyyaml" },
@@ -51,7 +53,9 @@ requires-dist = [
     { name = "email-validator" },
     { name = "httpx" },
     { name = "httpx-auth", marker = "extra == 'auth'", specifier = ">=0.21.0" },
+    { name = "ijson" },
     { name = "jmespath" },
+    { name = "jsonseq" },
     { name = "more-itertools" },
     { name = "pydantic", specifier = ">=2.13.0b2" },
     { name = "pydantic-extra-types", marker = "extra == 'types'", specifier = ">=2.10.1" },
@@ -759,6 +763,15 @@ source = { registry = "https://pypi.org/simple/" }
 sdist = { url = "https://files.pythonhosted.org/packages/d3/59/322338183ecda247fb5d1763a6cbe46eff7222eaeebafd9fa65d4bf5cb11/jmespath-1.1.0.tar.gz", hash = "sha256:472c87d80f36026ae83c6ddd0f1d05d4e510134ed462851fd5f754c8c3cbb88d", size = 27377, upload-time = "2026-01-22T16:35:26.279Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/14/2f/967ba146e6d58cf6a652da73885f52fc68001525b4197effc174321d70b4/jmespath-1.1.0-py3-none-any.whl", hash = "sha256:a5663118de4908c91729bea0acadca56526eb2698e83de10cd116ae0f4e97c64", size = 20419, upload-time = "2026-01-22T16:35:24.919Z" },
+]
+
+[[package]]
+name = "jsonseq"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple/" }
+sdist = { url = "https://files.pythonhosted.org/packages/63/70/faca1f522bc03f92ac75da1eb29fe045bf89246a8e8ed04ccbd563540520/jsonseq-1.0.0.tar.gz", hash = "sha256:238f51aa741132d2a41d1fb89e58eb8d43c6da9d34845c9499dd882a4cd0253a", size = 3341, upload-time = "2019-07-31T19:47:34.624Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/04/f5/367876253306f752190203917a51670682780179665b38fc713629e0be71/jsonseq-1.0.0-py3-none-any.whl", hash = "sha256:d4add916420fc02796a503e59ce4d8008152830fd1625cc70692b1f980a32231", size = 4567, upload-time = "2019-07-31T19:47:33.486Z" },
 ]
 
 [[package]]
