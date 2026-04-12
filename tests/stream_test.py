@@ -6,7 +6,6 @@ from typing import Annotated
 
 from pathlib import Path
 
-import uvloop
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 import pydantic
@@ -40,11 +39,6 @@ async def server(config):
     finally:
         sd.set()
         await task
-
-
-@pytest.fixture(scope="session")
-def event_loop_policy():
-    return uvloop.EventLoopPolicy()
 
 
 @pytest_asyncio.fixture(loop_scope="session")
