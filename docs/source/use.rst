@@ -136,6 +136,15 @@ scoping the access to the methods.
     n.id == user.id
     # True
 
+In OpenAPI 3.2, Tags can form hierarchies via the parent attribute.
+In this case, resolving the hierarchy is required.
+
+.. code:: python
+
+    n = t._.external.partner.x()
+
+
+
 Operation Parameters
 --------------------
 

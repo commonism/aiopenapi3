@@ -1,6 +1,6 @@
 [project]
 name = "aiopenapi3"
-description = "client and validator for OpenAPI3 3.0, OpenAPI 3.1, Swagger 2.0"
+description = "client and validator for OpenAPI3 3.0, OpenAPI 3.1, OpenAPI 3.2, Swagger 2.0"
 authors = [
     {name = "Markus Kötter", email = "commonism@users.noreply.github.com"},
 ]

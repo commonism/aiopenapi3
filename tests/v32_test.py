@@ -110,17 +110,6 @@ def test_MediaType_itemSchema_sync(httpx_mock, with_schema_itemSchema):
             print(obj)
 
 
-def test_Parameter():
-    # querystring
-    pass
-
-
-def test_Header():
-    # allowEmpty
-    # allowReserved
-    pass
-
-
 def test_Response():
     # description
     # summary
@@ -164,6 +153,7 @@ def test_Root(with_schema_v32):
 
 
 def test_Discriminator_defaultMapping():
+    # c.f. https://github.com/pydantic/pydantic/issues/11188
     pass
 
 
@@ -175,3 +165,5 @@ def test_Tag(httpx_mock, with_schema_tags_v32):
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=204)
     api = OpenAPI("https://example.org/api/", with_schema_tags_v32, session_factory=httpx.Client)
     api._.external.partner.x()
+
+    assert sorted(filter(lambda x: x.partition(".")[0] == "external", api._.Iter(api, True))) == ["external.partner.x"]
