@@ -8,7 +8,7 @@ from httpx._types import RequestContent, FileTypes, RequestFiles, AuthTypes  # n
 from pydantic import BaseModel
 
 
-from . import v20, v30, v31
+from . import v20, v30, v31, v32
 
 if TYPE_CHECKING:
     pass
@@ -43,7 +43,7 @@ MediaTypeType = Union[v30.MediaType, v31.MediaType]
 ExpectedType = Union[v20.Response, MediaTypeType]
 ResponseHeadersType = dict[str, Union[str, BaseModel, list[BaseModel]]]
 ResponseDataType = Union[BaseModel, bytes, str]
-
+TagType = Union[v20.Tag, v30.Tag, v32.Tag]
 
 YAMLLoaderType = Union[type[yaml.Loader], type[yaml.CLoader], type[yaml.SafeLoader], type[yaml.CSafeLoader]]
 
@@ -67,6 +67,7 @@ __all__: list[str] = [
     "MediaTypeType",
     "ResponseHeadersType",
     "ResponseDataType",
+    "TagType",
     "RequestData",
     "RequestParameters",
     "ReferenceType",
