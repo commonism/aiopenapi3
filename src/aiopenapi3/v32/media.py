@@ -1,4 +1,10 @@
-from typing import Any, Self
+import sys
+
+if sys.version_info < (3, 12):
+    from typing import Any
+    from typing_extensions import Self
+else:
+    from typing import Any, Self
 
 from pydantic import Field
 

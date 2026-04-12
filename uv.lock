@@ -12,6 +12,7 @@ dependencies = [
     { name = "more-itertools" },
     { name = "pydantic" },
     { name = "pyyaml" },
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
     { name = "yarl" },
 ]
 
@@ -55,7 +56,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.13.0b2" },
     { name = "pydantic-extra-types", marker = "extra == 'types'", specifier = ">=2.10.1" },
     { name = "pyyaml" },
-    { name = "typing-extensions", marker = "python_full_version < '3.10'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
     { name = "yarl" },
 ]
 provides-extras = ["auth", "types"]

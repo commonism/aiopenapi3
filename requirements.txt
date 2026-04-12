@@ -43,6 +43,7 @@ pyyaml==6.0.3
     # via aiopenapi3
 typing-extensions==4.15.0
     # via
+    #   aiopenapi3
     #   anyio
     #   exceptiongroup
     #   multidict
