@@ -10,6 +10,18 @@ servers:
 
 components:
   schemas:
+    ServerSentEvent:
+      type: object
+      properties:
+        data:
+          type: string
+        event:
+          type: string
+        id:
+          type: string
+        retry:
+          minimum: 0
+          type: integer
     LogEntry:
       type: object
       properties:
@@ -131,4 +143,4 @@ paths:
           content:
             text/event-stream:
               itemSchema:
-                $ref: "#/components/schemas/LogEntry"
+                $ref: "#/components/schemas/ServerSentEvent"

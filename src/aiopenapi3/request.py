@@ -510,8 +510,31 @@ class AsyncRequestBase(RequestBase):
             """
             Server-Sent Events (SSE)
             https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events
+            https://html.spec.whatwg.org/multipage/server-sent-events.html#parsing-an-event-stream
+            https://github.com/mpetazzoni/sseclient/blob/main/sseclient/__init__.py#L36
             """
 
+            async def aiter_json(response: httpx.Response) -> AsyncIterator["JSON"]:
+
+                async for chunk in response.aiter_text():
+                    data_ = ""
+                    for line in chunk.splitlines(keepends=True):
+                        data_ += line
+                        if not data_.endswith(("\r\r", "\n\n", "\r\n\r\n")):
+                            continue
+
+                        v = dict()
+                        for l in data_.splitlines(keepends=False):
+                            if l == "":
+                                continue
+                            cmd, _, value = l.partition(":")
+                            if cmd not in ("event", "data", "id", "retry", ""):
+                                # ignore
+                                continue
+                            v[cmd or "comment"] = value.lstrip()
+                        data_ = ""
+                        yield v
+        elif False:
             import ijson
 
             class ReadEventStream:
@@ -541,8 +564,7 @@ class AsyncRequestBase(RequestBase):
             yield AsyncRequestBase.Sequencer(headers, stream, schema_.get_type())
         finally:
             """__aexit__"""
-            if not result.is_closed:
-                await result.aclose()
+            await session.aclose()
 
 
 class OperationIndex:
