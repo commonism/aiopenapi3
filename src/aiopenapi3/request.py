@@ -344,6 +344,26 @@ class RequestBase:
             https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events
             """
 
+            def iter_json(response: httpx.Response) -> Iterator["JSON"]:
+                for chunk in response.iter_text():
+                    data_ = ""
+                    for line in chunk.splitlines(keepends=True):
+                        data_ += line
+                        if not data_.endswith(("\r\r", "\n\n", "\r\n\r\n")):
+                            continue
+
+                        v = dict()
+                        for l in data_.splitlines(keepends=False):
+                            if l == "":
+                                continue
+                            cmd, _, value = l.partition(":")
+                            if cmd not in ("event", "data", "id", "retry", ""):
+                                # ignore
+                                continue
+                            v[cmd or "comment"] = value.lstrip()
+                        data_ = ""
+                        yield v
+        elif False:
             import ijson
 
             class ReadEventStream:
