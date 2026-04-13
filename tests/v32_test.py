@@ -32,11 +32,12 @@ async def test_MediaType(httpx_mock, with_schema_itemSchema):
     import pydantic
 
     api = OpenAPI("https://example.org/api/", with_schema_itemSchema, session_factory=httpx.AsyncClient)
-    ServerSentEvent: pydantic.BaseModel = api.components.schemas["ServerSentEvent"].get_type()
 
     records = with_schema_itemSchema["components"]["examples"]["LogJSONPerLine"]["value"].strip("\n").split("\n")
+
+    ServerSentEvent: pydantic.BaseModel = api.components.schemas["ServerSentEvent"].get_type()
     t = pydantic.TypeAdapter(list[ServerSentEvent])
-    ct = "\n\n".join(f"data: {i}" for i in records * 16)
+    ct = "\n\n".join(f"data: {i}\n: {idx}" for idx, i in enumerate(records * 16))
 
     httpx_mock.add_response(
         url="https://example.org/api/json_seq",
@@ -95,15 +96,46 @@ def test_MediaType_itemSchema_sync(httpx_mock, with_schema_itemSchema):
 
     records = with_schema_itemSchema["components"]["examples"]["LogJSONPerLine"]["value"].strip("\n").split("\n")
 
+    ServerSentEvent: pydantic.BaseModel = api.components.schemas["ServerSentEvent"].get_type()
+    t = pydantic.TypeAdapter(list[ServerSentEvent])
+    ct = "\n\n".join(f"data: {i}\n: {idx}" for idx, i in enumerate(records * 16))
+
     httpx_mock.add_response(
         url="https://example.org/api/json_seq",
         headers={"Content-Type": "application/json-seq"},
         stream=IteratorStream([b"\x1e" + i.encode() + b"\n" for i in (records * 16)]),
     )
+    httpx_mock.add_response(
+        url="https://example.org/api/jsonl",
+        headers={"Content-Type": "application/jsonl"},
+        stream=IteratorStream([i.encode() + b"\n" for i in (records * 16)]),
+    )
+    httpx_mock.add_response(
+        url="https://example.org/api/ndjson",
+        headers={"Content-Type": "application/x-ndjson"},
+        stream=IteratorStream([i.encode() + b"\n" for i in (records * 16)]),
+    )
+    httpx_mock.add_response(
+        url="https://example.org/api/text_events", headers={"Content-Type": "text/event-stream"}, content=ct
+    )
 
     req = api.createRequest("json_seq")
     with req.sequence() as sequence:
-        print(sequence.headers)
+        for obj in sequence:
+            print(obj)
+
+    req = api.createRequest("jsonl")
+    with req.sequence() as sequence:
+        for obj in sequence:
+            print(obj)
+
+    req = api.createRequest("ndjson")
+    with req.sequence() as sequence:
+        for obj in sequence:
+            print(obj)
+
+    req = api.createRequest("text_events")
+    with req.sequence() as sequence:
         for obj in sequence:
             print(obj)
 

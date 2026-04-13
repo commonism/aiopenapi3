@@ -109,4 +109,3 @@ async def test_sse(server, client):
     async with req.sequence() as sequence:
         async for obj in sequence:
             print(obj)
-    await asyncio.sleep(1.1)
