@@ -60,7 +60,7 @@ def file(request: Request, response: Response, content_length: int = Query()):
 @app.get("/files", operation_id="files", response_model=list[File])
 def files(request: Request, response: Response, number: int = Query(), size: int = Query()):
     with Path("/dev/urandom").open("rb") as f:
-        return [File(data=f.read(size)) for _ in range(number)]
+        return [File.model_construct(data=f.read(size)) for _ in range(number)]
 
 
 @app.post("/request-streaming", operation_id="request_streaming", response_model=int)
