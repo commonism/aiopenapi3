@@ -32,11 +32,11 @@ async def test_MediaType(httpx_mock, with_schema_itemSchema):
     import pydantic
 
     api = OpenAPI("https://example.org/api/", with_schema_itemSchema, session_factory=httpx.AsyncClient)
-    LogEntry: pydantic.BaseModel = api.components.schemas["LogEntry"].get_type()
+    ServerSentEvent: pydantic.BaseModel = api.components.schemas["ServerSentEvent"].get_type()
 
     records = with_schema_itemSchema["components"]["examples"]["LogJSONPerLine"]["value"].strip("\n").split("\n")
-    t = pydantic.TypeAdapter(list[LogEntry])
-    ct = t.dump_json(t.validate_python([LogEntry.model_validate_json(i) for i in records * 16]))
+    t = pydantic.TypeAdapter(list[ServerSentEvent])
+    ct = "\n\n".join(f"data: {i}" for i in records * 16)
 
     httpx_mock.add_response(
         url="https://example.org/api/json_seq",
@@ -94,8 +94,6 @@ def test_MediaType_itemSchema_sync(httpx_mock, with_schema_itemSchema):
     LogEntry: pydantic.BaseModel = api.components.schemas["LogEntry"].get_type()
 
     records = with_schema_itemSchema["components"]["examples"]["LogJSONPerLine"]["value"].strip("\n").split("\n")
-    t = pydantic.TypeAdapter(list[LogEntry])
-    ct = t.dump_json(t.validate_python([LogEntry.model_validate_json(i) for i in records * 16]))
 
     httpx_mock.add_response(
         url="https://example.org/api/json_seq",

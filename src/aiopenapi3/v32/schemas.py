@@ -1,9 +1,13 @@
+import typing
 from typing import Union, Any, Optional
 
 from pydantic import Field, model_validator, ConfigDict
 
 from ..base import ObjectExtended, SchemaBase, DiscriminatorBase
 from .xml import XML
+
+if typing.TYPE_CHECKING:
+    from .general import Reference
 
 
 class Discriminator(ObjectExtended, DiscriminatorBase):
@@ -144,7 +148,7 @@ class Schema(ObjectExtended, SchemaBase):
     """
     contentEncoding: str | None = Field(default=None)
     contentMediaType: str | None = Field(default=None)
-    contentSchema: str | None = Field(default=None)
+    contentSchema: Union["Schema", "Reference"] = Field(default=None)
 
     """
     9.  A Vocabulary for Basic Meta-Data Annotations
