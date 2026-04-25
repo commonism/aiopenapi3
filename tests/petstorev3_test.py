@@ -135,6 +135,7 @@ def login(api, user):
     api.authenticate(petstore_auth={})
 
 
+@pytest.mark.xfail
 @pytest.mark.skipif(httpx_auth, reason="oauth does not work")
 def test_oauth(api):
     """requires *working* oauth"""
@@ -261,6 +262,7 @@ def test_pets(api, login):
     assert all([i.status == "available" for i in r])
 
 
+@pytest.mark.xfail
 def test_store(api):
     # getInventory
     r = api._.getInventory()

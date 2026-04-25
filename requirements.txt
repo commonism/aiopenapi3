@@ -5,7 +5,7 @@ annotated-types==0.7.0
     # via pydantic
 anyio==4.13.0
     # via httpx
-certifi==2026.2.25
+certifi==2026.4.22
     # via
     #   httpcore
     #   httpx
@@ -21,7 +21,7 @@ httpcore==1.0.9
     # via httpx
 httpx==0.28.1
     # via aiopenapi3
-idna==3.11
+idna==3.13
     # via
     #   anyio
     #   email-validator
@@ -39,9 +39,9 @@ multidict==6.7.1
     # via yarl
 propcache==0.4.1
     # via yarl
-pydantic==2.13.0
+pydantic==2.13.3
     # via aiopenapi3
-pydantic-core==2.46.0
+pydantic-core==2.46.3
     # via pydantic
 pyyaml==6.0.3
     # via aiopenapi3
