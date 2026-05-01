@@ -26,7 +26,6 @@ class Root(ObjectExtended, RootBase):
 
     openapi: str = Field(...)
     self_: pydantic.AnyHttpUrl | None = Field(default=None, alias="$self")
-    info: Info | None = Field(default_factory=Info)
     info: Info = Field(...)
     jsonSchemaDialect: pydantic.AnyHttpUrl | None = Field(default=None)
     servers: list[Server] | None = Field(default_factory=list)
