@@ -136,7 +136,7 @@ dev = [
     "wtforms",
     "asgiref",
     "trustme",
-    "nonecorn",
+    "nonecorn != 0.18.0",
     "bootstrap-flask",
     "ijson",
     "python-multipart>=0.0.6",
