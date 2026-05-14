@@ -151,3 +151,7 @@ https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html#sections
     ^ for subsubsections
     " for paragraphs
 """
+
+# Sphinx autodoc contaminates pydantic BaseModel annotations, breaking extra="allow"
+# https://github.com/sphinx-doc/sphinx/issues/14337
+autodoc_use_legacy_class_based = True
