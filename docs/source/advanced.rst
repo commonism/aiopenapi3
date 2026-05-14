@@ -342,6 +342,8 @@ streaming the sequence.
             print(event)
 
 
+The blocking interfaces shares the semantics:
+
     * :class:`aiopenapi3.request.RequestBase.sequence`
     * :class:`aiopenapi3.request.RequestBase.EventIterator`
 
@@ -529,6 +531,7 @@ Limiting the concurrency to a certain number of clients:
             else:
                 done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
 
+
 Epoch Types
 ===========
 
@@ -537,5 +540,6 @@ If installed, pydantic-extra-types is used to provide an epoch data type for int
 A :ref:`Document Plugin <plugin:Document>` can be used to modify a description document to add a format: date-time to the numeric type definition for a posix timestamp.
 
 .. code:: yaml
+
         type: integer
         format: date-time
