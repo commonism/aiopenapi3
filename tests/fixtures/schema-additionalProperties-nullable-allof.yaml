@@ -1,0 +1,38 @@
+openapi: "3.0.3"
+info:
+  version: 1.0.0
+  title: additionalProperties nullable allOf
+
+components:
+  schemas:
+    LinkOccasion:
+      type: object
+      properties:
+        unitTestId:
+          type: integer
+
+    RelationsModel:
+      type: object
+      properties:
+        unitPartNumber:
+          type: string
+        linkOccasions:
+          type: array
+          items:
+            $ref: "#/components/schemas/LinkOccasion"
+
+paths:
+  /relations:
+    get:
+      operationId: getRelations
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  nullable: true
+                  allOf:
+                    - $ref: "#/components/schemas/RelationsModel"

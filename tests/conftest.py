@@ -450,6 +450,11 @@ def with_schema_additionalProperties_and_named_properties():
 
 
 @pytest.fixture
+def with_schema_additionalProperties_nullable_allof():
+    yield _get_parsed_yaml("schema-additionalProperties-nullable-allof.yaml")
+
+
+@pytest.fixture
 def with_schema_date_types():
     yield _get_parsed_yaml("schema-date-types.yaml")
 

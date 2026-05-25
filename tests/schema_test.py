@@ -332,6 +332,31 @@ def test_schema_with_additionalProperties_and_named_properties(with_schema_addit
     assert b.aio3_additionalProperties["foo"] == "bar"
 
 
+def test_schema_additionalProperties_nullable_allof(with_schema_additionalProperties_nullable_allof):
+    """
+    Inline additionalProperties schema with nullable+allOf+$ref must produce a fully
+    resolved Pydantic model (regression test for _get_combined_attributes omitting
+    additionalProperties from schema traversal).
+    """
+    api = OpenAPI("/", with_schema_additionalProperties_nullable_allof)
+
+    schema = api.paths["/relations"].get.responses["200"].content["application/json"].schema_
+    value_type = schema.additionalProperties.get_type()
+
+    assert value_type.__pydantic_complete__ is True
+
+    # non-null value
+    obj = value_type.model_validate({"unitPartNumber": "ABC", "linkOccasions": [{"unitTestId": 1}]})
+    assert obj.unitPartNumber == "ABC"
+    assert obj.linkOccasions[0].unitTestId == 1
+
+    # map model accepts null values for the map entries
+    map_type = schema.get_type()
+    result = map_type.model_validate({"key1": {"unitPartNumber": "ABC", "linkOccasions": []}, "key2": None})
+    assert result.root["key2"] is None
+    assert result.root["key1"].unitPartNumber == "ABC"
+
+
 def test_schema_with_patternProperties(with_schema_patternProperties):
     api = OpenAPI("/", with_schema_patternProperties)
     A = api.components.schemas["A"].get_type()
