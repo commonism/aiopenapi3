@@ -449,6 +449,7 @@ class OpenAPI:
     def _get_combined_attributes(schema):
         """Combine attributes from the schema."""
         is_array = Model.is_type_any(schema) or Model.is_type(schema, "array")
+        additional = getattr(schema, "additionalProperties", None)
         return (
             getattr(schema, "oneOf", [])  # Swagger compat
             + (
@@ -462,6 +463,7 @@ class OpenAPI:
             + ([schema.items] if is_array and schema.items is not None and not isinstance(schema, list) else [])
             + (schema.items if is_array and schema.items is not None and isinstance(schema, list) else [])
             + (getattr(schema, "prefixItems", []) or [] if is_array else [])
+            + ([additional] if isinstance(additional, (SchemaBase, ReferenceBase)) else [])
         )
 
     @classmethod
