@@ -618,9 +618,10 @@ class Model:  # (BaseModel):
 
     @staticmethod
     def types(schema: "SchemaType") -> typing.Generator[str, None, None]:
+        nullable = getattr(schema, "nullable", False)
         if isinstance(schema.type, str):
             yield schema.type
-            if getattr(schema, "nullable", False):
+            if nullable:
                 yield "null"
         else:
             typesfilter: set[str] = set()
@@ -630,6 +631,9 @@ class Model:  # (BaseModel):
             elif schema.type is None:
                 values = set(SCHEMA_TYPES)
                 typesfilter = set()
+
+                if nullable:
+                    typesfilter.add("null")
 
                 if (const := getattr(schema, "const", None)) is not None:
                     typesfilter.add(cast(str, TYPES_SCHEMA_MAP.get(type(const))))

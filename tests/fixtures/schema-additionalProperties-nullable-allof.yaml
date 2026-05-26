@@ -10,7 +10,8 @@ components:
       properties:
         unitTestId:
           type: integer
-
+      required:
+        - unitTestId
     RelationsModel:
       type: object
       properties:
@@ -20,6 +21,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/LinkOccasion"
+      required:
+        - unitPartNumber
+        - linkOccasions
 
 paths:
   /relations:
@@ -31,8 +35,12 @@ paths:
           content:
             application/json:
               schema:
+                title: base
                 type: object
                 additionalProperties:
+                  title: addi
+#                  type: object
+#                  additionalProperties: false
                   nullable: true
                   allOf:
                     - $ref: "#/components/schemas/RelationsModel"
