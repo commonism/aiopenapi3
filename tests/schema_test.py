@@ -340,21 +340,17 @@ def test_schema_additionalProperties_nullable_allof(with_schema_additionalProper
     """
     api = OpenAPI("/", with_schema_additionalProperties_nullable_allof)
 
-    schema = api._["getRelations"].return_value()
-    value_type = schema.additionalProperties.get_type()
+    for op in ["implicit-allOf", "explicit-allOf", "explicit-oneOf"]:
+        schema = api._[op].return_value()
+        value_type = schema.additionalProperties.get_type()
 
-    assert value_type.__pydantic_complete__ is True
+        assert value_type.__pydantic_complete__ is True
 
-    # non-null value
-    obj = value_type.model_validate({"unitPartNumber": "ABC", "linkOccasions": [{"unitTestId": 1}]})
-    assert obj.root.unitPartNumber == "ABC"
-    assert obj.root.linkOccasions[0].unitTestId == 1
-
-    # map model accepts null values for the map entries
-    map_type = schema.get_type()
-    result = map_type.model_validate({"key1": {"unitPartNumber": "ABC", "linkOccasions": []}, "key2": None})
-    assert result.root["key2"] is None
-    assert result.root["key1"].root.unitPartNumber == "ABC"
+        # map model accepts null values for the map entries
+        map_type = schema.get_type()
+        result = map_type.model_validate({"obj": {"a": "ABC"}, "none": None})
+        assert result.root["none"] is None
+        assert result.root["obj"].root.a == "ABC"
 
 
 def test_schema_with_patternProperties(with_schema_patternProperties):

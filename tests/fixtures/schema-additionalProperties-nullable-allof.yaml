@@ -5,42 +5,60 @@ info:
 
 components:
   schemas:
-    LinkOccasion:
+    A:
       type: object
+      nullable: false
+      additionalProperties: false
       properties:
-        unitTestId:
-          type: integer
-      required:
-        - unitTestId
-    RelationsModel:
-      type: object
-      properties:
-        unitPartNumber:
+        a:
           type: string
-        linkOccasions:
-          type: array
-          items:
-            $ref: "#/components/schemas/LinkOccasion"
       required:
-        - unitPartNumber
-        - linkOccasions
+        - a
 
 paths:
-  /relations:
+  /implicit-nullable-object-allOf:
     get:
-      operationId: getRelations
+      operationId: implicit-allOf
       responses:
         "200":
           description: ok
           content:
             application/json:
               schema:
-                title: base
                 type: object
                 additionalProperties:
-                  title: addi
-#                  type: object
-#                  additionalProperties: false
+                  # type: object - not set
                   nullable: true
                   allOf:
-                    - $ref: "#/components/schemas/RelationsModel"
+                    - $ref: "#/components/schemas/A"
+
+  /explicit-nullable-object-allOf:
+    get:
+      operationId: explicit-allOf
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+                  nullable: true
+                  allOf:
+                    - $ref: "#/components/schemas/A"
+
+  /explicit-object-oneOf-nullable:
+    get:
+      operationId: explicit-oneOf
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  oneOf:
+                    - $ref: "#/components/schemas/A"
+                    - nullable: true
