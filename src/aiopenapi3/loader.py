@@ -2,7 +2,7 @@ import abc
 import logging
 import typing
 import yaml
-import httpx
+import httpx2
 import yarl
 import re
 
@@ -211,7 +211,7 @@ class WebLoader(Loader):
     Loader downloads data via http/s using the supplied session_factory
     """
 
-    def __init__(self, baseurl: yarl.URL, session_factory=httpx.Client, yload: "YAMLLoaderType" = YAML12Loader):
+    def __init__(self, baseurl: yarl.URL, session_factory=httpx2.Client, yload: "YAMLLoaderType" = YAML12Loader):
         super().__init__(yload)
         assert isinstance(baseurl, yarl.URL)
         self.baseurl: yarl.URL = baseurl

@@ -23,12 +23,12 @@ This project is a fork of [Dorthu/openapi3](https://github.com/Dorthu/openapi3/)
     * pydantic compatible "format"-type coercion (e.g. datetime.interval)
     * additionalProperties (string-to-any dictionaries, including inline schemas with `allOf`/`nullable`)
   * response body & header parsing via pydantic
-  * blocking and nonblocking (asyncio) interface via [httpx](https://www.python-httpx.org/)
+  * blocking and nonblocking (asyncio) interface via [httpx2](https://httpx2.pydantic.dev/)
     * SOCKS5 via socksio
   * tests with pytest & [fastapi](https://fastapi.tiangolo.com/)
   * providing access to methods and arguments via the sad smiley ._. interface
-  * Plugin Interface/api to modify description documents/requests/responses to adapt to non compliant services
-  * YAML type coercion hints for not well formatted description documents
+  * Plugin Interface/api to modify description documents/requests/responses to adapt to non-compliant services
+  * YAML type coercion hints for not well-formatted description documents
   * Description Document dependency downloads (using the WebLoader)
     * logging
       * `export AIOPENAPI3_LOGGING_HANDLERS=debug` to get /tmp/aiopenapi3-debug.log

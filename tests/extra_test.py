@@ -3,7 +3,7 @@ import typing
 
 from pathlib import Path
 
-import httpx
+import httpx2
 import pytest
 
 from aiopenapi3 import OpenAPI
@@ -87,7 +87,7 @@ def test_reduced_msgraph():
     api = OpenAPI.load_file(
         "/api.json",
         "data/ms-graph-openapi.json",
-        session_factory=httpx.Client,
+        session_factory=httpx2.Client,
         loader=FileSystemLoader(Path("tests/").absolute()),
         plugins=[MSGraphReduced()],
     )
@@ -98,7 +98,7 @@ def test_reduced_small():
     api = OpenAPI.load_file(
         "/",
         "data/petstorev3-openapi.yaml",
-        session_factory=httpx.Client,
+        session_factory=httpx2.Client,
         loader=FileSystemLoader(Path("tests/").absolute()),
         plugins=[PetStoreReduced()],
     )
@@ -106,11 +106,11 @@ def test_reduced_small():
 
 
 @pytest.mark.parametrize("compressor", [Reduce, Cull])
-def test_reduced(with_extra_reduced, httpx_mock, compressor):
+def test_reduced(with_extra_reduced, httpx2_mock, compressor):
     api = OpenAPI.load_file(
         "http://127.0.0.1/api.yaml",
         with_extra_reduced,
-        session_factory=httpx.Client,
+        session_factory=httpx2.Client,
         plugins=[],
         loader=FileSystemLoader(Path("tests/fixtures")),
     )
@@ -125,7 +125,7 @@ def test_reduced(with_extra_reduced, httpx_mock, compressor):
     api = OpenAPI.load_file(
         "http://127.0.0.1/api.yaml",
         with_extra_reduced,
-        session_factory=httpx.Client,
+        session_factory=httpx2.Client,
         plugins=[compressor(("/A/{Path}", None))],
         loader=FileSystemLoader(Path("tests/fixtures")),
     )
@@ -140,7 +140,7 @@ def test_reduced(with_extra_reduced, httpx_mock, compressor):
     assert "A" in api.components.responses
     assert "A" in api.components.requestBodies
 
-    httpx_mock.add_response(headers={"Content-Type": "application/json", "X-A": "A"}, json=dict(a=1))
+    httpx2_mock.add_response(headers={"Content-Type": "application/json", "X-A": "A"}, json=dict(a=1))
 
     from aiopenapi3.request import RequestBase
 
@@ -154,7 +154,7 @@ def test_reduced(with_extra_reduced, httpx_mock, compressor):
     api = OpenAPI.load_file(
         "http://127.0.0.1/api.yaml",
         with_extra_reduced,
-        session_factory=httpx.Client,
+        session_factory=httpx2.Client,
         plugins=[compressor((re.compile("/B"), None))],
         loader=FileSystemLoader(Path("tests/fixtures")),
     )
@@ -168,7 +168,7 @@ def test_reduced(with_extra_reduced, httpx_mock, compressor):
     api = OpenAPI.load_file(
         "http://127.0.0.1/api.yaml",
         with_extra_reduced,
-        session_factory=httpx.Client,
+        session_factory=httpx2.Client,
         plugins=[compressor("A")],
         loader=FileSystemLoader(Path("tests/fixtures")),
     )
@@ -186,7 +186,7 @@ def test_reduced(with_extra_reduced, httpx_mock, compressor):
     api = OpenAPI.load_file(
         "http://127.0.0.1/api.yaml",
         with_extra_reduced,
-        session_factory=httpx.Client,
+        session_factory=httpx2.Client,
         plugins=[compressor(re.compile(r"[A]{1}$"))],
         loader=FileSystemLoader(Path("tests/fixtures")),
     )
@@ -205,16 +205,16 @@ from aiopenapi3.extra import Cookies
 
 
 @pytest.mark.parametrize("cookie", [dict(policy="jar"), dict(policy="securitySchemes")], ids=["jar", "securityScheme"])
-def test_cookies(httpx_mock, with_extra_cookie, cookie):
+def test_cookies(httpx2_mock, with_extra_cookie, cookie):
 
     api = OpenAPI(
         "http://127.0.0.1/api.yaml",
         with_extra_cookie,
-        session_factory=httpx.Client,
+        session_factory=httpx2.Client,
         plugins=[Cookies(**cookie)],
     )
 
-    httpx_mock.add_response(
+    httpx2_mock.add_response(
         url="http://127.0.0.1/api/set-cookie",
         headers=[("Set-Cookie", "Session=value"), ("Set-Cookie", "a=b")],
         json='"ok"',
@@ -222,16 +222,16 @@ def test_cookies(httpx_mock, with_extra_cookie, cookie):
     api._.set_cookie()
 
     if cookie["policy"] == "jar":
-        httpx_mock.add_response(
+        httpx2_mock.add_response(
             url="http://127.0.0.1/api/require-cookie", match_headers={"Cookie": "Session=value; a=b"}, json='"ok"'
         )
     else:
-        httpx_mock.add_response(
+        httpx2_mock.add_response(
             url="http://127.0.0.1/api/require-cookie", match_headers={"Cookie": "Session=value"}, json='"ok"'
         )
     api._.require_cookie()
 
-    req = httpx_mock.get_requests()[-1]
+    req = httpx2_mock.get_requests()[-1]
 
     if cookie["policy"] == "securitySchemes":
         assert req.headers.get_list("cookie") == ["Session=value"]

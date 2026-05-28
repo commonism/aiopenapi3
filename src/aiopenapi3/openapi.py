@@ -13,7 +13,7 @@ import pathlib
 from typing import TypeGuard
 
 
-import httpx
+import httpx2
 import yarl
 from pydantic import BaseModel
 
@@ -92,7 +92,7 @@ class OpenAPI:
     def load_sync(
         cls,
         url,
-        session_factory: Callable[..., httpx.Client] = httpx.Client,
+        session_factory: Callable[..., httpx2.Client] = httpx2.Client,
         loader: Loader | None = None,
         plugins: list[Plugin] | None = None,
         use_operation_tags: bool = False,
@@ -115,7 +115,7 @@ class OpenAPI:
     async def load_async(
         cls,
         url: str,
-        session_factory: Callable[..., httpx.AsyncClient] = httpx.AsyncClient,
+        session_factory: Callable[..., httpx2.AsyncClient] = httpx2.AsyncClient,
         loader: Loader | None = None,
         plugins: list[Plugin] | None = None,
         use_operation_tags: bool = False,
@@ -144,7 +144,7 @@ class OpenAPI:
         cls,
         url: str,
         path: str | pathlib.Path | yarl.URL,
-        session_factory: Callable[..., httpx.AsyncClient | httpx.Client] = httpx.AsyncClient,
+        session_factory: Callable[..., httpx2.AsyncClient | httpx2.Client] = httpx2.AsyncClient,
         loader: Loader | None = None,
         plugins: list[Plugin] | None = None,
         use_operation_tags: bool = False,
@@ -163,7 +163,7 @@ class OpenAPI:
                 url="<live-url>",
                 path=pathlib.Path("<path-relative-to-root>"),
                 loader=loader,
-                session_factory=httpx.Client
+                session_factory=httpx2.Client
                 )
 
 
@@ -187,7 +187,7 @@ class OpenAPI:
         cls,
         url: str,
         data: str,
-        session_factory: Callable[..., httpx.AsyncClient | httpx.Client] = httpx.AsyncClient,
+        session_factory: Callable[..., httpx2.AsyncClient | httpx2.Client] = httpx2.AsyncClient,
         loader: Loader | None = None,
         plugins: list[Plugin] | None = None,
         use_operation_tags: bool = False,
@@ -236,7 +236,7 @@ class OpenAPI:
         self,
         url: str,
         document: "JSON",
-        session_factory: Callable[..., httpx.Client | httpx.AsyncClient] = httpx.AsyncClient,
+        session_factory: Callable[..., httpx2.Client | httpx2.AsyncClient] = httpx2.AsyncClient,
         loader: Loader | None = None,
         plugins: list[Plugin] | None = None,
         use_operation_tags: bool = True,
@@ -255,7 +255,7 @@ class OpenAPI:
         """
         self._base_url: yarl.URL = yarl.URL(url)
 
-        self._session_factory: Callable[..., httpx.Client | httpx.AsyncClient] = session_factory
+        self._session_factory: Callable[..., httpx2.Client | httpx2.AsyncClient] = session_factory
 
         self.loader: Loader | None = loader
         """
@@ -330,8 +330,8 @@ class OpenAPI:
         self.plugins = Plugins(plugins or [])
 
     def _init_session_factory(self, session_factory):
-        if issubclass(getattr(session_factory, "__annotations__", {}).get("return", None.__class__), httpx.Client) or (
-            type(session_factory) is type and issubclass(session_factory, httpx.Client)
+        if issubclass(getattr(session_factory, "__annotations__", {}).get("return", None.__class__), httpx2.Client) or (
+            type(session_factory) is type and issubclass(session_factory, httpx2.Client)
         ):
             if isinstance(self._root, v20.Root):
                 self._createRequest = v20.Request
@@ -340,8 +340,8 @@ class OpenAPI:
             else:
                 raise ValueError(self._root)
         elif issubclass(
-            getattr(session_factory, "__annotations__", {}).get("return", None.__class__), httpx.AsyncClient
-        ) or (type(session_factory) is type and issubclass(session_factory, httpx.AsyncClient)):
+            getattr(session_factory, "__annotations__", {}).get("return", None.__class__), httpx2.AsyncClient
+        ) or (type(session_factory) is type and issubclass(session_factory, httpx2.AsyncClient)):
             if isinstance(self._root, v20.Root):
                 self._createRequest = v20.AsyncRequest
             elif isinstance(self._root, (v30.Root, v31.Root, v32.Root)):
@@ -753,7 +753,7 @@ class OpenAPI:
 
         :param operationId: the operationId or tuple(path,method)
         :return: the returned Request is either :class:`aiopenapi3.request.RequestBase` or -
-            in case of a httpx.AsyncClient session_factory - :class:`aiopenapi3.request.AsyncRequestBase`
+            in case of a httpx2.AsyncClient session_factory - :class:`aiopenapi3.request.AsyncRequestBase`
         """
         operation: Optional["OperationType"] = None
         request: Optional["RequestType"] = None

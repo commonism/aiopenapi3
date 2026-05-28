@@ -12,7 +12,7 @@ import yarl
 if TYPE_CHECKING:
     from aiopenapi3 import OpenAPI
 
-    import httpx
+    import httpx2
     from .base import PathItemBase, SchemaBase
     from .request import RequestBase
 
@@ -112,7 +112,7 @@ class Message(Plugin):
         """available :func:`~aiopenapi3.plugin.Message.sending` """
         received: bytes | None = None
         """available :func:`~aiopenapi3.plugin.Message.received` """
-        headers: "httpx.Headers" = None
+        headers: "httpx2.Headers" = None
         """available :func:`~aiopenapi3.plugin.Message.sending` :func:`~aiopenapi3.plugin.Message.received` """
         cookies: dict[str, str] = None
         """available :func:`~aiopenapi3.plugin.Message.sending` """

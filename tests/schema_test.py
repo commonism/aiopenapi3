@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 import yarl
-import httpx
+import httpx2
 import pytest
 from pydantic import ValidationError
 import pydantic
@@ -17,15 +17,15 @@ from aiopenapi3 import OpenAPI
 from aiopenapi3.errors import ResponseSchemaError
 
 
-def test_invalid_response(httpx_mock, petstore_expanded):
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json={"foo": 1})
-    api = OpenAPI("test.yaml", petstore_expanded, session_factory=httpx.Client)
+def test_invalid_response(httpx2_mock, petstore_expanded):
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, json={"foo": 1})
+    api = OpenAPI("test.yaml", petstore_expanded, session_factory=httpx2.Client)
 
     with pytest.raises(ResponseSchemaError) as r:
         p = api._.find_pet_by_id(data={}, parameters={"id": 1})
 
 
-def test_schema_without_properties(httpx_mock):
+def test_schema_without_properties(httpx2_mock):
     """
     Tests that a response model is generated, and responses parsed correctly, for
     response schemas without properties
@@ -34,9 +34,9 @@ def test_schema_without_properties(httpx_mock):
         "/test.yaml",
         Path("paths-content-schema-property-without-properties.yaml"),
         loader=aiopenapi3.FileSystemLoader(Path("tests/fixtures")),
-        session_factory=httpx.Client,
+        session_factory=httpx2.Client,
     )
-    httpx_mock.add_response(
+    httpx2_mock.add_response(
         headers={"Content-Type": "application/json"},
         json={
             "example": "it worked",
@@ -519,10 +519,10 @@ def test_schema_enum_array(with_schema_enum_array):
         api = OpenAPI("/", with_schema_enum_array)
 
 
-@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
-def test_schema_pathitems(httpx_mock, with_schema_pathitems):
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json={"foo": "bar"})
-    api = OpenAPI("/", with_schema_pathitems, session_factory=httpx.Client)
+@pytest.mark.httpx2_mock(can_send_already_matched_responses=True)
+def test_schema_pathitems(httpx2_mock, with_schema_pathitems):
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, json={"foo": "bar"})
+    api = OpenAPI("/", with_schema_pathitems, session_factory=httpx2.Client)
     req = api.createRequest(("/a", "get"))
     r = req()
 
@@ -534,7 +534,7 @@ def test_schema_pathitems(httpx_mock, with_schema_pathitems):
 
 
 def test_schema_baseurl_v20(with_schema_baseurl_v20):
-    api = OpenAPI("/", with_schema_baseurl_v20, session_factory=httpx.Client)
+    api = OpenAPI("/", with_schema_baseurl_v20, session_factory=httpx2.Client)
     assert api.url == yarl.URL("https://api.example.com:81/v1")
 
 

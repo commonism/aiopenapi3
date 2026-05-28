@@ -16,7 +16,7 @@ import logging
 import jmespath
 import yaml
 import yarl
-import httpx
+import httpx2
 
 import aiopenapi3.plugin
 
@@ -311,9 +311,9 @@ def main(argv=None):
     if args.tracemalloc:
         tracemalloc.start()
 
-    def session_factory(*args_, **kwargs) -> httpx.Client:
-        return httpx.Client(
-            *args_, verify=args.disable_ssl_validation is False, timeout=httpx.Timeout(args.timeout), **kwargs
+    def session_factory(*args_, **kwargs) -> httpx2.Client:
+        return httpx2.Client(
+            *args_, verify=args.disable_ssl_validation is False, timeout=httpx2.Timeout(args.timeout), **kwargs
         )
 
     if args.func:

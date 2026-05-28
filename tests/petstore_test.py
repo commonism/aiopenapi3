@@ -1,4 +1,4 @@
-import httpx
+import httpx2
 import pytest
 
 from aiopenapi3 import OpenAPI, ResponseSchemaError
@@ -15,10 +15,10 @@ def log_response(response):
     print(f"Response event hook: {request.method} {request.url} - Status {response.status_code}")
 
 
-def session_factory(*args, **kwargs) -> httpx.Client:
+def session_factory(*args, **kwargs) -> httpx2.Client:
     if False:
         kwargs["event_hooks"] = {"request": [log_request], "response": [log_response]}
-    return httpx.Client(*args, verify=False, **kwargs)
+    return httpx2.Client(*args, verify=False, **kwargs)
 
 
 class OnDocument(Document):

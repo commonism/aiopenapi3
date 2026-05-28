@@ -1,5 +1,5 @@
 from pathlib import Path
-import httpx
+import httpx2
 
 from aiopenapi3 import OpenAPI
 from aiopenapi3.v30.formdata import encode_multipart_parameters, MultipartParameter
@@ -32,10 +32,10 @@ def test_encode_formdata():
     assert data
 
 
-def test_formdata_encoding(httpx_mock, with_paths_requestbody_formdata_encoding):
-    api = OpenAPI("http://localhost/api", with_paths_requestbody_formdata_encoding, session_factory=httpx.Client)
+def test_formdata_encoding(httpx2_mock, with_paths_requestbody_formdata_encoding):
+    api = OpenAPI("http://localhost/api", with_paths_requestbody_formdata_encoding, session_factory=httpx2.Client)
 
-    httpx_mock.add_response(
+    httpx2_mock.add_response(
         headers={"Content-Type": "application/json"},
         json="ok",
     )
@@ -48,7 +48,7 @@ def test_formdata_encoding(httpx_mock, with_paths_requestbody_formdata_encoding)
         profileImage=b"\x00\01\0x2",
     )
     result = api._.encoding(data=data)
-    request = httpx_mock.get_request()
+    request = httpx2_mock.get_request()
 
     import email
 
