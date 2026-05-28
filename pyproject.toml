@@ -9,7 +9,7 @@ dependencies = [
     "pydantic >= 2.13.0b2",
     "email-validator",
     "yarl",
-    "httpx",
+    "httpx2",
     "more-itertools",
     'typing_extensions; python_version<"3.12"',
     "jmespath",
@@ -125,7 +125,7 @@ addopts = "--ignore-glob 'tests/my_*.py'"
 dev = [
     "pytest",
     "pytest-asyncio>=0.24.0",
-    "pytest-httpx",
+    "httpx2-pytest",
     "pytest-cov",
     "pytest-mock",
     "fastapi",

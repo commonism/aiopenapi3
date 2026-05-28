@@ -2,7 +2,7 @@ import typing
 from typing import Optional
 import dataclasses
 
-import httpx
+import httpx2
 import pydantic
 
 if typing.TYPE_CHECKING:
@@ -120,7 +120,7 @@ class ContentLengthExceededError(ResponseError):
     operation: "OperationType"
     content_length: int
     message: str
-    response: httpx.Response
+    response: httpx2.Response
 
 
 @dataclasses.dataclass(repr=False)
@@ -130,7 +130,7 @@ class ContentTypeError(ResponseError):
     operation: "OperationType"
     content_type: str | None
     message: str
-    response: httpx.Response
+    response: httpx2.Response
 
     def __str__(self):
         return f"""<{self.__class__.__name__} {self.response.request.method} '{self.response.request.url.path}' ({self.operation.operationId})>
@@ -144,7 +144,7 @@ class HTTPStatusError(ResponseError):
     operation: "OperationType"
     http_status: int
     message: str
-    response: httpx.Response
+    response: httpx2.Response
 
     def __str__(self):
         return f"""<{self.__class__.__name__} {self.response.request.method} '{self.response.request.url.path}' ({self.operation.operationId})>
@@ -157,7 +157,7 @@ class ResponseDecodingError(ResponseError):
 
     operation: "OperationType"
     data: str
-    response: httpx.Response
+    response: httpx2.Response
 
 
 @dataclasses.dataclass(repr=False)
@@ -167,7 +167,7 @@ class ResponseSchemaError(ResponseError):
     operation: "OperationType"
     expectation: "ExpectedType"
     schema: Optional["SchemaType"]
-    response: httpx.Response
+    response: httpx2.Response
     exception: Exception | None
 
     def __str__(self):
@@ -181,7 +181,7 @@ class HeadersMissingError(ResponseError):
 
     operation: "OperationType"
     missing: dict[str, "HeaderType"]
-    response: httpx.Response
+    response: httpx2.Response
 
     def __str__(self):
         return f"""<{self.__class__.__name__} {self.response.request.method} '{self.response.request.url.path}' ({self.operation.operationId})

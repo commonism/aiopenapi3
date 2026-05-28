@@ -7,7 +7,7 @@ name = "aiopenapi3"
 source = { editable = "." }
 dependencies = [
     { name = "email-validator" },
-    { name = "httpx" },
+    { name = "httpx2" },
     { name = "ijson" },
     { name = "jmespath" },
     { name = "jsonseq" },
@@ -34,13 +34,13 @@ dev = [
     { name = "fastapi-versioning" },
     { name = "flask" },
     { name = "flask-wtf" },
+    { name = "httpx2-pytest" },
     { name = "ijson" },
     { name = "nonecorn" },
     { name = "pydantic-extra-types" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
-    { name = "pytest-httpx" },
     { name = "pytest-mock" },
     { name = "python-multipart" },
     { name = "trustme" },
@@ -51,8 +51,8 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "email-validator" },
-    { name = "httpx" },
     { name = "httpx-auth", marker = "extra == 'auth'", specifier = ">=0.21.0" },
+    { name = "httpx2" },
     { name = "ijson" },
     { name = "jmespath" },
     { name = "jsonseq" },
@@ -73,13 +73,13 @@ dev = [
     { name = "fastapi-versioning" },
     { name = "flask" },
     { name = "flask-wtf" },
+    { name = "httpx2-pytest" },
     { name = "ijson" },
     { name = "nonecorn", specifier = "!=0.18.0" },
     { name = "pydantic-extra-types", specifier = ">=2.10.1" },
     { name = "pytest" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
     { name = "pytest-cov" },
-    { name = "pytest-httpx" },
     { name = "pytest-mock" },
     { name = "python-multipart", specifier = ">=0.0.6" },
     { name = "trustme" },
@@ -591,6 +591,19 @@ wheels = [
 ]
 
 [[package]]
+name = "httpcore2"
+version = "2.2.0"
+source = { registry = "https://pypi.org/simple/" }
+dependencies = [
+    { name = "certifi" },
+    { name = "h11" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1a/7e/8ab39aab1d392845b6512009a9be57d24a5bd4ec7a22d02e513d0645e7a8/httpcore2-2.2.0.tar.gz", hash = "sha256:10e0e142f1ecc1c1cb2a9ebbce82e57f16169f61d163ea336abf36799e89294b", size = 63533, upload-time = "2026-05-17T05:29:55.836Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/39/22/64de17e7956e8c002f7558ed667d924c2a288344aeff4bd8ff5dc5fdb70b/httpcore2-2.2.0-py3-none-any.whl", hash = "sha256:ce859f268bf8d34fa2d7753e09e4dd5194f557e1b3038439b68a89b2999572fa", size = 79288, upload-time = "2026-05-17T05:29:52.56Z" },
+]
+
+[[package]]
 name = "httpx"
 version = "0.28.1"
 source = { registry = "https://pypi.org/simple/" }
@@ -615,6 +628,34 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a8/d4/6bd616f89d1ce43f602b62ec274e33beee6c2bce3d68396e692daafdb57d/httpx_auth-0.23.1.tar.gz", hash = "sha256:27b5a6022ad1b41a303b8737fa2e3e4bce6bbbe7ab67fed0b261359be62e0434", size = 121418, upload-time = "2025-01-07T18:47:20.05Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2f/23/a72f91bea596b522ac297b948ffee6decdedb535c034fca8062bd72981ce/httpx_auth-0.23.1-py3-none-any.whl", hash = "sha256:04f8bd0824efe3d9fb79690cc670b0da98ea809babb7aea04a72f334d4fd5ec5", size = 45328, upload-time = "2025-01-07T18:47:18.694Z" },
+]
+
+[[package]]
+name = "httpx2"
+version = "2.2.0"
+source = { registry = "https://pypi.org/simple/" }
+dependencies = [
+    { name = "anyio" },
+    { name = "certifi" },
+    { name = "httpcore2" },
+    { name = "idna" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f4/aa/c3119de1aa7ad870a01aaddbf3bc3445ed9a681c31d45e3838fd8b7bc155/httpx2-2.2.0.tar.gz", hash = "sha256:f3428d59b1752b8f5629826277262fb4d65e3a683f48af8a5b16c4d012e0b801", size = 80477, upload-time = "2026-05-17T05:29:57.376Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/be/e0/e0a52596c14194e428c20de4903f4abec38c0dfb5364d20f1d4a2b6266ef/httpx2-2.2.0-py3-none-any.whl", hash = "sha256:12347ebd2daeaefd50b529359778fff767082a09c5826752c963e71269722ff0", size = 74083, upload-time = "2026-05-17T05:29:54.543Z" },
+]
+
+[[package]]
+name = "httpx2-pytest"
+version = "1.0.1"
+source = { registry = "https://pypi.org/simple/" }
+dependencies = [
+    { name = "httpx2" },
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1c/c9/bc6405b80e0d8a2b0e155aa9976864a79a96fef5478c564cc0d89d23cb86/httpx2_pytest-1.0.1.tar.gz", hash = "sha256:e5d36bbac673bae6e11d3520e74bd360c3e392b56270efcb95f1d5369cbd1ec1", size = 59136, upload-time = "2026-05-22T15:02:54.982Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/46/ef/e9b6fb576f1f518f68e9f9cce9776870452ae2b8cfbba53b4127701b9a55/httpx2_pytest-1.0.1-py3-none-any.whl", hash = "sha256:09ff3365101508c5b311301c6ee8e1a96dbb676028b19e00da66199d2e759a99", size = 20975, upload-time = "2026-05-22T15:02:54.007Z" },
 ]
 
 [[package]]
@@ -1385,19 +1426,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b1/51/a849f96e117386044471c8ec2bd6cfebacda285da9525c9106aeb28da671/pytest_cov-7.1.0.tar.gz", hash = "sha256:30674f2b5f6351aa09702a9c8c364f6a01c27aae0c1366ae8016160d1efc56b2", size = 55592, upload-time = "2026-03-21T20:11:16.284Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9d/7a/d968e294073affff457b041c2be9868a40c1c71f4a35fcc1e45e5493067b/pytest_cov-7.1.0-py3-none-any.whl", hash = "sha256:a0461110b7865f9a271aa1b51e516c9a95de9d696734a2f71e3e78f46e1d4678", size = 22876, upload-time = "2026-03-21T20:11:14.438Z" },
-]
-
-[[package]]
-name = "pytest-httpx"
-version = "0.36.2"
-source = { registry = "https://pypi.org/simple/" }
-dependencies = [
-    { name = "httpx" },
-    { name = "pytest" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/4e/42/f53c58570e80d503ade9dd42ce57f2915d14bcbe25f6308138143950d1d6/pytest_httpx-0.36.2.tar.gz", hash = "sha256:05a56527484f7f4e8c856419ea379b8dc359c36801c4992fdb330f294c690356", size = 57683, upload-time = "2026-04-09T13:57:19.837Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/1e/55/1fa65f8e4fceb19dd6daa867c162ad845d547f6058cd92b4b02384a44777/pytest_httpx-0.36.2-py3-none-any.whl", hash = "sha256:d42ebd5679442dc7bfb0c48e0767b6562e9bc4534d805127b0084171886a5e22", size = 20315, upload-time = "2026-04-09T13:57:18.587Z" },
 ]
 
 [[package]]

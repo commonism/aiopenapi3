@@ -10,7 +10,7 @@ from collections.abc import AsyncIterator, AsyncGenerator, Generator
 from collections.abc import Iterator
 from contextlib import aclosing
 
-import httpx
+import httpx2
 import pydantic
 import yarl
 
@@ -64,8 +64,8 @@ class RequestBase:
     class StreamResponse(NamedTuple):
         headers: "ResponseHeadersType"
         schema: Optional["SchemaType"]
-        session: httpx.Client
-        result: httpx.Response
+        session: httpx2.Client
+        result: httpx2.Response
 
     class Sequencer:
         def __init__(self, headers: "ResponseHeadersType", stream: Iterator["JSON"], model: pydantic.BaseModel) -> None:
@@ -86,7 +86,7 @@ class RequestBase:
     class Response(NamedTuple):
         headers: "ResponseHeadersType"
         data: Any
-        result: httpx.Response
+        result: httpx2.Response
 
     class Vars(NamedTuple):
         parameters: dict[str, str] | None
@@ -173,16 +173,16 @@ class RequestBase:
     def _session_factory_default_args(self) -> dict[str, Any]:
         """
         this is the session factory default arguments,
-        the arguments passed to httpx.Async/Client()
+        the arguments passed to httpx2.Async/Client()
 
-        if you need to pass your own parameters to httpx.Async/Client use a session factory
+        if you need to pass your own parameters to httpx2.Async/Client use a session factory
         and pass your pararmters to the constructor in addition to these default arguments
         """
         return {"cert": self.req.cert, "auth": self.req.auth, "headers": {"user-agent": f"aiopenapi3/{__version__}"}}
 
     def _send(
-        self, session: httpx.Client, data: Optional["RequestData"], parameters: Optional["RequestParameters"]
-    ) -> httpx.Response:
+        self, session: httpx2.Client, data: Optional["RequestData"], parameters: Optional["RequestParameters"]
+    ) -> httpx2.Response:
         req = self._build_req(session)
         try:
             result = session.send(req, stream=True)
@@ -191,7 +191,7 @@ class RequestBase:
         return result
 
     @abc.abstractmethod
-    def _process_stream(self, result: httpx.Response) -> tuple["ResponseHeadersType", Optional["SchemaType"]]:
+    def _process_stream(self, result: httpx2.Response) -> tuple["ResponseHeadersType", Optional["SchemaType"]]:
         """
         process response headers
         lookup the schema for the stream
@@ -199,7 +199,7 @@ class RequestBase:
         ...
 
     @abc.abstractmethod
-    def _process_request(self, result: httpx.Response) -> tuple["ResponseHeadersType", "ResponseDataType"]:
+    def _process_request(self, result: httpx2.Response) -> tuple["ResponseHeadersType", "ResponseDataType"]:
         """
         process response headers
         lookup Model
@@ -207,7 +207,7 @@ class RequestBase:
         ...
 
     @abc.abstractmethod
-    def _process_sequence(self, result: httpx.Response) -> tuple["ResponseHeadersType", "ResponseDataType", Any]:
+    def _process_sequence(self, result: httpx2.Response) -> tuple["ResponseHeadersType", "ResponseDataType", Any]:
         """
         process response headers
         lookup Model
@@ -217,7 +217,7 @@ class RequestBase:
     @abc.abstractmethod
     def _prepare(self, data: Optional["RequestData"], parameters: Optional["RequestParameters"]) -> None: ...
 
-    def _build_req(self, session: httpx.Client | httpx.AsyncClient) -> httpx.Request:
+    def _build_req(self, session: httpx2.Client | httpx2.AsyncClient) -> httpx2.Request:
         url: yarl.URL = self.api.url
 
         if self.servers:
@@ -281,7 +281,7 @@ class RequestBase:
     ) -> "RequestBase.StreamResponse":
         """
         Sends an HTTP request as described by this Path - but do not process the result
-          * returns a tuple of Schema, httpx.Client, httpx.Response
+          * returns a tuple of Schema, httpx2.Client, httpx2.Response
           * requires closing the Client when done processing the response
           * requires manual processing of the data
           * intended for use with of large results
@@ -311,7 +311,7 @@ class RequestBase:
     ) -> Generator["RequestBase.Sequencer", None, None]:
         self.vars = RequestBase.Vars(parameters, data, context)
         self._prepare(data, parameters)
-        session: httpx.Client = self.api._session_factory(**self._session_factory_default_args)
+        session: httpx2.Client = self.api._session_factory(**self._session_factory_default_args)
         result = self._send(session, data, parameters)
         headers, schema_, content_type = self._process_sequence(result)
 
@@ -321,7 +321,7 @@ class RequestBase:
             https://github.com/ndjson/ndjson-spec
             """
 
-            def iter_json(response: httpx.Response) -> Iterator["JSON"]:
+            def iter_json(response: httpx2.Response) -> Iterator["JSON"]:
                 for i in response.iter_lines():
                     yield json.loads(i)
 
@@ -333,7 +333,7 @@ class RequestBase:
 
             import jsonseq.decode
 
-            def iter_json(response: httpx.Response) -> Iterator["JSON"]:
+            def iter_json(response: httpx2.Response) -> Iterator["JSON"]:
                 decoder = jsonseq.decode.JSONSeqDecoder()
                 for text in response.iter_text():
                     yield from decoder.decode(text)
@@ -344,7 +344,7 @@ class RequestBase:
             https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events
             """
 
-            def iter_json(response: httpx.Response) -> Iterator["JSON"]:
+            def iter_json(response: httpx2.Response) -> Iterator["JSON"]:
                 for chunk in response.iter_text():
                     data_ = ""
                     for line in chunk.splitlines(keepends=True):
@@ -371,7 +371,7 @@ class RequestBase:
                 Using a AsyncIterator input to feed a coroutine
                 """
 
-                def __init__(self, response: httpx.Response) -> None:
+                def __init__(self, response: httpx2.Response) -> None:
                     self._iter_bytes = response.iter_bytes()
 
                 def read(self, num_bytes: int) -> bytes:
@@ -380,7 +380,7 @@ class RequestBase:
 
                     return next(self._iter_bytes)
 
-            def iter_json(response: httpx.Response) -> Iterator["JSON"]:
+            def iter_json(response: httpx2.Response) -> Iterator["JSON"]:
                 reader = ReadEventStream(response)
                 yield from ijson.items(reader, "item")
         else:
@@ -416,8 +416,8 @@ class AsyncRequestBase(RequestBase):
     class StreamResponse(NamedTuple):
         headers: "ResponseHeadersType"
         schema: Optional["SchemaType"]
-        session: httpx.AsyncClient
-        result: httpx.Response
+        session: httpx2.AsyncClient
+        result: httpx2.Response
 
     class Sequencer:
         def __init__(
@@ -446,8 +446,8 @@ class AsyncRequestBase(RequestBase):
         return data
 
     async def _send(
-        self, session: httpx.AsyncClient, data: Optional["RequestData"], parameters: Optional["RequestParameters"]
-    ) -> httpx.Response:  # type: ignore[override]
+        self, session: httpx2.AsyncClient, data: Optional["RequestData"], parameters: Optional["RequestParameters"]
+    ) -> httpx2.Response:  # type: ignore[override]
         req = self._build_req(session)
         try:
             result = await session.send(req, stream=True)
@@ -508,7 +508,7 @@ class AsyncRequestBase(RequestBase):
             https://github.com/ndjson/ndjson-spec
             """
 
-            async def aiter_json(response: httpx.Response) -> AsyncIterator["JSON"]:
+            async def aiter_json(response: httpx2.Response) -> AsyncIterator["JSON"]:
                 async for i in response.aiter_lines():
                     yield json.loads(i)
 
@@ -520,7 +520,7 @@ class AsyncRequestBase(RequestBase):
 
             import jsonseq.decode
 
-            async def aiter_json(response: httpx.Response) -> AsyncIterator["JSON"]:
+            async def aiter_json(response: httpx2.Response) -> AsyncIterator["JSON"]:
                 decoder = jsonseq.decode.JSONSeqDecoder()
                 async for text in response.aiter_text():
                     for obj in decoder.decode(text):
@@ -534,7 +534,7 @@ class AsyncRequestBase(RequestBase):
             https://github.com/mpetazzoni/sseclient/blob/main/sseclient/__init__.py#L36
             """
 
-            async def aiter_json(response: httpx.Response) -> AsyncIterator["JSON"]:
+            async def aiter_json(response: httpx2.Response) -> AsyncIterator["JSON"]:
 
                 async for chunk in response.aiter_text():
                     data_ = ""
@@ -562,7 +562,7 @@ class AsyncRequestBase(RequestBase):
                 Using a AsyncIterator input to feed a coroutine
                 """
 
-                def __init__(self, response: httpx.Response) -> None:
+                def __init__(self, response: httpx2.Response) -> None:
                     self._aiter_bytes = response.aiter_bytes()
 
                 async def read(self, num_bytes: int) -> bytes:
@@ -571,7 +571,7 @@ class AsyncRequestBase(RequestBase):
 
                     return await anext(self._aiter_bytes)
 
-            async def aiter_json(response: httpx.Response) -> AsyncIterator["JSON"]:
+            async def aiter_json(response: httpx2.Response) -> AsyncIterator["JSON"]:
                 reader = ReadEventStream(response)
                 async for item in ijson.items(reader, "item"):
                     yield item

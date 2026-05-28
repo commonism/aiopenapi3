@@ -3,10 +3,10 @@ import uuid
 import urllib
 
 import yarl
-import httpx
+import httpx2
 import pytest
 import python_multipart
-from httpx._multipart import MultipartStream
+from httpx2._multipart import MultipartStream
 
 from aiopenapi3 import OpenAPI
 
@@ -22,11 +22,11 @@ def test_paths_security_v20_url(with_paths_security_v20):
     assert str(api.url) == "https://api.example.com/v1"
 
 
-@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
-def test_paths_security_v20_securityparameters(httpx_mock, with_paths_security_v20):
-    api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
+@pytest.mark.httpx2_mock(can_send_already_matched_responses=True)
+def test_paths_security_v20_securityparameters(httpx2_mock, with_paths_security_v20):
+    api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx2.Client)
     user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.model_dump())
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, json=user.model_dump())
 
     auth = str(uuid.uuid4())
 
@@ -37,30 +37,30 @@ def test_paths_security_v20_securityparameters(httpx_mock, with_paths_security_v
     # global security
     api.authenticate(None, BasicAuth=(auth, auth))
     api._.getUser(data={}, parameters={"userId": 1})
-    request = httpx_mock.get_requests()[-1]
+    request = httpx2_mock.get_requests()[-1]
 
     # path
     api.authenticate(None, QueryAuth=auth)
     api._.createUser(data={}, parameters={})
-    request = httpx_mock.get_requests()[-1]
+    request = httpx2_mock.get_requests()[-1]
     assert request.url.params["auth"] == auth
 
     # header
     api.authenticate(None, HeaderAuth=f"Bearer {auth}")
     api._.createUser(data={}, parameters={})
-    request = httpx_mock.get_requests()[-1]
+    request = httpx2_mock.get_requests()[-1]
     assert request.headers["Authorization"] == f"Bearer {auth}"
 
     # null session
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=[user.model_dump()])
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, json=[user.model_dump()])
     api.authenticate(None)
     api._.listUsers(data={}, parameters={})
 
 
-def test_paths_security_v20_combined_securityparameters(httpx_mock, with_paths_security_v20):
-    api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
+def test_paths_security_v20_combined_securityparameters(httpx2_mock, with_paths_security_v20):
+    api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx2.Client)
     user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="combined")
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, json="combined")
 
     api.authenticate(user="u")
     with pytest.raises(ValueError, match="No security requirement satisfied"):
@@ -74,10 +74,10 @@ def test_paths_security_v20_combined_securityparameters(httpx_mock, with_paths_s
         api._.combinedSecurity(data={}, parameters={})
 
 
-def test_paths_security_v20_alternate_securityparameters(httpx_mock, with_paths_security_v20):
-    api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
+def test_paths_security_v20_alternate_securityparameters(httpx2_mock, with_paths_security_v20):
+    api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx2.Client)
     user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="alternate")
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, json="alternate")
 
     api.authenticate(user="u")
     with pytest.raises(
@@ -95,12 +95,12 @@ def test_paths_security_v20_alternate_securityparameters(httpx_mock, with_paths_
         api._.alternateSecurity(data={}, parameters={})
 
 
-@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
-def test_paths_security_v20_post_body(httpx_mock, with_paths_security_v20):
+@pytest.mark.httpx2_mock(can_send_already_matched_responses=True)
+def test_paths_security_v20_post_body(httpx2_mock, with_paths_security_v20):
     auth = str(uuid.uuid4())
-    api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
+    api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx2.Client)
     user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=user.model_dump())
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, json=user.model_dump())
 
     api.authenticate(HeaderAuth=f"Bearer {auth}")
     with pytest.raises(ValueError, match="Request Body is required but none was provided."):
@@ -109,8 +109,8 @@ def test_paths_security_v20_post_body(httpx_mock, with_paths_security_v20):
     api._.createUser(data=user, parameters={})
 
 
-def test_paths_security_v20_parameters(httpx_mock, with_paths_security_v20):
-    api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx.Client)
+def test_paths_security_v20_parameters(httpx2_mock, with_paths_security_v20):
+    api = OpenAPI(URLBASE, with_paths_security_v20, session_factory=httpx2.Client)
     user = api._.createUser.return_value().get_type().model_construct(name="test", id=1)
 
     auth = str(uuid.uuid4())
@@ -119,22 +119,22 @@ def test_paths_security_v20_parameters(httpx_mock, with_paths_security_v20):
     with pytest.raises(ValueError, match=r"Required Parameter \['userId'\] missing \(provided \[\]\)"):
         api._.getUser(data={}, parameters={})
 
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json=[user.model_dump()])
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, json=[user.model_dump()])
     api.authenticate(None)
     api._.listUsers(data={}, parameters={"inQuery": "Q", "inHeader": "H"})
 
-    request = httpx_mock.get_requests()[-1]
+    request = httpx2_mock.get_requests()[-1]
     assert request.headers["inHeader"] == "H"
     assert yarl.URL(str(request.url)).query["inQuery"] == "Q"
 
 
-def test_paths_response_header_v20(httpx_mock, with_paths_response_header_v20):
-    httpx_mock.add_response(
+def test_paths_response_header_v20(httpx2_mock, with_paths_response_header_v20):
+    httpx2_mock.add_response(
         headers={"Content-Type": "application/json", "X-required": "1", "X-optional": "1,2,3"}, json="get"
     )
-    api = OpenAPI(URLBASE, with_paths_response_header_v20, session_factory=httpx.Client)
+    api = OpenAPI(URLBASE, with_paths_response_header_v20, session_factory=httpx2.Client)
     h, b = api._.get(return_headers=True)
-    request = httpx_mock.get_requests()[-1]
+    request = httpx2_mock.get_requests()[-1]
 
     assert isinstance(h["X-required"], str)
     o = h["X-optional"]
@@ -142,32 +142,32 @@ def test_paths_response_header_v20(httpx_mock, with_paths_response_header_v20):
 
     # seems like there is no notion of required headers in swagger
     # with pytest.raises(ValueError, match=r"missing Header \['x-required'\]"):
-    #     httpx_mock.add_response(
+    #     httpx2_mock.add_response(
     #         headers={"Content-Type": "application/json", "X-optional": "2"}, content=b"[]"
     #     )
     #     h, b = api._.get(return_headers=True)
-    #     request = httpx_mock.get_requests()[-1]
+    #     request = httpx2_mock.get_requests()[-1]
 
     return
 
 
-@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
-def test_paths_parameter_format_v20(httpx_mock, with_paths_parameter_format_v20):
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="ok")
-    api = OpenAPI(URLBASE, with_paths_parameter_format_v20, session_factory=httpx.Client)
+@pytest.mark.httpx2_mock(can_send_already_matched_responses=True)
+def test_paths_parameter_format_v20(httpx2_mock, with_paths_parameter_format_v20):
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, json="ok")
+    api = OpenAPI(URLBASE, with_paths_parameter_format_v20, session_factory=httpx2.Client)
 
     parameters = {
         "array": ["blue", "black", "brown"],
         "string": "blue",
     }
     r = api._.path(parameters=parameters)
-    request = httpx_mock.get_requests()[-1]
+    request = httpx2_mock.get_requests()[-1]
     u = yarl.URL(str(request.url))
     assert u.parts[4] == "blue|black|brown"
     assert u.parts[5] == "default"
 
     r = api._.query(parameters=parameters)
-    request = httpx_mock.get_requests()[-1]
+    request = httpx2_mock.get_requests()[-1]
     u = yarl.URL(str(request.url))
     assert u.query["default"] == "default"
     assert u.query["string"] == "blue"
@@ -177,7 +177,7 @@ def test_paths_parameter_format_v20(httpx_mock, with_paths_parameter_format_v20)
     params["file0"] = ("file0name", io.BytesIO(b"x"), "ct")
     params["file1"] = ("file1name", io.BytesIO(b"y"), "ct")
     result = api._.formdata(parameters=params)
-    request = httpx_mock.get_requests()[-1]
+    request = httpx2_mock.get_requests()[-1]
 
     files = dict()
 
@@ -205,23 +205,23 @@ def test_paths_parameter_format_v20(httpx_mock, with_paths_parameter_format_v20)
 
     params = dict(A="a", B=5)
     result = api._.urlencoded(parameters=params)
-    request = httpx_mock.get_requests()[-1]
+    request = httpx2_mock.get_requests()[-1]
     assert (v := urllib.parse.parse_qs(request.content.decode())) is not None and v["A"] == ["a"] and v["B"] == ["5"]
     assert result == "ok"
 
     return
 
 
-def test_paths_response_file(httpx_mock, with_paths_parameter_format_v20):
-    httpx_mock.add_response(headers={"Content-Type": "application/octet-stream"}, content=b"\x00")
-    api = OpenAPI(URLBASE, with_paths_parameter_format_v20, session_factory=httpx.Client)
+def test_paths_response_file(httpx2_mock, with_paths_parameter_format_v20):
+    httpx2_mock.add_response(headers={"Content-Type": "application/octet-stream"}, content=b"\x00")
+    api = OpenAPI(URLBASE, with_paths_parameter_format_v20, session_factory=httpx2.Client)
     f = api._.getfile()
     assert f == b"\x00"
 
 
-def test_paths_stream(httpx_mock, with_paths_parameter_format_v20):
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="ok")
-    api = OpenAPI(URLBASE, with_paths_parameter_format_v20, session_factory=httpx.Client)
+def test_paths_stream(httpx2_mock, with_paths_parameter_format_v20):
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, json="ok")
+    api = OpenAPI(URLBASE, with_paths_parameter_format_v20, session_factory=httpx2.Client)
 
     parameters = {
         "array": ["blue", "black", "brown"],

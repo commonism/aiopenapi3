@@ -1,7 +1,7 @@
-import httpx
+import httpx2
 
 import pytest
-from pytest_httpx import IteratorStream
+from pytest_httpx2 import IteratorStream
 
 from aiopenapi3 import OpenAPI
 from aiopenapi3 import v32
@@ -25,13 +25,13 @@ def test_Encoding():
     pass
 
 
-@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
+@pytest.mark.httpx2_mock(can_send_already_matched_responses=True)
 @pytest.mark.asyncio(loop_scope="session")
-async def test_MediaType(httpx_mock, with_schema_itemSchema):
+async def test_MediaType(httpx2_mock, with_schema_itemSchema):
     # itemSchema
     import pydantic
 
-    api = OpenAPI("https://example.org/api/", with_schema_itemSchema, session_factory=httpx.AsyncClient)
+    api = OpenAPI("https://example.org/api/", with_schema_itemSchema, session_factory=httpx2.AsyncClient)
 
     records = with_schema_itemSchema["components"]["examples"]["LogJSONPerLine"]["value"].strip("\n").split("\n")
 
@@ -39,22 +39,22 @@ async def test_MediaType(httpx_mock, with_schema_itemSchema):
     t = pydantic.TypeAdapter(list[ServerSentEvent])
     ct = "\n\n".join(f"data: {i}\n: {idx}" for idx, i in enumerate(records * 16))
 
-    httpx_mock.add_response(
+    httpx2_mock.add_response(
         url="https://example.org/api/json_seq",
         headers={"Content-Type": "application/json-seq"},
         stream=IteratorStream([b"\x1e" + i.encode() + b"\n" for i in (records * 16)]),
     )
-    httpx_mock.add_response(
+    httpx2_mock.add_response(
         url="https://example.org/api/jsonl",
         headers={"Content-Type": "application/jsonl"},
         stream=IteratorStream([i.encode() + b"\n" for i in (records * 16)]),
     )
-    httpx_mock.add_response(
+    httpx2_mock.add_response(
         url="https://example.org/api/ndjson",
         headers={"Content-Type": "application/x-ndjson"},
         stream=IteratorStream([i.encode() + b"\n" for i in (records * 16)]),
     )
-    httpx_mock.add_response(
+    httpx2_mock.add_response(
         url="https://example.org/api/text_events", headers={"Content-Type": "text/event-stream"}, content=ct
     )
 
@@ -86,12 +86,12 @@ async def test_MediaType(httpx_mock, with_schema_itemSchema):
     pass
 
 
-@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
-def test_MediaType_itemSchema_sync(httpx_mock, with_schema_itemSchema):
+@pytest.mark.httpx2_mock(can_send_already_matched_responses=True)
+def test_MediaType_itemSchema_sync(httpx2_mock, with_schema_itemSchema):
     # itemSchema
     import pydantic
 
-    api = OpenAPI("https://example.org/api/", with_schema_itemSchema, session_factory=httpx.Client)
+    api = OpenAPI("https://example.org/api/", with_schema_itemSchema, session_factory=httpx2.Client)
     LogEntry: pydantic.BaseModel = api.components.schemas["LogEntry"].get_type()
 
     records = with_schema_itemSchema["components"]["examples"]["LogJSONPerLine"]["value"].strip("\n").split("\n")
@@ -100,22 +100,22 @@ def test_MediaType_itemSchema_sync(httpx_mock, with_schema_itemSchema):
     t = pydantic.TypeAdapter(list[ServerSentEvent])
     ct = "\n\n".join(f"data: {i}\n: {idx}" for idx, i in enumerate(records * 16))
 
-    httpx_mock.add_response(
+    httpx2_mock.add_response(
         url="https://example.org/api/json_seq",
         headers={"Content-Type": "application/json-seq"},
         stream=IteratorStream([b"\x1e" + i.encode() + b"\n" for i in (records * 16)]),
     )
-    httpx_mock.add_response(
+    httpx2_mock.add_response(
         url="https://example.org/api/jsonl",
         headers={"Content-Type": "application/jsonl"},
         stream=IteratorStream([i.encode() + b"\n" for i in (records * 16)]),
     )
-    httpx_mock.add_response(
+    httpx2_mock.add_response(
         url="https://example.org/api/ndjson",
         headers={"Content-Type": "application/x-ndjson"},
         stream=IteratorStream([i.encode() + b"\n" for i in (records * 16)]),
     )
-    httpx_mock.add_response(
+    httpx2_mock.add_response(
         url="https://example.org/api/text_events", headers={"Content-Type": "text/event-stream"}, content=ct
     )
 
@@ -150,18 +150,18 @@ def test_PathItem_query(with_path_query):
     api = OpenAPI("https://example.org/api/", with_path_query)
 
 
-@pytest.mark.httpx_mock(can_send_already_matched_responses=True)
-def test_PathItem_additionalOperations(httpx_mock, with_path_additionalOperations):
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, json="ok")
+@pytest.mark.httpx2_mock(can_send_already_matched_responses=True)
+def test_PathItem_additionalOperations(httpx2_mock, with_path_additionalOperations):
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, json="ok")
 
-    api = OpenAPI("https://example.org/api/", with_path_additionalOperations, session_factory=httpx.Client)
+    api = OpenAPI("https://example.org/api/", with_path_additionalOperations, session_factory=httpx2.Client)
     assert api._.test() == "ok"
 
-    request: httpx.Request = httpx_mock.get_requests()[-1]
+    request: httpx2.Request = httpx2_mock.get_requests()[-1]
     assert request.method == "TEST" and request.url.path == "/api/data"
 
     assert api._[("/api/data", "test")]() == "ok"
-    request = httpx_mock.get_requests()[-1]
+    request = httpx2_mock.get_requests()[-1]
     assert request.method == "TEST" and request.url.path == "/api/data"
 
 
@@ -191,9 +191,9 @@ def test_Server_name():
     pass
 
 
-def test_Tag(httpx_mock, with_schema_tags_v32):
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=204)
-    api = OpenAPI("https://example.org/api/", with_schema_tags_v32, session_factory=httpx.Client)
+def test_Tag(httpx2_mock, with_schema_tags_v32):
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, status_code=204)
+    api = OpenAPI("https://example.org/api/", with_schema_tags_v32, session_factory=httpx2.Client)
     api._.external.partner.x()
 
     assert sorted(filter(lambda x: x.partition(".")[0] == "external", api._.Iter(api, True))) == ["external.partner.x"]

@@ -3,7 +3,7 @@ import io
 import ssl
 from pathlib import Path
 
-import httpx
+import httpx2
 import pytest
 import pytest_asyncio
 
@@ -131,12 +131,12 @@ securitySchemes:
 
 @pytest_asyncio.fixture(loop_scope="session")
 async def client(server, certs, wait_for_server):
-    def self_signed(*args, **kwargs) -> httpx.AsyncClient:
+    def self_signed(*args, **kwargs) -> httpx2.AsyncClient:
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=certs["org"]["issuer"])
         if (cert := kwargs.get("cert", None)) is not None:
             ctx.load_cert_chain(certfile=cert[0], keyfile=cert[1])
             kwargs.pop("cert")
-        return httpx.AsyncClient(*args, verify=ctx, **kwargs)
+        return httpx2.AsyncClient(*args, verify=ctx, **kwargs)
 
     api = await aiopenapi3.OpenAPI.load_async(
         f"https://{server.bind[0]}/openapi.json", session_factory=self_signed, plugins=[MutualTLSSecurity()]
@@ -208,12 +208,12 @@ async def test_tls_optional(server, client, certs):
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_sync(server, certs, wait_for_server):
-    def self_signed_(*args, **kwargs) -> httpx.Client:
+    def self_signed_(*args, **kwargs) -> httpx2.Client:
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=certs["org"]["issuer"])
         if (cert := kwargs.get("cert", None)) is not None:
             ctx.load_cert_chain(certfile=cert[0], keyfile=cert[1])
             kwargs.pop("cert")
-        return httpx.Client(*args, verify=ctx, **kwargs)
+        return httpx2.Client(*args, verify=ctx, **kwargs)
 
     client = await asyncio.to_thread(
         aiopenapi3.OpenAPI.load_sync,

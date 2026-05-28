@@ -1,7 +1,7 @@
 import datetime
 from pathlib import Path
 
-import httpx
+import httpx2
 import yarl
 
 from aiopenapi3 import FileSystemLoader, OpenAPI
@@ -77,15 +77,15 @@ class OnMessage(Message):
         return ctx
 
 
-def test_Plugins(httpx_mock, with_plugin_base):
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
+def test_Plugins(httpx2_mock, with_plugin_base):
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, content=b"[]")
     plugins = [OnInit(), OnDocument("plugin-base.yaml"), OnMessage()]
     api = OpenAPI.loads(
         "plugin-base.yaml",
         with_plugin_base,
         plugins=plugins,
         loader=FileSystemLoader(Path().cwd() / "tests/fixtures"),
-        session_factory=httpx.Client,
+        session_factory=httpx2.Client,
     )
     api._base_url = yarl.URL("http://127.0.0.1:80")
     r = api._.listPets()

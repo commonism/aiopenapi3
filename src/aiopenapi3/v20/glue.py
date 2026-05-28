@@ -6,7 +6,7 @@ import json
 from typing import TypeGuard
 
 
-import httpx
+import httpx2
 import pydantic
 
 from ..request import RequestBase, AsyncRequestBase
@@ -127,7 +127,7 @@ class Request(RequestBase):
 
         if ss.type == "basic":
             value = cast(list[str], value)
-            self.req.auth = httpx.BasicAuth(*value)
+            self.req.auth = httpx2.BasicAuth(*value)
 
         value = cast(str, value)
         if ss.type == "apiKey":
@@ -244,7 +244,7 @@ class Request(RequestBase):
         self._prepare_parameters(parameters)
         self._prepare_body(data)
 
-    def _process__status_code(self, result: httpx.Response, status_code: str) -> "v20ResponseType":
+    def _process__status_code(self, result: httpx2.Response, status_code: str) -> "v20ResponseType":
         # find the response model in spec we received
         expected_response = None
         if status_code in self.operation.responses:
@@ -263,7 +263,7 @@ class Request(RequestBase):
         return expected_response
 
     def _process__headers(
-        self, result: httpx.Response, headers: dict[str, str], expected_response: "v20ResponseType"
+        self, result: httpx2.Response, headers: dict[str, str], expected_response: "v20ResponseType"
     ) -> "ResponseHeadersType":
         rheaders = dict()
         if expected_response.headers:
@@ -282,13 +282,13 @@ class Request(RequestBase):
                     rheaders[name] = header._schema.model(header._decode(data))
         return rheaders
 
-    def _process_stream(self, result: httpx.Response) -> tuple["ResponseHeadersType", Optional["Schema"]]:
+    def _process_stream(self, result: httpx2.Response) -> tuple["ResponseHeadersType", Optional["Schema"]]:
         status_code = str(result.status_code)
         expected_response = self._process__status_code(result, status_code)
         headers = self._process__headers(result, result.headers, expected_response)
         return headers, expected_response.schema_
 
-    def _process_request(self, result: httpx.Response) -> tuple["ResponseHeadersType", Optional["ResponseDataType"]]:
+    def _process_request(self, result: httpx2.Response) -> tuple["ResponseHeadersType", Optional["ResponseDataType"]]:
         rheaders: "ResponseHeadersType"
         # spec enforces these are strings
         status_code = str(result.status_code)

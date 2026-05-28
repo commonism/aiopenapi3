@@ -1,14 +1,14 @@
 from aiopenapi3 import OpenAPI
 from aiopenapi3 import ResponseSchemaError, ContentTypeError, HTTPStatusError, ResponseDecodingError, RequestError
 
-import httpx
+import httpx2
 
 
 import pytest
 
 
 def test_response_error(httpx_mock, with_paths_response_error_vXX):
-    api = OpenAPI("/", with_paths_response_error_vXX, session_factory=httpx.Client)
+    api = OpenAPI("/", with_paths_response_error_vXX, session_factory=httpx2.Client)
 
     httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=200, json="ok")
     r = api._.test()
@@ -36,13 +36,13 @@ def test_response_error(httpx_mock, with_paths_response_error_vXX):
 
 
 def test_request_error(with_paths_response_error_vXX):
-    class Client(httpx.Client):
+    class Client(httpx2.Client):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, transport=RaisingTransport(), **kwargs)
 
-    class RaisingTransport(httpx.BaseTransport):
+    class RaisingTransport(httpx2.BaseTransport):
         def handle_request(self, request):
-            raise httpx.TimeoutException(message="timeout")
+            raise httpx2.TimeoutException(message="timeout")
 
     api = OpenAPI("/", with_paths_response_error_vXX, session_factory=Client)
 

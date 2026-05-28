@@ -4,7 +4,7 @@ from collections.abc import Sequence
 import json
 import urllib.parse
 
-import httpx
+import httpx2
 
 try:
     import httpx_auth
@@ -17,7 +17,7 @@ else:
         name.lower(): getattr(httpx_auth, name)
         for name in httpx_auth.__all__
         if inspect.isclass(class_ := getattr(httpx_auth, name))
-        if issubclass(class_, httpx.Auth)
+        if issubclass(class_, httpx2.Auth)
     }
 
 import pydantic
@@ -151,9 +151,9 @@ class Request(RequestBase):
         if ss.type == "http":
             assert isinstance(ss, (v30.security._SecuritySchemes.http, v31.security._SecuritySchemes.http))
             if ss.scheme_ == "basic":
-                self.req.auth = httpx.BasicAuth(*value)
+                self.req.auth = httpx2.BasicAuth(*value)
             elif ss.scheme_ == "digest":
-                self.req.auth = httpx.DigestAuth(*value)
+                self.req.auth = httpx2.DigestAuth(*value)
             elif ss.scheme_ == "bearer":
                 self.req.headers["Authorization"] = f"Bearer {value:s}"
             else:
@@ -490,7 +490,7 @@ class Request(RequestBase):
         mph = self._prepare_parameters(parameters)
         self._prepare_body(data, mph)
 
-    def _process__status_code(self, result: httpx.Response, status_code: str) -> "v3xResponseType":
+    def _process__status_code(self, result: httpx2.Response, status_code: str) -> "v3xResponseType":
         expected_response = (
             self.operation.responses.get(status_code)
             or self.operation.responses.get(status_code[0] + "XX")
@@ -508,7 +508,7 @@ class Request(RequestBase):
         return expected_response
 
     def _process__headers(
-        self, result: httpx.Response, headers: dict[str, str], expected_response: "v3xResponseType"
+        self, result: httpx2.Response, headers: dict[str, str], expected_response: "v3xResponseType"
     ) -> "ResponseHeadersType":
         rheaders = dict()
         if expected_response.headers:
@@ -530,7 +530,7 @@ class Request(RequestBase):
         return rheaders
 
     def _process__content_type(
-        self, result: httpx.Response, expected_response: "v3xResponseType", content_type: str | None
+        self, result: httpx2.Response, expected_response: "v3xResponseType", content_type: str | None
     ) -> tuple[str, "v3xMediaTypeType"]:
         if content_type:
             """
@@ -560,7 +560,7 @@ class Request(RequestBase):
         assert content_type is not None
         return content_type, expected_media
 
-    def _process_stream(self, result: httpx.Response) -> tuple["ResponseHeadersType", Optional["SchemaType"]]:
+    def _process_stream(self, result: httpx2.Response) -> tuple["ResponseHeadersType", Optional["SchemaType"]]:
         status_code = str(result.status_code)
         content_type = result.headers.get("Content-Type", None)
 
@@ -571,7 +571,7 @@ class Request(RequestBase):
 
         return headers, expected_media.schema_
 
-    def _process_sequence(self, result: httpx.Response) -> tuple["ResponseHeadersType", Optional["SchemaType"], str]:
+    def _process_sequence(self, result: httpx2.Response) -> tuple["ResponseHeadersType", Optional["SchemaType"], str]:
         status_code = str(result.status_code)
         content_type = result.headers.get("Content-Type", None)
 
@@ -582,7 +582,7 @@ class Request(RequestBase):
 
         return headers, expected_media.itemSchema, content_type
 
-    def _process_request(self, result: httpx.Response) -> tuple["ResponseHeadersType", "ResponseDataType"]:
+    def _process_request(self, result: httpx2.Response) -> tuple["ResponseHeadersType", "ResponseDataType"]:
         rheaders = dict()
         # spec enforces these are strings
         status_code = str(result.status_code)
