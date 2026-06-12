@@ -116,14 +116,14 @@ MutualTLS authentication requires
     * key file
     * (optional) password to keyfile
 
-to authenticate to the remote server, c.f. :ref:`httpx.Client.cert <https://www.python-httpx.org/api/#client>`_.
+to authenticate to the remote server, c.f. :ref:`httpx2.Client.cert <https://httpx2.pydantic.dev/api/#client>`_.
 
 .. code:: python
 
     api.authenticate(tls=("cert.pem","key.pem"))
 
 
-when using mutualTLS with self-signed certificates, it is required to add the self-signed CA to the SSLContext of the httpx session by providing a :ref:`Session Factory <advanced:Session Factory>`.
+when using mutualTLS with self-signed certificates, it is required to add the self-signed CA to the SSLContext of the httpx2 session by providing a :ref:`Session Factory <advanced:Session Factory>`.
 
 
 Forms
@@ -187,7 +187,7 @@ Currently there is not public API except accessing OpenAPi._server_variables dir
 Manual Requests
 ===============
 
-Creating a request manually allows accessing the httpx.Response as part of the :meth:`aiopenapi3.request.RequestBase.request` return value.
+Creating a request manually allows accessing the httpx2.Response as part of the :meth:`aiopenapi3.request.RequestBase.request` return value.
 
 .. code:: python
 
@@ -209,12 +209,12 @@ This can be used to provide certain header values (ETag), which are not paramete
 
 Request Streaming
 -----------------
-File uploads via "multipart/form-data" as mentioned in the httpx documentation
-(Multipart file `uploads <https://www.python-httpx.org/quickstart/#sending-multipart-file-uploads>`_ &
-`encoding <https://www.python-httpx.org/advanced/#multipart-file-encoding>`_)
+File uploads via "multipart/form-data" as mentioned in the httpx2 documentation
+(Multipart file `uploads <https://httpx2.pydantic.dev/quickstart/#sending-multipart-file-uploads>`_ &
+`encoding <https://httpx2.pydantic.dev/advanced/#multipart-file-encoding>`_)
 do not require the content of the request to be in memory but work with file-like-objects instead.
 
-httpx request streaming using file-like objects is limited to "multipart/form-data" and "application/octet-stream".
+httpx2 request streaming using file-like objects is limited to "multipart/form-data" and "application/octet-stream".
 Additionally it does not support choice of encoding (such as base16, base64url or quoted-printable) as possible with OpenAPI v3.1 contentEncoding, which should not be a limitation.
 It can not be used with "application/json".
 
@@ -382,9 +382,9 @@ See :aioai3:ref:`tests.stream_test.test_stream_array`.
 Session Factory
 ===============
 
-The session_factory argument of the |aiopenapi3| initializers allow setting httpx_ options to the transport.
+The session_factory argument of the |aiopenapi3| initializers allow setting httpx2_ options to the transport.
 
-E.g. setting `httpx Event Hooks <https://www.python-httpx.org/advanced/#event-hooks>`_:
+E.g. setting `httpx2 Event Hooks <https://httpx2.pydantic.dev/advanced/#event-hooks>`_:
 
 .. code:: python
 
@@ -395,32 +395,32 @@ E.g. setting `httpx Event Hooks <https://www.python-httpx.org/advanced/#event-ho
         request = response.request
         print(f"Response event hook: {request.method} {request.url} - Status {response.status_code}")
 
-    def session_factory(*args, **kwargs) -> httpx.AsyncClient:
+    def session_factory(*args, **kwargs) -> httpx2.AsyncClient:
         kwargs["event_hooks"] = {"request": [log_request], "response": [log_response]}
-        return httpx.AsyncClient(*args, verify=False, timeout=60.0, **kwargs)
+        return httpx2.AsyncClient(*args, verify=False, timeout=60.0, **kwargs)
 
-Or adding a SOCKS5 proxy via httpx_socks and a custom timeout value:
+Or adding a SOCKS5 proxy via httpx2_socks and a custom timeout value:
 
 .. code:: python
 
-    import httpx
-    import httpx_socks
+    import httpx2
+    import httpx2_socks
 
-    def session_factory(*args, **kwargs) -> httpx.AsyncClient:
-        kwargs["transport"] = httpx_socks.AsyncProxyTransport.from_url("socks5://127.0.0.1:8080", verify=False)
-        return httpx.AsyncClient(*args, verify=False, timeout=60.0, **kwargs)
+    def session_factory(*args, **kwargs) -> httpx2.AsyncClient:
+        kwargs["transport"] = httpx2_socks.AsyncProxyTransport.from_url("socks5://127.0.0.1:8080", verify=False)
+        return httpx2.AsyncClient(*args, verify=False, timeout=60.0, **kwargs)
 
 
 Or using a self-signed CA with certificate validation and possibly mutualTLS authentication:
 
 .. code:: python
 
-    def self_signed(*args, **kwargs) -> httpx.AsyncClient:
+    def self_signed(*args, **kwargs) -> httpx2.AsyncClient:
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile="/etc/ssl/my-ca.pem")
         if (cert:=kwargs.get("cert", None)) is not None:
             """required for mutualTLS / client certificate authentication"""
             ctx.load_cert_chain(certfile=cert[0], keyfile=cert[1])
-        return httpx.AsyncClient(*args, verify=ctx, **kwargs)
+        return httpx2.AsyncClient(*args, verify=ctx, **kwargs)
 
 
 Logging
@@ -437,21 +437,21 @@ It can be used to inspect Description Document downloads …
 .. code::
 
     aiopenapi3.OpenAPI DEBUG Downloading Description Document TS29122_CommonData.yaml using WebLoader(baseurl=https://raw.githubusercontent.com/jdegre/5GC_APIs/master/TS24558_Eecs_ServiceProvisioning.yaml) …
-    httpx._client DEBUG HTTP Request: GET https://raw.githubusercontent.com/jdegre/5GC_APIs/master/TS29122_CommonData.yaml "HTTP/1.1 200 OK"
+    httpx2._client DEBUG HTTP Request: GET https://raw.githubusercontent.com/jdegre/5GC_APIs/master/TS29122_CommonData.yaml "HTTP/1.1 200 OK"
     aiopenapi3.OpenAPI DEBUG Resolving TS29571_CommonData.yaml#/components/schemas/Gpsi - Description Document TS29571_CommonData.yaml unknown …
     aiopenapi3.OpenAPI DEBUG Downloading Description Document TS29571_CommonData.yaml using WebLoader(baseurl=https://raw.githubusercontent.com/jdegre/5GC_APIs/master/TS24558_Eecs_ServiceProvisioning.yaml) …
-    httpx._client DEBUG HTTP Request: GET https://raw.githubusercontent.com/jdegre/5GC_APIs/master/TS29571_CommonData.yaml "HTTP/1.1 200 OK"
+    httpx2._client DEBUG HTTP Request: GET https://raw.githubusercontent.com/jdegre/5GC_APIs/master/TS29571_CommonData.yaml "HTTP/1.1 200 OK"
     aiopenapi3.OpenAPI DEBUG Resolving TS29122_MonitoringEvent.yaml#/components/schemas/LocationInfo - Description Document TS29122_MonitoringEvent.yaml unknown …
     aiopenapi3.OpenAPI DEBUG Downloading Description Document TS29122_MonitoringEvent.yaml using WebLoader(baseurl=https://raw.githubusercontent.com/jdegre/5GC_APIs/master/TS24558_Eecs_ServiceProvisioning.yaml) …
 
 
-and general httpx requests
+and general httpx2 requests
 
 .. code::
 
-    httpx._client DEBUG HTTP Request: DELETE http://localhost:51965/v2/pets/e7e979fb-bf53-4a89-9475-da9369cb4dbc "HTTP/1.1 422 "
-    httpx._client DEBUG HTTP Request: GET http://localhost:54045/v2/openapi.json "HTTP/1.1 200 "
-    httpx._client DEBUG HTTP Request: POST http://localhost:54045/v2/pet "HTTP/1.1 201 "
+    httpx2._client DEBUG HTTP Request: DELETE http://localhost:51965/v2/pets/e7e979fb-bf53-4a89-9475-da9369cb4dbc "HTTP/1.1 422 "
+    httpx2._client DEBUG HTTP Request: GET http://localhost:54045/v2/openapi.json "HTTP/1.1 200 "
+    httpx2._client DEBUG HTTP Request: POST http://localhost:54045/v2/pet "HTTP/1.1 201 "
 
 
 Loader

@@ -45,8 +45,8 @@ For :meth:`aiopenapi3.OpenAPI.load_file` the url parameter does not specify the 
 url which can be used to construct the proper operations path is required nevertheless.
 
 |aiopenapi3| can interface services in synchronous as well as asynchronous.
-To create a traditional/blocking api client, provide a `session_factory` which return value annotation matches httpx_.Client,
-httpx.AsyncClient for asynchronous clients.
+To create a traditional/blocking api client, provide a `session_factory` which return value annotation matches httpx2_.Client,
+httpx2.AsyncClient for asynchronous clients.
 
 
 After ingesting the description document, the api client object returned can be used to interface the service.

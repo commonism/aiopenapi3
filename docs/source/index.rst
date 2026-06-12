@@ -12,7 +12,7 @@
     *If you can't make it perfect, make it adjustable.*
 
 |aiopenapi3| is a client library to interface RESTful services using OpenAPI_/Swagger description documents,
-built upon pydantic_ for data validation/coercion and httpx_ for transport.
+built upon pydantic_ for data validation/coercion and httpx2_ for transport.
 Located on `github <https://github.com/commonism/aiopenapi3>`_.
 
 
