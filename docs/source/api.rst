@@ -313,7 +313,7 @@ HTTPError is the base class for all request/response related errors.
     :members:
     :undoc-members:
 
-A RequestError typically wraps an `error <https://www.python-httpx.org/exceptions/>`_ of the underlying httpx_ library.
+A RequestError typically wraps an `error <https://httpx2.pydantic.dev/exceptions/>`_ of the underlying httpx2_ library.
 
 .. autoexception:: ResponseError
     :members:
