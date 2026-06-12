@@ -17,9 +17,9 @@ from .parameter import Parameter
 from .root import Root
 
 try:
-    import httpx_auth
+    import httpx2_auth
 except ImportError:
-    httpx_auth = None
+    httpx2_auth = None
 
 if typing.TYPE_CHECKING:
     from .._types import (
@@ -116,7 +116,7 @@ class Request(RequestBase):
             )
 
     def _prepare_secschemes(self, scheme: str, value: str | Sequence[str]) -> None:
-        if httpx_auth is not None:
+        if httpx2_auth is not None:
             self._prepare_secschemes_extra(scheme, value)
         else:
             self._prepare_secschemes_default(scheme, value)
@@ -145,17 +145,17 @@ class Request(RequestBase):
 
         if ss.type == "basic":
             value = cast(list[str], value)
-            self.req.auth = httpx_auth.Basic(*value)
+            self.req.auth = httpx2_auth.Basic(*value)
 
         value = cast(str, value)
         if ss.type == "apiKey":
             if ss.in_ == "query":
                 # apiKey in query parameter
-                self.req.auth = httpx_auth.QueryApiKey(value, ss.name)
+                self.req.auth = httpx2_auth.QueryApiKey(value, ss.name)
 
             if ss.in_ == "header":
                 # apiKey in query header data
-                self.req.auth = httpx_auth.HeaderApiKey(value, ss.name)
+                self.req.auth = httpx2_auth.HeaderApiKey(value, ss.name)
 
     def _prepare_parameters(self, provided: Optional["RequestParameters"]):
         provided = provided or dict()
