@@ -7,16 +7,16 @@ import urllib.parse
 import httpx2
 
 try:
-    import httpx_auth
-    from httpx_auth import SupportMultiAuth
+    import httpx2_auth
+    from httpx2_auth import SupportMultiAuth
     import inspect
 except ImportError:
-    httpx_auth = None
+    httpx2_auth = None
 else:
     HTTPX_AUTH_METHODS = {
-        name.lower(): getattr(httpx_auth, name)
-        for name in httpx_auth.__all__
-        if inspect.isclass(class_ := getattr(httpx_auth, name))
+        name.lower(): getattr(httpx2_auth, name)
+        for name in httpx2_auth.__all__
+        if inspect.isclass(class_ := getattr(httpx2_auth, name))
         if issubclass(class_, httpx2.Auth)
     }
 
@@ -133,7 +133,7 @@ class Request(RequestBase):
             and scheme in self.root.components.securitySchemes
             and self.root.components.securitySchemes[scheme].root
         )
-        if httpx_auth is not None:
+        if httpx2_auth is not None:
             self._prepare_secschemes_extra(scheme, value)
         else:
             self._prepare_secschemes_default(scheme, value)
@@ -195,7 +195,7 @@ class Request(RequestBase):
             # REF: https://github.com/Colin-b/httpx_auth/issues/17
             if flow := ss.flows.implicit:
                 auths.append(
-                    httpx_auth.OAuth2Implicit(
+                    httpx2_auth.OAuth2Implicit(
                         **value,
                         authorization_url=flow.authorizationUrl,
                         scopes=flow.scopes,
@@ -204,7 +204,7 @@ class Request(RequestBase):
                 )
             if flow := ss.flows.password:
                 auths.append(
-                    httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
+                    httpx2_auth.OAuth2ResourceOwnerPasswordCredentials(
                         **value,
                         token_url=flow.tokenUrl,
                         scopes=flow.scopes,
@@ -213,7 +213,7 @@ class Request(RequestBase):
                 )
             if flow := ss.flows.clientCredentials:
                 auths.append(
-                    httpx_auth.OAuth2ClientCredentials(
+                    httpx2_auth.OAuth2ClientCredentials(
                         **value,
                         token_url=flow.tokenUrl,
                         scopes=flow.scopes,
@@ -222,7 +222,7 @@ class Request(RequestBase):
                 )
             if flow := ss.flows.authorizationCode:
                 auths.append(
-                    httpx_auth.OAuth2AuthorizationCode(
+                    httpx2_auth.OAuth2AuthorizationCode(
                         **value,
                         authorization_url=flow.authorizationUrl,
                         token_url=flow.tokenUrl,
@@ -239,7 +239,7 @@ class Request(RequestBase):
                 elif isinstance(value, dict):
                     auths.append(auth(**value))
             elif ss.scheme_ == "bearer":
-                auths.append(httpx_auth.HeaderApiKey(f"Bearer {value}", "Authorization"))
+                auths.append(httpx2_auth.HeaderApiKey(f"Bearer {value}", "Authorization"))
             else:
                 raise ValueError(f"Authentication method {ss.type}/{ss.scheme_} is not supported by httpx-auth")
 
