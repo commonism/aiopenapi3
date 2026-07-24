@@ -6,10 +6,7 @@ from fastapi.responses import JSONResponse
 
 from .schema import Pets, Pet, PetCreate, Error
 
-
-from fastapi_versioning import versioned_api_route
-
-router = APIRouter(route_class=versioned_api_route(1))
+router = APIRouter(prefix="/v1")
 
 
 ZOO = dict()

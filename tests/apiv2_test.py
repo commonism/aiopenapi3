@@ -18,12 +18,20 @@ import aiopenapi3
 from aiopenapi3 import OpenAPI
 from aiopenapi3.v31.schemas import Schema
 
-from api.main import app
 from api.v2.schema import Dog as _Dog
 
 # pytest.skip(allow_module_level=True)
 
+from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
+
+
+from api.v2.main import router
+
+app = FastAPI(
+    version="1.0.0", title="Dorthu's Petstore", servers=[{"url": "/", "description": "Default, relative server"}]
+)
+app.include_router(router)
 
 
 @app.exception_handler(Exception)
@@ -50,17 +58,12 @@ async def server(config):
         await task
 
 
-@pytest.fixture(scope="session", params=[2])
-def version(request):
-    return f"v{request.param}"
-
-
 from aiopenapi3.debug import DescriptionDocumentDumper
 
 
 @pytest_asyncio.fixture(loop_scope="session")
-async def client(server, version):
-    url = f"http://{server.bind[0]}/{version}/openapi.json"
+async def client(server):
+    url = f"http://{server.bind[0]}/openapi.json"
 
     api = await aiopenapi3.OpenAPI.load_async(url, plugins=[DescriptionDocumentDumper("/tmp/schema.yaml")])
     return api
@@ -68,7 +71,7 @@ async def client(server, version):
 
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.xfail()
-def test_Pet():
+async def test_Pet():
 
     data = _Dog.model_json_schema()
     #    print(json.dumps(data, indent=True))
@@ -80,15 +83,15 @@ def test_Pet():
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_sync(server, version):
-    url = f"http://{server.bind[0]}/{version}/openapi.json"
+async def test_sync(server):
+    url = f"http://{server.bind[0]}/openapi.json"
     api = await asyncio.to_thread(aiopenapi3.OpenAPI.load_sync, url)
     return api
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_description_document(server, version):
-    url = f"http://{server.bind[0]}/{version}/openapi.json"
+async def test_description_document(server):
+    url = f"http://{server.bind[0]}/openapi.json"
     api = await aiopenapi3.OpenAPI.load_async(url)
     return api
 

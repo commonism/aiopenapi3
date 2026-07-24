@@ -8,10 +8,7 @@ from fastapi.responses import JSONResponse
 
 from . import schema
 
-from fastapi_versioning import versioned_api_route
-
-
-router = APIRouter(route_class=versioned_api_route(2))
+router = APIRouter(prefix="/v2")
 
 ZOO = dict()
 

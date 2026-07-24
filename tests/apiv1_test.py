@@ -7,11 +7,18 @@ import pytest_asyncio
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
+from fastapi import FastAPI
+
 import aiopenapi3
 
 # pytest.skip(allow_module_level=True)
 
-from api.main import app
+from api.v1.main import router
+
+app = FastAPI(
+    version="1.0.0", title="Dorthu's Petstore", servers=[{"url": "/", "description": "Default, relative server"}]
+)
+app.include_router(router)
 
 
 @pytest.fixture(scope="session")
@@ -35,7 +42,7 @@ async def server(config):
 
 @pytest_asyncio.fixture(loop_scope="session")
 async def client(server):
-    api = await asyncio.to_thread(aiopenapi3.OpenAPI.load_sync, f"http://{server.bind[0]}/v1/openapi.json")
+    api = await asyncio.to_thread(aiopenapi3.OpenAPI.load_sync, f"http://{server.bind[0]}/openapi.json")
     return api
 
 

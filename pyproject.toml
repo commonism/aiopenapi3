@@ -129,7 +129,6 @@ dev = [
     "pytest-cov",
     "pytest-mock",
     "fastapi",
-    "fastapi-versioning",
     "uvloop",
     "flask",
     "flask_wtf",
