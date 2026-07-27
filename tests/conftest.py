@@ -1,6 +1,5 @@
-import os
 import dataclasses
-
+import os
 from pathlib import Path
 
 import pytest
@@ -40,7 +39,7 @@ class _Version:
 
     @property
     def schema(self):
-        return getattr(getattr(aiopenapi3, f"v{self.major}{self.minor}"), "Schema")
+        return getattr(aiopenapi3, f"v{self.major}{self.minor}").Schema
 
 
 @pytest.fixture(scope="session", params=[_Version(3, 0, 3), _Version(3, 1, 0)], ids=("v30", "v31"))
@@ -81,6 +80,7 @@ def _get_parsed_yaml(filename, version=None):
         with open("tests/fixtures/" + filename) as f:
             raw = f.read()
         import yaml
+
         from aiopenapi3.loader import YAML12Loader
 
         parsed = yaml.load(raw, Loader=YAML12Loader)

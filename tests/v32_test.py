@@ -1,10 +1,8 @@
 import httpx2
-
 import pytest
 from pytest_httpx2 import IteratorStream
 
-from aiopenapi3 import OpenAPI
-from aiopenapi3 import v32
+from aiopenapi3 import OpenAPI, v32
 
 
 def test_Components():
@@ -83,7 +81,6 @@ async def test_MediaType(httpx2_mock, with_schema_itemSchema):
 
     # prefixEncoding
     # itemEncoding
-    pass
 
 
 @pytest.mark.httpx2_mock(can_send_already_matched_responses=True)

@@ -1,12 +1,12 @@
 import abc
-import logging
-import typing
-import yaml
-import httpx2
-import yarl
-import re
-
 import importlib
+import logging
+import re
+import typing
+
+import httpx2
+import yaml
+import yarl
 
 # prefer a fast json library here as we may parse large documents
 for i in ["orjson", "simdjson", "ujson", "json"]:
@@ -19,12 +19,12 @@ for i in ["orjson", "simdjson", "ujson", "json"]:
 
 assert json is not None
 
-from pathlib import Path  # noqa:E402
+from pathlib import Path
 
 from .plugin import Plugins
 
 if typing.TYPE_CHECKING:
-    from ._types import YAMLLoaderType, JSON
+    from ._types import JSON, YAMLLoaderType
 
 log = logging.getLogger("aiopenapi3.loader")
 
@@ -42,7 +42,7 @@ class YAML12Loader(yaml.SafeLoader):
     """
 
     _core_resolvers = [
-        ["bool", re.compile(r"""^(?:|true|True|TRUE|false|False|FALSE)$""", re.X), list("tTfF")],
+        ["bool", re.compile(r"""^(?:|true|True|TRUE|false|False|FALSE)$""", re.VERBOSE), list("tTfF")],
         [
             "int",
             re.compile(
@@ -51,7 +51,7 @@ class YAML12Loader(yaml.SafeLoader):
                                   |[-+]?(?:[0-9]+)
                                   |0x[0-9a-fA-F]+
                                   )$""",
-                re.X,
+                re.VERBOSE,
             ),
             list("-+0123456789"),
         ],
@@ -61,11 +61,11 @@ class YAML12Loader(yaml.SafeLoader):
                 r"""^(?:[-+]?(?:\.[0-9]+|[0-9]+(\.[0-9]*)?)(?:[eE][-+]?[0-9]+)?
                                   |[-+]?\.(?:inf|Inf|INF)
                                   |\.(?:nan|NaN|NAN))$""",
-                re.X,
+                re.VERBOSE,
             ),
             list("-+0123456789."),
         ],
-        ["null", re.compile(r"""^(?:~||null|Null|NULL)$""", re.X), ["~", "n", "N", ""]],
+        ["null", re.compile(r"""^(?:~||null|Null|NULL)$""", re.VERBOSE), ["~", "n", "N", ""]],
     ]
     """
     core tags from

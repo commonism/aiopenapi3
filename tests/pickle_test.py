@@ -2,10 +2,9 @@
 Tests parsing specs
 """
 
-from pathlib import Path
-import pickle
 import copy
-
+import pickle
+from pathlib import Path
 
 from aiopenapi3 import OpenAPI
 

@@ -3,11 +3,14 @@ import copy
 import datetime
 import decimal
 
-import aiopenapi3
-
-from flask import Flask, render_template_string, Blueprint, abort
+import pytest
+import pytest_asyncio
+from asgiref.wsgi import WsgiToAsgi
+from flask import Blueprint, Flask, Response, abort, render_template_string, request
 from flask_bootstrap import Bootstrap4 as Bootstrap
 from flask_wtf import FlaskForm
+from hypercorn.asyncio import serve
+from hypercorn.config import Config
 from wtforms.fields import (
     BooleanField,
     DateField,
@@ -17,34 +20,26 @@ from wtforms.fields import (
     DecimalRangeField,
     EmailField,
     FileField,
-    MultipleFileField,
     FloatField,
+    HiddenField,
     IntegerField,
     IntegerRangeField,
+    MultipleFileField,
+    PasswordField,
     RadioField,
-    SelectField,
     SearchField,
+    SelectField,
     SelectMultipleField,
-    SubmitField,
     StringField,
+    SubmitField,
     TelField,
+    TextAreaField,
     TimeField,
     URLField,
-    HiddenField,
-    PasswordField,
-    TextAreaField,
 )
-
 from wtforms.validators import DataRequired, NumberRange
-from flask import request, Response
 
-from asgiref.wsgi import WsgiToAsgi
-
-import pytest
-import pytest_asyncio
-
-from hypercorn.asyncio import serve
-from hypercorn.config import Config
+import aiopenapi3
 
 # csrf.exempt(serve_test)
 
@@ -353,8 +348,8 @@ async def test_Numbers(server, client, form_type):
         decimal=decimal.Decimal(1 / 3),
         decimalrange=decimal.Decimal(2 / 3),
         float=float(1 / 3),
-        integer=int(9),
-        integerrange=int(9),
+        integer=9,
+        integerrange=9,
     )
 
     r = await client._.numbers(data=data)

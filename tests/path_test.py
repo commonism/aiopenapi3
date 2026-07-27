@@ -4,20 +4,20 @@ This file tests that paths are parsed and populated correctly
 
 import base64
 import copy
-import uuid
 import pathlib
+import uuid
 
-import pytest
 import httpx2
+import pytest
 import yarl
 
 from aiopenapi3 import OpenAPI
 from aiopenapi3.errors import (
-    OperationParameterValidationError,
-    OperationIdDuplicationError,
     HeadersMissingError,
     HTTPClientError,
     HTTPServerError,
+    OperationIdDuplicationError,
+    OperationParameterValidationError,
 )
 
 URLBASE = "/"
@@ -194,7 +194,7 @@ def test_paths_security_combined(httpx2_mock, with_paths_security):
     with pytest.raises(ValueError, match="No security requirement satisfied"):
         r = api._.api_v1_auth_login_combined(data={}, parameters={})
 
-    api.authenticate(**{"user": "theuser", "token": "thetoken"})
+    api.authenticate(user="theuser", token="thetoken")
     r = api._.api_v1_auth_login_combined(data={}, parameters={})
 
     api.authenticate(None)
@@ -395,8 +395,6 @@ def test_paths_parameter_format(httpx2_mock, with_paths_parameter_format):
     assert u.parts[9] == "100"
     assert u.parts[10] == "3.3245460039402305e+23"
 
-    return
-
 
 @pytest.mark.httpx2_mock(can_send_already_matched_responses=True)
 def test_paths_parameter_format_complex(httpx2_mock, with_paths_parameter_format_complex):
@@ -430,7 +428,6 @@ def test_paths_response_header(httpx2_mock, with_paths_response_header):
     h, b = api._.types(return_headers=True)
     assert h["X-object"].A == 1
     assert h["X-object"].B == "2"
-    return
 
 
 @pytest.mark.httpx2_mock(can_send_already_matched_responses=True)
@@ -474,7 +471,7 @@ def test_paths_tags(httpx2_mock, with_paths_tags):
         OpenAPI(URLBASE, with_paths_tags, session_factory=httpx2.Client, use_operation_tags=False)
 
     spec = copy.deepcopy(with_paths_tags)
-    for k in {"/user/", "/item/"}:
+    for k in ("/user/", "/item/"):
         spec["paths"][k]["get"]["operationId"] = f"list{k[1:-1]}"
 
     api = OpenAPI(URLBASE, spec, session_factory=httpx2.Client, use_operation_tags=False)
@@ -511,7 +508,7 @@ def test_paths_response_status_pattern_default(httpx2_mock, with_paths_response_
 
 
 def test_paths_response_error(mocker, httpx2_mock, with_paths_response_error_vXX):
-    from aiopenapi3 import ResponseSchemaError, ContentTypeError, HTTPStatusError, ResponseDecodingError
+    from aiopenapi3 import ContentTypeError, HTTPStatusError, ResponseDecodingError, ResponseSchemaError
 
     api = OpenAPI("/", with_paths_response_error_vXX, session_factory=httpx2.Client)
 
@@ -598,8 +595,6 @@ def test_paths_servers(httpx2_mock, with_paths_servers):
     r = api._.operation()
     request = httpx2_mock.get_requests()[-1]
     assert request.url.host == "operation"
-
-    return
 
 
 @pytest.mark.httpx2_mock(can_send_already_matched_responses=True)

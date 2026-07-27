@@ -1,12 +1,11 @@
-from .glue import Request, AsyncRequest
-
 from .general import ExternalDocumentation, Reference
-from .info import Contact, License, Info
-from .parameter import Parameter, Header
-from .paths import Response, Operation, PathItem, Paths
+from .glue import AsyncRequest, Request
+from .info import Contact, Info, License
+from .parameter import Header, Parameter
+from .paths import Operation, PathItem, Paths, Response
 from .root import Root
 from .schemas import Schema
-from .security import SecurityScheme, SecurityRequirement
+from .security import SecurityRequirement, SecurityScheme
 from .tag import Tag
 from .xml import XML
 
@@ -41,23 +40,23 @@ def __init():
 __init()
 
 __all__ = [
-    "Request",
+    "XML",
     "AsyncRequest",
-    "ExternalDocumentation",
-    "Reference",
     "Contact",
-    "License",
-    "Info",
-    "Parameter",
+    "ExternalDocumentation",
     "Header",
-    "Response",
+    "Info",
+    "License",
     "Operation",
+    "Parameter",
     "PathItem",
     "Paths",
+    "Reference",
+    "Request",
+    "Response",
     "Root",
     "Schema",
-    "SecurityScheme",
     "SecurityRequirement",
+    "SecurityScheme",
     "Tag",
-    "XML",
 ]

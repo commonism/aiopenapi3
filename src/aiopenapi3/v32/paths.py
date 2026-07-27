@@ -1,14 +1,13 @@
-from typing import Union, Any
+from typing import Any, Union
 
-from pydantic import Field, model_validator, RootModel
+from pydantic import Field, RootModel, model_validator
 
-from ..base import ObjectExtended, PathsBase, OperationBase, PathItemBase
-from .general import ExternalDocumentation
-from .general import Reference
+from ..base import ObjectExtended, OperationBase, PathItemBase, PathsBase
+from .general import ExternalDocumentation, Reference
 from .media import MediaType
 from .parameter import Header, Parameter
-from .servers import Server
 from .security import SecurityRequirement
+from .servers import Server
 
 
 class RequestBody(ObjectExtended):

@@ -7,7 +7,6 @@ from aiopenapi3 import OpenAPI, ResponseSchemaError
 from aiopenapi3.plugin import Document, Message
 from aiopenapi3.v20 import Reference
 
-
 try:
     import httpx2_auth
 except ImportError:

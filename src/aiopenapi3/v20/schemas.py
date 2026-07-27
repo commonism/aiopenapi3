@@ -1,10 +1,10 @@
-from typing import Union, Any, Optional
+from typing import Any, Optional, Union
 
-from pydantic import Field, model_validator, ValidatorFunctionWrapHandler, ValidationInfo
+from pydantic import Field, ValidationInfo, ValidatorFunctionWrapHandler, model_validator
 
+from ..base import ObjectExtended, SchemaBase
 from .general import Reference
 from .xml import XML
-from ..base import ObjectExtended, SchemaBase
 
 
 class Schema(ObjectExtended, SchemaBase):

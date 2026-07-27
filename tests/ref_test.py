@@ -7,15 +7,13 @@ This file tests that $ref resolution works as expected, and that
 allOfs are populated as expected as well.
 """
 
+import typing
 from typing import ForwardRef
 
-import typing
-
-from aiopenapi3 import OpenAPI
-
+from pydantic import RootModel
 from pydantic._internal._model_construction import ModelMetaclass
 
-from pydantic import RootModel
+from aiopenapi3 import OpenAPI
 
 
 def test_ref_resolution(openapi_version, petstore_expanded):

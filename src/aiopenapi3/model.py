@@ -4,21 +4,18 @@ import inspect
 import logging
 import re
 import sys
-from typing import Any, cast, TypeVar
 import typing
+from typing import Annotated, Any, Literal, Optional, TypeGuard, TypeVar, Union, cast
 
-from typing import TypeGuard
-
-from typing import Optional, Union, Annotated, Literal
-from pydantic import BaseModel, Field, RootModel, ConfigDict
 import pydantic
+from pydantic import BaseModel, ConfigDict, Field, RootModel
 
-from .base import ReferenceBase, SchemaBase
 from . import me
-from .pydanticv2 import field_class_to_schema, create_model
+from .base import ReferenceBase, SchemaBase
+from .pydanticv2 import create_model, field_class_to_schema
 
 if typing.TYPE_CHECKING:
-    from ._types import SchemaType, ReferenceType, DiscriminatorType
+    from ._types import DiscriminatorType, ReferenceType, SchemaType
 
 type_format_to_class: dict[str, dict[str | None, type]] = collections.defaultdict(dict)
 
@@ -232,7 +229,6 @@ class _ClassInfo:
             pass
         else:
             raise ValueError()
-        return
 
     def model(self) -> type[BaseModel] | type[None]:
         if self.root:
@@ -251,12 +247,12 @@ class _ClassInfo:
 
     @classmethod
     def collapse(cls, schema: "SchemaType", items: list["_ClassInfo"]) -> type[BaseModel]:
-        r: list[type[BaseModel] | type[None]]
+        r: list[type[BaseModel | None]]
         r = [i.model() for i in items]
         type_name = schema._get_identity("L8")
 
         if len(r) > 1:
-            ru = Annotated[Union[tuple(r)], Field(default=getattr(schema, "default", None))]
+            ru = Annotated[tuple(r), Field(default=getattr(schema, "default", None))]
             m: type[RootModel] = create_model(type_name, __base__=(ConfiguredRootModel[ru],), __module__=me.__name__)
         elif len(r) == 1:
             m: type[BaseModel] = cast(type[BaseModel], r[0])
@@ -363,9 +359,7 @@ class Model:  # (BaseModel):
                     if _type in Model.types(i)
                 )
                 if schema.discriminator and schema.discriminator.mapping:
-                    classinfo.root = Annotated[
-                        Union[t], Field(discriminator=Model.nameof(schema.discriminator.propertyName))
-                    ]
+                    classinfo.root = Annotated[t, Field(discriminator=Model.nameof(schema.discriminator.propertyName))]
                 else:
                     if len(t):
                         classinfo.root = Union[t]
@@ -381,9 +375,7 @@ class Model:  # (BaseModel):
                     if _type in Model.types(i)
                 )
                 if schema.discriminator and schema.discriminator.mapping:
-                    classinfo.root = Annotated[
-                        Union[t], Field(discriminator=Model.nameof(schema.discriminator.propertyName))
-                    ]
+                    classinfo.root = Annotated[t, Field(discriminator=Model.nameof(schema.discriminator.propertyName))]
                 else:
                     if len(t):
                         classinfo.root = Union[t]
@@ -652,18 +644,18 @@ class Model:  # (BaseModel):
                 )
 
                 # allOf - intersection of types
-                allOfs: list["SchemaType"]
+                allOfs: list[SchemaType]
                 if allOfs := sum([getattr(schema, "allOf", [])], []):
                     for x in allOfs:
                         allOf &= set(Model.types(x))
 
                 # anyOf - union of types
-                anyOfs: list["SchemaType"]
+                anyOfs: list[SchemaType]
                 if anyOfs := sum([getattr(schema, "anyOf", [])], []):
                     anyOf = set.union(*[set(Model.types(x)) for x in anyOfs]) if anyOfs else set()
 
                 # oneOf - union of types
-                oneOfs: list["SchemaType"]
+                oneOfs: list[SchemaType]
                 if oneOfs := sum([getattr(schema, "oneOf", [])], []):
                     oneOf = set.union(*[set(Model.types(x)) for x in oneOfs]) if oneOfs else set()
 
