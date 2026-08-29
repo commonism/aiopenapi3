@@ -218,7 +218,7 @@ class _ClassInfo:
                         """not const"""
                         if name not in schema.required or Model.is_nullable(f):
                             """not required - or nullable"""
-                            r = r | None  # type: ignore[assignment]
+                            r = Optional[r]  # noqa: UP045
 
                     self.properties[Model.nameof(name)].annotation = r
 
