@@ -180,7 +180,7 @@ def test_parsing_schema_names(with_parsing_schema_names):
 
 def test_pydantic_classes():
     import types
-    from typing import Annotated, ForwardRef, Literal
+    from typing import Annotated, ForwardRef, Literal, Union
 
     from pydantic import BaseModel, Field
 
@@ -210,6 +210,8 @@ def test_pydantic_classes():
         ),
     )
 
+    t = Union[ForwardRef('__types["Dog"]'), ForwardRef('__types["Cat"]')]  # noqa: UP007
+
     Pet = types.new_class(
         "Pet",
         (BaseModel,),
@@ -218,9 +220,7 @@ def test_pydantic_classes():
             {
                 "model_config": {"undefined_types_warning": False},
                 "__annotations__": {
-                    "root": Annotated[
-                        ForwardRef('__types["Dog"]') | ForwardRef('__types["Cat"]'), Field(discriminator="type")
-                    ],
+                    "root": Annotated[t, Field(discriminator="type")],
                 },
             }
         ),
