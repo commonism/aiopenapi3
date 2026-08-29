@@ -330,11 +330,11 @@ async def test_String(server, client, form_type):
 @pytest.mark.asyncio(loop_scope="session")
 async def test_DateTime(server, client, form_type):
     cls = client._.datetime.operation.requestBody.content[form_type].schema_.get_type()
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    t = (2026, 8, 29, 15, 4, 22, 32582)
+    dtl = datetime.datetime(*t)  # noqa: DTZ001
+    dt = dtl.astimezone(datetime.timezone.utc)
 
-    data = cls(
-        time=now.time(), date=now.date(), datetime=datetime.datetime.now(tz=datetime.timezone.utc), datetimelocal=now
-    )
+    data = cls(time=dt.time(), date=dt.date(), datetime=dt, datetimelocal=dtl)
 
     r = await client._.datetime(data=data)
     assert r == "ok"
