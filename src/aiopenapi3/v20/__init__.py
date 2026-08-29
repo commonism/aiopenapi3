@@ -11,7 +11,7 @@ from .xml import XML
 
 
 def __init():
-    r = dict()
+    r = {}
     CLASSES = [
         ExternalDocumentation,
         Reference,

@@ -1,6 +1,6 @@
 import enum
 import io
-from typing import Any, Optional
+from typing import Any, ClassVar, Optional
 
 from pydantic import Field
 
@@ -11,7 +11,7 @@ from .schemas import Schema
 
 
 class _ParameterCodec:
-    SEPERATOR_VALUES = {"csv": ",", "ssv": " ", "tsv": "\t", "pipes": "|"}
+    SEPERATOR_VALUES: ClassVar = {"csv": ",", "ssv": " ", "tsv": "\t", "pipes": "|"}
     """
     Describing Parameters
 
@@ -33,11 +33,10 @@ class _ParameterCodec:
     def _encode(self, name, value):
         if self.type == "array":
             value = self._encode__collection(value)
-        elif self.in_ == "formData":
-            if self.type == "file":
-                # https://www.python-httpx.org/quickstart/#sending-multipart-file-uploads
-                # we expect (filename, data, content-type)
-                assert isinstance(value, tuple) and len(value) == 3 and isinstance(value[1], io.IOBase)
+        elif self.in_ == "formData" and self.type == "file":
+            # https://www.python-httpx.org/quickstart/#sending-multipart-file-uploads
+            # we expect (filename, data, content-type)
+            assert isinstance(value, tuple) and len(value) == 3 and isinstance(value[1], io.IOBase)
 
         return {name: value}
 

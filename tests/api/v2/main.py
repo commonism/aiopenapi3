@@ -10,7 +10,7 @@ from . import schema
 
 router = APIRouter(prefix="/v2")
 
-ZOO = dict()
+ZOO = {}
 
 
 def _idx(l):
@@ -28,7 +28,7 @@ idx = _idx(100)
 )
 def createPet(
     response: Response,
-    pet: schema.Pet = Body(..., embed=True),
+    pet: Annotated[schema.Pet, Body(..., embed=True)],
 ) -> schema.Pet:
     # if isinstance(pet, Cat):
     #     pet = pet.__root__
@@ -53,7 +53,7 @@ def listPet(limit: int | None = None) -> schema.Pets:
 
 @router.get("/pets/{petId}", operation_id="getPet", response_model=schema.Pet, responses={404: {"model": schema.Error}})
 def getPet(pet_id: str = Path(..., alias="petId")) -> schema.Pets:
-    for k, pet in ZOO.items():
+    for pet in ZOO.values():
         if pet_id == pet.identifier:
             return pet
     return JSONResponse(

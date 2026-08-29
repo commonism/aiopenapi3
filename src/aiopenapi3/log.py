@@ -77,7 +77,7 @@ def init(force: bool = False) -> None:
     for i in frozenset(config["handlers"].keys()) - frozenset(handlers):
         del config["handlers"][i]
 
-    for i in frozenset(config["formatters"]) - frozenset(map(lambda x: x["formatter"], config["handlers"].values())):
+    for i in frozenset(config["formatters"]) - frozenset(x["formatter"] for x in config["handlers"].values()):
         del config["formatters"][i]
 
     logging.config.dictConfig(config)

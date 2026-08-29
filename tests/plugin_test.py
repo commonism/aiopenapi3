@@ -71,9 +71,8 @@ class OnMessage(Message):
         return ctx
 
     def unmarshalled(self, ctx):
-        if ctx.operationId == "listPets":
-            if ctx.unmarshalled[0].id == 2:
-                ctx.unmarshalled[0].id = 3
+        if ctx.operationId == "listPets" and ctx.unmarshalled[0].id == 2:
+            ctx.unmarshalled[0].id = 3
         return ctx
 
 

@@ -162,7 +162,7 @@ class RequestBase:
         :param kwargs:
         :return: body or (header, body)
         """
-        headers, data, result = self.request(*args, context=context, **kwargs)  # type: ignore[misc]
+        headers, data, _result = self.request(*args, context=context, **kwargs)  # type: ignore[misc]
         if return_headers:
             return headers, data
         return data
@@ -350,7 +350,7 @@ class RequestBase:
                         if not data_.endswith(("\r\r", "\n\n", "\r\n\r\n")):
                             continue
 
-                        v = dict()
+                        v = {}
                         for l in data_.splitlines(keepends=False):
                             if l == "":
                                 continue
@@ -438,7 +438,7 @@ class AsyncRequestBase(RequestBase):
     async def __call__(  # type: ignore[override]
         self, *args, return_headers: bool = False, context: Any = None, **kwargs
     ) -> Union["JSON", tuple[dict[str, str], "JSON"]]:
-        headers, data, result = await self.request(*args, context=context, **kwargs)  # type: ignore [misc]
+        headers, data, _result = await self.request(*args, context=context, **kwargs)  # type: ignore [misc]
         if return_headers:
             return headers, data
         return data
@@ -450,7 +450,7 @@ class AsyncRequestBase(RequestBase):
         try:
             result = await session.send(req, stream=True)
         except Exception as e:
-            raise RequestError(self.operation, self, data, parameters or dict()) from e
+            raise RequestError(self.operation, self, data, parameters or {}) from e
         return result
 
     async def request(  # type: ignore[override]
@@ -541,7 +541,7 @@ class AsyncRequestBase(RequestBase):
                         if not data_.endswith(("\r\r", "\n\n", "\r\n\r\n")):
                             continue
 
-                        v = dict()
+                        v = {}
                         for l in data_.splitlines(keepends=False):
                             if l == "":
                                 continue
@@ -589,8 +589,8 @@ class OperationIndex:
     class OperationTag:
         def __init__(self, oi: "OperationIndex") -> None:
             self._oi = oi
-            self._operations: dict[str, tuple[HTTPMethodType, str, OperationType, list[ServerType] | None]] = dict()
-            self._tags: dict[str, OperationIndex.OperationTag] = dict()
+            self._operations: dict[str, tuple[HTTPMethodType, str, OperationType, list[ServerType] | None]] = {}
+            self._tags: dict[str, OperationIndex.OperationTag] = {}
 
         def __getattr__(self, item) -> RequestBase:
             if item in self._operations:
@@ -604,7 +604,7 @@ class OperationIndex:
             self.operations = []
             self.r: Iterator[int]
             pi: PathItemType
-            for path, pi in api.paths.items():
+            for pi in api.paths.values():
                 op: OperationType
                 if pi.ref:
                     #                    pi = pi.ref._target
@@ -616,7 +616,7 @@ class OperationIndex:
                         continue
                     if use_operation_tags and op.tags:
                         for tag in op.tags:
-                            tags = list()
+                            tags = []
                             while tag:
                                 tags.append(tag)
                                 tag = api._operationindex.tag(tag)
@@ -625,20 +625,19 @@ class OperationIndex:
                     else:
                         self.operations.append(op.operationId)
 
-                if hasattr(pi, "additionalOperations"):  # v32
-                    if pi.additionalOperations:
-                        for method, op in pi.additionalOperations.items():
-                            if use_operation_tags and op.tags:
-                                for tag in op.tags:
-                                    tags = list()
-                                    while tag:
-                                        tags.append(tag)
-                                        tag = api._operationindex.tag(tag)
-                                        tag = getattr(tag, "parent", None)
+                if hasattr(pi, "additionalOperations") and pi.additionalOperations:  # v32
+                    for method, op in pi.additionalOperations.items():
+                        if use_operation_tags and op.tags:
+                            for tag in op.tags:
+                                tags = []
+                                while tag:
+                                    tags.append(tag)
+                                    tag = api._operationindex.tag(tag)
+                                    tag = getattr(tag, "parent", None)
 
-                                    self.operations.append(f"{'.'.join(tags[::-1])}.{op.operationId}")
-                            else:
-                                self.operations.append(op.operationId)
+                                self.operations.append(f"{'.'.join(tags[::-1])}.{op.operationId}")
+                        else:
+                            self.operations.append(op.operationId)
 
             self.r = iter(range(len(self.operations)))
 
@@ -652,7 +651,7 @@ class OperationIndex:
         self._api: OpenAPI = api
         self._root: RootType = api._root
 
-        self._operations: dict[str, tuple[HTTPMethodType, str, OperationType, list[ServerType] | None]] = dict()
+        self._operations: dict[str, tuple[HTTPMethodType, str, OperationType, list[ServerType] | None]] = {}
         self._tags: dict[str, OperationIndex.OperationTag] = collections.defaultdict(
             lambda: OperationIndex.OperationTag(self)
         )
@@ -676,7 +675,7 @@ class OperationIndex:
 
                 if use_operation_tags and op.tags:
                     for tag in op.tags:
-                        tree: list[str] = list()
+                        tree: list[str] = []
                         t: str | None = tag
                         v: TagType | None
                         while t:
@@ -702,23 +701,22 @@ class OperationIndex:
                         raise OperationIdDuplicationError(operationId, [item, other])
                     self._operations[operationId] = item
 
-            if hasattr(pi, "additionalOperations"):  # v32
-                if pi.additionalOperations:
-                    for method, op in pi.additionalOperations.items():
-                        if op.operationId is None:
-                            continue
-                        operationId = op.operationId.replace(" ", "_")
-                        servers = op.servers or pi.servers or None
-                        item = (method, path, op, servers)
-                        if use_operation_tags and op.tags:
-                            for tag in op.tags:
-                                if (other := self._tags[tag]._operations.get(operationId, None)) is not None:
-                                    raise OperationIdDuplicationError(operationId, [item, other])
-                                self._tags[tag]._operations[operationId] = item
-                        else:
-                            if (other := self._operations.get(operationId, None)) is not None:
+            if hasattr(pi, "additionalOperations") and pi.additionalOperations:  # v32
+                for method, op in pi.additionalOperations.items():
+                    if op.operationId is None:
+                        continue
+                    operationId = op.operationId.replace(" ", "_")
+                    servers = op.servers or pi.servers or None
+                    item = (method, path, op, servers)
+                    if use_operation_tags and op.tags:
+                        for tag in op.tags:
+                            if (other := self._tags[tag]._operations.get(operationId, None)) is not None:
                                 raise OperationIdDuplicationError(operationId, [item, other])
-                            self._operations[operationId] = item
+                            self._tags[tag]._operations[operationId] = item
+                    else:
+                        if (other := self._operations.get(operationId, None)) is not None:
+                            raise OperationIdDuplicationError(operationId, [item, other])
+                        self._operations[operationId] = item
 
         # convert to dict as pickle does not like local functions
         self._tags = dict(self._tags)

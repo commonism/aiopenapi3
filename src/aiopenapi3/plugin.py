@@ -1,6 +1,6 @@
 import abc
 import dataclasses
-from typing import TYPE_CHECKING, Any, Optional, TypeGuard
+from typing import TYPE_CHECKING, Any, ClassVar, Optional, TypeGuard
 
 import yarl
 from pydantic import BaseModel
@@ -190,7 +190,7 @@ class Method:
 
 
 class Plugins:
-    _domains: dict[str, type[Plugin]] = {"init": Init, "document": Document, "message": Message}
+    _domains: ClassVar[dict[str, type[Plugin]]] = {"init": Init, "document": Document, "message": Message}
 
     def __init__(self, plugins: list[Plugin]):
         for p in plugins:

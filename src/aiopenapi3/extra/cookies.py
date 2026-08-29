@@ -41,7 +41,7 @@ class Cookies(aiopenapi3.plugin.Message, aiopenapi3.plugin.Init):
             return info
 
     def __init__(
-        self, cookiejar: http.cookiejar.CookieJar = None, policy: Literal["jar", "securitySchemes"] = "jar"
+        self, cookiejar: http.cookiejar.CookieJar | None = None, policy: Literal["jar", "securitySchemes"] = "jar"
     ) -> None:
         """
 
@@ -55,7 +55,7 @@ class Cookies(aiopenapi3.plugin.Message, aiopenapi3.plugin.Init):
         """
         self.cookiejar: http.cookiejar.CookieJar = cookiejar or http.cookiejar.CookieJar()
         self.policy: Literal["jar", "securitySchemes"] = policy
-        self.schemes: dict[str, str] = dict()
+        self.schemes: dict[str, str] = {}
 
         if policy not in ["jar", "securitySchemes"]:
             raise ValueError(f"policy {self.policy} is not a valid policy")

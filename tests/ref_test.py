@@ -67,23 +67,23 @@ def test_allOf_resolution(petstore_expanded):
         # Optional[…] or | None
         return typing.get_origin(x.annotation) == typing.Union and type(None) in typing.get_args(x.annotation)
 
-    assert sorted(map(lambda x: x[0], filter(lambda y: is_nullable(y[1]), items.items()))) == sorted(
-        ["created", "tag"]
-    ), ref.model_json_schema()
+    assert sorted(x[0] for x in filter(lambda y: is_nullable(y[1]), items.items())) == sorted(["created", "tag"]), (
+        ref.model_json_schema()
+    )
 
     def is_required(x):
         # not assign a default '= Field(default=…)' or '= …'
         return x.default == pydantic_core.PydanticUndefined
 
-    assert sorted(map(lambda x: x[0], filter(lambda y: is_required(y[1]), items.items()))) == sorted(["id", "name"]), (
+    assert sorted(x[0] for x in filter(lambda y: is_required(y[1]), items.items())) == sorted(["id", "name"]), (
         ref.model_json_schema()
     )
 
     assert items["id"].annotation is int
     assert items["name"].annotation is str
-    assert items["tag"].annotation == typing.Optional[str]
+    assert items["tag"].annotation == str | None
 
-    r = ref.model_validate([dict(id=1, name="dog"), dict(id=2, name="cat", tag="x")])
+    r = ref.model_validate([{"id": 1, "name": "dog"}, {"id": 2, "name": "cat", "tag": "x"}])
     assert len(r.root) == 2
     assert r.root[1].tag == "x"
 

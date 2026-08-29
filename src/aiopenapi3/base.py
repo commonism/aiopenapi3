@@ -44,7 +44,7 @@ class ObjectExtended(ObjectBase):
             return None
         if not isinstance(values, dict):
             return values
-        e = dict()
+        e = {}
         rm = set()
         for k, v in values.items():
             if k.startswith("x-"):
@@ -53,7 +53,7 @@ class ObjectExtended(ObjectBase):
         if len(e):
             for i in rm:
                 del values[i]
-            if "extensions" in values.keys():
+            if "extensions" in values:
                 raise ValueError("extensions")
             values["extensions"] = e
 
@@ -103,7 +103,7 @@ class RootBase:
                         data[idx] = n
 
             elif isinstance(data, dict):
-                new = dict()
+                new = {}
                 for _k, _v in data.items():
                     n = replace(_v)  # Swagger 2.0 Schema.ref resolver …
                     if _v != n:
@@ -121,15 +121,19 @@ class RootBase:
                     continue
 
                 # v3.1 - Schema $ref
-                if isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root)):
-                    if isinstance(value, SchemaBase):
-                        if (r := getattr(value, "ref", None)) and not isinstance(r, ReferenceBase):
-                            value = _Reference.model_construct(ref=r)
-                            setattr(obj, slot, value)
+                if (
+                    isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root))
+                    and isinstance(value, SchemaBase)
+                    and (r := getattr(value, "ref", None))
+                    and not isinstance(r, ReferenceBase)
+                ):
+                    value = _Reference.model_construct(ref=r)
+                    setattr(obj, slot, value)
 
-                if isinstance(root, (v30.root.Root, v31.root.Root)):
-                    if isinstance(value, (v30.Discriminator, v31.Discriminator)):
-                        """
+                if isinstance(root, (v30.root.Root, v31.root.Root)) and isinstance(
+                    value, (v30.Discriminator, v31.Discriminator)
+                ):
+                    """
                         Discriminated Unions - implementing undefined behavior
                         sub-schemas not having the discriminated property "const" or enum or mismatching the mapping
                         are a problem
@@ -140,50 +144,50 @@ class RootBase:
                         we warn about it and force feed the mapping Literal to make it work
                         """
 
-                        if not value.mapping:
-                            value.mapping = dict()
+                    if not value.mapping:
+                        value.mapping = {}
 
-                            for v in (obj.oneOf or []) + (obj.anyOf or []):
-                                k = Path(JSONReference.split(v.ref)[1]).parts[-1]
-                                value.mapping[k] = v
+                        for v in (obj.oneOf or []) + (obj.anyOf or []):
+                            k = Path(JSONReference.split(v.ref)[1]).parts[-1]
+                            value.mapping[k] = v
 
-                        for k, v in value.mapping.items():
-                            if not isinstance(v, _Reference):
-                                value.mapping[k] = _Reference.model_construct(ref=v)
+                    for k, v in value.mapping.items():
+                        if not isinstance(v, _Reference):
+                            value.mapping[k] = _Reference.model_construct(ref=v)
+                        else:
+                            if v._target is None:
+                                continue
+                            from . import errors
+                            from .model import Model
+
+                            if "object" not in (t := sorted(Model.types(v._target))):
+                                raise errors.SpecError(f"Discriminated Union on a schema with types {t}")
+
+                            if (p := v.properties.get(value.propertyName, None)) is None:
+                                # Warning Model 'Volume' needs a discriminator field for key 'type'
+                                p = v.properties[value.propertyName] = v._target.__class__(
+                                    type="string", additionalProperties=False, enum=[k]
+                                )
+
+                            if (c := getattr(p, "const", None)) is None and len(p.enum or []) == 0:
+                                warnings.warn(
+                                    f"Discriminated Union member {v.ref} without const/enum key property {value.propertyName}",
+                                    category=errors.DiscriminatorWarning,
+                                )
+                                v.properties[value.propertyName].enum = [k]
                             else:
-                                if v._target is None:
-                                    continue
-                                from . import errors
-                                from .model import Model
-
-                                if "object" not in (t := sorted(Model.types(v._target))):
-                                    raise errors.SpecError(f"Discriminated Union on a schema with types {t}")
-
-                                if (p := v.properties.get(value.propertyName, None)) is None:
-                                    # Warning Model 'Volume' needs a discriminator field for key 'type'
-                                    p = v.properties[value.propertyName] = v._target.__class__(
-                                        type="string", additionalProperties=False, enum=[k]
-                                    )
-
-                                if (c := getattr(p, "const", None)) is None and len(p.enum or []) == 0:
+                                if c and c != k:
                                     warnings.warn(
-                                        f"Discriminated Union member {v.ref} without const/enum key property {value.propertyName}",
+                                        f"Discriminated Union member key property const mismatches property mapping {c} != {k}",
+                                        category=errors.DiscriminatorWarning,
+                                    )
+                                    v.properties[value.propertyName].const = k
+                                if p.enum and (len(p.enum) != 1 or p.enum[0] != k):
+                                    warnings.warn(
+                                        f"Discriminated Union member key property enum mismatches property mapping {p.enum[0]} != {k}",
                                         category=errors.DiscriminatorWarning,
                                     )
                                     v.properties[value.propertyName].enum = [k]
-                                else:
-                                    if c and c != k:
-                                        warnings.warn(
-                                            f"Discriminated Union member key property const mismatches property mapping {c} != {k}",
-                                            category=errors.DiscriminatorWarning,
-                                        )
-                                        v.properties[value.propertyName].const = k
-                                    if p.enum and (len(p.enum) != 1 or p.enum[0] != k):
-                                        warnings.warn(
-                                            f"Discriminated Union member key property enum mismatches property mapping {p.enum[0]} != {k}",
-                                            category=errors.DiscriminatorWarning,
-                                        )
-                                        v.properties[value.propertyName].enum = [k]
 
                 if not isinstance(value, ReferenceBase):
                     """
@@ -192,11 +196,14 @@ class RootBase:
                     PathItem Ref is ambiguous
                     https://github.com/OAI/OpenAPI-Specification/issues/2635
                     """
-                    if isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root)):
-                        if isinstance(obj, _PathItem) and slot == "ref":
-                            ref = _Reference.model_construct(ref=value)
-                            ref._target = api.resolve_jr(root, obj, ref)
-                            setattr(obj, slot, ref)
+                    if (
+                        isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root))
+                        and isinstance(obj, _PathItem)
+                        and slot == "ref"
+                    ):
+                        ref = _Reference.model_construct(ref=value)
+                        ref._target = api.resolve_jr(root, obj, ref)
+                        setattr(obj, slot, ref)
 
                 value = getattr(obj, slot)
 
@@ -352,12 +359,12 @@ class SchemaBase(BaseModel):
         """
         r = BaseModel.__getstate__(self)
         try:
-            for k, v in {"_model_type": None, "_model_types": list()}.items():
+            for k, v in {"_model_type": None, "_model_types": []}.items():
                 if k in r["__pydantic_private__"]:
                     r["__pydantic_private__"] = r["__pydantic_private__"].copy()
                     r["__pydantic_private__"][k] = v
 
-        except Exception:
+        except Exception:  # noqa: S110
             pass
         return r
 
@@ -465,8 +472,8 @@ class OperationBase:
 
         assert self.parameters is not None
         assert pi_.parameters is not None
-        op: frozenset[str] = frozenset(map(lambda x: x.name, filter(parameter_in_path, self.parameters)))
-        pi: frozenset[str] = frozenset(map(lambda x: x.name, filter(parameter_in_path, pi_.parameters)))
+        op: frozenset[str] = frozenset(x.name for x in filter(parameter_in_path, self.parameters))
+        pi: frozenset[str] = frozenset(x.name for x in filter(parameter_in_path, pi_.parameters))
 
         invalid = sorted(filter(lambda x: re.match(r"^([a-zA-Z0-9\-\._~]+)$", x) is None or len(x) == 0, op | pi))
         if invalid:

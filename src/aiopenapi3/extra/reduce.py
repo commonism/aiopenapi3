@@ -8,8 +8,8 @@ from ..plugin import Document, Init
 if typing.TYPE_CHECKING:
     from .._types import HTTPMethodMatchType, PathItemType
 
-    PathMatchType = Union[re.Pattern, str]
-    OperationIdMatchType = Union[re.Pattern, str]
+    PathMatchType = re.Pattern | str
+    OperationIdMatchType = re.Pattern | str
 
 
 class Reduce(Document, Init):
@@ -55,7 +55,7 @@ class Reduce(Document, Init):
                             reduced[path_key][operation_key] = operation_value
             elif isinstance(operation, tuple) and len(operation) == 2:
                 pattern, operation_patterns = operation
-                for path_key in ctx.document["paths"].keys():
+                for path_key in ctx.document["paths"]:
                     if (isinstance(pattern, str) and pattern == path_key) or (
                         isinstance(pattern, re.Pattern) and re.match(pattern, path_key)
                     ):
@@ -97,13 +97,13 @@ class Reduce(Document, Init):
                 del ctx.initialized.components.schemas[name]
 
         for name, response in list(ctx.initialized.components.responses.items()):
-            for k, v in response.content.items():
+            for v in response.content.values():
                 if v.schema_._model_type is None:
                     del ctx.initialized.components.responses[name]
                     break
 
         for name, requestBody in list(ctx.initialized.components.requestBodies.items()):
-            for k, v in requestBody.content.items():
+            for v in requestBody.content.values():
                 if v.schema_._model_type is None:
                     del ctx.initialized.components.requestBodies[name]
                     break

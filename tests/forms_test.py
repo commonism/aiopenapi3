@@ -2,6 +2,7 @@ import asyncio
 import copy
 import datetime
 import decimal
+import typing
 
 import pytest
 import pytest_asyncio
@@ -78,7 +79,7 @@ class FileForm(FlaskForm):
 
 
 class SelectForm(FlaskForm):
-    CHOICES = [("cpp", "C++"), ("py", "Python"), ("txt", "Plain Text"), ("rb", "Ruby"), ("c", "C")]
+    CHOICES: typing.ClassVar = [("cpp", "C++"), ("py", "Python"), ("txt", "Plain Text"), ("rb", "Ruby"), ("c", "C")]
 
     class Meta:
         csrf = False
@@ -285,7 +286,7 @@ def form_type(request):
 async def client(server, form_type, with_paths_requestbody_formdata_wtforms):
     data = copy.deepcopy(with_paths_requestbody_formdata_wtforms)
     if form_type != "multipart/form-data":
-        for op, v in data["paths"].items():
+        for v in data["paths"].values():
             v["post"]["requestBody"]["content"][form_type] = v["post"]["requestBody"]["content"]["multipart/form-data"]
             del v["post"]["requestBody"]["content"]["multipart/form-data"]
 
@@ -329,7 +330,7 @@ async def test_String(server, client, form_type):
 @pytest.mark.asyncio(loop_scope="session")
 async def test_DateTime(server, client, form_type):
     cls = client._.datetime.operation.requestBody.content[form_type].schema_.get_type()
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(tz=datetime.timezone.utc)
 
     data = cls(
         time=now.time(), date=now.date(), datetime=datetime.datetime.now(tz=datetime.timezone.utc), datetimelocal=now

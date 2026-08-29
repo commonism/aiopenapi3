@@ -60,7 +60,7 @@ class MSGraph:
                         # Check if description matches the desired format
                         if description.strip() == "Usage: on='{on}'":
                             parameter["name"] = "on"
-                        if "content" in parameter.keys():
+                        if "content" in parameter:
                             parameter["schema"] = parameter["content"].get("application/json", {}).get("schema", {})
                             del parameter["content"]
         # Drop requirement for @odata.type since it's not actually enforced
@@ -137,13 +137,13 @@ def test_reduced(with_extra_reduced, httpx2_mock, compressor):
     assert "A" in api.components.responses
     assert "A" in api.components.requestBodies
 
-    httpx2_mock.add_response(headers={"Content-Type": "application/json", "X-A": "A"}, json=dict(a=1))
+    httpx2_mock.add_response(headers={"Content-Type": "application/json", "X-A": "A"}, json={"a": 1})
 
     from aiopenapi3.request import RequestBase
 
     req: RequestBase = api._.A
     data = req.data.get_type().model_construct(a="a")
-    headers, payload = req(data=data, parameters=dict(Path="a"), return_headers=True)
+    headers, payload = req(data=data, parameters={"Path": "a"}, return_headers=True)
     assert payload.a == 1
     assert headers["X-A"] == "A"
 
@@ -201,7 +201,7 @@ def test_reduced(with_extra_reduced, httpx2_mock, compressor):
 from aiopenapi3.extra import Cookies
 
 
-@pytest.mark.parametrize("cookie", [dict(policy="jar"), dict(policy="securitySchemes")], ids=["jar", "securityScheme"])
+@pytest.mark.parametrize("cookie", [{"policy": "jar"}, {"policy": "securitySchemes"}], ids=["jar", "securityScheme"])
 def test_cookies(httpx2_mock, with_extra_cookie, cookie):
 
     api = OpenAPI(

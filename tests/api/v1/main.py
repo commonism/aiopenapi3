@@ -1,4 +1,5 @@
 import errno
+from typing import Annotated
 
 import starlette.status
 from fastapi import APIRouter, Body, Path, Response
@@ -9,7 +10,7 @@ from .schema import Error, Pet, PetCreate, Pets
 router = APIRouter(prefix="/v1")
 
 
-ZOO = dict()
+ZOO = {}
 
 
 def _idx(l):
@@ -40,7 +41,7 @@ idx = _idx(100)
 )
 def createPet(
     response: Response,
-    pet: PetCreate = Body(..., embed=True),
+    pet: Annotated[PetCreate, Body(..., embed=True)],
 ) -> None:
     if pet.name in ZOO:
         return JSONResponse(
@@ -61,7 +62,7 @@ def listPet(limit: int | None = None) -> Pets:
 
 @router.get("/pets/{petId}", operation_id="getPet", response_model=Pet, responses={404: {"model": Error}})
 def getPet(pet_id: int = Path(..., alias="petId")) -> Pets:
-    for k, v in ZOO.items():
+    for v in ZOO.values():
         if pet_id == v.id:
             return v
     return JSONResponse(

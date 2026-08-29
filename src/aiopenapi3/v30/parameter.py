@@ -36,11 +36,11 @@ class _ParameterCodec:
         elif self.in_ == "query":
             style = self.style or "form"
             assert style in frozenset(["form", "spaceDelimited", "pipeDelimited", "deepObject"])
-            explode = self.explode if self.explode is not None else (False if style != "form" else True)
+            explode = self.explode if self.explode is not None else (style == "form")
         elif self.in_ == "cookie":
             style = self.style or "form"
             assert style in frozenset(["form"])
-            explode = self.explode if self.explode is not None else (False if style != "form" else True)
+            explode = self.explode if self.explode is not None else (style == "form")
         elif self.in_ == "querystring":
             style = "querystring"
             explode = None
@@ -197,7 +197,7 @@ class _ParameterCodec:
         elif type_ == "boolean":
             return {name: json.dumps(value)}
         elif type_ == "null":
-            return dict()
+            return {}
         elif type_ == "array":
             assert isinstance(value, (list, tuple))
             # blue,black,brown
@@ -229,7 +229,7 @@ class _ParameterCodec:
         assert explode is False
 
         if value is None:
-            return dict()
+            return {}
 
         if type_ == "array":
             value = sep.join(value)
@@ -245,7 +245,7 @@ class _ParameterCodec:
         assert type_ == "object" and explode is True
 
         if not value:
-            return dict()
+            return {}
 
         values = value if isinstance(value, dict) else value.model_dump()
         # color[R]=100&color[G]=200&color[B]=150
@@ -266,7 +266,7 @@ class _ParameterCodec:
 
     def _encode__querystring(self, name: str, type_: str, value, schema: "v3xSchemaType", explode: bool):
         print(name, type_, value, schema, explode)
-        values = dict()
+        values = {}
         ct = next(iter(self.content.keys()))
         media = self.content[ct]
         if ct == "application/x-www-form-urlencoded":
@@ -298,7 +298,7 @@ class _ParameterCodec:
                 return dict(more_itertools.chunked(value.split(","), 2))
             else:
                 # R=100,G=200,B=150
-                return dict(map(lambda y: (y[0], y[2]), map(lambda x: x.partition("="), value.split(","))))
+                return {y[0]: y[2] for y in (x.partition("=") for x in value.split(","))}
         else:
             # convert basic type
             return value
@@ -340,7 +340,7 @@ class Parameter(ParameterBase, _ParameterCodec):
     @model_validator(mode="after")
     def validate_Parameter(self):
         assert self.in_ != "path" or self.required is True, (
-            "Parameter '%s' must be required since it is in the path" % self.name
+            f"Parameter '{self.name}' must be required since it is in the path"
         )
         return self
 

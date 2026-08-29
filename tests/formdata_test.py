@@ -14,11 +14,11 @@ def test_encode_formdata():
 
     schema = Schema()
     ITEMS = [
-        MultipartParameter("text", "text/plain", "bar", dict(), schema),
+        MultipartParameter("text", "text/plain", "bar", {}, schema),
         MultipartParameter("text", "text/plain", "bar", {"X-HEAD": "text"}, schema),
-        MultipartParameter("audio", "audio/wav", b"jd", dict(), schema),
-        MultipartParameter("image", "image/png", b"jd", dict(), schema),
-        MultipartParameter("data", "application/octet-stream", data, dict(), schema),
+        MultipartParameter("audio", "audio/wav", b"jd", {}, schema),
+        MultipartParameter("image", "image/png", b"jd", {}, schema),
+        MultipartParameter("data", "application/octet-stream", data, {}, schema),
         MultipartParameter("mph", "application/octet-stream", data, {"X-HEAD": "mph"}, schema),
     ]
 
@@ -66,7 +66,7 @@ Content-Type: {request.headers["content-type"]}
     )
     assert msg.defects == [] and msg.is_multipart()
 
-    r = dict()
+    r = {}
     for p in msg.get_payload():
         name = p.get_param("name", header="content-disposition")
         payload = p.get_payload(decode=True)

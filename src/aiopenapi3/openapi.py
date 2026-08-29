@@ -43,9 +43,7 @@ def has_components(y: Optional["RootType"]) -> TypeGuard[v30.Root | v31.Root]:
     #    return all([y, y.components])
     if y is None:
         return False
-    if y.components is None:
-        return False
-    return True
+    return y.components is not None
 
 
 def is_schema(v: tuple[str, "SchemaType"]) -> TypeGuard["SchemaType"]:
@@ -269,18 +267,18 @@ class OpenAPI:
         Raise for http status code
         """
 
-        self._security: dict[str, tuple[str]] = dict()
+        self._security: dict[str, tuple[str]] = {}
         """
         authorization informations
         e.g. {"BasicAuth": ("user","secret")}
         """
 
-        self._documents: dict[yarl.URL, RootType] = dict()
+        self._documents: dict[yarl.URL, RootType] = {}
         """
         the related documents
         """
 
-        self._server_variables: dict[str, str] = dict()
+        self._server_variables: dict[str, str] = {}
         """
         server variable mapping
         """
@@ -428,7 +426,7 @@ class OpenAPI:
                 else:
                     raise ValueError(self._root)
         else:
-            raise ValueError(self._root)
+            raise ValueError(self._root)  # noqa: TRY004
 
         self._operationindex = OperationIndex(self, use_operation_tags)
         return p is None
@@ -480,7 +478,7 @@ class OpenAPI:
         return processed
 
     def _init_schema_types_collect(self, only_required: bool) -> dict[str, "SchemaType"]:
-        byname: dict[str, SchemaType] = dict()
+        byname: dict[str, SchemaType] = {}
 
         def is_schema(v: tuple[str, "SchemaType"]) -> bool:
             return isinstance(v[1], (v20.Schema, v30.Schema, v31.Schema))
@@ -490,7 +488,7 @@ class OpenAPI:
             documents = cast(list[v20.Root], self._documents.values())
             # Schema
             if only_required is False:
-                for byid in map(lambda x: x.definitions, documents):
+                for byid in (x.definitions for x in documents):
                     assert byid is not None and isinstance(byid, dict)
                     for name, schema in filter(is_schema, byid.items()):
                         n = schema._get_identity(name=name)
@@ -498,7 +496,7 @@ class OpenAPI:
                         byname[n] = schema
 
                 # PathItems
-                for path, obj in (self.paths or dict()).items():
+                for path, obj in (self.paths or {}).items():
                     for m in obj.model_fields_set & HTTP_METHODS:
                         op = getattr(obj, m)
 
@@ -514,7 +512,7 @@ class OpenAPI:
                                 raise TypeError(f"{type(response)} at {path}")
 
             # Response
-            for byid in map(lambda x: x.responses, documents):
+            for byid in (x.responses for x in documents):
                 assert byid is not None and isinstance(byid, dict)
                 for name, response in filter(is_schema, byid.items()):
                     assert response.schema_
@@ -528,7 +526,7 @@ class OpenAPI:
             components = [x.components for x in filter(has_components, documents) if x.components is not None]
             assert components is not None
             if only_required is False:
-                for byid in map(lambda x: x.schemas, components):
+                for byid in (x.schemas for x in components):
                     assert byid is not None and isinstance(byid, dict)
                     for name, schema in filter(is_schema, byid.items()):
                         n = schema._get_identity(name=name)
@@ -536,7 +534,7 @@ class OpenAPI:
                         byname[n] = schema
 
             # PathItems
-            for path, obj in (self.paths or dict()).items():
+            for path, obj in (self.paths or {}).items():
                 for m in obj.model_fields_set & HTTP_METHODS:
                     op = getattr(obj, m)
 
@@ -587,9 +585,9 @@ class OpenAPI:
 
             # Response
             if only_required is False:
-                for responses in map(lambda x: x.responses, components):
+                for responses in (x.responses for x in components):
                     assert responses is not None
-                    for rname, response in responses.items():
+                    for response in responses.values():
                         for mt, mto in response.content.items():
                             if mto.schema_ is None:
                                 continue
@@ -605,14 +603,14 @@ class OpenAPI:
         byid: dict[int, SchemaType] = {id(i): i for i in byname.values()}
         data: set[int] = set(byid.keys())
         todo: set[int] = self._iterate_schemas(byid, data, set())
-        types: dict[str, type[BaseModel | int | str | float | bool] | ForwardRef] = dict()
+        types: dict[str, type[BaseModel | int | str | float | bool] | ForwardRef] = {}
 
         """
         Due to Plugins (e.g. Cull/Reduce) byname may be incomplete
         """
-        resolved: list[SchemaType] = list(
-            map(lambda x: byid[x]._target if isinstance(byid[x], ReferenceBase) else byid[x], todo | data)
-        )
+        resolved: list[SchemaType] = [
+            byid[x]._target if isinstance(byid[x], ReferenceBase) else byid[x] for x in todo | data
+        ]
         self.plugins.init.resolved(initialized=self._root, resolved=resolved)
 
         # print(f"{len(todo | data)} {only_required=}")
@@ -647,8 +645,8 @@ class OpenAPI:
                     for v in byid[id(thes)]._model_types:
                         assert v.__name__ in types, v.__name__
                         v.model_rebuild(_types_namespace={"__types": types})
-            except Exception as e:
-                raise e
+            except Exception as e:  # noqa: TRY203
+                raise
 
     @property
     def url(self) -> yarl.URL:
@@ -688,7 +686,7 @@ class OpenAPI:
         :param kwargs: scheme=value
         """
         if len(args) == 1 and args[0] is None:
-            self._security = dict()
+            self._security = {}
 
         schemes = frozenset(kwargs.keys())
 

@@ -10,7 +10,6 @@ import logging
 import pstats
 import sys
 import tracemalloc
-import typing
 from pstats import SortKey
 
 import httpx2
@@ -26,14 +25,12 @@ logging.basicConfig()
 from pathlib import Path
 
 import aiopenapi3.loader
+import aiopenapi3.request
 from aiopenapi3.v30.formdata import decode_content_type
 
 from .loader import ChainLoader, RedirectLoader, WebLoader
 from .log import init
 from .openapi import OpenAPI
-
-if typing.TYPE_CHECKING:
-    import aiopenapi3.request
 
 init()
 
@@ -92,13 +89,13 @@ def tm_display_top(snapshot, key_type="lineno", limit=10):
     )
     top_stats = snapshot.statistics(key_type)
 
-    print("Top %s lines" % limit)
+    print(f"Top {limit} lines")
     for index, stat in enumerate(top_stats[:limit], 1):
         frame = stat.traceback[0]
         print(f"#{index}: {frame.filename}:{frame.lineno}: {stat.size / 1024:.1f} KiB")
         line = linecache.getline(frame.filename, frame.lineno).strip()
         if line:
-            print("    %s" % line)
+            print(f"    {line}")
 
     other = top_stats[limit:]
     if other:
@@ -119,10 +116,8 @@ def pr_display_top(pr):
 def schema_display_stats(api, duration):
     operations = list(
         itertools.chain.from_iterable(
-            map(
-                lambda x: list(filter(lambda x: x, [x.delete, x.get, x.head, x.options, x.patch, x.post, x.put])),
-                api.paths._paths.values(),
-            )
+            list(filter(lambda x: x, [x.delete, x.get, x.head, x.options, x.patch, x.post, x.put]))
+            for x in api.paths._paths.values()
         )
     )
     print(f"…  {duration} (processing time)")
@@ -247,7 +242,7 @@ def main(argv=None):
             req.data.get_type().model_validate(data)
 
         try:
-            headers, ret, response = req.request(parameters=parameters, data=data)
+            _headers, ret, response = req.request(parameters=parameters, data=data)
         except aiopenapi3.errors.ResponseSchemaError as e:
             print(e.response.json())
             print(e.response.headers)
@@ -274,16 +269,16 @@ def main(argv=None):
         loader = loader_prepare(args, session_factory)
 
         try:
-            begin = datetime.datetime.now()
+            begin = datetime.datetime.now(tz=datetime.timezone.utc)
             try:
                 api = OpenAPI.load_file(args.input, yarl.URL(args.input), plugins=plugins, loader=loader)
             except aiopenapi3.errors.ReferenceResolutionError as e0:
                 print(f"{e0} {e0.document} {e0.element}")
                 return
-            end = datetime.datetime.now()
+            end = datetime.datetime.now(tz=datetime.timezone.utc)
             duration = end - begin
         except ValueError as e:
-            logg.exception(e)
+            logg.exception()
         else:
             if args.verbose:
                 schema_display_stats(api, duration)

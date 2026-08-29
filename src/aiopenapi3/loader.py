@@ -19,6 +19,8 @@ for i in ["orjson", "simdjson", "ujson", "json"]:
 
 assert json is not None
 
+import functools
+import operator
 from pathlib import Path
 
 from .plugin import Plugins
@@ -41,7 +43,7 @@ class YAML12Loader(yaml.SafeLoader):
     add the YAML 1.2 core tags
     """
 
-    _core_resolvers = [
+    _core_resolvers: typing.ClassVar = [
         ["bool", re.compile(r"""^(?:|true|True|TRUE|false|False|FALSE)$""", re.VERBOSE), list("tTfF")],
         [
             "int",
@@ -75,7 +77,9 @@ class YAML12Loader(yaml.SafeLoader):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         tags = set(
-            sum(list(map(lambda x: list(map(lambda y: y[0], x)), YAML12Loader.yaml_implicit_resolvers.values())), [])
+            functools.reduce(
+                operator.iadd, [[y[0] for y in x] for x in YAML12Loader.yaml_implicit_resolvers.values()], []
+            )
         )
         for tag in tags:
             YAML12Loader.remove_implicit_resolver(tag)
@@ -166,11 +170,11 @@ class Loader(abc.ABC):
         if file.suffix not in (".yaml", ".json"):
             try:
                 return self.parse(plugins, url.with_path("/test.yaml"), data)
-            except Exception as e:
+            except Exception as e:  # noqa: S110
                 pass
             try:
                 return self.parse(plugins, url.with_path("/test.json"), data)
-            except Exception as e:
+            except Exception as e:  # noqa: S110
                 pass
 
         if file.suffix == ".yaml":

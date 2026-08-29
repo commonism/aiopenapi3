@@ -133,7 +133,7 @@ def test_paths_response_header_v20(httpx2_mock, with_paths_response_header_v20):
         headers={"Content-Type": "application/json", "X-required": "1", "X-optional": "1,2,3"}, json="get"
     )
     api = OpenAPI(URLBASE, with_paths_response_header_v20, session_factory=httpx2.Client)
-    h, b = api._.get(return_headers=True)
+    h, _b = api._.get(return_headers=True)
     request = httpx2_mock.get_requests()[-1]
 
     assert isinstance(h["X-required"], str)
@@ -177,7 +177,7 @@ def test_paths_parameter_format_v20(httpx2_mock, with_paths_parameter_format_v20
     result = api._.formdata(parameters=params)
     request = httpx2_mock.get_requests()[-1]
 
-    files = dict()
+    files = {}
 
     def on_file(file):
         file.file_object.seek(0)
@@ -201,7 +201,7 @@ def test_paths_parameter_format_v20(httpx2_mock, with_paths_parameter_format_v20
     )
     assert result == "ok"
 
-    params = dict(A="a", B=5)
+    params = {"A": "a", "B": 5}
     result = api._.urlencoded(parameters=params)
     request = httpx2_mock.get_requests()[-1]
     assert (v := urllib.parse.parse_qs(request.content.decode())) is not None and v["A"] == ["a"] and v["B"] == ["5"]

@@ -87,25 +87,23 @@ class Request(RequestBase):
             return
 
         if not self.security:
-            if any([{} == i.root for i in security]):
+            if any({} == i.root for i in security):
                 return
             else:
                 options = " or ".join(
-                    sorted(map(lambda x: f"{{{x}}}", [" and ".join(sorted(i.root.keys())) for i in security]))
+                    sorted(f"{{{x}}}" for x in [" and ".join(sorted(i.root.keys())) for i in security])
                 )
                 raise ValueError(f"No security requirement provided (accepts {options})")
 
         for s in security:
             if frozenset(s.root.keys()) - frozenset(self.security.keys()):
                 continue
-            for scheme, _ in s.root.items():
+            for scheme in s.root:
                 value = self.security[scheme]
                 self._prepare_secschemes(scheme, value)
             break
         else:
-            options = " or ".join(
-                sorted(map(lambda x: f"{{{x}}}", [" and ".join(sorted(i.root.keys())) for i in security]))
-            )
+            options = " or ".join(sorted(f"{{{x}}}" for x in [" and ".join(sorted(i.root.keys())) for i in security]))
             raise ValueError(
                 f"No security requirement satisfied (accepts {options} given {{{' and '.join(sorted(self.security.keys()))}}})"
             )
@@ -153,7 +151,7 @@ class Request(RequestBase):
                 self.req.auth = httpx2_auth.HeaderApiKey(value, ss.name)
 
     def _prepare_parameters(self, provided: Optional["RequestParameters"]):
-        provided = provided or dict()
+        provided = provided or {}
         possible = {_.name: _ for _ in self.operation.parameters + self.root.paths[self.path].parameters}
 
         parameters = {i.name: i.default for i in filter(lambda x: x.default is not None, possible.values())}
@@ -161,9 +159,7 @@ class Request(RequestBase):
 
         available = frozenset(parameters.keys())
         accepted = frozenset(possible.keys())
-        required = frozenset(
-            map(lambda x: x[0], filter(lambda y: y[1].required and y[1].in_ != "body", possible.items()))
-        )
+        required = frozenset(x[0] for x in filter(lambda y: y[1].required and y[1].in_ != "body", possible.items()))
         if available - accepted:
             raise ValueError(f"Parameter {sorted(available - accepted)} unknown (accepted {sorted(accepted)})")
         if required - available:
@@ -260,9 +256,9 @@ class Request(RequestBase):
     def _process__headers(
         self, result: httpx2.Response, headers: dict[str, str], expected_response: "v20ResponseType"
     ) -> "ResponseHeadersType":
-        rheaders = dict()
+        rheaders = {}
         if expected_response.headers:
-            required = dict(map(lambda x: (x[0].lower(), x[1]), expected_response.headers.items()))
+            required = {x[0].lower(): x[1] for x in expected_response.headers.items()}
             """
             Swagger 2.0 does not have optional header - all defined headers are required
             https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#header-object

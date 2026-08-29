@@ -1,3 +1,5 @@
+import typing
+
 import httpx2
 import pytest
 
@@ -22,12 +24,15 @@ def session_factory(*args, **kwargs) -> httpx2.Client:
 
 
 class OnDocument(Document):
-    ApiResponse = {"description": "successful operation", "schema": {"$ref": "#/definitions/ApiResponse"}}
-    PetResponse = {"description": "successful operation", "schema": {"$ref": "#/definitions/Pet"}}
+    ApiResponse: typing.ClassVar = {
+        "description": "successful operation",
+        "schema": {"$ref": "#/definitions/ApiResponse"},
+    }
+    PetResponse: typing.ClassVar = {"description": "successful operation", "schema": {"$ref": "#/definitions/Pet"}}
 
     def parsed(self, ctx):
-        for name, path in ctx.document["paths"].items():
-            for method, action in path.items():
+        for path in ctx.document["paths"].values():
+            for action in path.values():
                 if "default" not in action["responses"]:
                     action["responses"]["default"] = OnDocument.ApiResponse
 
@@ -46,7 +51,7 @@ class OnMessage(Message):
     def parsed(self, ctx):
         def goodPet(i):
             if not isinstance(i.get("photoUrls", None), list):
-                i["photoUrls"] = list()
+                i["photoUrls"] = []
             for idx, j in enumerate(i["photoUrls"]):
                 if not isinstance(j, str):
                     i["photoUrls"][idx] = "<invalid>"
@@ -55,7 +60,7 @@ class OnMessage(Message):
                 i["status"] = "pending"
 
             if (c := i.get("category", None)) is None or not isinstance(c, dict):
-                i["category"] = dict(id=0, name="default")
+                i["category"] = {"id": 0, "name": "default"}
 
             if (c := i.get("name", None)) is None or not isinstance(c, str):
                 i["name"] = ""
@@ -65,21 +70,21 @@ class OnMessage(Message):
                     i["id"] = 0
 
             if False:
-                for t in i.get("tags", list()):
+                for t in i.get("tags", []):
                     for k, v in {"name": "default", "id": 0}.items():
                         if k not in t:
                             t[k] = v
 
         Pet = self.api.resolve_jr(self.api._root, None, Reference(**{"$ref": "#/definitions/Pet"}))
 
-        if ctx.operationId == "getPetById":
-            if Pet == ctx.expected_type:
-                goodPet(ctx.parsed)
+        if ctx.operationId == "getPetById" and Pet == ctx.expected_type:
+            goodPet(ctx.parsed)
 
-        if ctx.operationId in frozenset(["findPetsByStatus", "findPetsByTags"]):
-            if Pet == getattr(ctx.expected_type.items, "_target", None):
-                for i in ctx.parsed:
-                    goodPet(i)
+        if ctx.operationId in frozenset(["findPetsByStatus", "findPetsByTags"]) and Pet == getattr(
+            ctx.expected_type.items, "_target", None
+        ):
+            for i in ctx.parsed:
+                goodPet(i)
         return ctx
 
 
@@ -197,7 +202,7 @@ def test_pets(api, login):
     assert (isinstance(r, list) and len(r) >= 0) or isinstance(r, ApiResponse)
 
     r = api._.findPetsByTags(parameters={"tags": ["unknown"]})
-    assert isinstance(r, list) or isinstance(r, ApiResponse)
+    assert isinstance(r, (list, ApiResponse))
 
     # deletePet
     r = api._.findPetsByStatus(parameters={"status": ["available", "pending", "sold"]})
@@ -234,7 +239,7 @@ def test_pets(api, login):
 
     # findPetsByStatus is patched
     r = api._.findPetsByStatus(parameters={"status": ["invalid"]})
-    assert all([i.status == "pending" for i in r])
+    assert all(i.status == "pending" for i in r)
 
 
 def test_store(api):

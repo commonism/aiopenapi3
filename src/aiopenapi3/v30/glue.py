@@ -2,7 +2,7 @@ import io
 import json
 import urllib.parse
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 import httpx2
 
@@ -52,8 +52,8 @@ if TYPE_CHECKING:
     from .paths import MediaType as v30MediaType
     from .paths import Response as v30Response
 
-    v3xResponseType = Union[v30Response, v31Response]
-    v3xMediaTypeType = Union[v30MediaType, v31MediaType]
+    v3xResponseType = v30Response | v31Response
+    v3xMediaTypeType = v30MediaType | v31MediaType
 
 
 class Request(RequestBase):
@@ -92,9 +92,10 @@ class Request(RequestBase):
 
     def return_value(self, http_status: int = 200, content_type: str = "application/json") -> Optional["SchemaType"]:
         status_key = str(http_status)
-        if a := self.operation.responses.get(status_key) or self.operation.responses.get(status_key[0] + "XX"):
-            if b := a.content.get(content_type):
-                return b.schema_
+        if (a := (self.operation.responses.get(status_key) or self.operation.responses.get(status_key[0] + "XX"))) and (
+            b := a.content.get(content_type)
+        ):
+            return b.schema_
         return None
 
     def _prepare_security(self) -> None:
@@ -104,25 +105,23 @@ class Request(RequestBase):
             return
 
         if not self.security:
-            if any([{} == i.root for i in security]):
+            if any({} == i.root for i in security):
                 return
             else:
                 options = " or ".join(
-                    sorted(map(lambda x: f"{{{x}}}", [" and ".join(sorted(i.root.keys())) for i in security]))
+                    sorted(f"{{{x}}}" for x in [" and ".join(sorted(i.root.keys())) for i in security])
                 )
                 raise ValueError(f"No security requirement satisfied (accepts {options})")
 
         for s in security:
             if frozenset(s.root.keys()) - frozenset(self.security.keys()):
                 continue
-            for scheme, _ in s.root.items():
+            for scheme in s.root:
                 value = self.security[scheme]
                 self._prepare_secschemes(scheme, value)
             break
         else:
-            options = " or ".join(
-                sorted(map(lambda x: f"{{{x}}}", [" and ".join(sorted(i.root.keys())) for i in security]))
-            )
+            options = " or ".join(sorted(f"{{{x}}}" for x in [" and ".join(sorted(i.root.keys())) for i in security]))
             raise ValueError(
                 f"No security requirement satisfied (accepts {options} given {{{' and '.join(sorted(self.security.keys()))}}}"
             )
@@ -272,7 +271,7 @@ class Request(RequestBase):
           A unique parameter is defined by a combination of a name and location.
         """
 
-        provided = provided or dict()
+        provided = provided or {}
         possible = {_.name: _ for _ in self.operation.parameters + self.root.paths[self.path].parameters}
 
         from .. import v30, v31, v32
@@ -280,11 +279,11 @@ class Request(RequestBase):
         assert isinstance(self.operation, (v30.Operation, v31.Operation, v32.Operation))
 
         if self.operation.requestBody:
-            rbq: dict[str, str] = dict()  # requestBody Parameters
+            rbq: dict[str, str] = {}  # requestBody Parameters
             ct = "multipart/form-data"
             if ct in self.operation.requestBody.content:
                 assert self.operation.requestBody.content[ct].encoding is not None
-                for k, v in self.operation.requestBody.content[ct].encoding.items():
+                for v in self.operation.requestBody.content[ct].encoding.values():
                     assert v.headers is not None and isinstance(v.headers, dict)
                     rbq.update(v.headers)
                 possible.update(rbq)
@@ -306,7 +305,7 @@ class Request(RequestBase):
 
         available = frozenset(parameters.keys())
         accepted = frozenset(possible.keys())
-        required = frozenset(map(lambda x: x[0], filter(lambda y: y[1].required, possible.items())))
+        required = frozenset(x[0] for x in filter(lambda y: y[1].required, possible.items()))
         if available - accepted:
             raise ValueError(f"Parameter {sorted(available - accepted)} unknown (accepted {sorted(accepted)})")
         if required - available:
@@ -315,7 +314,7 @@ class Request(RequestBase):
             )
 
         path_parameters = {}
-        mph = dict()
+        mph = {}
         for name, value in parameters.items():
             spec = possible[name]
             values = spec._encode(name, value)
@@ -395,8 +394,8 @@ class Request(RequestBase):
                 self.req.content = msg.as_string()
                 self.req.headers["Content-Type"] = f'{msg.get_content_type()}; boundary="{msg.get_boundary()}"'
             elif isinstance(data_, list):
-                rfiles = list()
-                rdata: dict[str, str] = dict()
+                rfiles = []
+                rdata: dict[str, str] = {}
                 name: str
                 value: tuple[str, Any]
                 for name, value in cast(Sequence[tuple[str, Any]], data_):
@@ -415,7 +414,7 @@ class Request(RequestBase):
                         assert media.encoding is not None
                         if (e := media.encoding.get(name)) is not None:
                             assert e.headers
-                            headers.update({name: mph[name] for name in e.headers.keys() if name in mph})
+                            headers.update({name: mph[name] for name in e.headers if name in mph})
                         _value = (alias, fh, content_type, headers)
                         rfiles.append((name, _value))
                     elif isinstance(value, str):
@@ -511,14 +510,11 @@ class Request(RequestBase):
     def _process__headers(
         self, result: httpx2.Response, headers: dict[str, str], expected_response: "v3xResponseType"
     ) -> "ResponseHeadersType":
-        rheaders = dict()
+        rheaders = {}
         if expected_response.headers:
-            required = dict(
-                map(
-                    lambda x: (x[0].lower(), x[1]),
-                    filter(lambda x: x[1].required is True, expected_response.headers.items()),
-                )
-            )
+            required = {
+                x[0].lower(): x[1] for x in filter(lambda x: x[1].required is True, expected_response.headers.items())
+            }
             available = frozenset(headers.keys())
             if missing := (required.keys() - available):
                 missed = {k: required[k] for k in missing}
@@ -540,7 +536,7 @@ class Request(RequestBase):
             https://datatracker.ietf.org/doc/html/rfc7231#appendix-D
             media-range = ( "*/*" / ( type "/*" ) / ( type "/" subtype ) ) *( OWS ";" OWS parameter )
             """
-            content_type, _, encoding = content_type.partition(";")
+            content_type, _, _encoding = content_type.partition(";")
             expected_media: v3xMediaTypeType | None = (
                 expected_response.content.get(content_type, None)
                 or expected_response.content.get(content_type.partition("/")[0] + "/*", None)
@@ -584,7 +580,7 @@ class Request(RequestBase):
         return headers, expected_media.itemSchema, content_type
 
     def _process_request(self, result: httpx2.Response) -> tuple["ResponseHeadersType", "ResponseDataType"]:
-        rheaders = dict()
+        rheaders = {}
         # spec enforces these are strings
         status_code = str(result.status_code)
         content_type = result.headers.get("Content-Type", None)

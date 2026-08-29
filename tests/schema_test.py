@@ -147,7 +147,7 @@ def test_schema_type_missing(with_schema_type_missing):
     """
     api = OpenAPI("/", with_schema_type_missing)
     t = api.components.schemas["Any"].get_type()
-    v = t.model_validate(dict(id=1))
+    v = t.model_validate({"id": 1})
     assert v.root.id == 1
     v = t.model_validate("1")
 
@@ -356,7 +356,7 @@ def test_schema_with_patternProperties(with_schema_patternProperties):
     O = api.components.schemas["O"].get_type()
     a = A.model_validate({"I_5": 100})
     assert list(a.aio3_patternProperty("^I_")) == [("I_5", 100)]
-    sorted(typing.get_args(a.aio3_patternProperty.__annotations__["item"])) == ["^I_", "^S_"]
+    assert sorted(typing.get_args(a.aio3_patternProperty.__annotations__["item"])) == ["^I_", "^S_"]
 
     assert a.aio3_patternProperties == {"^S_": [], "^I_": [("I_5", 100)]}
 
@@ -389,19 +389,20 @@ def test_schema_discriminated_union_warnings(with_schema_discriminated_union_war
     s = copy.deepcopy(with_schema_discriminated_union_warning)
     api = OpenAPI("/", s)
 
+    s = copy.deepcopy(with_schema_discriminated_union_warning)
+    s["components"]["schemas"]["B"]["properties"]["object_type"]["enum"] = ["f"]
+
     with pytest.warns(
         DiscriminatorWarning,
         match=r"Discriminated Union member key property enum mismatches property mapping \S+ \!= \S+",
     ):
-        s = copy.deepcopy(with_schema_discriminated_union_warning)
-        s["components"]["schemas"]["B"]["properties"]["object_type"]["enum"] = ["f"]
         api = OpenAPI("/", s)
 
+    s = copy.deepcopy(with_schema_discriminated_union_warning)
+    del s["components"]["schemas"]["B"]["properties"]["object_type"]["enum"]
     with pytest.warns(
         DiscriminatorWarning, match=r"Discriminated Union member \S+ without const/enum key property \S+"
     ):
-        s = copy.deepcopy(with_schema_discriminated_union_warning)
-        del s["components"]["schemas"]["B"]["properties"]["object_type"]["enum"]
         api = OpenAPI("/", s)
 
     if (openapi_version.major, openapi_version.minor, openapi_version.patch) >= (3, 1, 0):
@@ -437,12 +438,12 @@ def test_schema_create_update_read(with_schema_create_update_read):
     api = OpenAPI("/", with_schema_create_update_read)
     A = api.components.schemas["A"].get_type()
     AB = api.components.schemas["AB"].get_type()
-    A.model_validate(dict(a="a"))
+    A.model_validate({"a": "a"})
     with pytest.raises(ValidationError):
-        AB.model_validate(dict(a="a"))
+        AB.model_validate({"a": "a"})
     with pytest.raises(ValidationError):
-        AB.model_validate(dict(b="b"))
-    AB.model_validate(dict(b="b", a="a"))
+        AB.model_validate({"b": "b"})
+    AB.model_validate({"b": "b", "a": "a"})
 
 
 def test_schema_constraints(with_schema_constraints):

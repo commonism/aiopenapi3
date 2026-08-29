@@ -1,4 +1,5 @@
 import random
+import typing
 
 import httpx2
 import pytest
@@ -29,15 +30,18 @@ def session_factory(*args, **kwargs) -> httpx2.Client:
 
 
 class OnDocument(Document):
-    ApiResponse = {
+    ApiResponse: typing.ClassVar = {
         "description": "",
         "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiResponse"}}},
     }
-    PetResponse = {"description": "", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Pet"}}}}
+    PetResponse: typing.ClassVar = {
+        "description": "",
+        "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Pet"}}},
+    }
 
     def parsed(self, ctx):
-        for name, path in ctx.document["paths"].items():
-            for method, action in path.items():
+        for path in ctx.document["paths"].values():
+            for action in path.values():
                 if "default" not in action["responses"]:
                     action["responses"]["default"] = OnDocument.ApiResponse
 
@@ -60,7 +64,7 @@ class OnMessage(Message):
         if ctx.operationId == "getPetById" and ctx.status_code == "404":
             import json
 
-            ctx.received = json.dumps(dict(code=1, type="error", message=ctx.received.decode())).encode()
+            ctx.received = json.dumps({"code": 1, "type": "error", "message": ctx.received.decode()}).encode()
         return ctx
 
     def parsed(self, ctx):
@@ -68,7 +72,7 @@ class OnMessage(Message):
             if i.get("name", None) is None:
                 i["name"] = "default"
             if not isinstance(i.get("photoUrls", None), list):
-                i["photoUrls"] = list()
+                i["photoUrls"] = []
             for idx, j in enumerate(i["photoUrls"]):
                 if not isinstance(j, str):
                     i["photoUrls"][idx] = "<invalid>"
@@ -77,26 +81,26 @@ class OnMessage(Message):
                 i["status"] = "pending"
 
             if (c := i.get("category", None)) is None or not isinstance(c, dict):
-                i["category"] = dict(id=0, name="default")
+                i["category"] = {"id": 0, "name": "default"}
 
             if (c := i.get("tags", None)) is None or not isinstance(c, list):
                 i["tags"] = []
             else:
                 for t in c:
-                    if not isinstance(t, dict) or not set(t.keys()) == frozenset(["id", "name"]):
+                    if not isinstance(t, dict) or set(t.keys()) != frozenset(["id", "name"]):
                         i["tags"] = []
                         break
 
         Pet = self.api.resolve_jr(self.api._root, None, Reference(**{"$ref": "#/components/schemas/Pet"}))
 
-        if ctx.operationId == "getPetById":
-            if Pet == ctx.expected_type:
-                goodPet(ctx.parsed)
+        if ctx.operationId == "getPetById" and Pet == ctx.expected_type:
+            goodPet(ctx.parsed)
 
-        if ctx.operationId in frozenset(["findPetsByStatus", "findPetsByTags"]):
-            if Pet == getattr(ctx.expected_type.items, "_target", None):
-                for i in ctx.parsed:
-                    goodPet(i)
+        if ctx.operationId in frozenset(["findPetsByStatus", "findPetsByTags"]) and Pet == getattr(
+            ctx.expected_type.items, "_target", None
+        ):
+            for i in ctx.parsed:
+                goodPet(i)
 
         return ctx
 
@@ -220,7 +224,7 @@ def test_pets(api, login):
     assert (isinstance(r, list) and len(r) >= 0) or isinstance(r, ApiResponse)
 
     r = api._.findPetsByTags(parameters={"tags": ["unknown"]})
-    assert isinstance(r, list) or isinstance(r, ApiResponse)
+    assert isinstance(r, (list, ApiResponse))
 
     # deletePet
     r = api._.findPetsByStatus(parameters={"status": ["available", "pending", "sold"]})
@@ -258,7 +262,7 @@ def test_pets(api, login):
 
     # findPetsByStatus is patched
     r = api._.findPetsByStatus(parameters={"status": ["available"]})
-    assert all([i.status == "available" for i in r])
+    assert all(i.status == "available" for i in r)
 
 
 @pytest.mark.xfail
