@@ -547,37 +547,37 @@ class Model:  # (BaseModel):
                     _names = tuple(filter(lambda x: x, _names))
                 r = [Literal[_names]]  # type: ignore[assignment,list-item]
             else:
-                for _type in Model.types(schema) if not _type else [_type]:
-                    if _type in ("boolean", "integer", "number", "string"):
-                        oneOf = [i for i in getattr(schema, "oneOf", []) if _type in Model.types(i)]
-                        anyOf = [i for i in getattr(schema, "anyOf", []) if _type in Model.types(i)]
-                        allOf = [i for i in getattr(schema, "allOf", []) if _type in Model.types(i)]
+                for _t in Model.types(schema) if not _type else [_type]:
+                    if _t in ("boolean", "integer", "number", "string"):
+                        oneOf = [i for i in getattr(schema, "oneOf", []) if _t in Model.types(i)]
+                        anyOf = [i for i in getattr(schema, "anyOf", []) if _t in Model.types(i)]
+                        allOf = [i for i in getattr(schema, "allOf", []) if _t in Model.types(i)]
 
                         if not (anyOf or oneOf or allOf):
-                            v = class_from_schema(schema, _type)
+                            v = class_from_schema(schema, _t)
                             r.append(v)
                         else:
-                            v = [Model.createAnnotation(i, _type=_type) for i in oneOf]
+                            v = [Model.createAnnotation(i, _type=_t) for i in oneOf]
                             r.extend(v)
-                            v = [Model.createAnnotation(i, _type=_type) for i in anyOf]
+                            v = [Model.createAnnotation(i, _type=_t) for i in anyOf]
                             r.extend(v)
-                            v = [Model.createAnnotation(i, _type=_type) for i in allOf]
+                            v = [Model.createAnnotation(i, _type=_t) for i in allOf]
                             r.extend(v)
-                    elif _type == "array":
+                    elif _t == "array":
                         r.extend(
-                            list(
-                                Model.createAnnotation(i, _type=_type)
+                            [
+                                Model.createAnnotation(i, _type=_t)
                                 for i in getattr(schema, "oneOf", [])
-                                if Model.is_type(i, _type)
-                            )
+                                if Model.is_type(i, _t)
+                            ]
                         )
 
                         r.extend(
-                            list(
-                                Model.createAnnotation(i, _type=_type)
+                            [
+                                Model.createAnnotation(i, _type=_t)
                                 for i in getattr(schema, "anyOf", [])
-                                if Model.is_type(i, _type)
-                            )
+                                if Model.is_type(i, _t)
+                            ]
                         )
 
                         if isinstance(schema.items, list):
@@ -595,12 +595,12 @@ class Model:  # (BaseModel):
                         else:
                             raise TypeError(schema.items)
                         r.append(v)  # type: ignore[arg-type]
-                    elif _type == "object":
+                    elif _t == "object":
                         r.append(schema.get_type(fwdref=fwdref))
-                    elif _type == "null":
+                    elif _t == "null":
                         nullable = True
                     else:
-                        raise ValueError(_type)
+                        raise ValueError(_t)
 
             if len(r) == 1:
                 rr = r[0]
@@ -609,7 +609,7 @@ class Model:  # (BaseModel):
             else:
                 rr = None  # type: ignore[assignment]
             if nullable is True:
-                rr = Optional[rr]  # type: ignore[assignment]
+                rr = rr | None  # type: ignore[assignment]
         elif isinstance(schema, ReferenceBase):
             rr = Model.createAnnotation(schema._target, fwdref=True)
         else:
