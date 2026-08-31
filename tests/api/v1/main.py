@@ -1,4 +1,5 @@
 import errno
+from typing import Annotated
 
 import starlette.status
 from fastapi import APIRouter, Body, Response, Path
@@ -40,7 +41,7 @@ idx = _idx(100)
 )
 def createPet(
     response: Response,
-    pet: PetCreate = Body(..., embed=True),
+    pet: Annotated[PetCreate, Body(..., embed=True)],
 ) -> None:
     if pet.name in ZOO:
         return JSONResponse(

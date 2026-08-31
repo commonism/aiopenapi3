@@ -28,7 +28,7 @@ idx = _idx(100)
 )
 def createPet(
     response: Response,
-    pet: schema.Pet = Body(..., embed=True),
+    pet: Annotated[schema.Pet, Body(..., embed=True)],
 ) -> schema.Pet:
     # if isinstance(pet, Cat):
     #     pet = pet.__root__
