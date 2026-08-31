@@ -149,8 +149,8 @@ def randomPet(client, name=None, cat=False):
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_Request(server, client):
-    client._.createPet.data
-    client._.createPet.parameters
+    assert client._.createPet.data is not None
+    assert client._.createPet.parameters == []
     client._.createPet.args()
     client._.createPet.return_value()
 
