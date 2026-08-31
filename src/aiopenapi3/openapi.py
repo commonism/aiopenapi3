@@ -453,7 +453,7 @@ class OpenAPI:
         return (
             getattr(schema, "oneOf", [])  # Swagger compat
             + (
-                list(getattr(schema, "discriminator").mapping.values())
+                list(schema.discriminator.mapping.values())
                 if isinstance(getattr(schema, "discriminator", {}), DiscriminatorBase)
                 else []
             )
