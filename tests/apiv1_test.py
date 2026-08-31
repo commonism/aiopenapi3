@@ -4,16 +4,13 @@ import uuid
 import pytest
 import pytest_asyncio
 
+# pytest.skip(allow_module_level=True)
+from api.v1.main import router
+from fastapi import FastAPI
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
-from fastapi import FastAPI
-
 import aiopenapi3
-
-# pytest.skip(allow_module_level=True)
-
-from api.v1.main import router
 
 app = FastAPI(
     version="1.0.0", title="Dorthu's Petstore", servers=[{"url": "/", "description": "Default, relative server"}]

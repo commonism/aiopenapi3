@@ -1,5 +1,5 @@
-import pytest
 import httpx2
+import pytest
 
 import aiopenapi3.debug
 from aiopenapi3 import OpenAPI, ResponseSchemaError

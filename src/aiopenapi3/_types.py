@@ -1,23 +1,17 @@
 import re
-from typing import TYPE_CHECKING, Union, TypeAlias, Optional, Literal
 from collections.abc import Sequence
+from typing import Literal, TypeAlias, Union
 
 import yaml
-
-from httpx._types import RequestContent, FileTypes, RequestFiles, AuthTypes  # noqa
+from httpx._types import AuthTypes, FileTypes, RequestContent, RequestFiles
 from pydantic import BaseModel
 
-
 from . import v20, v30, v31, v32
-
-if TYPE_CHECKING:
-    pass
-
 
 RequestFileParameter = tuple[str, FileTypes]
 RequestFilesParameter = Sequence[RequestFileParameter]
 
-JSON: TypeAlias = Optional[Union[dict[str, "JSON"], list["JSON"], str, int, float, bool]]
+JSON: TypeAlias = dict[str, "JSON"] | list["JSON"] | str | int | float | bool | None
 """
 Define a JSON type
 https://github.com/python/typing/issues/182#issuecomment-1320974824
@@ -41,7 +35,7 @@ RequestType = Union[v20.Request, v30.Request]
 AsyncRequestType = Union[v20.AsyncRequest, v30.AsyncRequest]
 MediaTypeType = Union[v30.MediaType, v31.MediaType]
 ExpectedType = Union[v20.Response, MediaTypeType]
-ResponseHeadersType = dict[str, Union[str, BaseModel, list[BaseModel]]]
+ResponseHeadersType = dict[str, str | BaseModel | list[BaseModel]]
 ResponseDataType = Union[BaseModel, bytes, str]
 TagType = Union[v20.Tag, v30.Tag, v32.Tag]
 
@@ -72,13 +66,11 @@ __all__: list[str] = [
     "RequestParameters",
     "ReferenceType",
     "PrimitiveTypes",
-    #
     "YAMLLoaderType",
     # httpx forwards
     "RequestContent",
     "RequestFiles",
     "AuthTypes",
-    #
     "JSON",
     "RequestFilesParameter",
     "RequestFileParameter",

@@ -1,11 +1,11 @@
 import json
-
 from pathlib import Path
 
-import yarl
 import pytest
-from aiopenapi3 import OpenAPI, FileSystemLoader, ReferenceResolutionError
-from aiopenapi3.loader import Loader, Plugins, NullLoader
+import yarl
+
+from aiopenapi3 import FileSystemLoader, OpenAPI, ReferenceResolutionError
+from aiopenapi3.loader import Loader, NullLoader, Plugins
 
 SPECTPL = """
 openapi: "3.0.0"
@@ -77,8 +77,9 @@ def test_webload():
     # FIXME https://github.com/pydantic/pydantic/issues/5730
     pytest.skip()
     name = "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/network/resource-manager/Microsoft.Network/stable/2018-10-01/serviceEndpointPolicy.json"
-    from aiopenapi3.loader import WebLoader
     import yarl
+
+    from aiopenapi3.loader import WebLoader
 
     loader = WebLoader(yarl.URL(name))
     api = OpenAPI.load_sync(name, loader=loader)

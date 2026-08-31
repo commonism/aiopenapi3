@@ -1,17 +1,13 @@
 import asyncio
-
 from collections.abc import AsyncIterable
 
-
-from hypercorn.asyncio import serve
-from hypercorn.config import Config
 import pydantic
-from fastapi import FastAPI
-from fastapi.sse import EventSourceResponse, ServerSentEvent
-
 import pytest
 import pytest_asyncio
-
+from fastapi import FastAPI
+from fastapi.sse import EventSourceResponse, ServerSentEvent
+from hypercorn.asyncio import serve
+from hypercorn.config import Config
 
 import aiopenapi3
 

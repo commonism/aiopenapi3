@@ -1,13 +1,13 @@
 from pydantic import Field
 
-from .general import Reference, ExternalDocumentation
+from ..base import ObjectExtended, RootBase
+from .general import ExternalDocumentation, Reference
 from .info import Info
 from .parameter import Parameter
-from .paths import Response, Paths, PathItem
+from .paths import PathItem, Paths, Response
 from .schemas import Schema
-from .security import SecurityScheme, SecurityRequirement
+from .security import SecurityRequirement, SecurityScheme
 from .tag import Tag
-from ..base import ObjectExtended, RootBase
 
 
 class Root(ObjectExtended, RootBase):

@@ -1,11 +1,8 @@
 from typing import Any
 
-
 from pydantic import Field
 
-
 from ..base import ObjectExtended, RootBase
-
 from .components import Components
 from .general import Reference
 from .info import Info

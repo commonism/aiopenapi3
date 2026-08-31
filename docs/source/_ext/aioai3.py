@@ -1,7 +1,6 @@
+from docutils import nodes
 from sphinx.domains import Domain
 from sphinx.roles import XRefRole
-
-from docutils import nodes
 
 
 def resolve_url(env, name):

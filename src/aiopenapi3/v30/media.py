@@ -1,10 +1,9 @@
 import typing
-from typing import Union, Any
+from typing import Any, Union
 
 from pydantic import Field
 
 from ..base import ObjectExtended
-
 from .example import Example
 from .general import Reference
 from .schemas import Schema

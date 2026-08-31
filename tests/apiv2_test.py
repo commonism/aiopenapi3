@@ -1,32 +1,25 @@
+import asyncio
 import datetime
 import random
-import asyncio
+import typing
 import uuid
 from typing import ForwardRef
-import typing
-
 
 import pydantic
-
 import pytest
 import pytest_asyncio
+from api.v2.main import router
+from api.v2.schema import Dog as _Dog
 
+# pytest.skip(allow_module_level=True)
+from fastapi import FastAPI
+from fastapi.responses import PlainTextResponse
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
 import aiopenapi3
 from aiopenapi3 import OpenAPI
 from aiopenapi3.v31.schemas import Schema
-
-from api.v2.schema import Dog as _Dog
-
-# pytest.skip(allow_module_level=True)
-
-from fastapi import FastAPI
-from fastapi.responses import PlainTextResponse
-
-
-from api.v2.main import router
 
 app = FastAPI(
     version="1.0.0", title="Dorthu's Petstore", servers=[{"url": "/", "description": "Default, relative server"}]

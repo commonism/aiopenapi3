@@ -1,4 +1,5 @@
-from typing import Union, Annotated, Literal
+from typing import Annotated, Literal
+
 from pydantic import Field, RootModel, constr
 
 from ..base import ObjectExtended
@@ -60,9 +61,7 @@ class _SecuritySchemes:
 class SecurityScheme(
     RootModel[
         Annotated[
-            Union[
-                _SecuritySchemes.apiKey, _SecuritySchemes.http, _SecuritySchemes.oauth2, _SecuritySchemes.openIdConnect
-            ],
+            _SecuritySchemes.apiKey | _SecuritySchemes.http | _SecuritySchemes.oauth2 | _SecuritySchemes.openIdConnect,
             Field(discriminator="type"),
         ]
     ]
@@ -73,8 +72,6 @@ class SecurityScheme(
     .. _Security Scheme: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#security-scheme-object
     """
 
-    pass
-
 
 class SecurityRequirement(RootModel[dict[str, list[str]]]):
     """
@@ -82,5 +79,3 @@ class SecurityRequirement(RootModel[dict[str, list[str]]]):
 
     .. _SecurityRequirement: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#security-requirement-object
     """
-
-    pass

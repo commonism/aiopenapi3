@@ -1,20 +1,20 @@
+import dataclasses
 import typing
 from typing import Optional
-import dataclasses
 
 import httpx2
 import pydantic
 
 if typing.TYPE_CHECKING:
     from ._types import (
-        SchemaType,
-        RequestType,
+        ExpectedType,
+        HeaderType,
+        OperationType,
         RequestData,
         RequestParameters,
+        RequestType,
+        SchemaType,
         ServerType,
-        HeaderType,
-        ExpectedType,
-        OperationType,
     )
 
 
@@ -78,8 +78,6 @@ class ParameterFormatError(SpecError):
     """
     The specified parameter encoding is invalid for the parameter family
     """
-
-    pass
 
 
 class HTTPError(ErrorBase):
@@ -204,11 +202,7 @@ class HTTPStatusIndicatedError(HTTPError):
 class HTTPClientError(HTTPStatusIndicatedError):
     """response code 4xx"""
 
-    pass
-
 
 @dataclasses.dataclass(repr=False)
 class HTTPServerError(HTTPStatusIndicatedError):
     """response code 5xx"""
-
-    pass

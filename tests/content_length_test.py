@@ -1,17 +1,14 @@
 import asyncio
 import random
 
-from hypercorn.asyncio import serve
-from hypercorn.config import Config
-from fastapi import FastAPI, Request, Response, Query
-from fastapi.responses import PlainTextResponse
-
 import pytest
 import pytest_asyncio
-
+from fastapi import FastAPI, Query, Request, Response
+from fastapi.responses import PlainTextResponse
+from hypercorn.asyncio import serve
+from hypercorn.config import Config
 
 import aiopenapi3
-
 
 app = FastAPI(version="1.0.0", title="TLS tests", servers=[{"url": "/", "description": "Default, relative server"}])
 

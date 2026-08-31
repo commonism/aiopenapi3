@@ -2,12 +2,11 @@ from typing import Any
 
 from pydantic import Field, model_validator
 
-from .general import ExternalDocumentation
-from .general import Reference
+from ..base import ObjectExtended, OperationBase, PathItemBase, PathsBase
+from .general import ExternalDocumentation, Reference
 from .parameter import Header, Parameter
 from .schemas import Schema
 from .security import SecurityRequirement
-from ..base import ObjectExtended, PathsBase, OperationBase, PathItemBase
 
 
 class Response(ObjectExtended):

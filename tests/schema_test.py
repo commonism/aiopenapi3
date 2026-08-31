@@ -2,15 +2,13 @@ import copy
 import typing
 import uuid
 from datetime import datetime
-
-
 from pathlib import Path
 
-import yarl
 import httpx2
-import pytest
-from pydantic import ValidationError
 import pydantic
+import pytest
+import yarl
+from pydantic import ValidationError
 
 import aiopenapi3
 from aiopenapi3 import OpenAPI
@@ -304,8 +302,7 @@ def test_schema_yaml12(openapi_version, with_schema_yaml12):
         def parsed(self, ctx):
             ctx.document["openapi"] = str(openapi_version)
 
-    from aiopenapi3.loader import YAML12Loader
-    from aiopenapi3.loader import FileSystemLoader
+    from aiopenapi3.loader import FileSystemLoader, YAML12Loader
 
     OpenAPI.load_file(
         "/test.yaml",
@@ -434,7 +431,6 @@ def test_schema_discriminated_union_deep(with_schema_discriminated_union_deep):
     pet = Pet(dog)
 
     d = Dog.model_construct()
-    return None
 
 
 def test_schema_create_update_read(with_schema_create_update_read):
@@ -461,7 +457,7 @@ def test_schema_constraints(with_schema_constraints):
                 A("i" * i)
 
     B = (_B := api.components.schemas["B"]).get_type()
-    for i in range(0, 12):
+    for i in range(12):
         if _B.exclusiveMaximum > i > _B.exclusiveMinimum:
             B(i)
         else:
@@ -469,7 +465,7 @@ def test_schema_constraints(with_schema_constraints):
                 B(i)
 
     C = (_C := api.components.schemas["C"]).get_type()
-    for i in range(0, 12):
+    for i in range(12):
         if i % _C.multipleOf != 0:
             with pytest.raises(ValidationError):
                 C(i)
@@ -529,8 +525,6 @@ def test_schema_pathitems(httpx2_mock, with_schema_pathitems):
     req = api.createRequest("b")
     r = req()
     r = api._.b()
-
-    return
 
 
 def test_schema_baseurl_v20(with_schema_baseurl_v20):

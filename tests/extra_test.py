@@ -1,15 +1,13 @@
 import re
 import typing
-
 from pathlib import Path
 
 import httpx2
 import pytest
 
 from aiopenapi3 import OpenAPI
-from aiopenapi3.loader import FileSystemLoader
-
 from aiopenapi3.extra import Cull, Reduce
+from aiopenapi3.loader import FileSystemLoader
 
 if typing.TYPE_CHECKING:
     from aiopenapi3.plugin import Document
@@ -102,7 +100,6 @@ def test_reduced_small():
         loader=FileSystemLoader(Path("tests/").absolute()),
         plugins=[PetStoreReduced()],
     )
-    return
 
 
 @pytest.mark.parametrize("compressor", [Reduce, Cull])
