@@ -149,7 +149,7 @@ def test_schema_type_missing(with_schema_type_missing):
     """
     api = OpenAPI("/", with_schema_type_missing)
     t = api.components.schemas["Any"].get_type()
-    v = t.model_validate(dict(id=1))
+    v = t.model_validate({"id": 1})
     assert v.root.id == 1
     v = t.model_validate("1")
 
@@ -441,12 +441,12 @@ def test_schema_create_update_read(with_schema_create_update_read):
     api = OpenAPI("/", with_schema_create_update_read)
     A = api.components.schemas["A"].get_type()
     AB = api.components.schemas["AB"].get_type()
-    A.model_validate(dict(a="a"))
+    A.model_validate({"a": "a"})
     with pytest.raises(ValidationError):
-        AB.model_validate(dict(a="a"))
+        AB.model_validate({"a": "a"})
     with pytest.raises(ValidationError):
-        AB.model_validate(dict(b="b"))
-    AB.model_validate(dict(b="b", a="a"))
+        AB.model_validate({"b": "b"})
+    AB.model_validate({"b": "b", "a": "a"})
 
 
 def test_schema_constraints(with_schema_constraints):

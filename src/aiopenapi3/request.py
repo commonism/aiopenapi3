@@ -352,7 +352,7 @@ class RequestBase:
                         if not data_.endswith(("\r\r", "\n\n", "\r\n\r\n")):
                             continue
 
-                        v = dict()
+                        v = {}
                         for l in data_.splitlines(keepends=False):
                             if l == "":
                                 continue
@@ -452,7 +452,7 @@ class AsyncRequestBase(RequestBase):
         try:
             result = await session.send(req, stream=True)
         except Exception as e:
-            raise RequestError(self.operation, self, data, parameters or dict()) from e
+            raise RequestError(self.operation, self, data, parameters or {}) from e
         return result
 
     async def request(  # type: ignore[override]
@@ -543,7 +543,7 @@ class AsyncRequestBase(RequestBase):
                         if not data_.endswith(("\r\r", "\n\n", "\r\n\r\n")):
                             continue
 
-                        v = dict()
+                        v = {}
                         for l in data_.splitlines(keepends=False):
                             if l == "":
                                 continue
@@ -591,10 +591,8 @@ class OperationIndex:
     class OperationTag:
         def __init__(self, oi: "OperationIndex") -> None:
             self._oi = oi
-            self._operations: dict[str, tuple["HTTPMethodType", str, "OperationType", list["ServerType"] | None]] = (
-                dict()
-            )
-            self._tags: dict[str, "OperationIndex.OperationTag"] = dict()
+            self._operations: dict[str, tuple["HTTPMethodType", str, "OperationType", list["ServerType"] | None]] = {}
+            self._tags: dict[str, "OperationIndex.OperationTag"] = {}
 
         def __getattr__(self, item) -> RequestBase:
             if item in self._operations:
@@ -620,7 +618,7 @@ class OperationIndex:
                         continue
                     if use_operation_tags and op.tags:
                         for tag in op.tags:
-                            tags = list()
+                            tags = []
                             while tag:
                                 tags.append(tag)
                                 tag = api._operationindex.tag(tag)
@@ -634,7 +632,7 @@ class OperationIndex:
                         for method, op in pi.additionalOperations.items():
                             if use_operation_tags and op.tags:
                                 for tag in op.tags:
-                                    tags = list()
+                                    tags = []
                                     while tag:
                                         tags.append(tag)
                                         tag = api._operationindex.tag(tag)
@@ -656,7 +654,7 @@ class OperationIndex:
         self._api: "OpenAPI" = api
         self._root: "RootType" = api._root
 
-        self._operations: dict[str, tuple["HTTPMethodType", str, "OperationType", list["ServerType"] | None]] = dict()
+        self._operations: dict[str, tuple["HTTPMethodType", str, "OperationType", list["ServerType"] | None]] = {}
         self._tags: dict[str, "OperationIndex.OperationTag"] = collections.defaultdict(
             lambda: OperationIndex.OperationTag(self)
         )
@@ -680,7 +678,7 @@ class OperationIndex:
 
                 if use_operation_tags and op.tags:
                     for tag in op.tags:
-                        tree: list[str] = list()
+                        tree: list[str] = []
                         t: str | None = tag
                         v: TagType | None
                         while t:

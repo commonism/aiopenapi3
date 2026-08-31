@@ -10,7 +10,7 @@ from .schema import Pets, Pet, PetCreate, Error
 router = APIRouter(prefix="/v1")
 
 
-ZOO = dict()
+ZOO = {}
 
 
 def _idx(l):

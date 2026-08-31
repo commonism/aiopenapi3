@@ -179,7 +179,7 @@ def test_paths_parameter_format_v20(httpx2_mock, with_paths_parameter_format_v20
     result = api._.formdata(parameters=params)
     request = httpx2_mock.get_requests()[-1]
 
-    files = dict()
+    files = {}
 
     def on_file(file):
         file.file_object.seek(0)
@@ -203,7 +203,7 @@ def test_paths_parameter_format_v20(httpx2_mock, with_paths_parameter_format_v20
     )
     assert result == "ok"
 
-    params = dict(A="a", B=5)
+    params = {"A": "a", "B": 5}
     result = api._.urlencoded(parameters=params)
     request = httpx2_mock.get_requests()[-1]
     assert (v := urllib.parse.parse_qs(request.content.decode())) is not None and v["A"] == ["a"] and v["B"] == ["5"]

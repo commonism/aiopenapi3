@@ -123,7 +123,7 @@ class _ClassInfo:
 
     @property
     def fields(self):
-        r = list()
+        r = []
         for k, v in self.properties.items():
             r.append((k, (v.annotation, v.default)))
         return dict(r)
@@ -142,7 +142,7 @@ class _ClassInfo:
                 ):
                     continue
 
-                args: dict[str, Any] = dict()
+                args: dict[str, Any] = {}
                 assert schema.required is not None
                 if (v := getattr(f, "default", None)) is not None:
                     args["default"] = v
@@ -279,7 +279,7 @@ def _follow(r: "ReferenceType", t: type[_T]) -> TypeGuard[_T]:
 
 
 class Model:  # (BaseModel):
-    ALIASES: dict[str, str] = dict()
+    ALIASES: dict[str, str] = {}
 
     @classmethod
     def from_schema(
@@ -295,12 +295,12 @@ class Model:  # (BaseModel):
         if discriminators is None:
             discriminators = []
 
-        r: list[_ClassInfo] = list()
+        r: list[_ClassInfo] = []
 
         types: list[str] = list(Model.types(schema))
         multi: bool = len(types) > 1
         for _type in types:
-            args = dict() if multi else None
+            args = {} if multi else None
             """
             for schema with multiple types, the default value needs to be attached to the RootModel
             providing empty args creates a FieldInfo without a default value for the subtypes
@@ -411,7 +411,7 @@ class Model:  # (BaseModel):
                     def mkx():
                         def get_patternProperties(self_):
                             patterns = typing.get_args(self_.aio3_patternProperty.__annotations__["item"])
-                            r = {k: list() for k in patterns}
+                            r = {k: [] for k in patterns}
                             for name, value in self_.model_extra.items():
                                 for pattern in patterns:
                                     if re.match(pattern, name):
@@ -533,7 +533,7 @@ class Model:  # (BaseModel):
             Required, can be None: Optional[str]
             Not required, can be None, is … by default: f4: Optional[str] = …
             """
-            r: list[type] = list()
+            r: list[type] = []
             rr: type
             if (v := getattr(schema, "const", None)) is not None:
                 """
@@ -728,7 +728,7 @@ class Model:  # (BaseModel):
     @staticmethod
     def createField(schema: "SchemaType", _type=None, args=None) -> Field:
         if args is None:
-            args = dict(default=getattr(schema, "default", None))
+            args = {"default": getattr(schema, "default", None)}
 
         # """
         # readOnly & writeOnly are Optional default None

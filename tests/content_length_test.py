@@ -50,16 +50,16 @@ def content_length(request: Request, response: Response, content_length: int = Q
 @pytest.mark.asyncio(loop_scope="session")
 async def test_content_length_exceeded(server, client):
     cl = random.randint(1, client._max_response_content_length)
-    r = await client._.content_length(parameters=dict(content_length=cl))
+    r = await client._.content_length(parameters={"content_length": cl})
     assert len(r) == cl
 
     cl = client._max_response_content_length
-    r = await client._.content_length(parameters=dict(content_length=cl))
+    r = await client._.content_length(parameters={"content_length": cl})
     assert len(r) == cl
 
     with pytest.raises(aiopenapi3.errors.ContentLengthExceededError):
         cl = client._max_response_content_length + 1
-        await client._.content_length(parameters=dict(content_length=cl))
+        await client._.content_length(parameters={"content_length": cl})
 
 
 @pytest.mark.asyncio(loop_scope="session")
@@ -70,13 +70,13 @@ async def test_sync_content_length_exceeded(server):
     )
 
     cl = random.randint(1, client._max_response_content_length)
-    r = await asyncio.to_thread(client._.content_length, parameters=dict(content_length=cl))
+    r = await asyncio.to_thread(client._.content_length, parameters={"content_length": cl})
     assert len(r) == cl
 
     cl = client._max_response_content_length
-    r = await asyncio.to_thread(client._.content_length, parameters=dict(content_length=cl))
+    r = await asyncio.to_thread(client._.content_length, parameters={"content_length": cl})
     assert len(r) == cl
 
     with pytest.raises(aiopenapi3.errors.ContentLengthExceededError):
         cl = client._max_response_content_length + 1
-        await asyncio.to_thread(client._.content_length, parameters=dict(content_length=cl))
+        await asyncio.to_thread(client._.content_length, parameters={"content_length": cl})

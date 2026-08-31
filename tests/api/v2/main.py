@@ -10,7 +10,7 @@ from . import schema
 
 router = APIRouter(prefix="/v2")
 
-ZOO = dict()
+ZOO = {}
 
 
 def _idx(l):

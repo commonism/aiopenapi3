@@ -47,7 +47,7 @@ class ObjectExtended(ObjectBase):
             return None
         if not isinstance(values, dict):
             return values
-        e = dict()
+        e = {}
         rm = set()
         for k, v in values.items():
             if k.startswith("x-"):
@@ -106,7 +106,7 @@ class RootBase:
                         data[idx] = n
 
             elif isinstance(data, dict):
-                new = dict()
+                new = {}
                 for _k, _v in data.items():
                     n = replace(_v)  # Swagger 2.0 Schema.ref resolver …
                     if _v != n:
@@ -144,7 +144,7 @@ class RootBase:
                         """
 
                         if not value.mapping:
-                            value.mapping = dict()
+                            value.mapping = {}
 
                             for v in (obj.oneOf or []) + (obj.anyOf or []):
                                 k = Path(JSONReference.split(v.ref)[1]).parts[-1]
@@ -355,7 +355,7 @@ class SchemaBase(BaseModel):
         """
         r = BaseModel.__getstate__(self)
         try:
-            for k, v in {"_model_type": None, "_model_types": list()}.items():
+            for k, v in {"_model_type": None, "_model_types": []}.items():
                 if k in r["__pydantic_private__"]:
                     r["__pydantic_private__"] = r["__pydantic_private__"].copy()
                     r["__pydantic_private__"][k] = v

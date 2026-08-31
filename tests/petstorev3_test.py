@@ -61,7 +61,7 @@ class OnMessage(Message):
         if ctx.operationId == "getPetById" and ctx.status_code == "404":
             import json
 
-            ctx.received = json.dumps(dict(code=1, type="error", message=ctx.received.decode())).encode()
+            ctx.received = json.dumps({"code": 1, "type": "error", "message": ctx.received.decode()}).encode()
         return ctx
 
     def parsed(self, ctx):
@@ -69,7 +69,7 @@ class OnMessage(Message):
             if i.get("name", None) is None:
                 i["name"] = "default"
             if not isinstance(i.get("photoUrls", None), list):
-                i["photoUrls"] = list()
+                i["photoUrls"] = []
             for idx, j in enumerate(i["photoUrls"]):
                 if not isinstance(j, str):
                     i["photoUrls"][idx] = "<invalid>"
@@ -78,7 +78,7 @@ class OnMessage(Message):
                 i["status"] = "pending"
 
             if (c := i.get("category", None)) is None or not isinstance(c, dict):
-                i["category"] = dict(id=0, name="default")
+                i["category"] = {"id": 0, "name": "default"}
 
             if (c := i.get("tags", None)) is None or not isinstance(c, list):
                 i["tags"] = []

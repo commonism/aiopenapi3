@@ -83,7 +83,7 @@ def request_streaming(
 async def test_stream_data(server, client):
     cl = client._max_response_content_length
     req = client.createRequest("file")
-    headers, schema_, session, result = await req.stream(parameters=dict(content_length=cl))
+    headers, schema_, session, result = await req.stream(parameters={"content_length": cl})
 
     chunk = l = 0
     async for i in result.aiter_bytes():
@@ -113,7 +113,7 @@ async def test_stream_array(server, client):
 
     req = client.createRequest("files")
 
-    headers, schema_, session, result = await req.stream(parameters=dict(number=10, size=512 * 1024))
+    headers, schema_, session, result = await req.stream(parameters={"number": 10, "size": 512 * 1024})
 
     assert schema_ == req.operation.responses["200"].content["application/json"].schema_
 
@@ -153,7 +153,7 @@ async def test_sync_stream(server):
     cl = client._max_response_content_length
 
     req = client.createRequest("file")
-    headers, schema_, session, result = await asyncio.to_thread(req.stream, parameters=dict(content_length=cl))
+    headers, schema_, session, result = await asyncio.to_thread(req.stream, parameters={"content_length": cl})
 
     def blocking_recv(rs):
         r = 0
