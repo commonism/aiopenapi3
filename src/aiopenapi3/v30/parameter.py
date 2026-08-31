@@ -197,7 +197,7 @@ class _ParameterCodec:
         elif type_ == "boolean":
             return {name: json.dumps(value)}
         elif type_ == "null":
-            return dict()
+            return {}
         elif type_ == "array":
             assert isinstance(value, (list, tuple))
             # blue,black,brown
@@ -229,7 +229,7 @@ class _ParameterCodec:
         assert explode is False
 
         if value is None:
-            return dict()
+            return {}
 
         if type_ == "array":
             value = sep.join(value)
@@ -245,7 +245,7 @@ class _ParameterCodec:
         assert type_ == "object" and explode is True
 
         if not value:
-            return dict()
+            return {}
 
         values = value if isinstance(value, dict) else value.model_dump()
         # color[R]=100&color[G]=200&color[B]=150
@@ -266,7 +266,7 @@ class _ParameterCodec:
 
     def _encode__querystring(self, name: str, type_: str, value, schema: "v3xSchemaType", explode: bool):
         print(name, type_, value, schema, explode)
-        values = dict()
+        values = {}
         ct = next(iter(self.content.keys()))
         media = self.content[ct]
         if ct == "application/x-www-form-urlencoded":

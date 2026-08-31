@@ -40,7 +40,7 @@ class MultipartParameter(NamedTuple):
 def parameters_from_multipart(
     data: "BaseModel", media: "MediaTypeType", mph: dict[str, str]
 ) -> list[MultipartParameter]:
-    params: list[MultipartParameter] = list()
+    params: list[MultipartParameter] = []
     for k in data.model_fields_set:
         v = getattr(data, k)
         ct = "text/plain"
@@ -66,7 +66,7 @@ def parameters_from_multipart(
             allowReserved = False
             style = "form"
             explode = True
-            headers = dict()
+            headers = {}
 
         m = media.schema_.properties[k]
         """

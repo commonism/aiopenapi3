@@ -621,7 +621,7 @@ def test_paths_server_variables(httpx2_mock, with_paths_server_variables):
     with pytest.raises(ValueError, match="Server Variable host value defoned not allowed"):
         api._.servers()
 
-    api._server_variables = dict()
+    api._server_variables = {}
 
     httpx2_mock.add_response(headers={"Content-Type": "application/json"}, status_code=204)
     r = api._.path()

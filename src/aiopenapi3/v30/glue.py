@@ -271,7 +271,7 @@ class Request(RequestBase):
           A unique parameter is defined by a combination of a name and location.
         """
 
-        provided = provided or dict()
+        provided = provided or {}
         possible = {_.name: _ for _ in self.operation.parameters + self.root.paths[self.path].parameters}
 
         from .. import v30, v31, v32
@@ -279,7 +279,7 @@ class Request(RequestBase):
         assert isinstance(self.operation, (v30.Operation, v31.Operation, v32.Operation))
 
         if self.operation.requestBody:
-            rbq: dict[str, str] = dict()  # requestBody Parameters
+            rbq: dict[str, str] = {}  # requestBody Parameters
             ct = "multipart/form-data"
             if ct in self.operation.requestBody.content:
                 assert self.operation.requestBody.content[ct].encoding is not None
@@ -314,7 +314,7 @@ class Request(RequestBase):
             )
 
         path_parameters = {}
-        mph = dict()
+        mph = {}
         for name, value in parameters.items():
             spec = possible[name]
             values = spec._encode(name, value)
@@ -394,8 +394,8 @@ class Request(RequestBase):
                 self.req.content = msg.as_string()
                 self.req.headers["Content-Type"] = f'{msg.get_content_type()}; boundary="{msg.get_boundary()}"'
             elif isinstance(data_, list):
-                rfiles = list()
-                rdata: dict[str, str] = dict()
+                rfiles = []
+                rdata: dict[str, str] = {}
                 name: str
                 value: tuple[str, Any]
                 for name, value in cast(Sequence[tuple[str, Any]], data_):
@@ -510,7 +510,7 @@ class Request(RequestBase):
     def _process__headers(
         self, result: httpx2.Response, headers: dict[str, str], expected_response: "v3xResponseType"
     ) -> "ResponseHeadersType":
-        rheaders = dict()
+        rheaders = {}
         if expected_response.headers:
             required = dict(
                 map(
@@ -583,7 +583,7 @@ class Request(RequestBase):
         return headers, expected_media.itemSchema, content_type
 
     def _process_request(self, result: httpx2.Response) -> tuple["ResponseHeadersType", "ResponseDataType"]:
-        rheaders = dict()
+        rheaders = {}
         # spec enforces these are strings
         status_code = str(result.status_code)
         content_type = result.headers.get("Content-Type", None)

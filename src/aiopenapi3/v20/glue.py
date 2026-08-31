@@ -158,7 +158,7 @@ class Request(RequestBase):
                 self.req.auth = httpx2_auth.HeaderApiKey(value, ss.name)
 
     def _prepare_parameters(self, provided: Optional["RequestParameters"]):
-        provided = provided or dict()
+        provided = provided or {}
         possible = {_.name: _ for _ in self.operation.parameters + self.root.paths[self.path].parameters}
 
         parameters = {i.name: i.default for i in filter(lambda x: x.default is not None, possible.values())}
@@ -265,7 +265,7 @@ class Request(RequestBase):
     def _process__headers(
         self, result: httpx2.Response, headers: dict[str, str], expected_response: "v20ResponseType"
     ) -> "ResponseHeadersType":
-        rheaders = dict()
+        rheaders = {}
         if expected_response.headers:
             required = dict(map(lambda x: (x[0].lower(), x[1]), expected_response.headers.items()))
             """

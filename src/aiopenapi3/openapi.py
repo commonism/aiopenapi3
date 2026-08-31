@@ -280,18 +280,18 @@ class OpenAPI:
         Raise for http status code
         """
 
-        self._security: dict[str, tuple[str]] = dict()
+        self._security: dict[str, tuple[str]] = {}
         """
         authorization informations
         e.g. {"BasicAuth": ("user","secret")}
         """
 
-        self._documents: dict[yarl.URL, "RootType"] = dict()
+        self._documents: dict[yarl.URL, "RootType"] = {}
         """
         the related documents
         """
 
-        self._server_variables: dict[str, str] = dict()
+        self._server_variables: dict[str, str] = {}
         """
         server variable mapping
         """
@@ -492,7 +492,7 @@ class OpenAPI:
         return processed
 
     def _init_schema_types_collect(self, only_required: bool) -> dict[str, "SchemaType"]:
-        byname: dict[str, "SchemaType"] = dict()
+        byname: dict[str, "SchemaType"] = {}
 
         def is_schema(v: tuple[str, "SchemaType"]) -> bool:
             return isinstance(v[1], (v20.Schema, v30.Schema, v31.Schema))
@@ -510,7 +510,7 @@ class OpenAPI:
                         byname[n] = schema
 
                 # PathItems
-                for path, obj in (self.paths or dict()).items():
+                for path, obj in (self.paths or {}).items():
                     for m in obj.model_fields_set & HTTP_METHODS:
                         op = getattr(obj, m)
 
@@ -548,7 +548,7 @@ class OpenAPI:
                         byname[n] = schema
 
             # PathItems
-            for path, obj in (self.paths or dict()).items():
+            for path, obj in (self.paths or {}).items():
                 for m in obj.model_fields_set & HTTP_METHODS:
                     op = getattr(obj, m)
 
@@ -617,7 +617,7 @@ class OpenAPI:
         byid: dict[int, "SchemaType"] = {id(i): i for i in byname.values()}
         data: set[int] = set(byid.keys())
         todo: set[int] = self._iterate_schemas(byid, data, set())
-        types: dict[str, ForwardRef | type[BaseModel] | type[int] | type[str] | type[float] | type[bool]] = dict()
+        types: dict[str, ForwardRef | type[BaseModel] | type[int] | type[str] | type[float] | type[bool]] = {}
 
         """
         Due to Plugins (e.g. Cull/Reduce) byname may be incomplete
@@ -700,7 +700,7 @@ class OpenAPI:
         :param kwargs: scheme=value
         """
         if len(args) == 1 and args[0] is None:
-            self._security = dict()
+            self._security = {}
 
         schemes = frozenset(kwargs.keys())
 

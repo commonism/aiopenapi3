@@ -46,7 +46,7 @@ class OnMessage(Message):
     def parsed(self, ctx):
         def goodPet(i):
             if not isinstance(i.get("photoUrls", None), list):
-                i["photoUrls"] = list()
+                i["photoUrls"] = []
             for idx, j in enumerate(i["photoUrls"]):
                 if not isinstance(j, str):
                     i["photoUrls"][idx] = "<invalid>"
@@ -55,7 +55,7 @@ class OnMessage(Message):
                 i["status"] = "pending"
 
             if (c := i.get("category", None)) is None or not isinstance(c, dict):
-                i["category"] = dict(id=0, name="default")
+                i["category"] = {"id": 0, "name": "default"}
 
             if (c := i.get("name", None)) is None or not isinstance(c, str):
                 i["name"] = ""
@@ -65,7 +65,7 @@ class OnMessage(Message):
                     i["id"] = 0
 
             if False:
-                for t in i.get("tags", list()):
+                for t in i.get("tags", []):
                     for k, v in {"name": "default", "id": 0}.items():
                         if k not in t:
                             t[k] = v
