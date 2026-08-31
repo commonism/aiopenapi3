@@ -40,7 +40,7 @@ class _Version:
 
     @property
     def schema(self):
-        return getattr(getattr(aiopenapi3, f"v{self.major}{self.minor}"), "Schema")
+        return getattr(aiopenapi3, f"v{self.major}{self.minor}").Schema
 
 
 @pytest.fixture(scope="session", params=[_Version(3, 0, 3), _Version(3, 1, 0)], ids=("v30", "v31"))
