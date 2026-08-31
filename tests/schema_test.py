@@ -359,7 +359,7 @@ def test_schema_with_patternProperties(with_schema_patternProperties):
     O = api.components.schemas["O"].get_type()
     a = A.model_validate({"I_5": 100})
     assert list(a.aio3_patternProperty("^I_")) == [("I_5", 100)]
-    sorted(typing.get_args(a.aio3_patternProperty.__annotations__["item"])) == ["^I_", "^S_"]
+    assert sorted(typing.get_args(a.aio3_patternProperty.__annotations__["item"])) == ["^I_", "^S_"]
 
     assert a.aio3_patternProperties == {"^S_": [], "^I_": [("I_5", 100)]}
 
