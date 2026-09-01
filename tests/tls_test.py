@@ -89,7 +89,7 @@ async def wait_for_server(server):
     for i in range(10):
         try:
             host, _, port = server.bind[0].rpartition(":")
-            r, w = await asyncio.open_connection(host=host, port=port)
+            _r, w = await asyncio.open_connection(host=host, port=port)
         except Exception as e:
             await asyncio.sleep(0.1)
         else:

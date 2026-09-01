@@ -60,14 +60,14 @@ async def test_createPet(server, client):
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_listPet(server, client):
-    h, r = await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
+    _h, _r = await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
     l = await asyncio.to_thread(client._.listPet)
     assert len(l) > 0
 
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_getPet(server, client):
-    h, pet = await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
+    _h, pet = await asyncio.to_thread(client._.createPet, **randomPet(uuid.uuid4()))
     r = await asyncio.to_thread(client._.getPet, parameters={"petId": pet.id})
     # FastAPI 0.101 Serialization changes
     # assert type(r).model_json_schema() == type(pet).model_json_schema()
