@@ -38,7 +38,7 @@ def log_response(response):
         try:
             if data := request.read():
                 print(json.dumps(json.loads(data.decode()), indent=4))
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(e)
 
 
