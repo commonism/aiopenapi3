@@ -229,7 +229,6 @@ class _ClassInfo:
             pass
         else:
             raise ValueError()
-        return
 
     def model(self) -> type[BaseModel] | type[None]:
         if self.root:

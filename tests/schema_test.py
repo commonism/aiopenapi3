@@ -431,7 +431,6 @@ def test_schema_discriminated_union_deep(with_schema_discriminated_union_deep):
     pet = Pet(dog)
 
     d = Dog.model_construct()
-    return None
 
 
 def test_schema_create_update_read(with_schema_create_update_read):
@@ -526,8 +525,6 @@ def test_schema_pathitems(httpx2_mock, with_schema_pathitems):
     req = api.createRequest("b")
     r = req()
     r = api._.b()
-
-    return
 
 
 def test_schema_baseurl_v20(with_schema_baseurl_v20):

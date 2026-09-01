@@ -148,8 +148,6 @@ def test_paths_response_header_v20(httpx2_mock, with_paths_response_header_v20):
     #     h, b = api._.get(return_headers=True)
     #     request = httpx2_mock.get_requests()[-1]
 
-    return
-
 
 @pytest.mark.httpx2_mock(can_send_already_matched_responses=True)
 def test_paths_parameter_format_v20(httpx2_mock, with_paths_parameter_format_v20):
@@ -208,8 +206,6 @@ def test_paths_parameter_format_v20(httpx2_mock, with_paths_parameter_format_v20
     request = httpx2_mock.get_requests()[-1]
     assert (v := urllib.parse.parse_qs(request.content.decode())) is not None and v["A"] == ["a"] and v["B"] == ["5"]
     assert result == "ok"
-
-    return
 
 
 def test_paths_response_file(httpx2_mock, with_paths_parameter_format_v20):
