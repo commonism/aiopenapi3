@@ -83,9 +83,7 @@ class ConfiguredRootModel(RootModel):
 
 
 def is_basemodel(m) -> bool:
-    if inspect.isclass(m) and issubclass(m, pydantic.BaseModel):
-        return True
-    return False
+    return bool(inspect.isclass(m) and issubclass(m, pydantic.BaseModel))
 
 
 if sys.version_info < (3, 11):
@@ -95,9 +93,7 @@ if sys.version_info < (3, 11):
         if isinstance(m, typing.GenericAlias):
             return False
 
-        if inspect.isclass(m) and issubclass(m, pydantic.BaseModel):
-            return True
-        return False
+        return bool(inspect.isclass(m) and issubclass(m, pydantic.BaseModel))
 
 
 @dataclasses.dataclass
