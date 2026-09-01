@@ -458,7 +458,7 @@ def test_schema_constraints(with_schema_constraints):
                 A("i" * i)
 
     B = (_B := api.components.schemas["B"]).get_type()
-    for i in range(0, 12):
+    for i in range(12):
         if _B.exclusiveMaximum > i > _B.exclusiveMinimum:
             B(i)
         else:
@@ -466,7 +466,7 @@ def test_schema_constraints(with_schema_constraints):
                 B(i)
 
     C = (_C := api.components.schemas["C"]).get_type()
-    for i in range(0, 12):
+    for i in range(12):
         if i % _C.multipleOf != 0:
             with pytest.raises(ValidationError):
                 C(i)
