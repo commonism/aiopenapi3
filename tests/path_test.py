@@ -194,7 +194,7 @@ def test_paths_security_combined(httpx2_mock, with_paths_security):
     with pytest.raises(ValueError, match="No security requirement satisfied"):
         r = api._.api_v1_auth_login_combined(data={}, parameters={})
 
-    api.authenticate(**{"user": "theuser", "token": "thetoken"})
+    api.authenticate(user="theuser", token="thetoken")
     r = api._.api_v1_auth_login_combined(data={}, parameters={})
 
     api.authenticate(None)
