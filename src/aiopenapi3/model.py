@@ -39,7 +39,6 @@ def generate_type_format_to_class():
     initialize type_format_to_class
     :return: None
     """
-    global type_format_to_class
     for cls, spec in field_class_to_schema:
         if "type" not in spec:
             # FIXME Decimal is anyOf now
