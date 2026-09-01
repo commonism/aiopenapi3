@@ -259,7 +259,7 @@ def test_pets(api, login):
 
     # findPetsByStatus is patched
     r = api._.findPetsByStatus(parameters={"status": ["available"]})
-    assert all([i.status == "available" for i in r])
+    assert all(i.status == "available" for i in r)
 
 
 @pytest.mark.xfail

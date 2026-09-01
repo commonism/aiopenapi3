@@ -103,7 +103,7 @@ class Request(RequestBase):
             return
 
         if not self.security:
-            if any([{} == i.root for i in security]):
+            if any({} == i.root for i in security):
                 return
             else:
                 options = " or ".join(
