@@ -56,11 +56,10 @@ def getPet(pet_id: str = Path(..., alias="petId")) -> schema.Pets:
     for pet in ZOO.values():
         if pet_id == pet.identifier:
             return pet
-    else:
-        return JSONResponse(
-            status_code=starlette.status.HTTP_404_NOT_FOUND,
-            content=schema.Error(code=errno.ENOENT, message=f"{pet_id} not found").model_dump(),
-        )
+    return JSONResponse(
+        status_code=starlette.status.HTTP_404_NOT_FOUND,
+        content=schema.Error(code=errno.ENOENT, message=f"{pet_id} not found").model_dump(),
+    )
 
 
 @router.delete(
@@ -76,11 +75,10 @@ def deletePet(
             del ZOO[k]
             response.status_code = starlette.status.HTTP_204_NO_CONTENT
             return response
-    else:
-        return JSONResponse(
-            status_code=starlette.status.HTTP_404_NOT_FOUND,
-            content=schema.Error(code=errno.ENOENT, message=f"{pet_id} not found").model_dump(),
-        )
+    return JSONResponse(
+        status_code=starlette.status.HTTP_404_NOT_FOUND,
+        content=schema.Error(code=errno.ENOENT, message=f"{pet_id} not found").model_dump(),
+    )
 
 
 @router.patch("/pets", operation_id="patchPets", responses={200: {"model": schema.Pets}})
