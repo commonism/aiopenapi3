@@ -14,16 +14,16 @@ from .openapi import OpenAPI
 from .version import __version__
 
 __all__ = [
-    "__version__",
-    "OpenAPI",
-    "FileSystemLoader",
-    "SpecError",
-    "ReferenceResolutionError",
-    "HTTPError",
-    "ResponseError",
-    "HTTPStatusError",
     "ContentTypeError",
-    "ResponseDecodingError",
-    "ResponseSchemaError",
+    "FileSystemLoader",
+    "HTTPError",
+    "HTTPStatusError",
+    "OpenAPI",
+    "ReferenceResolutionError",
     "RequestError",
+    "ResponseDecodingError",
+    "ResponseError",
+    "ResponseSchemaError",
+    "SpecError",
+    "__version__",
 ]
