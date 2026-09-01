@@ -806,10 +806,7 @@ class Model:  # (BaseModel):
         if name.startswith("model_"):
             rename = f"x{name}"
 
-        try:
-            rename = re.sub(r"[#@\.-]", "_", rename)
-        except Exception as e:
-            print(e)
+        rename = re.sub(r"[#@\.-]", "_", rename)
 
         if rename[0] == "_":
             rename = rename.lstrip("_") + "_"

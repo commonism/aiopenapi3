@@ -351,14 +351,10 @@ class SchemaBase(BaseModel):
         :return:
         """
         r = BaseModel.__getstate__(self)
-        try:
-            for k, v in {"_model_type": None, "_model_types": []}.items():
-                if k in r["__pydantic_private__"]:
-                    r["__pydantic_private__"] = r["__pydantic_private__"].copy()
-                    r["__pydantic_private__"][k] = v
-
-        except Exception:
-            pass
+        for k, v in {"_model_type": None, "_model_types": []}.items():
+            if k in r["__pydantic_private__"]:
+                r["__pydantic_private__"] = r["__pydantic_private__"].copy()
+                r["__pydantic_private__"][k] = v
         return r
 
     def _get_identity(self, prefix="XLS", name=None):

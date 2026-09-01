@@ -171,11 +171,11 @@ class Loader(abc.ABC):
         if file.suffix not in (".yaml", ".json"):
             try:
                 return self.parse(plugins, url.with_path("/test.yaml"), data)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 pass
             try:
                 return self.parse(plugins, url.with_path("/test.json"), data)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 pass
 
         if file.suffix == ".yaml":
@@ -299,7 +299,7 @@ class ChainLoader(Loader):
                 r = i.load(plugins, url, codec)
                 log.debug(f"using {i}")
                 return r
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 errors.append((i, str(exc)))
         for l, e in errors:
             log.debug(f"{l} {e}")

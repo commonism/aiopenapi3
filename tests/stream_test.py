@@ -123,7 +123,7 @@ async def test_stream_array(server, client):
             data = yield
             try:
                 file = t.model_validate(data)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 print(e)
             assert len(file.name) == 16
             # process received File model here

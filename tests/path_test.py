@@ -5,6 +5,7 @@ This file tests that paths are parsed and populated correctly
 import base64
 import copy
 import pathlib
+import re
 import uuid
 
 import httpx2
@@ -164,14 +165,6 @@ def test_paths_security(httpx2_mock, with_paths_security):
     request = httpx2_mock.get_requests()[-1]
     assert request.headers["Authorization"].split(" ")[1] == base64.b64encode((auth + ":" + auth).encode()).decode()
 
-    try:
-        pass
-    except Exception:
-        api.authenticate(None, digestAuth=(auth, auth))
-        api._.api_v1_auth_login_create(data={}, parameters={})
-        request = httpx2_mock.get_requests()[-1]
-    # can't test?
-
     api.authenticate(None, bearerAuth=auth)
     api._.api_v1_auth_login_create(data={}, parameters={})
     request = httpx2_mock.get_requests()[-1]
@@ -181,6 +174,26 @@ def test_paths_security(httpx2_mock, with_paths_security):
     api.authenticate(None)
     r = api._.api_v1_auth_login_null()
     request = httpx2_mock.get_requests()[-1]
+
+
+def test_paths_security_digest(httpx2_mock, with_paths_security):
+    api = OpenAPI(URLBASE, with_paths_security, session_factory=httpx2.Client, use_operation_tags=False)
+    auth = str(uuid.uuid4())
+    httpx2_mock.add_response(
+        status_code=401,
+        headers={
+            "WWW-Authenticate": """Digest realm="testrealm@host.com",qop="auth,auth-int",nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",opaque="5ccc069c403ebaf9f0171e9517f40e41" """
+        },
+    )
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, json="user")
+
+    api.authenticate(None, digestAuth=(auth, auth))
+    api._.api_v1_auth_login_create(data={}, parameters={})
+    request = httpx2_mock.get_requests()[-1]
+
+    reg = re.compile(r'([^\s,]+) ?[=] ?"?([^\s,"]+)"?')
+    v = dict(reg.findall(request.headers["Authorization"]))
+    assert v["username"] == auth
 
 
 def test_paths_security_combined(httpx2_mock, with_paths_security):

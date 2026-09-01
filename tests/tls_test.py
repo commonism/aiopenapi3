@@ -90,7 +90,7 @@ async def wait_for_server(server):
         try:
             host, _, port = server.bind[0].rpartition(":")
             _r, w = await asyncio.open_connection(host=host, port=port)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             await asyncio.sleep(0.1)
         else:
             await w.drain()

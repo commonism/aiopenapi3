@@ -272,7 +272,7 @@ def test_allOf_resolution(openapi_version, petstore_expanded):
         assert sorted(x.name for x in filter(lambda y: y.required, items.values())) == sorted(["id", "name"]), (
             ref.model_json_schema()
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(e)
 
     assert sorted(x.name for x in items.values()) == ["id", "name", "tag"]

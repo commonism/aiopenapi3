@@ -206,7 +206,7 @@ def test_pets(api, login):
     for i, pet in enumerate(r):
         try:
             api._.deletePet(parameters={"petId": pet.id})
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
         if i > 3:
             break
