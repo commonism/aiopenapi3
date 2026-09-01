@@ -1,4 +1,4 @@
-from pydantic import BaseModel, RootModel, Field
+from pydantic import BaseModel, Field, RootModel
 
 
 class PetBase(BaseModel):

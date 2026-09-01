@@ -1,11 +1,11 @@
 import io
-import uuid
 import urllib
+import uuid
 
-import yarl
 import httpx2
 import pytest
 import python_multipart
+import yarl
 from httpx2._multipart import MultipartStream
 
 from aiopenapi3 import OpenAPI

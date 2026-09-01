@@ -1,9 +1,9 @@
 import typing
-from typing import Union, Any, Optional
+from typing import Any, Optional, Union
 
-from pydantic import Field, model_validator, ConfigDict
+from pydantic import ConfigDict, Field, model_validator
 
-from ..base import ObjectExtended, SchemaBase, DiscriminatorBase
+from ..base import DiscriminatorBase, ObjectExtended, SchemaBase
 from .xml import XML
 
 if typing.TYPE_CHECKING:

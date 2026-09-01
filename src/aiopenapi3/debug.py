@@ -1,7 +1,9 @@
-from aiopenapi3.plugin import Document
-import yaml
-from pathlib import Path
 import json
+from pathlib import Path
+
+import yaml
+
+from aiopenapi3.plugin import Document
 
 
 class DescriptionDocumentDumper(Document):

@@ -1,23 +1,18 @@
 import asyncio
 import random
 import string
-
+from pathlib import Path
 from typing import Annotated
 
-from pathlib import Path
-
-from hypercorn.asyncio import serve
-from hypercorn.config import Config
 import pydantic
-from fastapi import FastAPI, Request, Response, Query, UploadFile, Body
-from fastapi.responses import PlainTextResponse
-
 import pytest
 import pytest_asyncio
-
+from fastapi import Body, FastAPI, Query, Request, Response, UploadFile
+from fastapi.responses import PlainTextResponse
+from hypercorn.asyncio import serve
+from hypercorn.config import Config
 
 import aiopenapi3
-
 
 app = FastAPI(version="1.0.0", title="TLS tests", servers=[{"url": "/", "description": "Default, relative server"}])
 

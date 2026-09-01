@@ -1,14 +1,13 @@
 import typing
 from typing import Any, Union
 
-from pydantic import Field, ConfigDict, PrivateAttr
+from pydantic import ConfigDict, Field, PrivateAttr
 
-
-from ..base import ObjectExtended, ObjectBase, ReferenceBase
+from ..base import ObjectBase, ObjectExtended, ReferenceBase
 
 if typing.TYPE_CHECKING:
-    from .schemas import Schema
     from .parameter import Parameter
+    from .schemas import Schema
 
 
 class ExternalDocumentation(ObjectExtended):

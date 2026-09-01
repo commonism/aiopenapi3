@@ -1,10 +1,8 @@
 import httpx2
-
 import pytest
 from pytest_httpx2 import IteratorStream
 
-from aiopenapi3 import OpenAPI
-from aiopenapi3 import v32
+from aiopenapi3 import OpenAPI, v32
 
 
 def test_Components():

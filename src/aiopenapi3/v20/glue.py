@@ -1,18 +1,13 @@
-import typing
-from typing import Union, cast, Optional
-from collections.abc import Sequence
 import json
-
-from typing import TypeGuard
-
+import typing
+from collections.abc import Sequence
+from typing import Optional, TypeGuard, Union, cast
 
 import httpx2
 import pydantic
 
-from ..request import RequestBase, AsyncRequestBase
-from ..errors import HTTPStatusError, ContentTypeError, ResponseSchemaError, ResponseDecodingError, HeadersMissingError
-
-
+from ..errors import ContentTypeError, HeadersMissingError, HTTPStatusError, ResponseDecodingError, ResponseSchemaError
+from ..request import AsyncRequestBase, RequestBase
 from .parameter import Parameter
 from .root import Root
 
@@ -23,15 +18,15 @@ except ImportError:
 
 if typing.TYPE_CHECKING:
     from .._types import (
-        RequestParameters,
-        RequestData,
-        ResponseHeadersType,
-        ResponseDataType,
         HeaderType,
+        RequestData,
+        RequestParameters,
+        ResponseDataType,
+        ResponseHeadersType,
     )
-    from .schemas import Schema
     from .general import Reference
     from .paths import Response as v20ResponseType
+    from .schemas import Schema
 
 
 def in_body(x: Union["Parameter", "Reference"]) -> TypeGuard["Parameter"]:

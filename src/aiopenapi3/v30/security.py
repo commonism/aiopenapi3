@@ -1,4 +1,5 @@
-from typing import Union, Annotated, Literal
+from typing import Annotated, Literal, Union
+
 from pydantic import Field, RootModel, constr
 
 from ..base import ObjectExtended

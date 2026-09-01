@@ -1,15 +1,15 @@
 import base64
-import quopri
-from typing import TYPE_CHECKING, NamedTuple
-from email.mime import multipart, nonmultipart
-from email.message import Message
 import collections
+import quopri
+from email.message import Message
+from email.mime import multipart, nonmultipart
+from typing import TYPE_CHECKING, NamedTuple
 
 from .parameter import encode_parameter
 
-
 if TYPE_CHECKING:
     from pydantic import BaseModel
+
     from .._types import MediaTypeType, SchemaType
 
 

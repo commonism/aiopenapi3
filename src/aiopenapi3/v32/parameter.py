@@ -1,16 +1,15 @@
 import enum
 import typing
-from typing import Union, Any
+from typing import Any, Union
 
 from pydantic import Field
 
-from ..base import ObjectExtended, ParameterBase as _ParameterBase
-
+from ..base import ObjectExtended
+from ..base import ParameterBase as _ParameterBase
+from ..v30.parameter import _ParameterCodec
 from .example import Example
 from .general import Reference
 from .schemas import Schema
-
-from ..v30.parameter import _ParameterCodec
 
 if typing.TYPE_CHECKING:
     from .paths import MediaType

@@ -1,14 +1,13 @@
 from pydantic import Field
 
 from ..base import ObjectExtended
-
 from .example import Example
-from .paths import RequestBody, Link, Response, Callback, PathItem
 from .general import Reference
+from .media import MediaType
 from .parameter import Header, Parameter
+from .paths import Callback, Link, PathItem, RequestBody, Response
 from .schemas import Schema
 from .security import SecurityScheme
-from .media import MediaType
 
 
 class Components(ObjectExtended):

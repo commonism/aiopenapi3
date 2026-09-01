@@ -1,12 +1,11 @@
-from .glue import Request, AsyncRequest
-
 from .general import ExternalDocumentation, Reference
-from .info import Contact, License, Info
-from .parameter import Parameter, Header
-from .paths import Response, Operation, PathItem, Paths
+from .glue import AsyncRequest, Request
+from .info import Contact, Info, License
+from .parameter import Header, Parameter
+from .paths import Operation, PathItem, Paths, Response
 from .root import Root
 from .schemas import Schema
-from .security import SecurityScheme, SecurityRequirement
+from .security import SecurityRequirement, SecurityScheme
 from .tag import Tag
 from .xml import XML
 

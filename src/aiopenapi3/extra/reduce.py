@@ -1,7 +1,7 @@
-import typing
-from typing import Union
 import logging
 import re
+import typing
+from typing import Union
 
 from ..plugin import Document, Init
 

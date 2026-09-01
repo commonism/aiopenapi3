@@ -1,49 +1,38 @@
-import typing
-
-from typing import Any, Union, cast, Optional, ForwardRef
-from collections.abc import Callable
-import logging
 import copy
+import logging
+import pathlib
 import pickle
 import random
-
-import pathlib
-
-
-from typing import TypeGuard
-
+import typing
+from collections.abc import Callable
+from typing import Any, ForwardRef, Optional, TypeGuard, Union, cast
 
 import httpx2
 import yarl
 from pydantic import BaseModel
 
-from aiopenapi3.v30.general import Reference
 import aiopenapi3.request
-from .json import JSONReference
-from . import v20
-from . import v30
-from . import v31
-from . import v32
-from . import log
-from .request import OperationIndex, HTTP_METHODS
-from .errors import ReferenceResolutionError, HTTPClientError, HTTPServerError
-from .loader import Loader, NullLoader
-from .plugin import Plugin, Plugins
-from .base import RootBase, ReferenceBase, SchemaBase, DiscriminatorBase
-from .request import RequestBase
-from .v30.paths import Operation
-from .model import is_basemodel, Model
+from aiopenapi3.v30.general import Reference
 
+from . import log, v20, v30, v31, v32
+from .base import DiscriminatorBase, ReferenceBase, RootBase, SchemaBase
+from .errors import HTTPClientError, HTTPServerError, ReferenceResolutionError
+from .json import JSONReference
+from .loader import Loader, NullLoader
+from .model import Model, is_basemodel
+from .plugin import Plugin, Plugins
+from .request import HTTP_METHODS, OperationIndex, RequestBase
+from .v30.paths import Operation
 
 if typing.TYPE_CHECKING:
     from ._types import (
-        RootType,
         JSON,
-        PathItemType,
-        SchemaType,
-        OperationType,
-        RequestType,
         HTTPMethodType,
+        OperationType,
+        PathItemType,
+        RequestType,
+        RootType,
+        SchemaType,
         ServerType,
     )
 

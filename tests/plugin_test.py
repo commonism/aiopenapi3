@@ -5,7 +5,7 @@ import httpx2
 import yarl
 
 from aiopenapi3 import FileSystemLoader, OpenAPI
-from aiopenapi3.plugin import Init, Message, Document
+from aiopenapi3.plugin import Document, Init, Message
 
 
 class OnInit(Init):

@@ -4,21 +4,18 @@ import inspect
 import logging
 import re
 import sys
-from typing import Any, cast, TypeVar
 import typing
+from typing import Annotated, Any, Literal, Optional, TypeGuard, TypeVar, Union, cast
 
-from typing import TypeGuard
-
-from typing import Optional, Union, Annotated, Literal
-from pydantic import BaseModel, Field, RootModel, ConfigDict
 import pydantic
+from pydantic import BaseModel, ConfigDict, Field, RootModel
 
-from .base import ReferenceBase, SchemaBase
 from . import me
-from .pydanticv2 import field_class_to_schema, create_model
+from .base import ReferenceBase, SchemaBase
+from .pydanticv2 import create_model, field_class_to_schema
 
 if typing.TYPE_CHECKING:
-    from ._types import SchemaType, ReferenceType, DiscriminatorType
+    from ._types import DiscriminatorType, ReferenceType, SchemaType
 
 type_format_to_class: dict[str, dict[str | None, type]] = collections.defaultdict(dict)
 

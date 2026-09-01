@@ -1,9 +1,8 @@
-import sys
 import logging.config
 import os
-from typing import Any
-
+import sys
 from pathlib import Path
+from typing import Any
 
 handlers: list[str] | None = None
 

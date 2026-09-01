@@ -1,26 +1,26 @@
-import enum
 import datetime
 import decimal
+import enum
+import json
 import typing
 import uuid
-import json
-from typing import Union, Any
 from collections.abc import MutableMapping
+from typing import Any, Union
 
-from pydantic import BaseModel, Field, model_validator
 import more_itertools
+from pydantic import BaseModel, Field, model_validator
 
-from ..base import ObjectExtended, ParameterBase as ParameterBase_, ReferenceBase
+from ..base import ObjectExtended, ReferenceBase
+from ..base import ParameterBase as ParameterBase_
 from ..errors import ParameterFormatError
-
+from ..model import TYPES_SCHEMA_MAP
 from .example import Example
 from .general import Reference
 from .schemas import Schema
-from ..model import TYPES_SCHEMA_MAP
 
 if typing.TYPE_CHECKING:
-    from .paths import MediaType
     from .._types import v3xSchemaType
+    from .paths import MediaType
 
 
 class _ParameterCodec:

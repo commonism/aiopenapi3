@@ -1,7 +1,6 @@
-import pytest
-
 import pathlib
 
+import pytest
 import yarl
 
 from aiopenapi3 import FileSystemLoader, OpenAPI

@@ -1,14 +1,12 @@
 import abc
 import collections
 import contextlib
-import typing
 import json
 import logging
-from contextlib import closing
+import typing
+from collections.abc import AsyncGenerator, AsyncIterator, Generator, Iterator
+from contextlib import aclosing, closing
 from typing import Any, NamedTuple, Optional, Union, cast
-from collections.abc import AsyncIterator, AsyncGenerator, Generator
-from collections.abc import Iterator
-from contextlib import aclosing
 
 import httpx2
 import pydantic
@@ -16,32 +14,32 @@ import yarl
 
 from aiopenapi3.errors import ContentLengthExceededError
 
-
 from .base import HTTP_METHODS, ReferenceBase
+from .errors import OperationIdDuplicationError, RequestError
 from .version import __version__
-from .errors import RequestError, OperationIdDuplicationError
 
 if typing.TYPE_CHECKING:
+    from aiopenapi3 import OpenAPI
+
     from ._types import (
-        RequestParameters,
-        RequestData,
-        RequestFiles,
-        RequestContent,
-        RequestType,
+        JSON,
         AuthTypes,
-        SchemaType,
+        HTTPMethodType,
+        OperationType,
         ParameterType,
         PathItemType,
-        OperationType,
-        JSON,
-        RootType,
-        ServerType,
+        RequestContent,
+        RequestData,
+        RequestFiles,
+        RequestParameters,
+        RequestType,
         ResponseDataType,
         ResponseHeadersType,
-        HTTPMethodType,
+        RootType,
+        SchemaType,
+        ServerType,
         TagType,
     )
-    from aiopenapi3 import OpenAPI
 
 log = logging.getLogger("aiopenapi3.request")
 
