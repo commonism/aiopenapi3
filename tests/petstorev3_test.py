@@ -87,7 +87,7 @@ class OnMessage(Message):
                 i["tags"] = []
             else:
                 for t in c:
-                    if not isinstance(t, dict) or not set(t.keys()) == frozenset(["id", "name"]):
+                    if not isinstance(t, dict) or set(t.keys()) != frozenset(["id", "name"]):
                         i["tags"] = []
                         break
 
