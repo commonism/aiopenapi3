@@ -1,4 +1,5 @@
 import random
+from typing import ClassVar
 
 import httpx2
 import pytest
@@ -29,11 +30,14 @@ def session_factory(*args, **kwargs) -> httpx2.Client:
 
 
 class OnDocument(Document):
-    ApiResponse = {
+    ApiResponse: ClassVar = {
         "description": "",
         "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiResponse"}}},
     }
-    PetResponse = {"description": "", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Pet"}}}}
+    PetResponse: ClassVar = {
+        "description": "",
+        "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Pet"}}},
+    }
 
     def parsed(self, ctx):
         for path in ctx.document["paths"].values():

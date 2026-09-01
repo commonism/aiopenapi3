@@ -5,7 +5,7 @@ import logging
 import re
 import sys
 import typing
-from typing import Annotated, Any, Literal, Optional, TypeGuard, TypeVar, Union, cast
+from typing import Annotated, Any, ClassVar, Literal, Optional, TypeGuard, TypeVar, Union, cast
 
 import pydantic
 from pydantic import BaseModel, ConfigDict, Field, RootModel
@@ -274,7 +274,7 @@ def _follow(r: "ReferenceType", t: type[_T]) -> TypeGuard[_T]:
 
 
 class Model:  # (BaseModel):
-    ALIASES: dict[str, str] = {}
+    ALIASES: ClassVar[dict[str, str]] = {}
 
     @classmethod
     def from_schema(

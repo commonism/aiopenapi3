@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import httpx2
 import pytest
 
@@ -22,8 +24,8 @@ def session_factory(*args, **kwargs) -> httpx2.Client:
 
 
 class OnDocument(Document):
-    ApiResponse = {"description": "successful operation", "schema": {"$ref": "#/definitions/ApiResponse"}}
-    PetResponse = {"description": "successful operation", "schema": {"$ref": "#/definitions/Pet"}}
+    ApiResponse: ClassVar = {"description": "successful operation", "schema": {"$ref": "#/definitions/ApiResponse"}}
+    PetResponse: ClassVar = {"description": "successful operation", "schema": {"$ref": "#/definitions/Pet"}}
 
     def parsed(self, ctx):
         for path in ctx.document["paths"].values():
