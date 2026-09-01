@@ -389,19 +389,19 @@ def test_schema_discriminated_union_warnings(with_schema_discriminated_union_war
     s = copy.deepcopy(with_schema_discriminated_union_warning)
     api = OpenAPI("/", s)
 
+    s = copy.deepcopy(with_schema_discriminated_union_warning)
+    s["components"]["schemas"]["B"]["properties"]["object_type"]["enum"] = ["f"]
     with pytest.warns(
         DiscriminatorWarning,
         match=r"Discriminated Union member key property enum mismatches property mapping \S+ \!= \S+",
     ):
-        s = copy.deepcopy(with_schema_discriminated_union_warning)
-        s["components"]["schemas"]["B"]["properties"]["object_type"]["enum"] = ["f"]
         api = OpenAPI("/", s)
 
+    s = copy.deepcopy(with_schema_discriminated_union_warning)
+    del s["components"]["schemas"]["B"]["properties"]["object_type"]["enum"]
     with pytest.warns(
         DiscriminatorWarning, match=r"Discriminated Union member \S+ without const/enum key property \S+"
     ):
-        s = copy.deepcopy(with_schema_discriminated_union_warning)
-        del s["components"]["schemas"]["B"]["properties"]["object_type"]["enum"]
         api = OpenAPI("/", s)
 
     if (openapi_version.major, openapi_version.minor, openapi_version.patch) >= (3, 1, 0):
