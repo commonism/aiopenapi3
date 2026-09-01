@@ -36,11 +36,11 @@ class _ParameterCodec:
         elif self.in_ == "query":
             style = self.style or "form"
             assert style in frozenset(["form", "spaceDelimited", "pipeDelimited", "deepObject"])
-            explode = self.explode if self.explode is not None else (False if style != "form" else True)
+            explode = self.explode if self.explode is not None else (style == "form")
         elif self.in_ == "cookie":
             style = self.style or "form"
             assert style in frozenset(["form"])
-            explode = self.explode if self.explode is not None else (False if style != "form" else True)
+            explode = self.explode if self.explode is not None else (style == "form")
         elif self.in_ == "querystring":
             style = "querystring"
             explode = None
