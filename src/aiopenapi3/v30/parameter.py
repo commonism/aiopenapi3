@@ -121,7 +121,7 @@ class _ParameterCodec:
             # .blue
             value = f".{value}"
         elif type_ in frozenset(["number", "integer"]):
-            value = f".{str(value)}"
+            value = f".{value!s}"
         elif type_ == "boolean":
             value = f".{json.dumps(value)}"
         elif type_ == "null":
