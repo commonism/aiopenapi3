@@ -41,7 +41,7 @@ class Cookies(aiopenapi3.plugin.Message, aiopenapi3.plugin.Init):
             return info
 
     def __init__(
-        self, cookiejar: http.cookiejar.CookieJar = None, policy: Literal["jar", "securitySchemes"] = "jar"
+        self, cookiejar: http.cookiejar.CookieJar | None = None, policy: Literal["jar", "securitySchemes"] = "jar"
     ) -> None:
         """
 
