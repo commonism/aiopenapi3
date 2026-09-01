@@ -1,4 +1,5 @@
 import pathlib
+from typing import ClassVar
 
 import pytest
 import yarl
@@ -20,7 +21,7 @@ def pytest_generate_tests(metafunc):
 @pytest.mark.skip
 class TestParseData:
     # a map specifying multiple argument sets for a test method
-    params = {
+    params: ClassVar = {
         "test_data": [("dir", "file"), "tests/data", lambda x: x.is_file() and x.suffix in (".json", ".yaml")],
         "test_data_open5gs": [
             ("dir", "file"),

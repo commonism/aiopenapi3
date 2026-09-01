@@ -2,6 +2,7 @@ import asyncio
 import copy
 import datetime
 import decimal
+from typing import ClassVar
 
 import pytest
 import pytest_asyncio
@@ -78,7 +79,7 @@ class FileForm(FlaskForm):
 
 
 class SelectForm(FlaskForm):
-    CHOICES = [("cpp", "C++"), ("py", "Python"), ("txt", "Plain Text"), ("rb", "Ruby"), ("c", "C")]
+    CHOICES: ClassVar = [("cpp", "C++"), ("py", "Python"), ("txt", "Plain Text"), ("rb", "Ruby"), ("c", "C")]
 
     class Meta:
         csrf = False

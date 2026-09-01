@@ -3,6 +3,7 @@ import importlib
 import logging
 import re
 import typing
+from typing import ClassVar
 
 import httpx2
 import yaml
@@ -41,7 +42,7 @@ class YAML12Loader(yaml.SafeLoader):
     add the YAML 1.2 core tags
     """
 
-    _core_resolvers = [
+    _core_resolvers: ClassVar = [
         ["bool", re.compile(r"""^(?:|true|True|TRUE|false|False|FALSE)$""", re.VERBOSE), list("tTfF")],
         [
             "int",

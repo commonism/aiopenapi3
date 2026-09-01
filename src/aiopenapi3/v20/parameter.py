@@ -1,6 +1,6 @@
 import enum
 import io
-from typing import Any, Optional
+from typing import Any, ClassVar, Optional
 
 from pydantic import Field
 
@@ -11,7 +11,7 @@ from .schemas import Schema
 
 
 class _ParameterCodec:
-    SEPERATOR_VALUES = {"csv": ",", "ssv": " ", "tsv": "\t", "pipes": "|"}
+    SEPERATOR_VALUES: ClassVar = {"csv": ",", "ssv": " ", "tsv": "\t", "pipes": "|"}
     """
     Describing Parameters
 

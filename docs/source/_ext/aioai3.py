@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from docutils import nodes
 from sphinx.domains import Domain
 from sphinx.roles import XRefRole
@@ -14,7 +16,7 @@ class aiopenapi3Domain(Domain):
     name = "aioai3"
     label = "aiopenapi3 code linker"
 
-    roles = {
+    roles: ClassVar = {
         "ref": XRefRole(),
     }
 
