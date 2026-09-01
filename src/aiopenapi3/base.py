@@ -53,7 +53,7 @@ class ObjectExtended(ObjectBase):
         if len(e):
             for i in rm:
                 del values[i]
-            if "extensions" in values.keys():
+            if "extensions" in values:
                 raise ValueError("extensions")
             values["extensions"] = e
 

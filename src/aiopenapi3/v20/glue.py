@@ -98,7 +98,7 @@ class Request(RequestBase):
         for s in security:
             if frozenset(s.root.keys()) - frozenset(self.security.keys()):
                 continue
-            for scheme in s.root.keys():
+            for scheme in s.root:
                 value = self.security[scheme]
                 self._prepare_secschemes(scheme, value)
             break

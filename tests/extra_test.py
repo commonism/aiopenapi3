@@ -60,7 +60,7 @@ class MSGraph:
                         # Check if description matches the desired format
                         if description.strip() == "Usage: on='{on}'":
                             parameter["name"] = "on"
-                        if "content" in parameter.keys():
+                        if "content" in parameter:
                             parameter["schema"] = parameter["content"].get("application/json", {}).get("schema", {})
                             del parameter["content"]
         # Drop requirement for @odata.type since it's not actually enforced

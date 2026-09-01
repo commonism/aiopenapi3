@@ -55,7 +55,7 @@ class Reduce(Document, Init):
                             reduced[path_key][operation_key] = operation_value
             elif isinstance(operation, tuple) and len(operation) == 2:
                 pattern, operation_patterns = operation
-                for path_key in ctx.document["paths"].keys():
+                for path_key in ctx.document["paths"]:
                     if (isinstance(pattern, str) and pattern == path_key) or (
                         isinstance(pattern, re.Pattern) and re.match(pattern, path_key)
                     ):
