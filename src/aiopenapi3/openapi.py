@@ -605,7 +605,7 @@ class OpenAPI:
         byid: dict[int, "SchemaType"] = {id(i): i for i in byname.values()}
         data: set[int] = set(byid.keys())
         todo: set[int] = self._iterate_schemas(byid, data, set())
-        types: dict[str, ForwardRef | type[BaseModel] | type[int] | type[str] | type[float] | type[bool]] = {}
+        types: dict[str, type[BaseModel | int | str | float | bool] | ForwardRef] = {}
 
         """
         Due to Plugins (e.g. Cull/Reduce) byname may be incomplete

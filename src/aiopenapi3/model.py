@@ -246,7 +246,7 @@ class _ClassInfo:
 
     @classmethod
     def collapse(cls, schema: "SchemaType", items: list["_ClassInfo"]) -> type[BaseModel]:
-        r: list[type[BaseModel] | type[None]]
+        r: list[type[BaseModel | None]]
         r = [i.model() for i in items]
         type_name = schema._get_identity("L8")
 
