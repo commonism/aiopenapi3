@@ -61,7 +61,7 @@ def parameters_from_multipart(
             style = e.style or "form"
             explode = e.explode if e.explode is not None else (True if style == "form" else False)
             allowReserved = e.allowReserved or False
-            headers = {name: mph[name] for name in e.headers.keys() if name in mph}
+            headers = {name: mph[name] for name in e.headers if name in mph}
         else:
             allowReserved = False
             style = "form"

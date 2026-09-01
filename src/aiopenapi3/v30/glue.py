@@ -115,7 +115,7 @@ class Request(RequestBase):
         for s in security:
             if frozenset(s.root.keys()) - frozenset(self.security.keys()):
                 continue
-            for scheme in s.root.keys():
+            for scheme in s.root:
                 value = self.security[scheme]
                 self._prepare_secschemes(scheme, value)
             break
@@ -413,7 +413,7 @@ class Request(RequestBase):
                         assert media.encoding is not None
                         if (e := media.encoding.get(name)) is not None:
                             assert e.headers
-                            headers.update({name: mph[name] for name in e.headers.keys() if name in mph})
+                            headers.update({name: mph[name] for name in e.headers if name in mph})
                         _value = (alias, fh, content_type, headers)
                         rfiles.append((name, _value))
                     elif isinstance(value, str):
