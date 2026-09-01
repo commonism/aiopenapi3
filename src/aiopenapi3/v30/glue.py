@@ -419,7 +419,7 @@ class Request(RequestBase):
                     elif isinstance(value, str):
                         rdata[name] = value
                     else:
-                        raise TypeError(type(value))  # noqa
+                        raise TypeError(type(value))
                 self.req.files = rfiles
                 self.req.data = rdata
             else:

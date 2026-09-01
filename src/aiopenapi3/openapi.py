@@ -697,7 +697,7 @@ class OpenAPI:
         elif isinstance(self._root, (v30.Root, v31.Root)):
             v = schemes - frozenset(SecuritySchemes := self._root.components.securitySchemes)
         else:
-            raise TypeError(self._root)  # noqa
+            raise TypeError(self._root)
 
         if v:
             raise ValueError(f"{self.info.title} does not accept security schemes {sorted(v)}")
