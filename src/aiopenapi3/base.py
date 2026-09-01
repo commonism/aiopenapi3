@@ -468,8 +468,8 @@ class OperationBase:
 
         assert self.parameters is not None
         assert pi_.parameters is not None
-        op: frozenset[str] = frozenset(map(lambda x: x.name, filter(parameter_in_path, self.parameters)))
-        pi: frozenset[str] = frozenset(map(lambda x: x.name, filter(parameter_in_path, pi_.parameters)))
+        op: frozenset[str] = frozenset(x.name for x in filter(parameter_in_path, self.parameters))
+        pi: frozenset[str] = frozenset(x.name for x in filter(parameter_in_path, pi_.parameters))
 
         invalid = sorted(filter(lambda x: re.match(r"^([a-zA-Z0-9\-\._~]+)$", x) is None or len(x) == 0, op | pi))
         if invalid:

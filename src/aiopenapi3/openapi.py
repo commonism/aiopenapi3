@@ -502,7 +502,7 @@ class OpenAPI:
             documents = cast(list[v20.Root], self._documents.values())
             # Schema
             if only_required is False:
-                for byid in map(lambda x: x.definitions, documents):
+                for byid in (x.definitions for x in documents):
                     assert byid is not None and isinstance(byid, dict)
                     for name, schema in filter(is_schema, byid.items()):
                         n = schema._get_identity(name=name)
@@ -526,7 +526,7 @@ class OpenAPI:
                                 raise TypeError(f"{type(response)} at {path}")
 
             # Response
-            for byid in map(lambda x: x.responses, documents):
+            for byid in (x.responses for x in documents):
                 assert byid is not None and isinstance(byid, dict)
                 for name, response in filter(is_schema, byid.items()):
                     assert response.schema_
@@ -540,7 +540,7 @@ class OpenAPI:
             components = [x.components for x in filter(has_components, documents) if x.components is not None]
             assert components is not None
             if only_required is False:
-                for byid in map(lambda x: x.schemas, components):
+                for byid in (x.schemas for x in components):
                     assert byid is not None and isinstance(byid, dict)
                     for name, schema in filter(is_schema, byid.items()):
                         n = schema._get_identity(name=name)
@@ -599,7 +599,7 @@ class OpenAPI:
 
             # Response
             if only_required is False:
-                for responses in map(lambda x: x.responses, components):
+                for responses in (x.responses for x in components):
                     assert responses is not None
                     for rname, response in responses.items():
                         for mt, mto in response.content.items():
@@ -622,9 +622,9 @@ class OpenAPI:
         """
         Due to Plugins (e.g. Cull/Reduce) byname may be incomplete
         """
-        resolved: list["SchemaType"] = list(
-            map(lambda x: byid[x]._target if isinstance(byid[x], ReferenceBase) else byid[x], todo | data)
-        )
+        resolved: list["SchemaType"] = [
+            byid[x]._target if isinstance(byid[x], ReferenceBase) else byid[x] for x in todo | data
+        ]
         self.plugins.init.resolved(initialized=self._root, resolved=resolved)
 
         # print(f"{len(todo | data)} {only_required=}")

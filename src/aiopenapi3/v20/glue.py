@@ -96,7 +96,7 @@ class Request(RequestBase):
                 return
             else:
                 options = " or ".join(
-                    sorted(map(lambda x: f"{{{x}}}", [" and ".join(sorted(i.root.keys())) for i in security]))
+                    sorted(f"{{{x}}}" for x in [" and ".join(sorted(i.root.keys())) for i in security])
                 )
                 raise ValueError(f"No security requirement provided (accepts {options})")
 
@@ -108,9 +108,7 @@ class Request(RequestBase):
                 self._prepare_secschemes(scheme, value)
             break
         else:
-            options = " or ".join(
-                sorted(map(lambda x: f"{{{x}}}", [" and ".join(sorted(i.root.keys())) for i in security]))
-            )
+            options = " or ".join(sorted(f"{{{x}}}" for x in [" and ".join(sorted(i.root.keys())) for i in security]))
             raise ValueError(
                 f"No security requirement satisfied (accepts {options} given {{{' and '.join(sorted(self.security.keys()))}}})"
             )
@@ -166,9 +164,7 @@ class Request(RequestBase):
 
         available = frozenset(parameters.keys())
         accepted = frozenset(possible.keys())
-        required = frozenset(
-            map(lambda x: x[0], filter(lambda y: y[1].required and y[1].in_ != "body", possible.items()))
-        )
+        required = frozenset(x[0] for x in filter(lambda y: y[1].required and y[1].in_ != "body", possible.items()))
         if available - accepted:
             raise ValueError(f"Parameter {sorted(available - accepted)} unknown (accepted {sorted(accepted)})")
         if required - available:
@@ -267,7 +263,7 @@ class Request(RequestBase):
     ) -> "ResponseHeadersType":
         rheaders = {}
         if expected_response.headers:
-            required = dict(map(lambda x: (x[0].lower(), x[1]), expected_response.headers.items()))
+            required = {x[0].lower(): x[1] for x in expected_response.headers.items()}
             """
             Swagger 2.0 does not have optional header - all defined headers are required
             https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#header-object

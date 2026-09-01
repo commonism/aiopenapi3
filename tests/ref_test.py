@@ -69,15 +69,15 @@ def test_allOf_resolution(petstore_expanded):
         # Optional[…] or | None
         return typing.get_origin(x.annotation) == typing.Union and type(None) in typing.get_args(x.annotation)
 
-    assert sorted(map(lambda x: x[0], filter(lambda y: is_nullable(y[1]), items.items()))) == sorted(
-        ["created", "tag"]
-    ), ref.model_json_schema()
+    assert sorted(x[0] for x in filter(lambda y: is_nullable(y[1]), items.items())) == sorted(["created", "tag"]), (
+        ref.model_json_schema()
+    )
 
     def is_required(x):
         # not assign a default '= Field(default=…)' or '= …'
         return x.default == pydantic_core.PydanticUndefined
 
-    assert sorted(map(lambda x: x[0], filter(lambda y: is_required(y[1]), items.items()))) == sorted(["id", "name"]), (
+    assert sorted(x[0] for x in filter(lambda y: is_required(y[1]), items.items())) == sorted(["id", "name"]), (
         ref.model_json_schema()
     )
 

@@ -49,7 +49,7 @@ class Server(ObjectExtended):
 
     def createUrl(self, variables: dict[str, str]) -> str:
         self.validate_parameter_enum(variables)
-        vars: dict[str, str | None] = dict(map(lambda x: (x[0], x[1].default), self.variables.items()))
+        vars: dict[str, str | None] = {x[0]: x[1].default for x in self.variables.items()}
         vars.update(variables)
         url: str = self.url.format(**vars)
         return url

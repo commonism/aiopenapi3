@@ -107,7 +107,7 @@ class Request(RequestBase):
                 return
             else:
                 options = " or ".join(
-                    sorted(map(lambda x: f"{{{x}}}", [" and ".join(sorted(i.root.keys())) for i in security]))
+                    sorted(f"{{{x}}}" for x in [" and ".join(sorted(i.root.keys())) for i in security])
                 )
                 raise ValueError(f"No security requirement satisfied (accepts {options})")
 
@@ -119,9 +119,7 @@ class Request(RequestBase):
                 self._prepare_secschemes(scheme, value)
             break
         else:
-            options = " or ".join(
-                sorted(map(lambda x: f"{{{x}}}", [" and ".join(sorted(i.root.keys())) for i in security]))
-            )
+            options = " or ".join(sorted(f"{{{x}}}" for x in [" and ".join(sorted(i.root.keys())) for i in security]))
             raise ValueError(
                 f"No security requirement satisfied (accepts {options} given {{{' and '.join(sorted(self.security.keys()))}}}"
             )
@@ -305,7 +303,7 @@ class Request(RequestBase):
 
         available = frozenset(parameters.keys())
         accepted = frozenset(possible.keys())
-        required = frozenset(map(lambda x: x[0], filter(lambda y: y[1].required, possible.items())))
+        required = frozenset(x[0] for x in filter(lambda y: y[1].required, possible.items()))
         if available - accepted:
             raise ValueError(f"Parameter {sorted(available - accepted)} unknown (accepted {sorted(accepted)})")
         if required - available:
@@ -512,12 +510,9 @@ class Request(RequestBase):
     ) -> "ResponseHeadersType":
         rheaders = {}
         if expected_response.headers:
-            required = dict(
-                map(
-                    lambda x: (x[0].lower(), x[1]),
-                    filter(lambda x: x[1].required is True, expected_response.headers.items()),
-                )
-            )
+            required = {
+                x[0].lower(): x[1] for x in filter(lambda x: x[1].required is True, expected_response.headers.items())
+            }
             available = frozenset(headers.keys())
             if missing := (required.keys() - available):
                 missed = {k: required[k] for k in missing}
