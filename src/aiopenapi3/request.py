@@ -47,14 +47,14 @@ log = logging.getLogger("aiopenapi3.request")
 class RequestParameter:
     def __init__(self, url: yarl.URL | str):
         self.url: str = str(url)
-        self.auth: Optional["AuthTypes"] = None
+        self.auth: Optional[AuthTypes] = None
         self.cookies: dict[str, str] = {}
         #        self.path = {}
         self.params: dict[str, str] = {}
-        self.content: Optional["RequestContent"] = None
+        self.content: Optional[RequestContent] = None
         self.headers: dict[str, str] = {}
         self.data: dict[str, str] = {}  # form-data
-        self.files: Optional["RequestFiles"] = {}  # form-data files
+        self.files: Optional[RequestFiles] = {}  # form-data files
         self.cert: Any = None
 
 
@@ -68,7 +68,7 @@ class RequestBase:
     class Sequencer:
         def __init__(self, headers: "ResponseHeadersType", stream: Iterator["JSON"], model: pydantic.BaseModel) -> None:
             self.headers: ResponseHeadersType = headers
-            self.stream: Iterator["JSON"] = stream
+            self.stream: Iterator[JSON] = stream
             self.model = model
 
         def __iter__(self) -> Iterator:
@@ -113,7 +113,7 @@ class RequestBase:
         operation: "OperationType",
         servers: list["ServerType"] | None,
     ):
-        self.api: "OpenAPI" = api
+        self.api: OpenAPI = api
         """
         OpenAPI object
         """
@@ -123,7 +123,7 @@ class RequestBase:
         API document root
         """
 
-        self.method: "HTTPMethodType" = method
+        self.method: HTTPMethodType = method
         """
         HTTP method
         """
@@ -133,12 +133,12 @@ class RequestBase:
         HTTP path
         """
 
-        self.vars: Optional["RequestBase.Vars"] = None
+        self.vars: Optional[RequestBase.Vars] = None
         """
         Parameter & Data
         """
 
-        self.operation: "OperationType" = operation
+        self.operation: OperationType = operation
         """
         associated OpenAPI Operation
         """
@@ -148,7 +148,7 @@ class RequestBase:
         RequestParameter
         """
 
-        self.servers: list["ServerType"] | None = servers
+        self.servers: list[ServerType] | None = servers
         """
         Servers to use for this request
         """
@@ -219,7 +219,7 @@ class RequestBase:
         url: yarl.URL = self.api.url
 
         if self.servers:
-            server: "ServerType" = self.api._server_select(self.servers)
+            server: ServerType = self.api._server_select(self.servers)
             url = self.api._base_url.join(yarl.URL(server.createUrl(self.api._server_variables)))
 
         req = session.build_request(
@@ -421,8 +421,8 @@ class AsyncRequestBase(RequestBase):
         def __init__(
             self, headers: "ResponseHeadersType", stream: AsyncIterator["JSON"], model: pydantic.BaseModel
         ) -> None:
-            self.headers: "ResponseHeadersType" = headers
-            self.stream: AsyncIterator["JSON"] = stream
+            self.headers: ResponseHeadersType = headers
+            self.stream: AsyncIterator[JSON] = stream
             self.model = model
 
         def __aiter__(self) -> AsyncIterator:
@@ -589,8 +589,8 @@ class OperationIndex:
     class OperationTag:
         def __init__(self, oi: "OperationIndex") -> None:
             self._oi = oi
-            self._operations: dict[str, tuple["HTTPMethodType", str, "OperationType", list["ServerType"] | None]] = {}
-            self._tags: dict[str, "OperationIndex.OperationTag"] = {}
+            self._operations: dict[str, tuple[HTTPMethodType, str, OperationType, list[ServerType] | None]] = {}
+            self._tags: dict[str, OperationIndex.OperationTag] = {}
 
         def __getattr__(self, item) -> RequestBase:
             if item in self._operations:
@@ -603,9 +603,9 @@ class OperationIndex:
         def __init__(self, api: "OpenAPI", use_operation_tags: bool):
             self.operations = []
             self.r: Iterator[int]
-            pi: "PathItemType"
+            pi: PathItemType
             for pi in api.paths.values():
-                op: "OperationType"
+                op: OperationType
                 if pi.ref:
                     #                    pi = pi.ref._target
                     pi = cast("PathItemType", cast(ReferenceBase, pi.ref)._target)
@@ -649,17 +649,17 @@ class OperationIndex:
             return self.operations[next(self.r)]
 
     def __init__(self, api: "OpenAPI", use_operation_tags: bool):
-        self._api: "OpenAPI" = api
-        self._root: "RootType" = api._root
+        self._api: OpenAPI = api
+        self._root: RootType = api._root
 
-        self._operations: dict[str, tuple["HTTPMethodType", str, "OperationType", list["ServerType"] | None]] = {}
-        self._tags: dict[str, "OperationIndex.OperationTag"] = collections.defaultdict(
+        self._operations: dict[str, tuple[HTTPMethodType, str, OperationType, list[ServerType] | None]] = {}
+        self._tags: dict[str, OperationIndex.OperationTag] = collections.defaultdict(
             lambda: OperationIndex.OperationTag(self)
         )
-        pi: "PathItemType"
+        pi: PathItemType
         for path, pi in self._root.paths.items():
-            op: "OperationType"
-            servers: list["ServerType"] | None
+            op: OperationType
+            servers: list[ServerType] | None
             if pi.ref:
                 pi = pi.ref._target
             for method in pi.model_fields_set & HTTP_METHODS:

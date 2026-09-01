@@ -462,7 +462,7 @@ class Request(RequestBase):
 
         elif (ct := "application/octet-stream") in self.operation.requestBody.content:
             self.req.headers["Content-Type"] = ct
-            value: "RequestFileParameter"
+            value: RequestFileParameter
             if isinstance(data_, tuple) and len(data_) >= 2:
                 # (name, file-like-object, …)
                 self.req.content = data_[1]
@@ -536,7 +536,7 @@ class Request(RequestBase):
             media-range = ( "*/*" / ( type "/*" ) / ( type "/" subtype ) ) *( OWS ";" OWS parameter )
             """
             content_type, _, _encoding = content_type.partition(";")
-            expected_media: Optional["v3xMediaTypeType"] = (
+            expected_media: Optional[v3xMediaTypeType] = (
                 expected_response.content.get(content_type, None)
                 or expected_response.content.get(content_type.partition("/")[0] + "/*", None)
                 or expected_response.content.get("*/*", None)

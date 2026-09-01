@@ -35,7 +35,7 @@ class Reduce(Document, Init):
         super().__init__()
 
     def _reduced_paths(self, ctx: "Document.Context") -> dict:
-        reduced: dict[str, dict[str, "PathItemType"]] = {}
+        reduced: dict[str, dict[str, PathItemType]] = {}
         if "paths" not in ctx.document:
             return reduced
         keep_keys = {"summary", "description", "servers", "parameters"}

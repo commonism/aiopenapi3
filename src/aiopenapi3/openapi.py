@@ -249,7 +249,7 @@ class OpenAPI:
         Loader - loading referenced documents
         """
 
-        self._createRequest: Callable[["OpenAPI", str, str, "OperationType", list["ServerType"] | None], "RequestBase"]
+        self._createRequest: Callable[[OpenAPI, str, str, OperationType, list[ServerType] | None], RequestBase]
         """
         creates the Async/Request for the protocol required
         """
@@ -273,7 +273,7 @@ class OpenAPI:
         e.g. {"BasicAuth": ("user","secret")}
         """
 
-        self._documents: dict[yarl.URL, "RootType"] = {}
+        self._documents: dict[yarl.URL, RootType] = {}
         """
         the related documents
         """
@@ -283,7 +283,7 @@ class OpenAPI:
         server variable mapping
         """
 
-        self._server_select: Callable[[list["ServerType"]], "ServerType"] = random.choice
+        self._server_select: Callable[[list[ServerType]], ServerType] = random.choice
 
         self._init_plugins(plugins)
         """
@@ -366,10 +366,10 @@ class OpenAPI:
 
         if isinstance(self._root, v20.Root):
             if self.paths:
-                obj: "PathItemType"
+                obj: PathItemType
                 for path, obj in self.paths.items():
                     for m in obj.model_fields_set & HTTP_METHODS:
-                        op: "Operation" = getattr(obj, m)
+                        op: Operation = getattr(obj, m)
                         op._validate_path_parameters(obj, path, (m, cast(str, op.operationId)))
                         if op.operationId is None:
                             continue
@@ -394,7 +394,7 @@ class OpenAPI:
 
             for schemas in allschemas:
                 name: str
-                schema: "SchemaType"
+                schema: SchemaType
                 for name, schema in filter(is_schema, schemas.items()):
                     schema._get_identity(name=name, prefix="OP")
 
@@ -478,7 +478,7 @@ class OpenAPI:
         return processed
 
     def _init_schema_types_collect(self, only_required: bool) -> dict[str, "SchemaType"]:
-        byname: dict[str, "SchemaType"] = {}
+        byname: dict[str, SchemaType] = {}
 
         def is_schema(v: tuple[str, "SchemaType"]) -> bool:
             return isinstance(v[1], (v20.Schema, v30.Schema, v31.Schema))
@@ -599,8 +599,8 @@ class OpenAPI:
         return byname
 
     def _init_schema_types(self, only_required: bool) -> None:
-        byname: dict[str, "SchemaType"] = self._init_schema_types_collect(only_required)
-        byid: dict[int, "SchemaType"] = {id(i): i for i in byname.values()}
+        byname: dict[str, SchemaType] = self._init_schema_types_collect(only_required)
+        byid: dict[int, SchemaType] = {id(i): i for i in byname.values()}
         data: set[int] = set(byid.keys())
         todo: set[int] = self._iterate_schemas(byid, data, set())
         types: dict[str, type[BaseModel | int | str | float | bool] | ForwardRef] = {}
@@ -608,7 +608,7 @@ class OpenAPI:
         """
         Due to Plugins (e.g. Cull/Reduce) byname may be incomplete
         """
-        resolved: list["SchemaType"] = [
+        resolved: list[SchemaType] = [
             byid[x]._target if isinstance(byid[x], ReferenceBase) else byid[x] for x in todo | data
         ]
         self.plugins.init.resolved(initialized=self._root, resolved=resolved)
@@ -674,7 +674,7 @@ class OpenAPI:
             return r
         elif isinstance(self._root, (v30.Root, v31.Root, v32.Root)):
             assert self._root.servers
-            server: "ServerType" = self._server_select(self._root.servers)
+            server: ServerType = self._server_select(self._root.servers)
             return self._base_url.join(yarl.URL(server.createUrl(self._server_variables)))
 
     def authenticate(self, *args, **kwargs):
@@ -741,8 +741,8 @@ class OpenAPI:
         :return: the returned Request is either :class:`aiopenapi3.request.RequestBase` or -
             in case of a httpx2.AsyncClient session_factory - :class:`aiopenapi3.request.AsyncRequestBase`
         """
-        operation: Optional["OperationType"] = None
-        request: Optional["RequestType"] = None
+        operation: Optional[OperationType] = None
+        request: Optional[RequestType] = None
         try:
             if isinstance(operationId, str):
                 *tags, opn = operationId.split(".")
