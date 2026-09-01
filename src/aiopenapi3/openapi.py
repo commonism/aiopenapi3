@@ -645,7 +645,7 @@ class OpenAPI:
                     for v in byid[id(thes)]._model_types:
                         assert v.__name__ in types, v.__name__
                         v.model_rebuild(_types_namespace={"__types": types})
-            except Exception as e:
+            except Exception:  # noqa: TRY203
                 raise
 
     @property
