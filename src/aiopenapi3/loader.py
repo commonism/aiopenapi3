@@ -171,11 +171,11 @@ class Loader(abc.ABC):
         if file.suffix not in (".yaml", ".json"):
             try:
                 return self.parse(plugins, url.with_path("/test.yaml"), data)
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:  # noqa: BLE001, S110
                 pass
             try:
                 return self.parse(plugins, url.with_path("/test.json"), data)
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:  # noqa: BLE001, S110
                 pass
 
         if file.suffix == ".yaml":
