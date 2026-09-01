@@ -10,7 +10,6 @@ import logging
 import pstats
 import sys
 import tracemalloc
-import typing
 from pstats import SortKey
 
 import httpx2
@@ -32,9 +31,6 @@ from aiopenapi3.v30.formdata import decode_content_type
 from .loader import ChainLoader, RedirectLoader, WebLoader
 from .log import init
 from .openapi import OpenAPI
-
-if typing.TYPE_CHECKING:
-    pass
 
 init()
 

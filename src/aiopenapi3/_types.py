@@ -1,16 +1,12 @@
 import re
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Literal, Optional, TypeAlias, Union
+from typing import Literal, Optional, TypeAlias, Union
 
 import yaml
 from httpx2._types import AuthTypes, FileTypes, RequestContent, RequestFiles
 from pydantic import BaseModel
 
 from . import v20, v30, v31, v32
-
-if TYPE_CHECKING:
-    pass
-
 
 RequestFileParameter = tuple[str, FileTypes]
 RequestFilesParameter = Sequence[RequestFileParameter]
