@@ -424,9 +424,9 @@ class OpenAPI:
                 elif isinstance(self._root, v32.Root):
                     self._root.paths = v32.Paths(paths={}, extensions={})
                 else:
-                    raise ValueError(self._root)
+                    raise TypeError(self._root)
         else:
-            raise ValueError(self._root)
+            raise TypeError(self._root)
 
         self._operationindex = OperationIndex(self, use_operation_tags)
         return p is None
