@@ -48,9 +48,8 @@ class Server(ObjectExtended):
 
     def validate_parameter_enum(self, parameters: dict[str, str]):
         for name, value in parameters.items():
-            if v := self.variables.get(name):
-                if v.enum and value not in v.enum:
-                    raise ValueError(f"Server Variable {name} value {value} not allowed ({v.enum})")
+            if (v := self.variables.get(name)) and v.enum and value not in v.enum:
+                raise ValueError(f"Server Variable {name} value {value} not allowed ({v.enum})")
 
     def createUrl(self, variables: dict[str, str]) -> str:
         self.validate_parameter_enum(variables)

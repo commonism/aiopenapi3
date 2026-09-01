@@ -92,7 +92,7 @@ class Request(RequestBase):
 
     def return_value(self, http_status: int = 200, content_type: str = "application/json") -> Optional["SchemaType"]:
         status_key = str(http_status)
-        if a := self.operation.responses.get(status_key) or self.operation.responses.get(status_key[0] + "XX"):
+        if a := self.operation.responses.get(status_key) or self.operation.responses.get(status_key[0] + "XX"):  # noqa: SIM102
             if b := a.content.get(content_type):
                 return b.schema_
         return None

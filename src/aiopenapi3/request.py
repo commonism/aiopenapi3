@@ -625,7 +625,7 @@ class OperationIndex:
                     else:
                         self.operations.append(op.operationId)
 
-                if hasattr(pi, "additionalOperations"):  # v32
+                if hasattr(pi, "additionalOperations"):  # v32 # noqa: SIM102
                     if pi.additionalOperations:
                         for method, op in pi.additionalOperations.items():
                             if use_operation_tags and op.tags:
@@ -702,7 +702,7 @@ class OperationIndex:
                         raise OperationIdDuplicationError(operationId, [item, other])
                     self._operations[operationId] = item
 
-            if hasattr(pi, "additionalOperations"):  # v32
+            if hasattr(pi, "additionalOperations"):  # v32 # noqa: SIM102
                 if pi.additionalOperations:
                     for method, op in pi.additionalOperations.items():
                         if op.operationId is None:
