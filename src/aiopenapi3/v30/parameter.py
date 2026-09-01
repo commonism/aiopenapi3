@@ -340,7 +340,7 @@ class Parameter(ParameterBase, _ParameterCodec):
     @model_validator(mode="after")
     def validate_Parameter(self):
         assert self.in_ != "path" or self.required is True, (
-            "Parameter '%s' must be required since it is in the path" % self.name
+            f"Parameter '{self.name}' must be required since it is in the path"
         )
         return self
 
