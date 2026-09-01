@@ -97,13 +97,13 @@ class Reduce(Document, Init):
                 del ctx.initialized.components.schemas[name]
 
         for name, response in list(ctx.initialized.components.responses.items()):
-            for k, v in response.content.items():
+            for v in response.content.values():
                 if v.schema_._model_type is None:
                     del ctx.initialized.components.responses[name]
                     break
 
         for name, requestBody in list(ctx.initialized.components.requestBodies.items()):
-            for k, v in requestBody.content.items():
+            for v in requestBody.content.values():
                 if v.schema_._model_type is None:
                     del ctx.initialized.components.requestBodies[name]
                     break

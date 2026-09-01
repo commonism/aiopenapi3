@@ -26,8 +26,8 @@ class OnDocument(Document):
     PetResponse = {"description": "successful operation", "schema": {"$ref": "#/definitions/Pet"}}
 
     def parsed(self, ctx):
-        for name, path in ctx.document["paths"].items():
-            for method, action in path.items():
+        for path in ctx.document["paths"].values():
+            for action in path.values():
                 if "default" not in action["responses"]:
                     action["responses"]["default"] = OnDocument.ApiResponse
 

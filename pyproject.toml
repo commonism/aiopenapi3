@@ -98,7 +98,7 @@ ignore = [
     "DTZ005",
 #    "FURB167",
 #    "I001",
-    "PERF102",
+#    "PERF102",
     "PIE790",
     "PIE804",
     "PIE808",

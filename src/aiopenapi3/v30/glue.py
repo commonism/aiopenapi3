@@ -115,7 +115,7 @@ class Request(RequestBase):
         for s in security:
             if frozenset(s.root.keys()) - frozenset(self.security.keys()):
                 continue
-            for scheme, _ in s.root.items():
+            for scheme in s.root.keys():
                 value = self.security[scheme]
                 self._prepare_secschemes(scheme, value)
             break
@@ -282,7 +282,7 @@ class Request(RequestBase):
             ct = "multipart/form-data"
             if ct in self.operation.requestBody.content:
                 assert self.operation.requestBody.content[ct].encoding is not None
-                for k, v in self.operation.requestBody.content[ct].encoding.items():
+                for v in self.operation.requestBody.content[ct].encoding.values():
                     assert v.headers is not None and isinstance(v.headers, dict)
                     rbq.update(v.headers)
                 possible.update(rbq)

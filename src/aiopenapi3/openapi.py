@@ -590,7 +590,7 @@ class OpenAPI:
             if only_required is False:
                 for responses in (x.responses for x in components):
                     assert responses is not None
-                    for rname, response in responses.items():
+                    for response in responses.values():
                         for mt, mto in response.content.items():
                             if mto.schema_ is None:
                                 continue

@@ -428,7 +428,7 @@ class Model:  # (BaseModel):
                         def mkx():
                             def validate_patternProperties(self_):
                                 patterns = typing.get_args(self_.aio3_patternProperty.__annotations__["item"])
-                                for name, value in self_.model_extra.items():
+                                for name in self_.model_extra.keys():
                                     for pattern in patterns:
                                         if re.match(pattern, name):
                                             break
