@@ -218,12 +218,11 @@ class _ClassInfo:
                     if typing.get_origin(r) == Literal:
                         canbenull = False
 
-                    if canbenull:
-                        if getattr(f, "const", None) is None:
-                            """not const"""
-                            if name not in schema.required or Model.is_nullable(f):
-                                """not required - or nullable"""
-                                r = Optional[r]  # type: ignore[assignment]
+                    if canbenull and getattr(f, "const", None) is None:
+                        """not const"""
+                        if name not in schema.required or Model.is_nullable(f):
+                            """not required - or nullable"""
+                            r = Optional[r]  # type: ignore[assignment]
 
                     self.properties[Model.nameof(name)].annotation = r
 
@@ -462,9 +461,8 @@ class Model:  # (BaseModel):
         else:
             raise ValueError(_type)
 
-        if _type in ("array", "object"):
-            if schema.enum or getattr(schema, "const", None):
-                raise NotImplementedError("complex enums/const are not supported")
+        if _type in ("array", "object") and (schema.enum or getattr(schema, "const", None)):
+            raise NotImplementedError("complex enums/const are not supported")
 
         classinfo.config = Model.createConfigDict(schema)
 

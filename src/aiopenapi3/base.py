@@ -121,13 +121,13 @@ class RootBase:
                     continue
 
                 # v3.1 - Schema $ref
-                if isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root)):
-                    if isinstance(value, SchemaBase):
+                if isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root)):  # noqa: SIM102
+                    if isinstance(value, SchemaBase):  # noqa: SIM102
                         if (r := getattr(value, "ref", None)) and not isinstance(r, ReferenceBase):
                             value = _Reference.model_construct(ref=r)
                             setattr(obj, slot, value)
 
-                if isinstance(root, (v30.root.Root, v31.root.Root)):
+                if isinstance(root, (v30.root.Root, v31.root.Root)):  # noqa: SIM102
                     if isinstance(value, (v30.Discriminator, v31.Discriminator)):
                         """
                         Discriminated Unions - implementing undefined behavior
@@ -192,7 +192,7 @@ class RootBase:
                     PathItem Ref is ambiguous
                     https://github.com/OAI/OpenAPI-Specification/issues/2635
                     """
-                    if isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root)):
+                    if isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root)):  # noqa: SIM102
                         if isinstance(obj, _PathItem) and slot == "ref":
                             ref = _Reference.model_construct(ref=value)
                             ref._target = api.resolve_jr(root, obj, ref)

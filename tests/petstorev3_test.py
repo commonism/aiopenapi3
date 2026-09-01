@@ -93,14 +93,14 @@ class OnMessage(Message):
 
         Pet = self.api.resolve_jr(self.api._root, None, Reference(**{"$ref": "#/components/schemas/Pet"}))
 
-        if ctx.operationId == "getPetById":
-            if Pet == ctx.expected_type:
-                goodPet(ctx.parsed)
+        if ctx.operationId == "getPetById" and Pet == ctx.expected_type:
+            goodPet(ctx.parsed)
 
-        if ctx.operationId in frozenset(["findPetsByStatus", "findPetsByTags"]):
-            if Pet == getattr(ctx.expected_type.items, "_target", None):
-                for i in ctx.parsed:
-                    goodPet(i)
+        if ctx.operationId in frozenset(["findPetsByStatus", "findPetsByTags"]) and Pet == getattr(
+            ctx.expected_type.items, "_target", None
+        ):
+            for i in ctx.parsed:
+                goodPet(i)
 
         return ctx
 
