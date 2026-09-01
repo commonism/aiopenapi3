@@ -1,11 +1,10 @@
+import json
 import os
 import shlex
 from pathlib import Path
-import json
 
-
-from aiopenapi3.cli import main
 import aiopenapi3.log
+from aiopenapi3.cli import main
 
 
 def test_validate_cli():

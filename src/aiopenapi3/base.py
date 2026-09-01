@@ -1,25 +1,22 @@
-import typing
-import warnings
-from typing import Any, ForwardRef, Union, cast
-from collections.abc import Sequence
-
-import re
 import builtins
 import keyword
+import re
+import typing
 import uuid
-
+import warnings
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Any, ForwardRef, TypeGuard, Union, cast
 
-from typing import TypeGuard
+from pydantic import AnyUrl, BaseModel, ConfigDict, Field, PrivateAttr, RootModel, TypeAdapter, model_validator
 
-from pydantic import RootModel, BaseModel, TypeAdapter, Field, AnyUrl, model_validator, PrivateAttr, ConfigDict
-
+from .errors import OperationParameterValidationError, ReferenceResolutionError
 from .json import JSONPointer, JSONReference
-from .errors import ReferenceResolutionError, OperationParameterValidationError
 
 if typing.TYPE_CHECKING:
     from aiopenapi3 import OpenAPI
-    from ._types import SchemaType, JSON, PathItemType, ParameterType, ReferenceType, DiscriminatorType
+
+    from ._types import JSON, DiscriminatorType, ParameterType, PathItemType, ReferenceType, SchemaType
 
 HTTP_METHODS = frozenset(["get", "delete", "head", "post", "put", "patch", "trace", "query"])
 
@@ -156,8 +153,8 @@ class RootBase:
                             else:
                                 if v._target is None:
                                     continue
-                                from .model import Model
                                 from . import errors
+                                from .model import Model
 
                                 if "object" not in (t := sorted(Model.types(v._target))):
                                     raise errors.SpecError(f"Discriminated Union on a schema with types {t}")

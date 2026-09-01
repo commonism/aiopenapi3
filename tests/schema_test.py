@@ -2,15 +2,13 @@ import copy
 import typing
 import uuid
 from datetime import datetime
-
-
 from pathlib import Path
 
-import yarl
 import httpx2
-import pytest
-from pydantic import ValidationError
 import pydantic
+import pytest
+import yarl
+from pydantic import ValidationError
 
 import aiopenapi3
 from aiopenapi3 import OpenAPI
@@ -304,8 +302,7 @@ def test_schema_yaml12(openapi_version, with_schema_yaml12):
         def parsed(self, ctx):
             ctx.document["openapi"] = str(openapi_version)
 
-    from aiopenapi3.loader import YAML12Loader
-    from aiopenapi3.loader import FileSystemLoader
+    from aiopenapi3.loader import FileSystemLoader, YAML12Loader
 
     OpenAPI.load_file(
         "/test.yaml",

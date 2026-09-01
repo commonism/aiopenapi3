@@ -1,7 +1,7 @@
-from typing import Literal
 import email.message
 import http.cookiejar
 import urllib.request
+from typing import Literal
 
 import aiopenapi3.plugin
 

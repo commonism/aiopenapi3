@@ -1,4 +1,4 @@
-from pydantic import Field, EmailStr, model_validator
+from pydantic import EmailStr, Field, model_validator
 
 from aiopenapi3.base import ObjectExtended
 

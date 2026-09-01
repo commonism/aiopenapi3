@@ -1,10 +1,8 @@
-from datetime import timedelta
 import uuid
+from datetime import timedelta
+from typing import Annotated, Literal, Union
 
-
-from typing import Literal, Union, Annotated
-
-from pydantic import BaseModel, RootModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, RootModel
 
 # from pydantic.fields import Undefined
 

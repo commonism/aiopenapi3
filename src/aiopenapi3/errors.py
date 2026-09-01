@@ -1,20 +1,20 @@
+import dataclasses
 import typing
 from typing import Optional
-import dataclasses
 
 import httpx2
 import pydantic
 
 if typing.TYPE_CHECKING:
     from ._types import (
-        SchemaType,
-        RequestType,
+        ExpectedType,
+        HeaderType,
+        OperationType,
         RequestData,
         RequestParameters,
+        RequestType,
+        SchemaType,
         ServerType,
-        HeaderType,
-        ExpectedType,
-        OperationType,
     )
 
 

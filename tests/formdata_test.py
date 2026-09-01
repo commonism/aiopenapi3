@@ -1,8 +1,9 @@
 from pathlib import Path
+
 import httpx2
 
 from aiopenapi3 import OpenAPI
-from aiopenapi3.v30.formdata import encode_multipart_parameters, MultipartParameter
+from aiopenapi3.v30.formdata import MultipartParameter, encode_multipart_parameters
 
 
 def test_encode_formdata():

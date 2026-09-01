@@ -3,20 +3,17 @@ import io
 import ssl
 from pathlib import Path
 
+import cryptography
 import httpx2
 import pytest
 import pytest_asyncio
-
+import trustme
+from fastapi import FastAPI, Request, Response
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
-import trustme
-import cryptography
-
 import aiopenapi3
 from aiopenapi3.plugin import Document
-
-from fastapi import FastAPI, Request, Response
 
 app = FastAPI(version="1.0.0", title="TLS tests", servers=[{"url": "/", "description": "Default, relative server"}])
 

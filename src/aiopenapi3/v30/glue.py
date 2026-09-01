@@ -1,15 +1,16 @@
 import io
-from typing import Union, TYPE_CHECKING, Optional, cast, Any
-from collections.abc import Sequence
 import json
 import urllib.parse
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 import httpx2
 
 try:
+    import inspect
+
     import httpx2_auth
     from httpx2_auth import SupportMultiAuth
-    import inspect
 except ImportError:
     httpx2_auth = None
 else:
@@ -23,33 +24,33 @@ else:
 import pydantic
 
 # import pydantic.json
-
 import aiopenapi3.v30.media
-from ..request import RequestBase, AsyncRequestBase
-from ..errors import HTTPStatusError, ContentTypeError, ResponseDecodingError, ResponseSchemaError, HeadersMissingError
+
+from ..errors import ContentTypeError, HeadersMissingError, HTTPStatusError, ResponseDecodingError, ResponseSchemaError
+from ..request import AsyncRequestBase, RequestBase
+from ..v31.root import Root as v31Root
 from .formdata import (
+    MultipartParameter,
+    encode_multipart_parameters,
     parameters_from_multipart,
     parameters_from_urlencoded,
-    encode_multipart_parameters,
-    MultipartParameter,
 )
-
 from .root import Root as v30Root
-from ..v31.root import Root as v31Root
 
 if TYPE_CHECKING:
     from .._types import (
-        SchemaType,
-        RequestParameters,
-        RequestData,
         ParameterType,
+        RequestData,
         RequestFileParameter,
-        ResponseHeadersType,
+        RequestParameters,
         ResponseDataType,
+        ResponseHeadersType,
+        SchemaType,
     )
-
-    from .paths import Response as v30Response, MediaType as v30MediaType
-    from ..v31.paths import Response as v31Response, MediaType as v31MediaType
+    from ..v31.paths import MediaType as v31MediaType
+    from ..v31.paths import Response as v31Response
+    from .paths import MediaType as v30MediaType
+    from .paths import Response as v30Response
 
     v3xResponseType = Union[v30Response, v31Response]
     v3xMediaTypeType = Union[v30MediaType, v31MediaType]

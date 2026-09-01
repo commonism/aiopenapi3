@@ -1,18 +1,15 @@
-import dataclasses
-from typing import TYPE_CHECKING, Any, Optional
 import abc
-
-from typing import TypeGuard
-
-
-from pydantic import BaseModel
+import dataclasses
+from typing import TYPE_CHECKING, Any, Optional, TypeGuard
 
 import yarl
+from pydantic import BaseModel
 
 if TYPE_CHECKING:
+    import httpx2
+
     from aiopenapi3 import OpenAPI
 
-    import httpx2
     from .base import PathItemBase, SchemaBase
     from .request import RequestBase
 

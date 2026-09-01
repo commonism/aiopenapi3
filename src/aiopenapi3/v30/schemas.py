@@ -1,8 +1,8 @@
-from typing import Union, Any
+from typing import Any, Union
 
-from pydantic import Field, model_validator, ConfigDict
+from pydantic import ConfigDict, Field, model_validator
 
-from ..base import ObjectExtended, SchemaBase, DiscriminatorBase
+from ..base import DiscriminatorBase, ObjectExtended, SchemaBase
 from .general import Reference
 from .xml import XML
 

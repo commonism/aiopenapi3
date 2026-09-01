@@ -4,12 +4,11 @@ Tests parsing specs
 
 import uuid
 
-
 import pytest
-
 from pydantic import ValidationError
+
 from aiopenapi3 import OpenAPI, ReferenceResolutionError
-from aiopenapi3.errors import OperationParameterValidationError, OperationIdDuplicationError
+from aiopenapi3.errors import OperationIdDuplicationError, OperationParameterValidationError
 
 URLBASE = "/"
 
@@ -180,8 +179,8 @@ def test_parsing_schema_names(with_parsing_schema_names):
 
 
 def test_pydantic_classes():
-    from typing import Union, ForwardRef, Annotated, Literal
     import types
+    from typing import Annotated, ForwardRef, Literal, Union
 
     from pydantic import BaseModel, Field
 

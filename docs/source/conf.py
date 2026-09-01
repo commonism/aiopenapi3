@@ -6,13 +6,12 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-import os
+import datetime
 import importlib
 import inspect
-from pathlib import Path
+import os
 import sys
-import datetime
-
+from pathlib import Path
 
 sys.path.append(str(p := (Path(".").absolute() / "_ext")))
 assert p.exists(), f"{p} {os.getcwd()}"

@@ -1,12 +1,12 @@
 import abc
-import logging
-import typing
-import yaml
-import httpx2
-import yarl
-import re
-
 import importlib
+import logging
+import re
+import typing
+
+import httpx2
+import yaml
+import yarl
 
 # prefer a fast json library here as we may parse large documents
 for i in ["orjson", "simdjson", "ujson", "json"]:
@@ -24,7 +24,7 @@ from pathlib import Path  # noqa:E402
 from .plugin import Plugins
 
 if typing.TYPE_CHECKING:
-    from ._types import YAMLLoaderType, JSON
+    from ._types import JSON, YAMLLoaderType
 
 log = logging.getLogger("aiopenapi3.loader")
 

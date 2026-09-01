@@ -1,10 +1,14 @@
-from aiopenapi3 import OpenAPI
-from aiopenapi3 import ResponseSchemaError, ContentTypeError, HTTPStatusError, ResponseDecodingError, RequestError
-
 import httpx2
-
-
 import pytest
+
+from aiopenapi3 import (
+    ContentTypeError,
+    HTTPStatusError,
+    OpenAPI,
+    RequestError,
+    ResponseDecodingError,
+    ResponseSchemaError,
+)
 
 
 def test_response_error(httpx_mock, with_paths_response_error_vXX):

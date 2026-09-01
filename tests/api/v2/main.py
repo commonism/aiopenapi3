@@ -3,7 +3,7 @@ import uuid
 from typing import Annotated
 
 import starlette.status
-from fastapi import Body, Response, Header, APIRouter, Path
+from fastapi import APIRouter, Body, Header, Path, Response
 from fastapi.responses import JSONResponse
 
 from . import schema

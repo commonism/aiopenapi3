@@ -1,6 +1,5 @@
-import os
 import dataclasses
-
+import os
 from pathlib import Path
 
 import pytest
@@ -81,6 +80,7 @@ def _get_parsed_yaml(filename, version=None):
         with open("tests/fixtures/" + filename) as f:
             raw = f.read()
         import yaml
+
         from aiopenapi3.loader import YAML12Loader
 
         parsed = yaml.load(raw, Loader=YAML12Loader)

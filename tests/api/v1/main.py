@@ -2,10 +2,10 @@ import errno
 from typing import Annotated
 
 import starlette.status
-from fastapi import APIRouter, Body, Response, Path
+from fastapi import APIRouter, Body, Path, Response
 from fastapi.responses import JSONResponse
 
-from .schema import Pets, Pet, PetCreate, Error
+from .schema import Error, Pet, PetCreate, Pets
 
 router = APIRouter(prefix="/v1")
 

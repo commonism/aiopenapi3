@@ -1,22 +1,22 @@
 import argparse
-import datetime
-import sys
-import json
-import itertools
-import typing
-from pstats import SortKey
-import pstats
-import io
-import importlib.util
 import cProfile
-import tracemalloc
+import datetime
+import importlib.util
+import io
+import itertools
+import json
 import linecache
 import logging
+import pstats
+import sys
+import tracemalloc
+import typing
+from pstats import SortKey
 
+import httpx2
 import jmespath
 import yaml
 import yarl
-import httpx2
 
 import aiopenapi3.plugin
 
@@ -25,12 +25,12 @@ logging.basicConfig()
 
 from pathlib import Path
 
-from .openapi import OpenAPI
-
-from .loader import ChainLoader, RedirectLoader, WebLoader
 import aiopenapi3.loader
 from aiopenapi3.v30.formdata import decode_content_type
+
+from .loader import ChainLoader, RedirectLoader, WebLoader
 from .log import init
+from .openapi import OpenAPI
 
 if typing.TYPE_CHECKING:
     import aiopenapi3.request

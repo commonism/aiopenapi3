@@ -2,6 +2,7 @@ import sys
 
 if sys.version_info < (3, 12):
     from typing import Any
+
     from typing_extensions import Self
 else:
     from typing import Any, Self
@@ -9,11 +10,10 @@ else:
 from pydantic import Field
 
 from ..base import ObjectExtended
-
 from .example import Example
 from .general import Reference
-from .schemas import Schema
 from .parameter import Header
+from .schemas import Schema
 
 
 class Encoding(ObjectExtended):

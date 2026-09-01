@@ -1,6 +1,6 @@
 from pathlib import Path
+from typing import Annotated, Literal, Union
 
-from typing import Union, Annotated, Literal
 from pydantic import Field, RootModel, constr
 
 from ..base import ObjectExtended

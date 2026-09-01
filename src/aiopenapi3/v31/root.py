@@ -3,14 +3,12 @@ from typing import Any
 from pydantic import Field, model_validator
 
 from ..base import ObjectExtended, RootBase
-
-from .info import Info
-from .paths import Paths, PathItem
-from .security import SecurityRequirement
-from .servers import Server
-
 from .components import Components
 from .general import Reference
+from .info import Info
+from .paths import PathItem, Paths
+from .security import SecurityRequirement
+from .servers import Server
 from .tag import Tag
 
 

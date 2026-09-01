@@ -1,13 +1,13 @@
-import io
 import enum
-from typing import Optional, Any
+import io
+from typing import Any, Optional
 
 from pydantic import Field
 
-from .general import Reference
-from .schemas import Schema
 from ..base import ObjectExtended, ParameterBase
 from ..errors import ParameterFormatError
+from .general import Reference
+from .schemas import Schema
 
 
 class _ParameterCodec:

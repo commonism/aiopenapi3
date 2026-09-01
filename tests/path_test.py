@@ -4,20 +4,20 @@ This file tests that paths are parsed and populated correctly
 
 import base64
 import copy
-import uuid
 import pathlib
+import uuid
 
-import pytest
 import httpx2
+import pytest
 import yarl
 
 from aiopenapi3 import OpenAPI
 from aiopenapi3.errors import (
-    OperationParameterValidationError,
-    OperationIdDuplicationError,
     HeadersMissingError,
     HTTPClientError,
     HTTPServerError,
+    OperationIdDuplicationError,
+    OperationParameterValidationError,
 )
 
 URLBASE = "/"
@@ -509,7 +509,7 @@ def test_paths_response_status_pattern_default(httpx2_mock, with_paths_response_
 
 
 def test_paths_response_error(mocker, httpx2_mock, with_paths_response_error_vXX):
-    from aiopenapi3 import ResponseSchemaError, ContentTypeError, HTTPStatusError, ResponseDecodingError
+    from aiopenapi3 import ContentTypeError, HTTPStatusError, ResponseDecodingError, ResponseSchemaError
 
     api = OpenAPI("/", with_paths_response_error_vXX, session_factory=httpx2.Client)
 

@@ -1,12 +1,10 @@
 import re
-from typing import TYPE_CHECKING, Union, TypeAlias, Optional, Literal
 from collections.abc import Sequence
+from typing import TYPE_CHECKING, Literal, Optional, TypeAlias, Union
 
 import yaml
-
-from httpx._types import RequestContent, FileTypes, RequestFiles, AuthTypes  # noqa
+from httpx._types import AuthTypes, FileTypes, RequestContent, RequestFiles  # noqa
 from pydantic import BaseModel
-
 
 from . import v20, v30, v31, v32
 
