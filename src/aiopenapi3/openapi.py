@@ -646,7 +646,7 @@ class OpenAPI:
                         assert v.__name__ in types, v.__name__
                         v.model_rebuild(_types_namespace={"__types": types})
             except Exception as e:
-                raise e
+                raise
 
     @property
     def url(self) -> yarl.URL:
