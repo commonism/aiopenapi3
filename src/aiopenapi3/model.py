@@ -175,7 +175,7 @@ class _ClassInfo:
         if _type == "array":
             v = Model.createAnnotation(schema)
             if Model.is_nullable(schema):
-                v = Optional[v]  # type: ignore[assignment]
+                v = v | None  # type: ignore[assignment]
             self.root = v
         elif _type == "object":
             if (
@@ -201,7 +201,7 @@ class _ClassInfo:
                 """
                 v = dict[str, Model.createAnnotation(schema.additionalProperties)]  # type: ignore[misc,index]
                 if Model.is_nullable(schema):
-                    v = Optional[v]  # type: ignore[assignment]
+                    v = v | None  # type: ignore[assignment]
                 self.root = v
             else:
                 assert schema.properties is not None
@@ -218,7 +218,7 @@ class _ClassInfo:
                         """not const"""
                         if name not in schema.required or Model.is_nullable(f):
                             """not required - or nullable"""
-                            r = Optional[r]  # type: ignore[assignment]
+                            r = r | None  # type: ignore[assignment]
 
                     self.properties[Model.nameof(name)].annotation = r
 

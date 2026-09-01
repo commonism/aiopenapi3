@@ -536,7 +536,7 @@ class Request(RequestBase):
             media-range = ( "*/*" / ( type "/*" ) / ( type "/" subtype ) ) *( OWS ";" OWS parameter )
             """
             content_type, _, _encoding = content_type.partition(";")
-            expected_media: Optional[v3xMediaTypeType] = (
+            expected_media: v3xMediaTypeType | None = (
                 expected_response.content.get(content_type, None)
                 or expected_response.content.get(content_type.partition("/")[0] + "/*", None)
                 or expected_response.content.get("*/*", None)
