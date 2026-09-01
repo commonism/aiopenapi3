@@ -66,7 +66,7 @@ def test_paths_security_v20_combined_securityparameters(httpx2_mock, with_paths_
     with pytest.raises(ValueError, match="No security requirement satisfied"):
         api._.combinedSecurity(data={}, parameters={})
 
-    api.authenticate(**{"user": "u", "token": "t"})
+    api.authenticate(user="u", token="t")
     api._.combinedSecurity(data={}, parameters={})
 
     api.authenticate(None)
@@ -85,7 +85,7 @@ def test_paths_security_v20_alternate_securityparameters(httpx2_mock, with_paths
     ):
         api._.alternateSecurity(data={}, parameters={})
 
-    api.authenticate(**{"user": "u", "token": "t"})
+    api.authenticate(user="u", token="t")
     api._.alternateSecurity(data={}, parameters={})
 
     api.authenticate(None)
