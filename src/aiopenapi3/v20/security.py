@@ -1,4 +1,4 @@
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal
 
 from pydantic import Field, RootModel
 
@@ -32,11 +32,7 @@ class _SecuritySchemes:
 class SecurityScheme(
     RootModel[
         Annotated[
-            Union[
-                _SecuritySchemes.basic,
-                _SecuritySchemes.apiKey,
-                _SecuritySchemes.oauth2,
-            ],
+            _SecuritySchemes.basic | _SecuritySchemes.apiKey | _SecuritySchemes.oauth2,
             Field(discriminator="type"),
         ]
     ]

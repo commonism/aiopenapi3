@@ -8,8 +8,8 @@ from ..plugin import Document, Init
 if typing.TYPE_CHECKING:
     from .._types import HTTPMethodMatchType, PathItemType
 
-    PathMatchType = Union[re.Pattern, str]
-    OperationIdMatchType = Union[re.Pattern, str]
+    PathMatchType = re.Pattern | str
+    OperationIdMatchType = re.Pattern | str
 
 
 class Reduce(Document, Init):

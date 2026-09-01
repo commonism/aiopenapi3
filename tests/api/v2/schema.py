@@ -1,6 +1,6 @@
 import uuid
 from datetime import timedelta
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, RootModel
 
@@ -26,7 +26,7 @@ class WhiteCat(PetBase):
     white_name: str
 
 
-class Cat(RootModel[Annotated[Union[BlackCat, WhiteCat], Field(discriminator="color")]]):
+class Cat(RootModel[Annotated[BlackCat | WhiteCat, Field(discriminator="color")]]):
     def __getattr__(self, item):
         return getattr(self.root, item)
 
@@ -40,7 +40,7 @@ class Dog(PetBase):
     age: timedelta
 
 
-class Pet(RootModel[Annotated[Union[Cat, Dog], Field(discriminator="pet_type")]]):
+class Pet(RootModel[Annotated[Cat | Dog, Field(discriminator="pet_type")]]):
     def __getattr__(self, item):
         return getattr(self.root, item)
 

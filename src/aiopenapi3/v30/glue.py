@@ -2,7 +2,7 @@ import io
 import json
 import urllib.parse
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 import httpx2
 
@@ -52,8 +52,8 @@ if TYPE_CHECKING:
     from .paths import MediaType as v30MediaType
     from .paths import Response as v30Response
 
-    v3xResponseType = Union[v30Response, v31Response]
-    v3xMediaTypeType = Union[v30MediaType, v31MediaType]
+    v3xResponseType = v30Response | v31Response
+    v3xMediaTypeType = v30MediaType | v31MediaType
 
 
 class Request(RequestBase):
