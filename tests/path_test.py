@@ -410,7 +410,7 @@ def test_paths_response_header(httpx2_mock, with_paths_response_header):
     )
 
     api = OpenAPI(URLBASE, with_paths_response_header, session_factory=httpx2.Client)
-    h, b = api._.get(return_headers=True)
+    h, _b = api._.get(return_headers=True)
     request = httpx2_mock.get_requests()[-1]
 
     assert isinstance(h["X-required"], str)
@@ -419,11 +419,11 @@ def test_paths_response_header(httpx2_mock, with_paths_response_header):
 
     with pytest.raises(HeadersMissingError) as e:
         httpx2_mock.add_response(headers={"Content-Type": "application/json", "X-optional": "1,2,3"}, json="get")
-        h, b = api._.get(return_headers=True)
+        _h, _b = api._.get(return_headers=True)
     assert list(e.value.missing.keys()) == ["x-required"]
 
     httpx2_mock.add_response(headers={"Content-Type": "application/json", "X-object": "A,1,B,2,C,3"}, json="types")
-    h, b = api._.types(return_headers=True)
+    h, _b = api._.types(return_headers=True)
     assert h["X-object"].A == 1
     assert h["X-object"].B == "2"
 

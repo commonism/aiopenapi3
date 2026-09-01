@@ -133,7 +133,7 @@ def test_paths_response_header_v20(httpx2_mock, with_paths_response_header_v20):
         headers={"Content-Type": "application/json", "X-required": "1", "X-optional": "1,2,3"}, json="get"
     )
     api = OpenAPI(URLBASE, with_paths_response_header_v20, session_factory=httpx2.Client)
-    h, b = api._.get(return_headers=True)
+    h, _b = api._.get(return_headers=True)
     request = httpx2_mock.get_requests()[-1]
 
     assert isinstance(h["X-required"], str)

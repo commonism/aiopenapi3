@@ -245,7 +245,7 @@ def main(argv=None):
             req.data.get_type().model_validate(data)
 
         try:
-            headers, ret, response = req.request(parameters=parameters, data=data)
+            _headers, ret, response = req.request(parameters=parameters, data=data)
         except aiopenapi3.errors.ResponseSchemaError as e:
             print(e.response.json())
             print(e.response.headers)

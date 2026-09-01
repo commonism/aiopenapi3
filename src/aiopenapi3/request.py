@@ -162,7 +162,7 @@ class RequestBase:
         :param kwargs:
         :return: body or (header, body)
         """
-        headers, data, result = self.request(*args, context=context, **kwargs)  # type: ignore[misc]
+        headers, data, _result = self.request(*args, context=context, **kwargs)  # type: ignore[misc]
         if return_headers:
             return headers, data
         return data
@@ -438,7 +438,7 @@ class AsyncRequestBase(RequestBase):
     async def __call__(  # type: ignore[override]
         self, *args, return_headers: bool = False, context: Any = None, **kwargs
     ) -> Union["JSON", tuple[dict[str, str], "JSON"]]:
-        headers, data, result = await self.request(*args, context=context, **kwargs)  # type: ignore [misc]
+        headers, data, _result = await self.request(*args, context=context, **kwargs)  # type: ignore [misc]
         if return_headers:
             return headers, data
         return data
