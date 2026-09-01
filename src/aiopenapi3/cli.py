@@ -26,6 +26,7 @@ logging.basicConfig()
 from pathlib import Path
 
 import aiopenapi3.loader
+import aiopenapi3.request
 from aiopenapi3.v30.formdata import decode_content_type
 
 from .loader import ChainLoader, RedirectLoader, WebLoader
@@ -33,7 +34,7 @@ from .log import init
 from .openapi import OpenAPI
 
 if typing.TYPE_CHECKING:
-    import aiopenapi3.request
+    pass
 
 init()
 
