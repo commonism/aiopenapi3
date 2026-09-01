@@ -81,7 +81,6 @@ async def test_MediaType(httpx2_mock, with_schema_itemSchema):
 
     # prefixEncoding
     # itemEncoding
-    pass
 
 
 @pytest.mark.httpx2_mock(can_send_already_matched_responses=True)

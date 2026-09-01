@@ -165,7 +165,6 @@ def encode_multipart_parameters(
                     f.headers["Content-Encoding"] = codec
             else:
                 """OpenAPI 3.0"""
-                pass
 
             data = encode_content(v, codec)
 
