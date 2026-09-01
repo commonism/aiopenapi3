@@ -349,8 +349,8 @@ async def test_Numbers(server, client, form_type):
         decimal=decimal.Decimal(1 / 3),
         decimalrange=decimal.Decimal(2 / 3),
         float=float(1 / 3),
-        integer=int(9),
-        integerrange=int(9),
+        integer=(9),
+        integerrange=(9),
     )
 
     r = await client._.numbers(data=data)
