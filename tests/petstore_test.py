@@ -234,7 +234,7 @@ def test_pets(api, login):
 
     # findPetsByStatus is patched
     r = api._.findPetsByStatus(parameters={"status": ["invalid"]})
-    assert all([i.status == "pending" for i in r])
+    assert all(i.status == "pending" for i in r)
 
 
 def test_store(api):

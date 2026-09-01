@@ -113,12 +113,10 @@ def test_parsing_paths_links_invalid(with_parsing_paths_links_invalid):
         spec = OpenAPI(URLBASE, with_parsing_paths_links_invalid)
 
     assert all(
-        [
-            i in str(e.value)
-            for i in [
-                "operationId and operationRef are mutually exclusive, only one of them is allowed",
-                "operationId and operationRef are mutually exclusive, one of them must be specified",
-            ]
+        i in str(e.value)
+        for i in [
+            "operationId and operationRef are mutually exclusive, only one of them is allowed",
+            "operationId and operationRef are mutually exclusive, one of them must be specified",
         ]
     )
 
