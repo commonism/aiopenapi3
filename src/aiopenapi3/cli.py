@@ -89,13 +89,13 @@ def tm_display_top(snapshot, key_type="lineno", limit=10):
     )
     top_stats = snapshot.statistics(key_type)
 
-    print("Top %s lines" % limit)
+    print(f"Top {limit} lines")
     for index, stat in enumerate(top_stats[:limit], 1):
         frame = stat.traceback[0]
         print(f"#{index}: {frame.filename}:{frame.lineno}: {stat.size / 1024:.1f} KiB")
         line = linecache.getline(frame.filename, frame.lineno).strip()
         if line:
-            print("    %s" % line)
+            print(f"    {line}")
 
     other = top_stats[limit:]
     if other:
