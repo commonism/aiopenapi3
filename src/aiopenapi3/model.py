@@ -314,7 +314,7 @@ class Model:  # (BaseModel):
         schemanames: list[str],
         discriminators: list["DiscriminatorType"],
         extra: list["SchemaType"] | None,
-        args: dict[str, Any] = None,
+        args: dict[str, Any] | None = None,
     ) -> _ClassInfo:
         from . import v20, v30, v31
 
