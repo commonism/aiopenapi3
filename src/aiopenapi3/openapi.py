@@ -43,9 +43,7 @@ def has_components(y: Optional["RootType"]) -> TypeGuard[v30.Root | v31.Root]:
     #    return all([y, y.components])
     if y is None:
         return False
-    if y.components is None:
-        return False
-    return True
+    return y.components is not None
 
 
 def is_schema(v: tuple[str, "SchemaType"]) -> TypeGuard["SchemaType"]:
