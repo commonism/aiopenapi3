@@ -59,7 +59,7 @@ def parameters_from_multipart(
         if (e := media.encoding.get(k, None)) is not None:
             ct = e.contentType or ct
             style = e.style or "form"
-            explode = e.explode if e.explode is not None else (True if style == "form" else False)
+            explode = e.explode if e.explode is not None else (style == "form")
             allowReserved = e.allowReserved or False
             headers = {name: mph[name] for name in e.headers if name in mph}
         else:
