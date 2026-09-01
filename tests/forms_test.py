@@ -285,7 +285,7 @@ def form_type(request):
 async def client(server, form_type, with_paths_requestbody_formdata_wtforms):
     data = copy.deepcopy(with_paths_requestbody_formdata_wtforms)
     if form_type != "multipart/form-data":
-        for op, v in data["paths"].items():
+        for v in data["paths"].values():
             v["post"]["requestBody"]["content"][form_type] = v["post"]["requestBody"]["content"]["multipart/form-data"]
             del v["post"]["requestBody"]["content"]["multipart/form-data"]
 

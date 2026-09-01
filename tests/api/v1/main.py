@@ -62,7 +62,7 @@ def listPet(limit: int | None = None) -> Pets:
 
 @router.get("/pets/{petId}", operation_id="getPet", response_model=Pet, responses={404: {"model": Error}})
 def getPet(pet_id: int = Path(..., alias="petId")) -> Pets:
-    for k, v in ZOO.items():
+    for v in ZOO.values():
         if pet_id == v.id:
             return v
     else:

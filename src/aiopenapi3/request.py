@@ -604,7 +604,7 @@ class OperationIndex:
             self.operations = []
             self.r: Iterator[int]
             pi: "PathItemType"
-            for path, pi in api.paths.items():
+            for pi in api.paths.values():
                 op: "OperationType"
                 if pi.ref:
                     #                    pi = pi.ref._target
