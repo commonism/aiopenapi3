@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal, Optional, TypeAlias, Union
 
 import yaml
-from httpx._types import AuthTypes, FileTypes, RequestContent, RequestFiles  # noqa
+from httpx2._types import AuthTypes, FileTypes, RequestContent, RequestFiles  # noqa
 from pydantic import BaseModel
 
 from . import v20, v30, v31, v32
@@ -70,13 +70,12 @@ __all__: list[str] = [
     "RequestParameters",
     "ReferenceType",
     "PrimitiveTypes",
-    #
     "YAMLLoaderType",
     # httpx forwards
     "RequestContent",
     "RequestFiles",
     "AuthTypes",
-    #
+    # end httpx
     "JSON",
     "RequestFilesParameter",
     "RequestFileParameter",
