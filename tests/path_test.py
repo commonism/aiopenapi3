@@ -393,8 +393,6 @@ def test_paths_parameter_format(httpx2_mock, with_paths_parameter_format):
     assert u.parts[9] == "100"
     assert u.parts[10] == "3.3245460039402305e+23"
 
-    return
-
 
 @pytest.mark.httpx2_mock(can_send_already_matched_responses=True)
 def test_paths_parameter_format_complex(httpx2_mock, with_paths_parameter_format_complex):
@@ -428,7 +426,6 @@ def test_paths_response_header(httpx2_mock, with_paths_response_header):
     h, b = api._.types(return_headers=True)
     assert h["X-object"].A == 1
     assert h["X-object"].B == "2"
-    return
 
 
 @pytest.mark.httpx2_mock(can_send_already_matched_responses=True)
@@ -596,8 +593,6 @@ def test_paths_servers(httpx2_mock, with_paths_servers):
     r = api._.operation()
     request = httpx2_mock.get_requests()[-1]
     assert request.url.host == "operation"
-
-    return
 
 
 @pytest.mark.httpx2_mock(can_send_already_matched_responses=True)

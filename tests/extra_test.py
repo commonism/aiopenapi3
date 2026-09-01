@@ -100,7 +100,6 @@ def test_reduced_small():
         loader=FileSystemLoader(Path("tests/").absolute()),
         plugins=[PetStoreReduced()],
     )
-    return
 
 
 @pytest.mark.parametrize("compressor", [Reduce, Cull])

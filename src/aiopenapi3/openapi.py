@@ -358,7 +358,6 @@ class OpenAPI:
                     e.document = names[i]
                     raise
             processed = set(values.keys())
-        return
 
     #        for i in self._documents.values():
     #            i._resolve_references(self)
