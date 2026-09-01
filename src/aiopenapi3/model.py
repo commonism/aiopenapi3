@@ -72,6 +72,9 @@ def class_from_schema(s, _type):
     return b
 
 
+import functools
+import operator
+
 import pydantic_core
 
 
@@ -648,18 +651,18 @@ class Model:  # (BaseModel):
 
                 # allOf - intersection of types
                 allOfs: list["SchemaType"]
-                if allOfs := sum([getattr(schema, "allOf", [])], []):
+                if allOfs := functools.reduce(operator.iadd, [getattr(schema, "allOf", [])], []):
                     for x in allOfs:
                         allOf &= set(Model.types(x))
 
                 # anyOf - union of types
                 anyOfs: list["SchemaType"]
-                if anyOfs := sum([getattr(schema, "anyOf", [])], []):
+                if anyOfs := functools.reduce(operator.iadd, [getattr(schema, "anyOf", [])], []):
                     anyOf = set.union(*[set(Model.types(x)) for x in anyOfs]) if anyOfs else set()
 
                 # oneOf - union of types
                 oneOfs: list["SchemaType"]
-                if oneOfs := sum([getattr(schema, "oneOf", [])], []):
+                if oneOfs := functools.reduce(operator.iadd, [getattr(schema, "oneOf", [])], []):
                     oneOf = set.union(*[set(Model.types(x)) for x in oneOfs]) if oneOfs else set()
 
                 if allOfs or anyOfs or oneOfs:
