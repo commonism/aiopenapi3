@@ -644,18 +644,18 @@ class Model:  # (BaseModel):
                 )
 
                 # allOf - intersection of types
-                allOfs: list["SchemaType"]
+                allOfs: list[SchemaType]
                 if allOfs := functools.reduce(operator.iadd, [getattr(schema, "allOf", [])], []):
                     for x in allOfs:
                         allOf &= set(Model.types(x))
 
                 # anyOf - union of types
-                anyOfs: list["SchemaType"]
+                anyOfs: list[SchemaType]
                 if anyOfs := functools.reduce(operator.iadd, [getattr(schema, "anyOf", [])], []):
                     anyOf = set.union(*[set(Model.types(x)) for x in anyOfs]) if anyOfs else set()
 
                 # oneOf - union of types
-                oneOfs: list["SchemaType"]
+                oneOfs: list[SchemaType]
                 if oneOfs := functools.reduce(operator.iadd, [getattr(schema, "oneOf", [])], []):
                     oneOf = set.union(*[set(Model.types(x)) for x in oneOfs]) if oneOfs else set()
 

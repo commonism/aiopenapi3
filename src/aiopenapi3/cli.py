@@ -231,7 +231,7 @@ def main(argv=None):
         if auth:
             api.authenticate(**auth)
 
-        req: "aiopenapi3.request.RequestBase"
+        req: aiopenapi3.request.RequestBase
         if args.method:
             req = api.createRequest((args.operationId, args.method))
         else:

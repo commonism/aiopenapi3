@@ -265,7 +265,7 @@ class Request(RequestBase):
             """
             available = frozenset(result.headers.keys())
             if missing := (required.keys() - available):
-                report: dict[str, "HeaderType"] = {k: required[k] for k in missing}
+                report: dict[str, HeaderType] = {k: required[k] for k in missing}
                 raise HeadersMissingError(self.operation, report, result)
             for name, header in expected_response.headers.items():
                 data = headers.get(name, None)
@@ -280,7 +280,7 @@ class Request(RequestBase):
         return headers, expected_response.schema_
 
     def _process_request(self, result: httpx2.Response) -> tuple["ResponseHeadersType", Optional["ResponseDataType"]]:
-        rheaders: "ResponseHeadersType"
+        rheaders: ResponseHeadersType
         # spec enforces these are strings
         status_code = str(result.status_code)
         content_type = result.headers.get("Content-Type", None)

@@ -23,7 +23,7 @@ class Plugin(abc.ABC):
     class Context: ...
 
     def __init__(self) -> None:
-        self._api: Optional["OpenAPI"] = None
+        self._api: Optional[OpenAPI] = None
 
     @property
     def api(self):
