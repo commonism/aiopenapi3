@@ -668,7 +668,7 @@ class Model:  # (BaseModel):
                     tmp = oneOf & allOf & anyOf
                     typesfilter |= tmp
             else:
-                raise StopIteration
+                return
 
             if typesfilter:
                 values = values & typesfilter
