@@ -348,9 +348,7 @@ def test_paths_parameter_format(httpx2_mock, with_paths_parameter_format):
         r = api._.deepObjectNestedExplodeQuery(parameters={"object": data})
         request = httpx2_mock.get_requests()[-1]
         u = yarl.URL(str(request.url))
-        expected = dict(
-            list(map(lambda x: (f"object{''.join('[inner]' for _ in range(x))}[size]", depth - x), range(depth)))
-        )
+        expected = {f"object{''.join('[inner]' for _ in range(x))}[size]": depth - x for x in range(depth)}
         # 'object[size]=3&object[inner][size]=2&object[inner][inner][size]=1'
         assert all(u.query[k] == str(v) for k, v in expected.items())
 

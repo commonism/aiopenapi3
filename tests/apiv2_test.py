@@ -276,13 +276,13 @@ def test_allOf_resolution(openapi_version, petstore_expanded):
         items = typing.get_args(ref.__fields__["__root__"].outer_type_)[0].__fields__
 
     try:
-        assert sorted(map(lambda x: x.name, filter(lambda y: y.required, items.values()))) == sorted(["id", "name"]), (
+        assert sorted(x.name for x in filter(lambda y: y.required, items.values())) == sorted(["id", "name"]), (
             ref.model_json_schema()
         )
     except Exception as e:
         print(e)
 
-    assert sorted(map(lambda x: x.name, items.values())) == ["id", "name", "tag"]
+    assert sorted(x.name for x in items.values()) == ["id", "name", "tag"]
 
     assert items["id"].outer_type_ is int
     assert items["name"].outer_type_ is str

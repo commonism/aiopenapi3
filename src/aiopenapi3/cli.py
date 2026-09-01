@@ -119,10 +119,8 @@ def pr_display_top(pr):
 def schema_display_stats(api, duration):
     operations = list(
         itertools.chain.from_iterable(
-            map(
-                lambda x: list(filter(lambda x: x, [x.delete, x.get, x.head, x.options, x.patch, x.post, x.put])),
-                api.paths._paths.values(),
-            )
+            list(filter(lambda x: x, [x.delete, x.get, x.head, x.options, x.patch, x.post, x.put]))
+            for x in api.paths._paths.values()
         )
     )
     print(f"…  {duration} (processing time)")

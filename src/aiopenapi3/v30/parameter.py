@@ -298,7 +298,7 @@ class _ParameterCodec:
                 return dict(more_itertools.chunked(value.split(","), 2))
             else:
                 # R=100,G=200,B=150
-                return dict(map(lambda y: (y[0], y[2]), map(lambda x: x.partition("="), value.split(","))))
+                return {y[0]: y[2] for y in (x.partition("=") for x in value.split(","))}
         else:
             # convert basic type
             return value

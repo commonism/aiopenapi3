@@ -246,5 +246,5 @@ async def test_certificate_invalid(client):
     with pytest.raises(ValueError, match=r"Invalid parameter for SecurityScheme tls mutualTLS") as e:
         client.authenticate(tls=(p := ("/does/not/exist", "/tmp")))
     assert isinstance(e.value.__context__, FileNotFoundError) and e.value.__context__.args[0] == sorted(
-        map(lambda x: Path(x), p)
+        Path(x) for x in p
     )
