@@ -84,9 +84,11 @@ fixable = ["ALL"]
 ignore = [
     "E741", # ambiguous-variable-name
     "F841", # unused-variable
-    "UP007", # https://github.com/astral-sh/ruff/issues/21347
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"src/aiopenapi3/model.py" = ["UP007"] # https://github.com/astral-sh/ruff/issues/21347
+"tests/parsing_test.py" = ["UP007"]
 
 [tool.ruff.format]
 quote-style = "double"

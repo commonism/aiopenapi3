@@ -5,7 +5,7 @@ import pickle
 import random
 import typing
 from collections.abc import Callable
-from typing import Any, ForwardRef, Optional, TypeGuard, Union, cast
+from typing import Any, ForwardRef, Optional, TypeGuard, cast
 
 import httpx2
 import yarl
@@ -522,7 +522,7 @@ class OpenAPI:
 
         elif isinstance(self._root, (v30.Root, v31.Root)):
             # Schema
-            documents = cast(Union[list[v30.Root], list[v31.Root]], self._documents.values())
+            documents = cast(list[v30.Root] | list[v31.Root], self._documents.values())
             components = [x.components for x in filter(has_components, documents) if x.components is not None]
             assert components is not None
             if only_required is False:

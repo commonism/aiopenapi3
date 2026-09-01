@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal
 
 from pydantic import Field, RootModel, constr
 
@@ -74,13 +74,11 @@ class _SecuritySchemes:
 class SecurityScheme(
     RootModel[
         Annotated[
-            Union[
-                _SecuritySchemes.apiKey,
-                _SecuritySchemes.http,
-                _SecuritySchemes.mutualTLS,
-                _SecuritySchemes.oauth2,
-                _SecuritySchemes.openIdConnect,
-            ],
+            _SecuritySchemes.apiKey
+            | _SecuritySchemes.http
+            | _SecuritySchemes.mutualTLS
+            | _SecuritySchemes.oauth2
+            | _SecuritySchemes.openIdConnect,
             Field(discriminator="type"),
         ]
     ]
