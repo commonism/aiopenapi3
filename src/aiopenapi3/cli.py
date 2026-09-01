@@ -277,8 +277,8 @@ def main(argv=None):
                 return
             end = datetime.datetime.now()
             duration = end - begin
-        except ValueError as e:
-            logg.exception(e)
+        except ValueError:
+            logg.exception("error")
         else:
             if args.verbose:
                 schema_display_stats(api, duration)
