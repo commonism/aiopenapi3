@@ -269,13 +269,13 @@ def main(argv=None):
         loader = loader_prepare(args, session_factory)
 
         try:
-            begin = datetime.datetime.now()
+            begin = datetime.datetime.now(tz=datetime.timezone.utc)
             try:
                 api = OpenAPI.load_file(args.input, yarl.URL(args.input), plugins=plugins, loader=loader)
             except aiopenapi3.errors.ReferenceResolutionError as e0:
                 print(f"{e0} {e0.document} {e0.element}")
                 return
-            end = datetime.datetime.now()
+            end = datetime.datetime.now(tz=datetime.timezone.utc)
             duration = end - begin
         except ValueError:
             logg.exception("error")
