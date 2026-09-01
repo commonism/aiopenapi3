@@ -65,11 +65,10 @@ def getPet(pet_id: int = Path(..., alias="petId")) -> Pets:
     for v in ZOO.values():
         if pet_id == v.id:
             return v
-    else:
-        return JSONResponse(
-            status_code=starlette.status.HTTP_404_NOT_FOUND,
-            content=Error(code=errno.ENOENT, message=f"{pet_id} not found").model_dump(),
-        )
+    return JSONResponse(
+        status_code=starlette.status.HTTP_404_NOT_FOUND,
+        content=Error(code=errno.ENOENT, message=f"{pet_id} not found").model_dump(),
+    )
 
 
 @router.delete("/pets/{petId}", operation_id="deletePet", responses={204: {"model": None}, 404: {"model": Error}})
@@ -79,9 +78,8 @@ def deletePet(response: Response, pet_id: int = Path(..., alias="petId")) -> Pet
             del ZOO[k]
             response.status_code = starlette.status.HTTP_204_NO_CONTENT
             return response
-    else:
-        return JSONResponse(
-            status_code=starlette.status.HTTP_404_NOT_FOUND,
-            content=Error(code=errno.ENOENT, message=f"{pet_id} not found").model_dump(),
-            media_type="application/json; utf-8",
-        )
+    return JSONResponse(
+        status_code=starlette.status.HTTP_404_NOT_FOUND,
+        content=Error(code=errno.ENOENT, message=f"{pet_id} not found").model_dump(),
+        media_type="application/json; utf-8",
+    )
