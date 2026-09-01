@@ -50,19 +50,19 @@ class Init(Plugin):
 
     def schemas(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
         """modify the Schema before creating Models"""
-        return ctx  # noqa
+        return ctx
 
     def resolved(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
         """modify the resolved paths/PathItems before initializing the Operations"""
-        return ctx  # noqa
+        return ctx
 
     def paths(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
         """modify the paths/PathItems before initializing the Operations"""
-        return ctx  # noqa
+        return ctx
 
     def initialized(self, ctx: "Init.Context") -> "Init.Context":  # pragma: no cover
         """it is initialized"""
-        return ctx  # noqa
+        return ctx
 
 
 class Document(Plugin):
@@ -79,11 +79,11 @@ class Document(Plugin):
 
     def loaded(self, ctx: "Document.Context") -> "Document.Context":  # pragma: no cover
         """modify the text before parsing"""
-        return ctx  # noqa
+        return ctx
 
     def parsed(self, ctx: "Document.Context") -> "Document.Context":  # pragma: no cover
         """modify the parsed dict before …"""
-        return ctx  # noqa
+        return ctx
 
 
 class Message(Plugin):
@@ -128,31 +128,31 @@ class Message(Plugin):
         """
         modify the dict before sending
         """
-        return ctx  # noqa
+        return ctx
 
     def sending(self, ctx: "Message.Context") -> "Message.Context":  # pragma: no cover
         """
         modify the text before sending
         """
-        return ctx  # noqa
+        return ctx
 
     def received(self, ctx: "Message.Context") -> "Message.Context":  # pragma: no cover
         """
         modify the received text
         """
-        return ctx  # noqa
+        return ctx
 
     def parsed(self, ctx: "Message.Context") -> "Message.Context":  # pragma: no cover
         """
         modify the parsed dict structure
         """
-        return ctx  # noqa
+        return ctx
 
     def unmarshalled(self, ctx: "Message.Context") -> "Message.Context":  # pragma: no cover
         """
         modify the object
         """
-        return ctx  # noqa
+        return ctx
 
 
 class Domain:
@@ -203,7 +203,7 @@ class Plugins:
     def _get_domain(self, name: str, plugins: list[Plugin]) -> "Domain":
         domain: type[Plugin] | None
         if (domain := self._domains.get(name)) is None:
-            raise ValueError(name)  # noqa
+            raise ValueError(name)
 
         def domain_type_f(p: Plugin) -> TypeGuard[Plugin]:
             return isinstance(p, domain)

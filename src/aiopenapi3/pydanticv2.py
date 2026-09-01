@@ -48,7 +48,7 @@ from pydantic import BaseModel, ConfigDict, PydanticUserError
 from pydantic.main import ModelT
 
 
-def create_model(  # noqa: C901
+def create_model(
     model_name: str,
     /,
     *,

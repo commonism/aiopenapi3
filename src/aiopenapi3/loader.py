@@ -22,7 +22,7 @@ assert json is not None
 
 import functools
 import operator
-from pathlib import Path  # noqa:E402
+from pathlib import Path
 
 from .plugin import Plugins
 
