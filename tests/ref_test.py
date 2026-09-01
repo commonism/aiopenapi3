@@ -81,7 +81,7 @@ def test_allOf_resolution(petstore_expanded):
 
     assert items["id"].annotation is int
     assert items["name"].annotation is str
-    assert items["tag"].annotation == typing.Optional[str]
+    assert items["tag"].annotation == str | None
 
     r = ref.model_validate([{"id": 1, "name": "dog"}, {"id": 2, "name": "cat", "tag": "x"}])
     assert len(r.root) == 2

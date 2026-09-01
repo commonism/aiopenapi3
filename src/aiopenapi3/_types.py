@@ -1,6 +1,6 @@
 import re
 from collections.abc import Sequence
-from typing import Literal, Optional, TypeAlias, Union
+from typing import Literal, TypeAlias, Union
 
 import yaml
 from httpx2._types import AuthTypes, FileTypes, RequestContent, RequestFiles
@@ -11,7 +11,7 @@ from . import v20, v30, v31, v32
 RequestFileParameter = tuple[str, FileTypes]
 RequestFilesParameter = Sequence[RequestFileParameter]
 
-JSON: TypeAlias = Optional[Union[dict[str, "JSON"], list["JSON"], str, int, float, bool]]
+JSON: TypeAlias = Union[dict[str, "JSON"], list["JSON"], str, int, float, bool] | None
 """
 Define a JSON type
 https://github.com/python/typing/issues/182#issuecomment-1320974824

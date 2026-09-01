@@ -47,14 +47,14 @@ log = logging.getLogger("aiopenapi3.request")
 class RequestParameter:
     def __init__(self, url: yarl.URL | str):
         self.url: str = str(url)
-        self.auth: Optional[AuthTypes] = None
+        self.auth: AuthTypes | None = None
         self.cookies: dict[str, str] = {}
         #        self.path = {}
         self.params: dict[str, str] = {}
-        self.content: Optional[RequestContent] = None
+        self.content: RequestContent | None = None
         self.headers: dict[str, str] = {}
         self.data: dict[str, str] = {}  # form-data
-        self.files: Optional[RequestFiles] = {}  # form-data files
+        self.files: RequestFiles | None = {}  # form-data files
         self.cert: Any = None
 
 
@@ -133,7 +133,7 @@ class RequestBase:
         HTTP path
         """
 
-        self.vars: Optional[RequestBase.Vars] = None
+        self.vars: RequestBase.Vars | None = None
         """
         Parameter & Data
         """

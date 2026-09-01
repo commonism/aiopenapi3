@@ -741,8 +741,8 @@ class OpenAPI:
         :return: the returned Request is either :class:`aiopenapi3.request.RequestBase` or -
             in case of a httpx2.AsyncClient session_factory - :class:`aiopenapi3.request.AsyncRequestBase`
         """
-        operation: Optional[OperationType] = None
-        request: Optional[RequestType] = None
+        operation: OperationType | None = None
+        request: RequestType | None = None
         try:
             if isinstance(operationId, str):
                 *tags, opn = operationId.split(".")
