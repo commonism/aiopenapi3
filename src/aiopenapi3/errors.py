@@ -79,8 +79,6 @@ class ParameterFormatError(SpecError):
     The specified parameter encoding is invalid for the parameter family
     """
 
-    pass
-
 
 class HTTPError(ErrorBase):
     pass
@@ -204,11 +202,7 @@ class HTTPStatusIndicatedError(HTTPError):
 class HTTPClientError(HTTPStatusIndicatedError):
     """response code 4xx"""
 
-    pass
-
 
 @dataclasses.dataclass(repr=False)
 class HTTPServerError(HTTPStatusIndicatedError):
     """response code 5xx"""
-
-    pass

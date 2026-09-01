@@ -47,8 +47,6 @@ class SecurityScheme(
     https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#security-scheme-object
     """
 
-    pass
-
 
 class SecurityRequirement(RootModel):
     """

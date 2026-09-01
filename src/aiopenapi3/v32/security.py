@@ -97,8 +97,6 @@ class SecurityScheme(
     .. _here: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#security-scheme-object
     """
 
-    pass
-
 
 class SecurityRequirement(RootModel[dict[str, list[str]]]):
     """
@@ -108,5 +106,3 @@ class SecurityRequirement(RootModel[dict[str, list[str]]]):
 
     .. _here: https://spec.openapis.org/oas/v3.2.0.html#security-requirement-object
     """
-
-    pass
