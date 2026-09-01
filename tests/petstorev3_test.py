@@ -224,7 +224,7 @@ def test_pets(api, login):
     assert (isinstance(r, list) and len(r) >= 0) or isinstance(r, ApiResponse)
 
     r = api._.findPetsByTags(parameters={"tags": ["unknown"]})
-    assert isinstance(r, list) or isinstance(r, ApiResponse)
+    assert isinstance(r, (list, ApiResponse))
 
     # deletePet
     r = api._.findPetsByStatus(parameters={"status": ["available", "pending", "sold"]})
