@@ -472,7 +472,7 @@ def test_paths_tags(httpx2_mock, with_paths_tags):
         OpenAPI(URLBASE, with_paths_tags, session_factory=httpx2.Client, use_operation_tags=False)
 
     spec = copy.deepcopy(with_paths_tags)
-    for k in {"/user/", "/item/"}:
+    for k in ("/user/", "/item/"):
         spec["paths"][k]["get"]["operationId"] = f"list{k[1:-1]}"
 
     api = OpenAPI(URLBASE, spec, session_factory=httpx2.Client, use_operation_tags=False)
