@@ -91,8 +91,13 @@ def test_allOf_resolution(petstore_expanded):
 def test_paths_content_schema_array_ref(openapi_version):
     import aiopenapi3.v30.general
     import aiopenapi3.v31.general
+    import aiopenapi3.v32.general
 
-    expected = {0: aiopenapi3.v30.general.Reference, 1: aiopenapi3.v31.general.Reference}[openapi_version.minor]
+    expected = {
+        0: aiopenapi3.v30.general.Reference,
+        1: aiopenapi3.v31.general.Reference,
+        2: aiopenapi3.v32.general.Reference,
+    }[openapi_version.minor]
 
     SPEC = f"""openapi: {openapi_version}
 info:

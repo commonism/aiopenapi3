@@ -145,10 +145,17 @@ class Request(RequestBase):
             and self.root.components.securitySchemes[scheme].root
         )
         ss = self.root.components.securitySchemes[scheme].root
-        from .. import v30, v31
+        from .. import v30, v31, v32
 
         if ss.type == "http":
-            assert isinstance(ss, (v30.security._SecuritySchemes.http, v31.security._SecuritySchemes.http))
+            assert isinstance(
+                ss,
+                (
+                    v30.security._SecuritySchemes.http,
+                    v31.security._SecuritySchemes.http,
+                    v32.security._SecuritySchemes.http,
+                ),
+            )
             if ss.scheme_ == "basic":
                 self.req.auth = httpx2.BasicAuth(*value)
             elif ss.scheme_ == "digest":
@@ -164,7 +171,14 @@ class Request(RequestBase):
         value = cast(str, value)
 
         if ss.type == "apiKey":
-            assert isinstance(ss, (v30.security._SecuritySchemes.apiKey, v31.security._SecuritySchemes.apiKey))
+            assert isinstance(
+                ss,
+                (
+                    v30.security._SecuritySchemes.apiKey,
+                    v31.security._SecuritySchemes.apiKey,
+                    v32.security._SecuritySchemes.apiKey,
+                ),
+            )
             if ss.in_ == "query":
                 # apiKey in query parameter
                 self.req.params[ss.name] = value

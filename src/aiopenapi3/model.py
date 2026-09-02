@@ -314,7 +314,7 @@ class Model:  # (BaseModel):
         extra: list["SchemaType"] | None,
         args: dict[str, Any] | None = None,
     ) -> _ClassInfo:
-        from . import v20, v30, v31
+        from . import v20, v30, v31, v32
 
         type_name = schema._get_identity("L8")  # + f"_{type}"
 
@@ -345,7 +345,7 @@ class Model:  # (BaseModel):
 
             if hasattr(schema, "anyOf") and schema.anyOf:
                 assert all(schema.anyOf)
-                assert isinstance(schema, (v30.Schema, v31.Schema))
+                assert isinstance(schema, (v30.Schema, v31.Schema, v32.Schema))
                 t = tuple(
                     i.get_type(
                         names=schemanames + ([cast(str, i.ref)] if isinstance(i, ReferenceBase) else []),
@@ -363,7 +363,7 @@ class Model:  # (BaseModel):
                     if len(t):
                         classinfo.root = Union[t]
             elif hasattr(schema, "oneOf") and schema.oneOf:
-                assert isinstance(schema, (v30.Schema, v31.Schema))
+                assert isinstance(schema, (v30.Schema, v31.Schema, v32.Schema))
                 t = tuple(
                     i.get_type(
                         names=schemanames + ([cast(str, i.ref)] if isinstance(i, ReferenceBase) else []),

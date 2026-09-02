@@ -66,8 +66,8 @@ class Header(ParameterBase, _ParameterCodec):
     .. _here: https://spec.openapis.org/oas/v3.2.0.html#header-object
     """
 
-    allowEmptyValue: None
-    allowReserved: None
+    allowEmptyValue: None = None
+    allowReserved: None = None
 
     def _codec(self):
         schema = self.schema_ or self.content.get("application/json").schema_

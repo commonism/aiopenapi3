@@ -42,7 +42,11 @@ class _Version:
         return getattr(aiopenapi3, f"v{self.major}{self.minor}").Schema
 
 
-@pytest.fixture(scope="session", params=[_Version(3, 0, 3), _Version(3, 1, 0)], ids=("v30", "v31"))
+@pytest.fixture(
+    scope="session",
+    params=[_Version(3, 0, 3), _Version(3, 1, 0), _Version(3, 2, 0)],
+    ids=("v30", "v31", "v32"),
+)
 def openapi_version(request):
     return request.param
 

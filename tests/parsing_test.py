@@ -168,8 +168,13 @@ def test_schema_array(with_schema_array):
 def test_parsing_paths_content_nested_array_ref(openapi_version, with_parsing_paths_content_nested_array_ref):
     import aiopenapi3.v30.general
     import aiopenapi3.v31.general
+    import aiopenapi3.v32.general
 
-    expected = {0: aiopenapi3.v30.general.Reference, 1: aiopenapi3.v31.general.Reference}[openapi_version.minor]
+    expected = {
+        0: aiopenapi3.v30.general.Reference,
+        1: aiopenapi3.v31.general.Reference,
+        2: aiopenapi3.v32.general.Reference,
+    }[openapi_version.minor]
 
     OpenAPI("/", with_parsing_paths_content_nested_array_ref)
 
