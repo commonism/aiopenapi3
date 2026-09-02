@@ -85,7 +85,7 @@ class PathItemBase:
 class RootBase:
     @staticmethod
     def resolve(api: "OpenAPI", root: "RootBase", obj, _PathItem, _Reference):
-        from . import v20, v30, v31
+        from . import v20, v30, v31, v32
 
         def replaceSchemaReference(data):
             def replace(ivalue):
@@ -121,14 +121,14 @@ class RootBase:
                     continue
 
                 # v3.1 - Schema $ref
-                if isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root)):  # noqa: SIM102
+                if isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root, v32.root.Root)):  # noqa: SIM102
                     if isinstance(value, SchemaBase):  # noqa: SIM102
                         if (r := getattr(value, "ref", None)) and not isinstance(r, ReferenceBase):
                             value = _Reference.model_construct(ref=r)
                             setattr(obj, slot, value)
 
-                if isinstance(root, (v30.root.Root, v31.root.Root)):  # noqa: SIM102
-                    if isinstance(value, (v30.Discriminator, v31.Discriminator)):
+                if isinstance(root, (v30.root.Root, v31.root.Root, v32.root.Root)):  # noqa: SIM102
+                    if isinstance(value, (v30.Discriminator, v31.Discriminator, v32.Discriminator)):
                         """
                         Discriminated Unions - implementing undefined behavior
                         sub-schemas not having the discriminated property "const" or enum or mismatching the mapping
@@ -192,7 +192,7 @@ class RootBase:
                     PathItem Ref is ambiguous
                     https://github.com/OAI/OpenAPI-Specification/issues/2635
                     """
-                    if isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root)):  # noqa: SIM102
+                    if isinstance(root, (v20.root.Root, v30.root.Root, v31.root.Root, v32.root.Root)):  # noqa: SIM102
                         if isinstance(obj, _PathItem) and slot == "ref":
                             ref = _Reference.model_construct(ref=value)
                             ref._target = api.resolve_jr(root, obj, ref)
@@ -216,7 +216,7 @@ class RootBase:
                 else:
                     raise TypeError(type(value), value)
         elif isinstance(obj, dict):
-            if isinstance(root, (v20.root.Root, v31.root.Root)):
+            if isinstance(root, (v20.root.Root, v31.root.Root, v32.root.Root)):
                 """
                 Resolving/Replacing Swagger 2.0 nested Schema.ref
                 Schema.properties[name] -> Schema.ref ==> Schema.properties[name] -> Reference
@@ -231,7 +231,7 @@ class RootBase:
                     RootBase.resolve(api, root, v, _PathItem, _Reference)
 
         elif isinstance(obj, list):
-            if isinstance(root, (v20.root.Root, v31.root.Root)):
+            if isinstance(root, (v20.root.Root, v31.root.Root, v32.root.Root)):
                 replaceSchemaReference(obj)
 
             # if it's a list, resolve its item's references
@@ -338,7 +338,7 @@ class SchemaBase(BaseModel):
     _model_types is used to store these different model representations of the same schema
     """
 
-    _identity: str = PrivateAttr(default=None)
+    _identity: str | None = PrivateAttr(default=None)
     """
     The _identity attribute is set during OpenAPI.__init__ and used to create the class name in get_type()
     """

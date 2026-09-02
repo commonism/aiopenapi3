@@ -21,23 +21,23 @@ RequestData = JSON | BaseModel | RequestFilesParameter
 RequestParameter = str | BaseModel
 RequestParameters = dict[str, RequestParameter]
 
-RootType = v20.Root | v30.Root | v31.Root
-ServerType = v30.Server | v31.Server
-ReferenceType = v20.Reference | v30.Reference | v31.Reference
-SchemaType = v20.Schema | v30.Schema | v31.Schema
-v3xSchemaType = v30.Schema | v31.Schema
-DiscriminatorType = v30.Discriminator | v31.Discriminator
-PathItemType = v20.PathItem, v30.PathItem | v31.PathItem
-OperationType = v20.Operation | v30.Operation | v31.Operation
-ParameterType = v20.Parameter | v30.Parameter | v31.Parameter
-HeaderType = v20.Header | v30.Header | v31.Header
+RootType = v20.Root | v30.Root | v31.Root | v32.Root
+ServerType = v30.Server | v31.Server | v32.Server
+ReferenceType = v20.Reference | v30.Reference | v31.Reference | v32.Reference
+SchemaType = v20.Schema | v30.Schema | v31.Schema | v32.Schema
+v3xSchemaType = v30.Schema | v31.Schema | v32.Schema
+DiscriminatorType = v30.Discriminator | v31.Discriminator | v32.Discriminator
+PathItemType = v20.PathItem, v30.PathItem | v31.PathItem | v32.PathItem
+OperationType = v20.Operation | v30.Operation | v31.Operation | v32.Operation
+ParameterType = v20.Parameter | v30.Parameter | v31.Parameter | v32.Parameter
+HeaderType = v20.Header | v30.Header | v31.Header | v32.Header
 RequestType = v20.Request | v30.Request
 AsyncRequestType = v20.AsyncRequest | v30.AsyncRequest
-MediaTypeType = v30.MediaType | v31.MediaType
+MediaTypeType = v30.MediaType | v31.MediaType | v32.MediaType
 ExpectedType = v20.Response | MediaTypeType
 ResponseHeadersType = dict[str, str | BaseModel | list[BaseModel]]
 ResponseDataType = BaseModel, bytes | str
-TagType = v20.Tag | v30.Tag | v32.Tag
+TagType = v20.Tag | v30.Tag | v31.Tag | v32.Tag
 
 YAMLLoaderType = type[yaml.Loader] | type[yaml.CLoader] | type[yaml.SafeLoader] | type[yaml.CSafeLoader]
 

@@ -37,7 +37,7 @@ if typing.TYPE_CHECKING:
     )
 
 
-def has_components(y: Optional["RootType"]) -> TypeGuard[v30.Root | v31.Root]:
+def has_components(y: Optional["RootType"]) -> TypeGuard[v30.Root | v31.Root | v32.Root]:
     #    return all([typing.cast("RootType", y), typing.cast("RootType", y).components])
     #    return isinstance(y, (v30.Root, v31.Root))
     #    return all([y, y.components])
@@ -47,7 +47,7 @@ def has_components(y: Optional["RootType"]) -> TypeGuard[v30.Root | v31.Root]:
 
 
 def is_schema(v: tuple[str, "SchemaType"]) -> TypeGuard["SchemaType"]:
-    return isinstance(v[1], (v20.Schema, v30.Schema, v31.Schema))
+    return isinstance(v[1], (v20.Schema, v30.Schema, v31.Schema, v32.Schema))
 
 
 class OpenAPI:
@@ -414,7 +414,7 @@ class OpenAPI:
                             for c, content in response.content.items():
                                 if content.schema_ is None:
                                     continue
-                                if isinstance(content.schema_, (v30.Schema, v31.Schema)):
+                                if isinstance(content.schema_, (v30.Schema, v31.Schema, v32.Schema)):
                                     content.schema_._get_identity("OP", f"{path}.{m}.{r}.{c}")
             else:
                 if isinstance(self._root, v30.Root):
@@ -480,9 +480,6 @@ class OpenAPI:
     def _init_schema_types_collect(self, only_required: bool) -> dict[str, "SchemaType"]:
         byname: dict[str, SchemaType] = {}
 
-        def is_schema(v: tuple[str, "SchemaType"]) -> bool:
-            return isinstance(v[1], (v20.Schema, v30.Schema, v31.Schema))
-
         op: Operation
         if isinstance(self._root, v20.Root):
             documents = cast(list[v20.Root], self._documents.values())
@@ -520,9 +517,9 @@ class OpenAPI:
                     # assert byname.get(name, None) in [None, response.schema_]
                     byname[n] = response.schema_
 
-        elif isinstance(self._root, (v30.Root, v31.Root)):
+        elif isinstance(self._root, (v30.Root, v31.Root, v32.Root)):
             # Schema
-            documents = cast(list[v30.Root] | list[v31.Root], self._documents.values())
+            documents = cast(list[v30.Root] | list[v31.Root] | list[v32.Root], self._documents.values())
             components = [x.components for x in filter(has_components, documents) if x.components is not None]
             assert components is not None
             if only_required is False:
@@ -570,7 +567,7 @@ class OpenAPI:
                     for r, response in op.responses.items():
                         if isinstance(response, ReferenceBase):
                             response = response._target
-                        if isinstance(response, (v30.paths.Response, v31.paths.Response)):
+                        if isinstance(response, (v30.paths.Response, v31.paths.Response, v32.paths.Response)):
                             assert response.content is not None
                             for mt, mto in response.content.items():
                                 if mto.schema_ is None:
@@ -608,6 +605,7 @@ class OpenAPI:
         """
         Due to Plugins (e.g. Cull/Reduce) byname may be incomplete
         """
+        #        from . import v32
         resolved: list[SchemaType] = [
             byid[x]._target if isinstance(byid[x], ReferenceBase) else byid[x] for x in todo | data
         ]
@@ -692,7 +690,7 @@ class OpenAPI:
 
         if isinstance(self._root, v20.Root):
             v = schemes - frozenset(SecuritySchemes := self._root.securityDefinitions)
-        elif isinstance(self._root, (v30.Root, v31.Root)):
+        elif isinstance(self._root, (v30.Root, v31.Root, v32.Root)):
             v = schemes - frozenset(SecuritySchemes := self._root.components.securitySchemes)
         else:
             raise TypeError(self._root)

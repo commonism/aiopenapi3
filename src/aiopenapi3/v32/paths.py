@@ -160,7 +160,7 @@ class Callback(RootModel):
     The key that identifies the Path Item Object is a runtime expression that can be evaluated in the context of a
     runtime HTTP request/response to identify the URL to be used for the callback request.
     """
-    root: dict["RuntimeExpression", PathItem]
+    root: dict[str, PathItem]
 
 
 class RuntimeExpression(RootModel):
