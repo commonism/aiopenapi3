@@ -311,13 +311,14 @@ class RequestBase:
         self._prepare(data, parameters)
         session: httpx2.Client = self.api._session_factory(**self._session_factory_default_args)
         result = self._send(session, data, parameters)
-        headers, schema_, content_type = self._process_sequence(result)
+        headers, expected_media, content_type = self._process_sequence(result)
 
         if content_type in ["application/jsonl", "application/x-ndjson"]:
             """
             https://jsonlines.org/
             https://github.com/ndjson/ndjson-spec
             """
+            schema_ = expected_media.itemSchema
 
             def iter_json(response: httpx2.Response) -> Iterator["JSON"]:
                 for i in response.iter_lines():
@@ -328,7 +329,7 @@ class RequestBase:
             JSON Text Sequence
             https://datatracker.ietf.org/doc/html/rfc7464
             """
-
+            schema_ = expected_media.itemSchema
             import jsonseq.decode
 
             def iter_json(response: httpx2.Response) -> Iterator["JSON"]:
@@ -341,6 +342,7 @@ class RequestBase:
             Server-Sent Events (SSE)
             https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events
             """
+            schema_ = expected_media.itemSchema
 
             def iter_json(response: httpx2.Response) -> Iterator["JSON"]:
                 for chunk in response.iter_text():
@@ -361,7 +363,11 @@ class RequestBase:
                             v[cmd or "comment"] = value.lstrip()
                         data_ = ""
                         yield v
-        elif False:
+        elif content_type == "application/json":
+            """
+            this will iter arrays for OpenAPI 3.x
+            """
+            schema_ = expected_media.schema_.items
             import ijson
 
             class ReadEventStream:
@@ -498,13 +504,14 @@ class AsyncRequestBase(RequestBase):
         self._prepare(data, parameters)
         session = self.api._session_factory(**self._session_factory_default_args)
         result = await self._send(session, data, parameters)
-        headers, schema_, content_type = self._process_sequence(result)
+        headers, expected_media, content_type = self._process_sequence(result)
 
         if content_type in ["application/jsonl", "application/x-ndjson"]:
             """
             https://jsonlines.org/
             https://github.com/ndjson/ndjson-spec
             """
+            schema_ = expected_media.itemSchema
 
             async def aiter_json(response: httpx2.Response) -> AsyncIterator["JSON"]:
                 async for i in response.aiter_lines():
@@ -515,7 +522,7 @@ class AsyncRequestBase(RequestBase):
             JSON Text Sequence
             https://datatracker.ietf.org/doc/html/rfc7464
             """
-
+            schema_ = expected_media.itemSchema
             import jsonseq.decode
 
             async def aiter_json(response: httpx2.Response) -> AsyncIterator["JSON"]:
@@ -531,6 +538,7 @@ class AsyncRequestBase(RequestBase):
             https://html.spec.whatwg.org/multipage/server-sent-events.html#parsing-an-event-stream
             https://github.com/mpetazzoni/sseclient/blob/main/sseclient/__init__.py#L36
             """
+            schema_ = expected_media.itemSchema
 
             async def aiter_json(response: httpx2.Response) -> AsyncIterator["JSON"]:
 
@@ -552,7 +560,12 @@ class AsyncRequestBase(RequestBase):
                             v[cmd or "comment"] = value.lstrip()
                         data_ = ""
                         yield v
-        elif False:
+        elif content_type == "application/json":
+            """
+            this will iter arrays for OpenAPI 3.x
+            """
+
+            schema_ = expected_media.schema_.items
             import ijson
 
             class ReadEventStream:

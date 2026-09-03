@@ -88,6 +88,11 @@ async def sse() -> AsyncIterable[ServerSentEvent]:
         yield ServerSentEvent(comment=str(idx), data=item)
 
 
+@app.get("/array", operation_id="array")
+async def array() -> list[Item]:
+    return items
+
+
 @pytest.mark.asyncio(loop_scope="session")
 async def test_jsonl(server, client):
     req = client.createRequest("jsonl")
@@ -102,6 +107,17 @@ async def test_sse(server, client):
 
     req: AsyncRequestBase
     req = client.createRequest("sse")
+    async with req.sequence() as sequence:
+        async for obj in sequence:
+            print(obj)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_array(server, client):
+    from aiopenapi3.request import AsyncRequestBase
+
+    req: AsyncRequestBase
+    req = client.createRequest("array")
     async with req.sequence() as sequence:
         async for obj in sequence:
             print(obj)

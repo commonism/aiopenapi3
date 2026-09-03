@@ -49,11 +49,13 @@ if TYPE_CHECKING:
     )
     from ..v31.paths import MediaType as v31MediaType
     from ..v31.paths import Response as v31Response
+    from ..v32.paths import MediaType as v32MediaType
+    from ..v32.paths import Response as v32Response
     from .paths import MediaType as v30MediaType
     from .paths import Response as v30Response
 
-    v3xResponseType = v30Response | v31Response
-    v3xMediaTypeType = v30MediaType | v31MediaType
+    v3xResponseType = v30Response | v31Response | v32Response
+    v3xMediaTypeType = v30MediaType | v31MediaType | v32MediaType
 
 
 class Request(RequestBase):
@@ -581,7 +583,9 @@ class Request(RequestBase):
 
         return headers, expected_media.schema_
 
-    def _process_sequence(self, result: httpx2.Response) -> tuple["ResponseHeadersType", Optional["SchemaType"], str]:
+    def _process_sequence(
+        self, result: httpx2.Response
+    ) -> tuple["ResponseHeadersType", Optional["v3xMediaTypeType"], str]:
         status_code = str(result.status_code)
         content_type = result.headers.get("Content-Type", None)
 
@@ -590,7 +594,7 @@ class Request(RequestBase):
 
         headers = self._process__headers(result, result.headers, expected_response)
 
-        return headers, expected_media.itemSchema, content_type
+        return headers, expected_media, content_type
 
     def _process_request(self, result: httpx2.Response) -> tuple["ResponseHeadersType", "ResponseDataType"]:
         rheaders = {}
