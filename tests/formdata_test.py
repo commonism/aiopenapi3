@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import httpx2
+import pytest
 
 from aiopenapi3 import OpenAPI
 from aiopenapi3.v30.formdata import MultipartParameter, encode_multipart_parameters
@@ -76,6 +77,30 @@ Content-Type: {request.headers["content-type"]}
     assert r["id"] == str(data.id).encode()
     assert r["profileImage"] == data.profileImage.encode()
     assert result == "ok"
+
+
+@pytest.mark.httpx2_mock(can_send_already_matched_responses=True)
+def test_formdata_file(httpx2_mock, with_paths_requestbody_formdata_encoding):
+    import io
+
+    httpx2_mock.add_response(
+        headers={"Content-Type": "application/json"},
+        json="ok",
+    )
+
+    api = OpenAPI("http://localhost/api", with_paths_requestbody_formdata_encoding, session_factory=httpx2.Client)
+    content = b"data"
+
+    api._.file(data=("test.png", io.BytesIO(content)))
+    request = httpx2_mock.get_requests()[-1]
+    assert request.content == content
+
+    api._.file(data=io.BytesIO(content))
+    request = httpx2_mock.get_requests()[-1]
+    assert request.content == content
+
+    with pytest.raises(TypeError):
+        api._.file(data=1)
 
 
 def _test_speed():
