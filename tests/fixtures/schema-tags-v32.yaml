@@ -28,6 +28,12 @@ tags:
 
 paths:
   /x:
+    additionalOperations:
+      test:
+        tags: [partner]
+        operationId: test
+        responses:
+          '204': {}
     get:
       operationId: x
       tags: [partner]

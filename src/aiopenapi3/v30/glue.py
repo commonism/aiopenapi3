@@ -192,7 +192,7 @@ class Request(RequestBase):
             if ss.in_ == "cookie":
                 self.req.cookies[ss.name] = value
 
-    def _prepare_secschemes_extra(self, scheme: str, value: str | Sequence[str]) -> None:
+    def _prepare_secschemes_extra(self, scheme: str, value: str | Sequence[str]) -> None:  # pragma: no cover
         assert (
             self.root.components
             and self.root.components.securitySchemes

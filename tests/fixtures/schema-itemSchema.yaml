@@ -144,3 +144,13 @@ paths:
             text/event-stream:
               itemSchema:
                 $ref: "#/components/schemas/ServerSentEvent"
+
+  /array:
+    get:
+      operationId: array
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Log"

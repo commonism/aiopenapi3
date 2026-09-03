@@ -90,6 +90,7 @@ def test_MediaType_itemSchema_sync(httpx2_mock, with_schema_itemSchema):
 
     api = OpenAPI("https://example.org/api/", with_schema_itemSchema, session_factory=httpx2.Client)
     LogEntry: pydantic.BaseModel = api.components.schemas["LogEntry"].get_type()
+    Log: pydantic.BaseModel = api.components.schemas["Log"].get_type()
 
     records = with_schema_itemSchema["components"]["examples"]["LogJSONPerLine"]["value"].strip("\n").split("\n")
 
@@ -115,6 +116,11 @@ def test_MediaType_itemSchema_sync(httpx2_mock, with_schema_itemSchema):
     httpx2_mock.add_response(
         url="https://example.org/api/text_events", headers={"Content-Type": "text/event-stream"}, content=ct
     )
+    httpx2_mock.add_response(
+        url="https://example.org/api/array",
+        headers={"Content-Type": "application/json"},
+        content=Log(root=[LogEntry(message=f"{i}!s") for i in range(4)]).model_dump_json(),
+    )
 
     req = api.createRequest("json_seq")
     with req.sequence() as sequence:
@@ -132,6 +138,11 @@ def test_MediaType_itemSchema_sync(httpx2_mock, with_schema_itemSchema):
             print(obj)
 
     req = api.createRequest("text_events")
+    with req.sequence() as sequence:
+        for obj in sequence:
+            print(obj)
+
+    req = api.createRequest("array")
     with req.sequence() as sequence:
         for obj in sequence:
             print(obj)
@@ -160,6 +171,15 @@ def test_PathItem_additionalOperations(httpx2_mock, with_path_additionalOperatio
     assert api._[("/api/data", "test")]() == "ok"
     request = httpx2_mock.get_requests()[-1]
     assert request.method == "TEST" and request.url.path == "/api/data"
+
+
+@pytest.mark.parametrize(
+    "sf,tag", [(httpx2.Client, True), (httpx2.Client, False), (httpx2.AsyncClient, True), (httpx2.AsyncClient, False)]
+)
+def test_iter_additionalOperations_tags(with_schema_tags_v32, sf, tag):
+    api = OpenAPI("https://example.org/api/", with_schema_tags_v32, session_factory=sf, use_operation_tags=tag)
+    for _ in api._:
+        continue
 
 
 def test_Callback_RuntimeExpression():
@@ -193,4 +213,7 @@ def test_Tag(httpx2_mock, with_schema_tags_v32):
     api = OpenAPI("https://example.org/api/", with_schema_tags_v32, session_factory=httpx2.Client)
     api._.external.partner.x()
 
-    assert sorted(filter(lambda x: x.partition(".")[0] == "external", api._.Iter(api, True))) == ["external.partner.x"]
+    assert sorted(filter(lambda x: x.partition(".")[0] == "external", api._.Iter(api, True))) == [
+        "external.partner.test",
+        "external.partner.x",
+    ]
