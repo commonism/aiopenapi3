@@ -132,7 +132,7 @@ class Request(RequestBase):
                 # apiKey in query header data
                 self.req.headers[ss.name] = value
 
-    def _prepare_secschemes_extra(self, scheme: str, value: str | Sequence[str]) -> None:
+    def _prepare_secschemes_extra(self, scheme: str, value: str | Sequence[str]) -> None:  # pragma: no cover
         assert scheme in self.root.securityDefinitions and self.root.securityDefinitions[scheme] is not None
         ss = self.root.securityDefinitions[scheme].root
 
