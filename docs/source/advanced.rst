@@ -364,6 +364,7 @@ aiopenapi3 supports sequential media for the following content types:
   * application/jsonl e.g. '{…}\n' http.Response.iter_lines http.Response.aiter_lines
   * application/x-ndjson e.g. '{…}\n' http.Response.iter_lines http.Response.aiter_lines
   * text/event-stream e.g. '[{…},' via ijson
+  * application/json e.g. '[{…},' via ijson
 
 
 Non-JSON Content
@@ -374,9 +375,11 @@ See :aioai3:ref:`tests.stream_test.test_stream_data`.
 
 JSON/Arrays of Models
 ^^^^^^^^^^^^^^^^^^^^^
-In case the large response is an array of models, iterative JSON parsing libraries can be used to process the data.
+In case the large response is an array of models, sequence() or stream() can be used.
 
-See :aioai3:ref:`tests.stream_test.test_stream_array`.
+See
+  * :aioai3:ref:`tests.sequential_test.test_array`
+  * :aioai3:ref:`tests.stream_test.test_stream_array`
 
 
 Session Factory
