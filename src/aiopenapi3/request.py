@@ -382,7 +382,10 @@ class RequestBase:
                     if num_bytes == 0:
                         return b""
 
-                    return next(self._iter_bytes)
+                    try:
+                        return next(self._iter_bytes)
+                    except StopIteration:
+                        return b""
 
             def iter_json(response: httpx2.Response) -> Iterator["JSON"]:
                 reader = ReadEventStream(response)
