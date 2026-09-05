@@ -11,29 +11,29 @@ from aiopenapi3 import (
 )
 
 
-def test_response_error(httpx_mock, with_paths_response_error_vXX):
+def test_response_error(httpx2_mock, with_paths_response_error_vXX):
     api = OpenAPI("/", with_paths_response_error_vXX, session_factory=httpx2.Client)
 
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=200, json="ok")
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, status_code=200, json="ok")
     r = api._.test()
     assert r == "ok"
 
-    httpx_mock.add_response(headers={"Content-Type": "text/html"}, status_code=200, json="ok")
+    httpx2_mock.add_response(headers={"Content-Type": "text/html"}, status_code=200, json="ok")
     with pytest.raises(ContentTypeError) as e:
         api._.test()
     str(e.value)
 
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=201, json="ok")
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, status_code=201, json="ok")
     with pytest.raises(HTTPStatusError) as e:
         api._.test()
     str(e.value)
 
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=200, content="'")
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, status_code=200, content="'")
     with pytest.raises(ResponseDecodingError) as e:
         api._.test()
     str(e.value)
 
-    httpx_mock.add_response(headers={"Content-Type": "application/json"}, status_code=200, json="fail")
+    httpx2_mock.add_response(headers={"Content-Type": "application/json"}, status_code=200, json="fail")
     with pytest.raises(ResponseSchemaError) as e:
         api._.test()
     str(e.value)
