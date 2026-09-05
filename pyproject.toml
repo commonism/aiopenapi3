@@ -42,6 +42,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 dynamic = ['version']
 
@@ -50,9 +51,9 @@ Documentation = "https://aiopenapi3.readthedocs.io/"
 Repository = "https://github.com/commonism/aiopenapi3"
 
 [project.optional-dependencies]
-auth = [
-    "httpx-auth>=0.21.0",
-]
+#auth = [
+#    "httpx2-auth>=0.21.0",
+#]
 types =[
     "pydantic-extra-types>=2.10.1",
 ]
