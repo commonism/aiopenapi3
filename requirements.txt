@@ -3,7 +3,7 @@
 .
 annotated-types==0.8.0
     # via pydantic
-anyio==4.15.0 ; sys_platform != 'emscripten'
+anyio==4.15.1 ; sys_platform != 'emscripten'
     # via httpx2
 dnspython==2.8.0
     # via email-validator
