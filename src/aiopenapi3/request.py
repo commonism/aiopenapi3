@@ -583,7 +583,10 @@ class AsyncRequestBase(RequestBase):
                     if num_bytes == 0:
                         return b""
 
-                    return await anext(self._aiter_bytes)
+                    try:
+                        return await anext(self._aiter_bytes)
+                    except StopAsyncIteration:
+                        return b""
 
             async def aiter_json(response: httpx2.Response) -> AsyncIterator["JSON"]:
                 reader = ReadEventStream(response)
