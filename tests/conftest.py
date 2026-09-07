@@ -609,3 +609,8 @@ def with_paths_parameter_querystring():
 @pytest.fixture
 def with_schema_tags_v32():
     yield _get_parsed_yaml("schema-tags-v32.yaml")
+
+
+@pytest.fixture
+def with_schema_property_null():
+    yield _get_parsed_yaml("schema-property-null.yaml")

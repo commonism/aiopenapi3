@@ -601,7 +601,7 @@ class Model:  # (BaseModel):
             else:
                 rr = None  # type: ignore[assignment]
             if nullable is True:
-                rr = rr | None  # type: ignore[assignment]
+                rr = Optional[rr]  # noqa: UP045 #type: ignore[assignment]
         elif isinstance(schema, ReferenceBase):
             rr = Model.createAnnotation(schema._target, fwdref=True)
         else:

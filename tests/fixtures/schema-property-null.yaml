@@ -1,0 +1,12 @@
+openapi: "3.1.0"
+info:
+  version: 1.0.0
+  title: enum test
+
+components:
+  schemas:
+    nullable:
+      properties:
+        token:
+          type: 'null'
+      type: object
