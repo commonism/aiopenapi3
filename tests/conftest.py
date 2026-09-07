@@ -614,3 +614,8 @@ def with_schema_tags_v32():
 @pytest.fixture
 def with_schema_property_null():
     yield _get_parsed_yaml("schema-property-null.yaml")
+
+
+@pytest.fixture(params=[_Version(3, 1, 0), _Version(3, 2, 0)], ids=["v31", "v32"])
+def with_schema_const_any(request):
+    yield _get_parsed_yaml("schema-const-any.yaml", request.param)

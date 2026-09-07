@@ -1,0 +1,15 @@
+openapi: "3.1.0"
+info:
+  version: 1.0.0
+  title: const test
+
+components:
+  schemas:
+    integer:
+      const: 1
+
+    boolean:
+      const: true
+
+    string:
+      const: "string"
