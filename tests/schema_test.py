@@ -819,3 +819,7 @@ def test_schema_title_name_collision(with_schema_title_name_collision):
 def test_schema_discriminated_union_extends(with_schema_discriminated_union_extends):
     # AssertionError: A.c0
     api = OpenAPI("/", with_schema_discriminated_union_extends)
+
+
+def test_schema_property_null(with_schema_property_null):
+    api = OpenAPI("/", with_schema_property_null)
