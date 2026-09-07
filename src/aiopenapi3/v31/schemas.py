@@ -95,7 +95,7 @@ class Schema(ObjectExtended, SchemaBase):
 
     type: str | list[str] | None = Field(default=None)
     enum: list[Any] | None = Field(default=None)
-    const: str | None = Field(default=None)
+    const: Any | None = Field(default=None)
 
     """
     6.2.  Validation Keywords for Numeric Instances (number and integer)
