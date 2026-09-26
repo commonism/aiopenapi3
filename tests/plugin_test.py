@@ -94,4 +94,4 @@ def test_Plugins(httpx2_mock, with_plugin_base):
     assert item.id == 3
     assert item.weight is None  # default does not apply as it it unsed
     assert item.color == "red"  # default does not apply
-    assert item.created == datetime.datetime.fromtimestamp(4711, tz=datetime.timezone.utc)
+    assert item.created == datetime.datetime.fromtimestamp(4711, tz=datetime.UTC)
