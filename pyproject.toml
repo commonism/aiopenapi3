@@ -16,7 +16,7 @@ dependencies = [
     "ijson",
     "jsonseq",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 readme = "README.md"
 license = {text = "BSD-3-Clause"}
 classifiers = [
