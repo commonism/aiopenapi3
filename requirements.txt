@@ -9,8 +9,6 @@ dnspython==2.8.0
     # via email-validator
 email-validator==2.3.0
     # via aiopenapi3
-exceptiongroup==1.3.1 ; python_full_version < '3.11' and sys_platform != 'emscripten'
-    # via anyio
 h11==0.16.0 ; sys_platform != 'emscripten'
     # via httpcore2
 httpcore2==2.13.1 ; sys_platform != 'emscripten'
@@ -51,9 +49,7 @@ typing-extensions==4.16.0
     # via
     #   aiopenapi3
     #   anyio
-    #   exceptiongroup
     #   httpx2
-    #   multidict
     #   pydantic
     #   pydantic-core
     #   typing-inspection
