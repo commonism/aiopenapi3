@@ -1,7 +1,7 @@
 import copy
 import typing
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx2
@@ -793,9 +793,7 @@ def test_schema_date_types(with_schema_date_types):
     Number = api.components.schemas["Number"].get_type()
     String = api.components.schemas["String"].get_type()
 
-    from datetime import timezone
-
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     ts = now.timestamp()
     v = Integer.model_validate(c := int(ts))
     assert isinstance(v.root, datetime)
