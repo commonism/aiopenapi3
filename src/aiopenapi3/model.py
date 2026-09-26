@@ -3,7 +3,6 @@ import dataclasses
 import inspect
 import logging
 import re
-import sys
 import typing
 from typing import Annotated, Any, ClassVar, Literal, Optional, TypeGuard, TypeVar, Union, cast
 
@@ -84,16 +83,6 @@ class ConfiguredRootModel(RootModel):
 
 def is_basemodel(m) -> bool:
     return bool(inspect.isclass(m) and issubclass(m, pydantic.BaseModel))
-
-
-if sys.version_info < (3, 11):
-    # pyupgrade 311-plus will remove this
-    # https://github.com/asottile/pyupgrade/issues/967
-    def is_basemodel(m) -> bool:
-        if isinstance(m, typing.GenericAlias):
-            return False
-
-        return bool(inspect.isclass(m) and issubclass(m, pydantic.BaseModel))
 
 
 @dataclasses.dataclass

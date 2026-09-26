@@ -332,7 +332,7 @@ async def test_DateTime(server, client, form_type):
     cls = client._.datetime.operation.requestBody.content[form_type].schema_.get_type()
     t = (2026, 8, 29, 15, 4, 22, 32582)
     dtl = datetime.datetime(*t)  # noqa: DTZ001
-    dt = dtl.astimezone(datetime.timezone.utc)
+    dt = dtl.astimezone(datetime.UTC)
 
     data = cls(time=dt.time(), date=dt.date(), datetime=dt, datetimelocal=dtl)
 
