@@ -7,11 +7,11 @@ import typing
 from typing import Annotated, Any, ClassVar, Literal, Optional, TypeGuard, TypeVar, Union, cast
 
 import pydantic
-from pydantic import BaseModel, ConfigDict, Field, RootModel
+from pydantic import BaseModel, ConfigDict, Field, RootModel, create_model
 
 from . import me
 from .base import ReferenceBase, SchemaBase
-from .pydanticv2 import create_model, field_class_to_schema
+from .pydanticv2 import field_class_to_schema
 
 if typing.TYPE_CHECKING:
     from ._types import DiscriminatorType, ReferenceType, SchemaType
@@ -106,11 +106,16 @@ class _ClassInfo:
         assert len(report) == 0, report
 
     @property
-    def fields(self):
-        r = []
+    def fields(self) -> dict[str, Any]:
+        f = [("__validators__", c := {})]
         for k, v in self.properties.items():
-            r.append((k, (v.annotation, v.default)))
-        return dict(r)
+            if v.annotation:
+                f.append((k, (v.annotation, v.default)))
+            else:
+                # property, computed field, no annotation
+                # https://github.com/pydantic/pydantic/issues/11709
+                c[k] = v.default
+        return dict(f)
 
     def createFields(self, schema: "SchemaType", overwrite=False):
         if schema.type == "array":
