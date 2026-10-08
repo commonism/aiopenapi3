@@ -35,9 +35,9 @@ multidict==6.9.1
     # via yarl
 propcache==0.5.4
     # via yarl
-pydantic==2.13.5
+pydantic==2.14.0
     # via aiopenapi3
-pydantic-core==2.46.5
+pydantic-core==2.50.0
     # via pydantic
 pyyaml==6.0.3
     # via aiopenapi3

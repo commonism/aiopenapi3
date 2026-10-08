@@ -6,7 +6,7 @@ authors = [
 ]
 dependencies = [
     "PyYaml",
-    "pydantic >= 2.13.0b2",
+    "pydantic >= 2.14.0",
     "email-validator",
     "yarl",
     "httpx2",
