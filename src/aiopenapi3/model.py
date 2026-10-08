@@ -107,7 +107,7 @@ class _ClassInfo:
 
     @property
     def fields(self) -> dict[str, Any]:
-        f = [("__validators__", c := {})]
+        f = [("__namespace__", c := {})]
         for k, v in self.properties.items():
             if v.annotation:
                 f.append((k, (v.annotation, v.default)))
