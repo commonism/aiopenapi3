@@ -25,7 +25,7 @@ required for use with linkcode_resolve/aioai3
 """
 
 project = "aiopenapi3"
-copyright = f"{datetime.datetime.now().date().year}, Markus Kötter"  # noqa: DTZ005
+copyright = f"{datetime.datetime.now().date().year}, Markus Kötter"
 author = "Markus Kötter"
 
 # -- General configuration ---------------------------------------------------
