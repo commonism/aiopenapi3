@@ -261,7 +261,7 @@ class _ParameterCodec:
         def flatten_dict(d: MutableMapping, key: str = ""):
             return dict(_flatten_dict(d, key))
 
-        values = {k: v for k, v in flatten_dict(values, name).items()}
+        values = {**flatten_dict(values, name)}
         return values
 
     def _encode__querystring(self, name: str, type_: str, value, schema: "v3xSchemaType", explode: bool):
