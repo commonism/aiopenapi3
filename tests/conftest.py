@@ -349,6 +349,11 @@ def with_schema_discriminated_union_deep():
 
 
 @pytest.fixture
+def with_schema_discriminated_union_name_ref():
+    yield _get_parsed_yaml("schema-discriminated-union-name-ref.yaml")
+
+
+@pytest.fixture
 def with_schema_create_update_read():
     yield _get_parsed_yaml("schema-create-update-read.yaml")
 

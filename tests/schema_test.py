@@ -825,3 +825,8 @@ def test_schema_property_null(with_schema_property_null):
 
 def test_schema_const_any(with_schema_const_any):
     api = OpenAPI("/", with_schema_const_any)
+
+
+def test_schema_discriminated_union_name_ref(with_schema_discriminated_union_name_ref):
+    # AssertionError: A.c0
+    api = OpenAPI("/", with_schema_discriminated_union_name_ref)

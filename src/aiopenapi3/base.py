@@ -149,7 +149,17 @@ class RootBase:
 
                         for k, v in value.mapping.items():
                             if not isinstance(v, _Reference):
-                                value.mapping[k] = _Reference.model_construct(ref=v)
+                                if (
+                                    "#" not in v
+                                    and "/" not in v
+                                    and root.components
+                                    and root.components.schemas
+                                    and v in root.components.schemas
+                                ):
+                                    api.log.warning(f"Discriminator mapping using Schema name {v} is not recommended.")
+                                    value.mapping[k] = _Reference.model_construct(ref=f"#/components/schemas/{v}")
+                                else:
+                                    value.mapping[k] = _Reference.model_construct(ref=v)
                             else:
                                 if v._target is None:
                                     continue
