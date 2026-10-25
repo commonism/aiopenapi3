@@ -19,7 +19,7 @@ class RequestBody(ObjectExtended):
     """
 
     description: str | None = Field(default=None)
-    content: dict[str, MediaType] = Field(...)
+    content: dict[str, MediaType | Reference] = Field(...)
     required: bool | None = Field(default=False)
 
 
